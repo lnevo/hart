@@ -89,8 +89,9 @@ SETTINGS = {"2": "Closed", "4": "Thrown"}  # JMRI turnout states in a block path
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
 
-class PageError(SystemExit):
-    """The page and the file disagree in a way only a person can fix."""
+class PageError(Exception):
+    """The page and the file disagree in a way only a person can fix. build_tables_browser.page_text gives it as a
+    BrowserDataError, which its main and the site build turn into the exit."""
 
 
 class Row(TypedDict):

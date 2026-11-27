@@ -720,12 +720,12 @@ class TheKindFromTheRow(unittest.TestCase):
     def test_a_device_not_on_the_layout_yet_is_left_out_of_a_role_query(self):
         """A level-less row (added in PanelPro, no role yet) is no layout element: a role query skips it, never stops
         on it; has, is_unplaced and where still see it."""
-        from hartlib import tables_build as TB
+        from hartlib import jmri_bean, tables_sections
         import xml.etree.ElementTree as ET
         el = ET.fromstring("<sensor inverted=\"false\"><systemName>M2S9999</systemName>"
                            "<userName>BS Store Added</userName></sensor>")
         row = unplaced("BS Store Added", layer="occupancy", system_name="M2S9999", jmri_name="M2S9999")
-        row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, el)], row)
+        row["jmri_bean"] = jmri_bean.bean_json([(tables_sections.MQTT_SENSORS, el)], row)
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "devices.csv"
             path.write_text(D.master_text([r.cells() for r in D.load()] + [row]), encoding="utf-8")

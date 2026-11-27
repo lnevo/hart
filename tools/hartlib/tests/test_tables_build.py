@@ -10,8 +10,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import devices as D, level_devices, paths, tables  # noqa: E402
-from hartlib import tables_build as tb  # noqa: E402
+from hartlib import (devices as D, jmri_bean, level_devices, paths, tables, tables_build as tb,  # noqa: E402
+                     tables_normal, tables_roundtrip, tables_sections as ts, tables_sml)
 
 
 def blank(**cells) -> dict:
@@ -133,11 +133,11 @@ class MasterBeans(unittest.TestCase):
         doc = tb.base(rows(), lengths=LENGTHS)
         root = doc.root
         sec = {tb.section_key(s): s for s in tables.elements(root)}
-        self.assertEqual(["M2S401", "M2S470", "M2S471"], [tables.system_name(e) for e in sec[tb.MQTT_SENSORS]])
-        mqtt = sec[tb.MQTT_TURNOUTS].find("turnout")
+        self.assertEqual(["M2S401", "M2S470", "M2S471"], [tables.system_name(e) for e in sec[ts.MQTT_SENSORS]])
+        mqtt = sec[ts.MQTT_TURNOUTS].find("turnout")
         self.assertEqual(("FB Switch 1 R", "FB Switch 1 N"), (mqtt.get("sensor1"), mqtt.get("sensor2")))
         self.assertEqual("Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2", mqtt.findtext("comment"))
-        alias = sec[tb.LCC_TURNOUTS].find("turnout")
+        alias = sec[ts.LCC_TURNOUTS].find("turnout")
         self.assertEqual("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2", alias.findtext("comment"))   # no DCC group
         heads = {tables.system_name(h): h.findtext("comment") for h in tables.signal_heads(root)}
         self.assertEqual({"IH432": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
@@ -210,7 +210,7 @@ class MasterBeans(unittest.TestCase):
                               "<userName>Test 999</userName></turnout>")
         row = blank(level="", layer="turnout", user_name="Test 999", assignment="field", system_name="MTT999",
                     jmri_name="MTT999")
-        row["jmri_bean"] = tb.bean_json([(tb.LCC_TURNOUTS, store)], row)
+        row["jmri_bean"] = jmri_bean.bean_json([(ts.LCC_TURNOUTS, store)], row)
         root = tb.base(rows() + [row], lengths=LENGTHS).root
         got = next(el for el in root.iter("turnout") if tables.system_name(el) == "MTT999")
         self.assertEqual(("MONITORING", "Test 999", None), (got.get("feedback"), tables.user_name(got), got.get("sensor1")))
@@ -219,7 +219,7 @@ class MasterBeans(unittest.TestCase):
         store = ET.fromstring("<turnout><systemName>MTT100</systemName></turnout>")
         row = blank(level="", layer="turnout", user_name="Test", assignment="field", system_name="MTT100",
                     jmri_name="MTT100")
-        row["jmri_bean"] = tb.bean_json([(tb.LCC_TURNOUTS, store)], row)
+        row["jmri_bean"] = jmri_bean.bean_json([(ts.LCC_TURNOUTS, store)], row)
         with self.assertRaisesRegex(tb.TablesBuildError, "a level row makes too \\(MTT100\\)"):
             tb.base(rows() + [row], lengths=LENGTHS)
 
@@ -253,7 +253,7 @@ class MasterBeansByAssignment(unittest.TestCase):
         spare = blank(layer="occupancy", role="spare", user_name="unused Block 2-2", assignment="spare",
                       system_name="M2S201", jmri_name="M2S201", wiring="Node: 2 Block: 2")
         root = tb.base(rows() + [spare], lengths=LENGTHS).root
-        self.assertIn("M2S201", self.section(root, tb.MQTT_SENSORS))
+        self.assertIn("M2S201", self.section(root, ts.MQTT_SENSORS))
         self.assertEqual({"BS Switch 1"}, {b.findtext("occupancysensor") for b in tables.blocks(root)})
 
     def test_a_virtual_part_with_a_jmri_block_takes_its_blocks_sensor(self) -> None:
@@ -276,8 +276,8 @@ class MasterBeansByAssignment(unittest.TestCase):
         lamp = blank(layer="sensor", role="panel_status", user_name="Test Lamp", assignment="virtual",
                      system_name="IS:TEST_LAMP", jmri_name="IS:TEST_LAMP", jmri_comment="Test lamp; ACTIVE=on")
         root = tb.base(rows() + [lamp], lengths=LENGTHS).root
-        self.assertIn("IS:TEST_LAMP", self.section(root, tb.INTERNAL_SENSORS))
-        self.assertNotIn("IS:TEST_LAMP", self.section(root, tb.MQTT_SENSORS))
+        self.assertIn("IS:TEST_LAMP", self.section(root, ts.INTERNAL_SENSORS))
+        self.assertNotIn("IS:TEST_LAMP", self.section(root, ts.MQTT_SENSORS))
 
     def test_a_main_or_upper_row_gives_its_bean_in_the_base(self) -> None:
         """Every level's rows give beans (naming-layers step 11: GENERATED_LEVELS went), a virtual one on its
@@ -350,16 +350,16 @@ class ShapeByColumn(unittest.TestCase):
         self.assertEqual("IS:X", tb.bean_name(blank(layer="occupancy", assignment="field", system_name="M2S4101",
                                                     jmri_name="IS:X")))
         self.assertEqual("IT:HART:C3:101", tb.bean_name(main_rows()[0]))      # system_name is the planned M2T3408
-        turnouts = self.named(self.beans(), tb.INTERNAL_TURNOUTS)
+        turnouts = self.named(self.beans(), ts.INTERNAL_TURNOUTS)
         self.assertEqual(["IT:HART:C3:101"], list(turnouts))
-        self.assertNotIn("M2T3408", self.named(self.beans(), tb.MQTT_TURNOUTS))
+        self.assertNotIn("M2T3408", self.named(self.beans(), ts.MQTT_TURNOUTS))
 
     def test_feedback_is_twosensor_on_two_fb_beans_and_direct_on_none(self) -> None:
         beans = self.beans()
-        staging = self.named(beans, tb.MQTT_TURNOUTS)["M2T408"]
+        staging = self.named(beans, ts.MQTT_TURNOUTS)["M2T408"]
         self.assertEqual(("TWOSENSOR", "FB Switch 1 R", "FB Switch 1 N"),
                          (staging.get("feedback"), staging.get("sensor1"), staging.get("sensor2")))
-        main = self.named(beans, tb.INTERNAL_TURNOUTS)["IT:HART:C3:101"]
+        main = self.named(beans, ts.INTERNAL_TURNOUTS)["IT:HART:C3:101"]
         self.assertEqual({"feedback": "DIRECT", "inverted": "false", "automate": "Off"}, dict(main.attrib))
         one = [dict(r, assignment="virtual", jmri_name="IS:HART:C3:FB101N", jmri_comment="x")
                if r["id"] == "fb:101:N" else r for r in main_rows()]
@@ -395,15 +395,15 @@ class ShapeByColumn(unittest.TestCase):
     def test_feedback_rows_are_found_on_the_turnouts_own_level(self) -> None:
         """A main switch numbered like a staging one would not take staging's feedback rows."""
         twin = [dict(r, id=r["id"].replace("101", "1")) if r["layer"] in ("turnout", "fb") else r for r in main_rows()]
-        main = self.named(tb.master_beans(rows() + twin, ALL_LENGTHS, ("1", "2")), tb.INTERNAL_TURNOUTS)
+        main = self.named(tb.master_beans(rows() + twin, ALL_LENGTHS, ("1", "2")), ts.INTERNAL_TURNOUTS)
         self.assertEqual("DIRECT", main["IT:HART:C3:101"].get("feedback"))
 
     def test_an_lcc_alias_naming_its_turnouts_bean_gives_none(self) -> None:
         beans = self.beans()
-        self.assertEqual(1, sum(1 for e in beans[tb.INTERNAL_TURNOUTS] if tables.system_name(e) == "IT:HART:C3:101"))
-        self.assertIn("MTT100", self.named(beans, tb.LCC_TURNOUTS))           # staging's alias is a bean of its own
+        self.assertEqual(1, sum(1 for e in beans[ts.INTERNAL_TURNOUTS] if tables.system_name(e) == "IT:HART:C3:101"))
+        self.assertIn("MTT100", self.named(beans, ts.LCC_TURNOUTS))           # staging's alias is a bean of its own
         own = [dict(r, jmri_name="IT:HART:C3:DCC101") if r["id"] == "dcc:101" else r for r in main_rows()]
-        self.assertIn("IT:HART:C3:DCC101", self.named(tb.master_beans(own, ALL_LENGTHS, ("2",)), tb.INTERNAL_TURNOUTS))
+        self.assertIn("IT:HART:C3:DCC101", self.named(tb.master_beans(own, ALL_LENGTHS, ("2",)), ts.INTERNAL_TURNOUTS))
 
     def test_a_turnout_with_no_switch_id_stops(self) -> None:
         bad = [dict(r, id="") if r["id"] == "switch:101" else r for r in main_rows()]
@@ -413,7 +413,7 @@ class ShapeByColumn(unittest.TestCase):
     def test_the_comment_is_the_bean_comment_where_set(self) -> None:
         beans = self.beans()
         self.assertEqual("Main and upper level, internal",
-                         self.named(beans, tb.INTERNAL_TURNOUTS)["IT:HART:C3:101"].findtext("comment"))
+                         self.named(beans, ts.INTERNAL_TURNOUTS)["IT:HART:C3:101"].findtext("comment"))
         full = {tables.system_name(b): b for b in beans[tb.BLOCKS]}
         self.assertEqual("Main and upper level, internal", full["IB:C3:0001"].findtext("comment"))   # not "Peninsula"
         self.assertEqual("Brick CP, Switch 1", full["IB:AUTO:0033"].findtext("comment"))           # wiring columns
@@ -534,23 +534,23 @@ class CommentOrder(unittest.TestCase):
 class MissingLogic(unittest.TestCase):
     def test_head_masts_need_a_source_and_virtual_masts_a_mention(self) -> None:
         root = tables.loads(STORE).root
-        self.assertEqual([], tb.missing_logic(root))
+        self.assertEqual([], tables_sml.missing_logic(root))
         box = root.find("signalmastlogics")
         box.remove(box.find("signalmastlogic"))
-        self.assertEqual(["Mast 6LB", "Mast 4LA"], tb.missing_logic(root))
+        self.assertEqual(["Mast 6LB", "Mast 4LA"], tables_sml.missing_logic(root))
 
     def test_the_committed_tables_miss_none(self) -> None:
-        self.assertEqual([], tb.missing_logic(tables.read(paths.REPO_TABLES_XML)))
+        self.assertEqual([], tables_sml.missing_logic(tables.read(paths.REPO_TABLES_XML)))
 
 
 class Order(unittest.TestCase):
     def test_jmri_order(self) -> None:
         self.assertEqual(["IH432", "IH9990", "IH:HART:C1:2L_Bottom", "IH:HART:C1:2L_Top", "IH:HART:C1:24L"],
-                         tb.jmri_order(["IH:HART:C1:24L", "IH9990", "IH:HART:C1:2L_Top", "IH432",
+                         ts.jmri_order(["IH:HART:C1:24L", "IH9990", "IH:HART:C1:2L_Top", "IH432",
                                         "IH:HART:C1:2L_Bottom"]))
         self.assertEqual(["IS:SML_MODE", "IS:TRACK_POWER", "ISCLOCKRUNNING"],
-                         tb.jmri_order(["ISCLOCKRUNNING", "IS:TRACK_POWER", "IS:SML_MODE"]))
-        self.assertEqual(["IB24", "IB:AUTO:0001"], tb.jmri_order(["IB:AUTO:0001", "IB24"]))
+                         ts.jmri_order(["ISCLOCKRUNNING", "IS:TRACK_POWER", "IS:SML_MODE"]))
+        self.assertEqual(["IB24", "IB:AUTO:0001"], ts.jmri_order(["IB:AUTO:0001", "IB24"]))
 
 
 STORE = b"""<?xml version="1.0" encoding="UTF-8"?>
@@ -596,11 +596,11 @@ class Discovered(unittest.TestCase):
 
     def test_a_store_round_trips_through_the_file(self) -> None:
         store = tables.loads(STORE).root
-        doc = tb.discovered_from_store(store)
+        doc = tables_sml.discovered_from_store(store)
         path = self.tmp / "d.xml"
-        self.assertTrue(tb.write_discovered(doc, path))
-        self.assertFalse(tb.write_discovered(doc, path))                 # unchanged bytes: not written again
-        logics, props = tb.read_discovered(path)
+        self.assertTrue(tables_sml.write_discovered(doc, path))
+        self.assertFalse(tables_sml.write_discovered(doc, path))                 # unchanged bytes: not written again
+        logics, props = tables_sml.read_discovered(path)
         self.assertEqual(["Mast 6LB"], [x.get("source") for x in logics])
         self.assertEqual(["Mast 6LB"], list(props))
         target = tables.loads(STORE).root
@@ -610,7 +610,7 @@ class Discovered(unittest.TestCase):
                 m.remove(p)
         box = target.find("signalmastlogics")
         box.remove(box.find("signalmastlogic"))
-        tb.merge_discovered(target, logics, props)
+        tables_sml.merge_discovered(target, logics, props)
         mast = tables.masts(target)[0]
         self.assertEqual(["systemName", "userName", "properties", "unlit"], [c.tag for c in tables.elements(mast)])
         self.assertEqual(["logicDelay", "signalmastlogic"], [c.tag for c in tables.elements(box)])
@@ -620,17 +620,17 @@ class Discovered(unittest.TestCase):
         box = root.find("signalmastlogics")
         box.remove(box.find("signalmastlogic"))
         with self.assertRaisesRegex(tb.TablesBuildError, "no Signal Mast Logic"):
-            tb.discovered_from_store(root)
+            tables_sml.discovered_from_store(root)
 
     def test_logic_naming_a_mast_the_tables_lack_stops(self) -> None:
-        logics, props = tb.read_discovered_root(tb.discovered_from_store(tables.loads(STORE).root), "x")
+        logics, props = tables_sml.read_discovered_root(tables_sml.discovered_from_store(tables.loads(STORE).root), "x")
         target = tables.loads(STORE).root
         box = target.find("signalmastlogics")
         box.remove(box.find("signalmastlogic"))
         sm = target.find("signalmasts")
         sm.remove(sm.find("virtualsignalmast"))
         with self.assertRaisesRegex(tb.TablesBuildError, "names masts the tables do not hold \\(Mast 4LA\\)"):
-            tb.merge_discovered(target, logics, props)
+            tables_sml.merge_discovered(target, logics, props)
 
     def test_a_bad_discovered_file_stops(self) -> None:
         for body, why in (("<other />", "not <discovered-sml>"),
@@ -638,12 +638,12 @@ class Discovered(unittest.TestCase):
                           ("<discovered-sml><x /></discovered-sml>", "neither signalmastlogic"),
                           ("<discovered-sml><mastproperties mast='M' /></discovered-sml>", "exactly one")):
             with self.subTest(why=why), self.assertRaisesRegex(tb.TablesBuildError, why):
-                tb.read_discovered_root(ET.fromstring(body), "d.xml")
+                tables_sml.read_discovered_root(ET.fromstring(body), "d.xml")
         with self.assertRaisesRegex(tb.TablesBuildError, "cannot read it"):
-            tb.read_discovered(self.tmp / "none.xml")
+            tables_sml.read_discovered(self.tmp / "none.xml")
 
     def test_the_committed_file_names_only_masts_of_the_tables(self) -> None:
-        logics, props = tb.read_discovered()
+        logics, props = tables_sml.read_discovered()
         masts = {tables.user_name(m) for m in tables.masts(tables.read(paths.REPO_TABLES_XML))}
         named = {x.get("source") for x in logics} | {d.get("destination") for x in logics
                                                      for d in x.findall("destinationMast")}
@@ -679,7 +679,7 @@ SORTABLE = b"""<?xml version="1.0" encoding="UTF-8"?>
 class StoreOrder(unittest.TestCase):
     def test_beans_take_jmri_order_and_settings_stay(self) -> None:
         root = tables.loads(SORTABLE).root
-        tb.jmri_sort(root)
+        ts.jmri_sort(root)
         internal = root.find("sensors")
         self.assertEqual(["defaultInitialState", "IS:HART:C3:B:101", "IS:SML_MODE", "ISCLOCKRUNNING"],
                          [tables.system_name(e) or e.tag for e in tables.elements(internal)])
@@ -690,7 +690,7 @@ class StoreOrder(unittest.TestCase):
 
     def test_the_generated_file_is_in_store_order(self) -> None:
         doc = tables.loads(paths.REPO_TABLES_XML.read_bytes())
-        tb.jmri_sort(doc.root)
+        ts.jmri_sort(doc.root)
         tb.finish(doc.root)
         self.assertEqual(paths.REPO_TABLES_XML.read_bytes(), doc.tobytes())
 
@@ -711,13 +711,13 @@ class RoundTrip(unittest.TestCase):
 
     def test_a_store_of_the_generated_file_normalises_to_its_bytes(self) -> None:
         generated = paths.REPO_TABLES_XML.read_bytes()
-        self.assertEqual([], tb.roundtrip_differences(self.store_of(generated), generated))
+        self.assertEqual([], tables_roundtrip.roundtrip_differences(self.store_of(generated), generated))
 
     def test_a_changed_store_is_shown(self) -> None:
         generated = paths.REPO_TABLES_XML.read_bytes()
         store = self.store_of(generated).replace(b"<userName>Clock running</userName>",
                                                  b"<userName>Clock</userName>")
-        diff = tb.roundtrip_differences(store, generated)
+        diff = tables_roundtrip.roundtrip_differences(store, generated)
         self.assertIn("-      <userName>Clock running</userName>", diff)
         self.assertIn("+      <userName>Clock</userName>", diff)
 
@@ -726,7 +726,7 @@ class RoundTrip(unittest.TestCase):
             store, counts = Path(tmp) / "store.xml", Path(tmp) / "paths.tsv"
             store.write_bytes(self.store_of(paths.REPO_TABLES_XML.read_bytes()))
             counts.write_text("IB1\tOS Switch 13\t3\nIB3\tTrack Scale\t0\n", encoding="utf-8")
-            ok, lines = tb.roundtrip_report(store, counts, paths.REPO_TABLES_XML)
+            ok, lines = tables_roundtrip.roundtrip_report(store, counts, paths.REPO_TABLES_XML)
             self.assertFalse(ok)
             self.assertTrue(any(line.startswith("FAIL: staging blocks with no derived path: ") and "IB3" in line
                                 for line in lines), lines)
@@ -735,7 +735,7 @@ class RoundTrip(unittest.TestCase):
             self.assertEqual("FAIL: the PanelPro round trip does not give the generated tables.xml back", lines[-1])
             counts.write_text("IB1 broken\n", encoding="utf-8")
             with self.assertRaisesRegex(tb.TablesBuildError, "line 1 is not"):
-                tb.roundtrip_report(store, counts, paths.REPO_TABLES_XML)
+                tables_roundtrip.roundtrip_report(store, counts, paths.REPO_TABLES_XML)
 
 
 PANEL = (
@@ -754,7 +754,7 @@ class PanelRewrites(unittest.TestCase):
     """normalise_panel: each rewrite a PanelPro Store makes to the panel compares equal, and nothing more does."""
 
     def same(self, store: str) -> list[str]:
-        return tb.roundtrip_differences(store.encode(), PANEL.encode())
+        return tables_roundtrip.roundtrip_differences(store.encode(), PANEL.encode())
 
     def test_window_state(self) -> None:
         self.assertEqual([], self.same(PANEL.replace('x="0" y="0" sliders="no" windowwidth="1900" windowheight="1140"',
@@ -799,7 +799,7 @@ class Envelope(unittest.TestCase):
                                           b"<systemName>IM1</systemName></memory></memories><signalmasts>")).root
         self.assertEqual(["filehistory", "the 'Written by' comment", "timebase@time", "memory@value"],
                          tb.envelope_items(root))
-        tb.strip_envelope(root)
+        tables_normal.strip_envelope(root)
         self.assertEqual([], tb.envelope_items(root))
 
     def test_the_generated_file_has_the_fixed_envelope(self) -> None:

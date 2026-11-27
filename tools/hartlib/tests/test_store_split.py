@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import devices as D, tables  # noqa: E402
+from hartlib import devices as D, jmri_bean, tables, tables_sections  # noqa: E402
 from hartlib import store_plan as sp  # noqa: E402
 from hartlib import store_split as ss  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
@@ -215,8 +215,8 @@ class AddedDevices(unittest.TestCase):
         self.assertEqual(("", "", "turnout", "", "Test 999", "field", "MTT999", "MTT999"),
                          tuple(row[c] for c in ("level", "cp", "layer", "role", "user_name", "assignment",
                                                 "system_name", "jmri_name")))
-        [(sec, el)] = tb.row_beans(row)
-        self.assertEqual(tb.LCC_TURNOUTS, sec)
+        [(sec, el)] = jmri_bean.row_beans(row)
+        self.assertEqual(tables_sections.LCC_TURNOUTS, sec)
         self.assertEqual(ss.canon(store.find("turnouts").find("turnout[systemName='MTT999']")), ss.canon(el))
         self.assertNotIn("Test 999", row["jmri_bean"])      # the user name is the column's, not a second copy
 
@@ -243,7 +243,7 @@ class AddedDevices(unittest.TestCase):
         row = d.edits[0].row
         self.assertEqual(("block", "Test block", "IB99", "ILB99", "Owner's"),
                          (row["layer"], row["user_name"], row["jmri_name"], row["layout_block"], row["jmri_comment"]))
-        self.assertEqual(3, len(tb.row_beans(row)))
+        self.assertEqual(3, len(jmri_bean.row_beans(row)))
         D.check_rows(ROWS + [row])
 
 
@@ -300,7 +300,7 @@ class UnplacedRows(unittest.TestCase):
 
     def test_the_build_gives_the_stores_bean_back(self) -> None:
         kept = tb.kept_beans(self.rows)
-        [el] = kept[tb.LCC_TURNOUTS]
+        [el] = kept[tables_sections.LCC_TURNOUTS]
         self.assertEqual(ss.canon(self.repo.find("turnouts").find("turnout[systemName='MTT999']")), ss.canon(el))
 
 
@@ -642,7 +642,7 @@ class RepeatedSettings(unittest.TestCase):
 class Invariants(unittest.TestCase):
     """The checks plan and verify make on their own records."""
 
-    KEY = ss.BeanKey("bean", tb.LCC_TURNOUTS, "turnout", "bean", "M2T408")
+    KEY = ss.BeanKey("bean", tables_sections.LCC_TURNOUTS, "turnout", "bean", "M2T408")
 
     def test_a_device_draft_with_no_edits_stops(self) -> None:
         draft = sp.Draft(ss.DEVICE, self.KEY, sp.Sides(None, None, None), "userName", "merge writes nothing")

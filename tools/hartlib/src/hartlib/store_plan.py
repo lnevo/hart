@@ -15,7 +15,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Final, Literal, NamedTuple
 
-from . import devices, tables
+from . import devices, jmri_bean, tables, tables_sections
 from . import tables_build as tb
 from .store_items import (LAYER_OF, VERSION, SplitError, change_text, claimed_by, claimed_name, index, label,
                           name_holder, newer_jmri, parts, repeated_settings, row_at, row_index, rows_of, value)
@@ -246,14 +246,14 @@ def _build_drafts(c: Compared, key: ItemKey, sides: Sides, el: ET.Element, level
                   ) -> list[Draft]:
     """The drafts of an item the build owns: a level-less device's bean goes to `level_less` instead."""
     b, g, s = sides
-    if isinstance(key, BeanKey) and key.section in tb.MASTER_SECTIONS:
+    if isinstance(key, BeanKey) and key.section in tables_sections.MASTER_SECTIONS:
         found = rows_of(c.rindex, key, g if g is not None else b if b is not None else el)
         mine = [i for i in found if devices.is_unplaced(c.rows[i])]
         if mine:
             level_less.changed.setdefault(mine[0], []).append(Touched(key, sides))
             return []
         if g is None and b is None and s is not None and not claimed_name(key, s, c.rows):
-            name = tables.user_name(s) if key.section in (tb.BLOCKS, tb.LAYOUT_BLOCKS) else ""
+            name = tables.user_name(s) if key.section in (tables_sections.BLOCKS, tables_sections.LAYOUT_BLOCKS) else ""
             level_less.added.setdefault((LAYER_OF[key.section[0]], name or key.name), []).append(Added(key, b, s))
             return []
     if s is None:
@@ -340,7 +340,7 @@ def _source(key: ItemKey) -> str:
         return "the schematic sources (wiki/pipelines/schematic-panels.md)"
     if kind == "logic":
         return "the discovery (jmri/layouts/hart/scripts/run_sml_discover.sh)"
-    if kind == "bean" and key[1] in tb.MASTER_SECTIONS:
+    if kind == "bean" and key[1] in tables_sections.MASTER_SECTIONS:
         return f"the device master ({devices.FIELD_FILE} for the owner's cells, else the builders' inputs)"
     return "the Layout Editor build's sources (wiki/pipelines/schematic-panels.md)"
 
@@ -450,17 +450,17 @@ def unplaced_row(beans: list[tuple[SecKey, ET.Element]], old: Mapping[str, str] 
     from the main bean (a block's full pass, else the one bean), the rest of the beans in jmri_bean. `old`, the row
     as it was, keeps its description."""
     layer = LAYER_OF[beans[0][0][0]]
-    main = next((el for sk, el in beans if sk == tb.BLOCKS and tb.sort_group(el) == "block"),
-                next(el for sk, el in beans if sk != tb.LAYOUT_BLOCKS))
+    main = next((el for sk, el in beans if sk == tables_sections.BLOCKS and tables_sections.sort_group(el) == "block"),
+                next(el for sk, el in beans if sk != tables_sections.LAYOUT_BLOCKS))
     system = tables.system_name(main)
     row = dict.fromkeys(devices.COLUMNS, "")
     row.update(layer=layer, user_name=tables.user_name(main) or system, assignment="field", system_name=system,
                jmri_name=system, jmri_comment=(main.findtext("comment") or "").strip(),
                description=old["description"] if old else UNPLACED_DESCRIPTION)
-    lb = [el for sk, el in beans if sk == tb.LAYOUT_BLOCKS]
+    lb = [el for sk, el in beans if sk == tables_sections.LAYOUT_BLOCKS]
     if lb:
         row["layout_block"] = tables.system_name(lb[0])
-    row["jmri_bean"] = tb.bean_json(beans, row)
+    row["jmri_bean"] = jmri_bean.bean_json(beans, row)
     return row
 
 
@@ -476,7 +476,7 @@ def _added_drafts(added: Mapping[tuple[str, str], list[Added]], rows: list[Mappi
         first = got[0]
         sides = Sides(first.base, None, first.store)
         beans = [(a.key.section, a.store) for a in got]
-        if all(sk == tb.LAYOUT_BLOCKS for sk, _ in beans):
+        if all(sk == tables_sections.LAYOUT_BLOCKS for sk, _ in beans):
             out.append(Draft(DROPPED, first.key, sides, "added in the Store", (
                 "a layout block with no block of the same user name added with it; add the block, or name the "
                 "layout block as its block")))
@@ -536,8 +536,8 @@ def _row_side(old: Mapping[str, str], got: list[Touched], *, store: bool) -> lis
         return sides.store if store else sides.base
 
     out = []
-    for sk, el in tb.row_beans(old):
-        k = BeanKey("bean", sk, el.tag, tb.sort_group(el), tables.system_name(el) or "")
+    for sk, el in jmri_bean.row_beans(old):
+        k = BeanKey("bean", sk, el.tag, tables_sections.sort_group(el), tables.system_name(el) or "")
         v = pick(by_key[k]) if k in by_key else el
         if v is not None:
             out.append((sk, v))
