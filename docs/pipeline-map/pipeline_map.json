@@ -42,61 +42,171 @@
    "label": "Schematic",
    "focus": "docs/ops/schematic-system-draft.svg",
    "up": 3,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:owner-anyrail",
+    "ext:anyrail-plan",
+    "external/model-railroad-skills/plugins/schematic-maps",
+    "jmri/layouts/hart/data/schematic/inputs/main.json",
+    "tools/schematic/publish_draft.py",
+    "docs/ops/schematic-system-draft.svg"
+   ]
   },
   {
    "label": "Layout Editor",
    "focus": "tools/schematic/build_layout_le.py",
    "up": 1,
-   "down": 2
+   "down": 2,
+   "line": [
+    "human:owner-anyrail",
+    "ext:anyrail-plan",
+    "external/model-railroad-skills/plugins/schematic-maps",
+    "jmri/layouts/hart/data/schematic/inputs/main.json",
+    "tools/schematic/build_device_map.py",
+    "jmri/layouts/hart/data/devices_generated.csv",
+    "tools/schematic/build_layout_le.py",
+    "tools/schematic/build_tables.py",
+    "jmri/layouts/hart/output/tables.xml",
+    "host:panelpro",
+    "host:pi"
+   ]
   },
   {
    "label": "tables.xml",
    "focus": "jmri/layouts/hart/output/tables.xml",
    "up": 2,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:owner-anyrail",
+    "ext:anyrail-plan",
+    "external/model-railroad-skills/plugins/schematic-maps",
+    "jmri/layouts/hart/data/schematic/inputs/main.json",
+    "tools/schematic/build_device_map.py",
+    "jmri/layouts/hart/data/devices_generated.csv",
+    "tools/schematic/build_tables.py",
+    "jmri/layouts/hart/output/tables.xml",
+    "host:panelpro",
+    "host:pi"
+   ]
   },
   {
    "label": "CTC desk",
    "focus": "cats/panels/HART_CTC.xml",
    "up": 2,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:owner-anyrail",
+    "ext:anyrail-plan",
+    "external/model-railroad-skills/plugins/schematic-maps",
+    "jmri/layouts/hart/data/schematic/inputs/main.json",
+    "tools/schematic/build_device_map.py",
+    "jmri/layouts/hart/data/devices_generated.csv",
+    "tools/schematic/build_cats_panel.py",
+    "cats/panels/HART_CTC.xml",
+    "host:cats",
+    "host:pi"
+   ]
   },
   {
    "label": "Device master",
    "focus": "jmri/layouts/hart/data/devices_generated.csv",
    "up": 1,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:owner-csv-edits",
+    "jmri/layouts/hart/data/devices_field.csv",
+    "tools/schematic/build_device_map.py",
+    "jmri/layouts/hart/data/devices_generated.csv",
+    "tools/schematic/build_tables.py",
+    "jmri/layouts/hart/output/tables.xml",
+    "host:panelpro",
+    "host:pi"
+   ]
   },
   {
    "label": "Wiring",
    "focus": "jmri/layouts/hart/data/wiring.csv",
    "up": 1,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:owner",
+    "jmri/layouts/hart/data/wiring.csv",
+    "tools/schematic/build_device_map.py",
+    "jmri/layouts/hart/data/devices_generated.csv",
+    "tools/schematic/build_tables.py",
+    "jmri/layouts/hart/output/tables.xml",
+    "host:panelpro",
+    "host:pi"
+   ]
   },
   {
-   "label": "Operations Pro",
+   "label": "Operations",
    "focus": "jmri/layouts/hart/operations",
    "up": 1,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:operating-session",
+    "ext:sts-live",
+    "jmri/layouts/hart/scripts/sts_car_sync.py",
+    "ext:operations-pro",
+    "tools/ops/pull_ops.sh",
+    "jmri/layouts/hart/operations",
+    "tools/hosts/sync_hart_package.sh",
+    "host:pi"
+   ]
   },
   {
    "label": "Car cards",
    "focus": "ops/car-cards/print",
    "up": 2,
-   "down": 0
+   "down": 0,
+   "line": [
+    "human:owner-photos",
+    "ops/car-cards/incoming",
+    "ops/hart-ops/card_pipeline/intake_stages.py",
+    "ops/car-cards/car-images/CarImagesFinal",
+    "ops/car-cards/CarImagesCardFillPrint",
+    "ops/hart-ops/card_pipeline/generate_all_cards.py",
+    "ops/car-cards/print"
+   ]
   },
   {
    "label": "Website build",
    "focus": "ext:site-dist",
    "up": 1,
-   "down": 1
+   "down": 1,
+   "line": [
+    "human:www-authoring",
+    "www/data/articles.json",
+    "www/scripts/prepare_github_pages.py",
+    "ext:site-dist",
+    "www/scripts/deploy_hartrailroad.sh",
+    "host:web-server"
+   ]
   },
   {
    "label": "Agent docs",
    "focus": "AGENTS.md",
    "up": 0,
-   "down": 2
+   "down": 1,
+   "line": [
+    "AGENTS.md"
+   ],
+   "also": [
+    ".claude/agents/finding-verifier.md",
+    ".claude/commands/done.md",
+    ".claude/skills/coordinate/SKILL.md",
+    ".claude/skills/deploy/SKILL.md",
+    ".claude/skills/handoff/SKILL.md",
+    ".cursor",
+    "docs/pipeline-map/pipeline_map.json",
+    "wiki/AGENTS_GIT.md",
+    "wiki/decisions",
+    "wiki/home.md",
+    "wiki/not-pending.md",
+    "wiki/pipelines",
+    "wiki/projects"
+   ]
   }
  ],
  "nodes": [
@@ -5937,6 +6047,15 @@
    "path": "docs/ops/session4/out"
   },
   {
+   "id": ".claude/skills/dashboard/sampler.sh",
+   "label": "dashboard sampler.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Live-dashboard sampler: every 2 minutes one JSON line with Mac and Windows load, remote runs, Claude sessions and agents, for the coordinator's dashboard (dashboard skill).",
+   "path": ".claude/skills/dashboard/sampler.sh"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -6054,6 +6173,16 @@
    "domain": "agents",
    "desc": "Use when more than one Claude session works on the repo at once, before merging any PR while another session runs, when a session messages about a merge queue (\"ready",
    "path": ".claude/skills/coordinate/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/dashboard/SKILL.md",
+   "label": "skill: dashboard",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when coordinating more than one lane, agent or session, when the owner asks for status or an ETA, when a lane, PR, deploy or report card changes state, or before a /clear.",
+   "path": ".claude/skills/dashboard/SKILL.md",
    "gen": "agent-docs"
   },
   {
@@ -13938,6 +14067,14 @@
    "gen": "manifest"
   },
   {
+   "from": ".claude/skills/dashboard/sampler.sh",
+   "to": "tools/env/load_env.sh"
+  },
+  {
+   "from": ".claude/skills/dashboard/SKILL.md",
+   "to": ".claude/skills/dashboard/sampler.sh"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -14044,6 +14181,20 @@
   },
   {
    "from": ".claude/skills/coordinate/SKILL.md",
+   "to": ".claude/skills/dashboard/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/coordinate/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": ".claude/skills/dashboard/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",

@@ -122,7 +122,7 @@
 
   /* ---- address bar: #focus=<id>&up=all&down=2 or lane=<lane>,<lane> or map=all, the filters (writeFacets:
      lanes=, kind=, status=, step=, writers=, side=, rest=hide), trim=1&compact=0&folders=1&open=<folder>,<folder>
-     &hover=0&near=1&steps=N&eff=1&node=<id>, and with Share also at=<x>,<y>,<width>,<aspect> (the zoom, position and
+     &hover=0&near=1&steps=N&eff=1&node=<id>, line=1 (a Start button's main line, with focus and no node), and with Share also at=<x>,<y>,<width>,<aspect> (the zoom, position and
      lane stretch) and cap= (the sharer's box size) */
   function writeHash(withView = false) {
     const h = new URLSearchParams();
@@ -138,6 +138,7 @@
     if (withView && view.steps && view.boxCap) h.set("cap", String(+view.boxCap.toFixed(3)));  // with the sharer's box size  // (an older width= link is ignored: it meant wider boxes)
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
+    else if (view.line && view.focus) h.set("line", "1");
     if (view.eff) h.set("eff", "1");
     if (!view.overview && isOverviewHash(h)) h.set("map", "all");  // the whole map: an empty address is the overview
     if (withView && lay) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
@@ -172,6 +173,7 @@
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
     selected = selectableId(node, id => Object.hasOwn(byId, id)) ? node : null;
+    view.line = h.get("line") === "1" && !!view.focus && !selected;
     if (selected && Object.hasOwn(byId, selected) && !view.focus) view.f.status = withStatus(view.f, view.hide, byId[selected].status || "live");  // keep a shared box in view
     fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();

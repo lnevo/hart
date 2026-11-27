@@ -18,14 +18,7 @@ The transport is Claude Code's own: `ListAgents` names the live sessions, `SendM
 
 ## Dashboard (owner, 2026-11-26)
 
-Whoever coordinates more than one lane, a session or a background coordinator agent, publishes a live dashboard for the owner, without being asked, so that the owner never has to ask for status.
-
-1. **Create it** at the start of the wave, from the Data artifact type: Artifact `quickstart` with intent `other`, then publish with its `type_url`. Put its link on the project page under the `Coordinator:` line, and give it to the owner once.
-2. **Write it with `ArtifactData`, in one batch.** The batch holds `dash/meta`, two datasets whose `source` is `{kind: "store", path: …}`, and `files/index.html`, its `{text}` taken from [`dashboard/index.html`](dashboard/index.html). The two datasets are `lanes`, at `data/<wave>/lanes`, and `events`, at `data/<wave>/events`.
-   - A lanes doc holds {lane, scope, status, stage, pr, eta, updated, order}, one doc per lane, and per item another session runs. Its status is one of queued, running, remote, review, ci, merged, done, blocked or failed.
-   - An events doc holds {at: "HH:MM", text}, one doc per update.
-3. **Keep it current.** Update it at every milestone: a lane starting, gates passing, a remote check starting or failing, a PR opening, a merge, a deploy, a blocker, an ETA change. Use `update` with `if_version` on a lane doc, and `set` for a new event. Lane agents report their stage and ETA in their progress lines, and the coordinator moves those onto the dashboard. A coordinator agent without `ArtifactData` writes the same updates as JSON lines to its progress folder, and the main session syncs them.
-4. Then the owner's "eta" or "status" gets the dashboard link and one line. The dashboard says the rest.
+The coordinator keeps a live dashboard of every lane, every other session's PR, every deploy and the report card, and updates each row itself in the same turn that something changes. The [`dashboard`](../dashboard/SKILL.md) skill is the standard: set-up, rows, events, the sampler and when to update. A lane session tells the coordinator its plan and each change; the coordinator writes the row.
 
 ## Files other sessions own
 
@@ -42,7 +35,7 @@ Whoever coordinates more than one lane, a session or a background coordinator ag
 2. Merge `origin/main` into the branch (never rebase; force-push is blocked), regenerate what it owns, run `python3 tools/ops/build_pipeline_map.py --check` if the map merged, push.
 3. Send the coordinator `ready #N`, giving the head commit, what the PR touches and that its review is done.
 4. Wait for `go #N`. If `main` moves first, merge it in again and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.
-5. On go: wait for `check` to pass on that head (`gh pr checks N --watch --required`), merge with `gh pr merge N --merge` (never `--admin`), and send back the merge commit.
+5. On go: wait for `check` to pass on that head (`gh pr checks N --watch --required`), merge with `gh pr merge N --merge --match-head-commit <sha>` for the head whose `check` passed, so a push after the go cannot merge unchecked (never `--admin`), and send back the merge commit.
 6. In the same message, say what the PR ships. Compare its files with `tools/hosts/live_paths.txt` for the layout hosts, and look for `www/` for the website; name the paths. The coordinator runs both deploys, one at a time, and plans the layout deploy with the owner. A lane session does not deploy while others run.
 
 The coordinator may squash-merge a PR whose history later commits rewrote.
