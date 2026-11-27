@@ -14,7 +14,8 @@ const { El, roots, mk, doc } = require("./fake_dom.js");
 const WWW = path.join(__dirname, "..", "..");
 const SCRIPTS = ["js/game-engine.js", "js/track-warrant.js", "exam/signals.js", "exam/run.js", "exam/run-1949.js", "exam/run-modern.js",
   "exam/run-signals.js", "exam/run-yard.js", "exam/run-title.js"]; // run.html's order
-const ERAS = ["tto", "twc", "yard", "sig"];
+const ERAS = ["tto", "twc", "yard", "sig"]; // the start buttons
+const RUNS = ["tto", "twc", "yard", "sigs", "sigr"]; // "sig" plays speed signals, or route signals with the switch on
 const MAX_STEPS = 2000;
 const DUMP = process.argv.includes("--dump");
 
@@ -68,11 +69,13 @@ const scene = doc.getElementById("xwScene");
 /* Plays one run of era to its end screen. choose picks the button to press from the ones that can be pressed; screens,
    when given, collects every screen and its result box and, at the end, the log, the misses and the status line. */
 function play(era, choose, screens) {
-  eraBtns[ERAS.indexOf(era)].onclick();
+  sigSys.checked = era === "sigr";
+  eraBtns[ERAS.indexOf(era.startsWith("sig") ? "sig" : era)].onclick();
+  assert.strictEqual(X.state.era, era);
   let steps = 0;
   while (!scene.querySelector("#again")) {
     assert.ok(++steps < MAX_STEPS, `${era}: no end screen after ${MAX_STEPS} clicks`);
-    if (screens) screens.push(scene.innerHTML);
+    if (screens) screens.push(scene.innerHTML, doc.getElementById("xwSheet").innerHTML);
     const live = scene.querySelectorAll("button").filter((x) => !x.disabled && x.onclick);
     assert.ok(live.length, `${era}: a scene with no button to press:\n${scene.innerHTML.slice(0, 300)}`);
     const b = choose(live);
@@ -100,12 +103,12 @@ if (DUMP) { // --dump N: N draws of each run, each button chosen from a second s
     return right && choice([0, 1, 2, 3, 4, 5, 6, 7, 8]) ? right : choice(bs);
   };
   const screens = {};
-  for (const era of ERAS) for (let d = 0; d < draws; d++) play(era, d ? (d % 2 ? careful : choice) : (bs) => bs[0], screens[`${era} ${d}`] = []);
+  for (const era of RUNS) for (let d = 0; d < draws; d++) play(era, d ? (d % 2 ? careful : choice) : (bs) => bs[0], screens[`${era} ${d}`] = []);
   console.log(JSON.stringify(screens, null, 1));
   process.exit(0);
 }
 
-for (const era of ERAS) {
+for (const era of RUNS) {
   const steps = play(era, (bs) => bs[0]);
   if (era === "tto") { // the clock on a 24-hour face, as in play: a minute past midnight is 0:01, not 24:01
     X.state.clock = 1441; X.renderStatus();
