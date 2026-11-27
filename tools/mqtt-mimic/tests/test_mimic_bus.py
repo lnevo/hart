@@ -3,9 +3,9 @@ publish is a mock: nothing runs, nothing reaches a broker."""
 from __future__ import annotations
 
 import io
-from collections.abc import Iterator
 import sys
 import unittest
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from unittest import mock
 
@@ -29,6 +29,20 @@ def fake_bus() -> tuple[MB.Bus, list[dict[str, object]]]:
         bus._stop.set()
     bus.emit = emit  # type: ignore[method-assign,assignment]
     return bus, events
+
+
+class _AtOnce:
+    """threading.Timer that runs its function when started (the wait grace already over)."""
+
+    def __init__(self, _interval: float, fn: Callable[[], object]) -> None:
+        self.fn = fn
+        self.daemon = False
+
+    def start(self) -> None:
+        self.fn()
+
+    def cancel(self) -> None:
+        pass
 
 
 class Clients(unittest.TestCase):
@@ -85,7 +99,7 @@ class Heard(unittest.TestCase):
         self.assertEqual((state["sensors"], state["turnouts"], state["heads"]),
                          ({"100": "ACTIVE"}, {"7": "THROWN"}, {"432": "RED"}))
         self.assertEqual([e["type"] for e in events], ["sensor", "turnout", "head"])
-        self.assertEqual(state["mqtt"], {"host": "broker.invalid", "connected": False})
+        self.assertEqual(state["mqtt"], {"host": "broker.invalid", "connected": False, "waiting": False, "error": ""})
 
     def test_a_full_stream_is_dropped(self) -> None:
         with mock.patch.object(MB, "_which", lambda name: f"/bin/{name}"):
@@ -179,8 +193,77 @@ class Reconnect(unittest.TestCase):
 
     def test_only_subscribed_topic_lines_are_messages(self) -> None:
         self.assertTrue(MB.is_message("track/signalhead/432 RED\n"))
-        for line in ("Error: Connection refused", "track/other/1 X", "track/sensor/1", ""):
+        for line in ("track/sensor/1 \n", "track/sensor/1\n"):     # a cleared retained topic: no payload
+            self.assertTrue(MB.is_message(line), line)
+        for line in ("Error: Connection refused", "track/other/1 X", "", "  \n"):
             self.assertFalse(MB.is_message(line), line)
+
+    def run_quiet(self, lines: list[str]) -> list[dict[str, object]]:
+        """One run of a subscriber that is still running when the wait grace ends (the timer fires at once)."""
+        bus, events = fake_bus()
+        bus.emit = events.append  # type: ignore[method-assign,assignment]
+        proc = mock.Mock(stdout=iter(lines), **{"wait.return_value": 0, "poll.return_value": None})
+        with mock.patch.object(MB.subprocess, "Popen", return_value=proc), \
+                mock.patch.object(MB.threading, "Timer", _AtOnce):
+            bus._subscribe_once(bus.sub_command())
+        return events
+
+    def test_a_quiet_broker_shows_waiting_then_the_exit(self) -> None:
+        self.assertEqual(self.run_quiet([]), [
+            {"type": "mqtt", "connected": False, "waiting": True, "host": "broker.invalid"},
+            {"type": "mqtt", "connected": False, "error": "mosquitto_sub exited (0)"}])
+
+    def test_waiting_ends_at_the_first_message(self) -> None:
+        events = self.run_quiet(["track/sensor/100 ACTIVE\n"])
+        self.assertEqual([(e["type"], e.get("connected"), e.get("waiting")) for e in events],
+                         [("mqtt", False, True), ("mqtt", True, None), ("sensor", None, None), ("mqtt", False, None)])
+
+    def test_waiting_is_in_the_snapshot_and_shown_once(self) -> None:
+        bus, events = fake_bus()
+        bus.emit = events.append  # type: ignore[method-assign,assignment]
+        bus._set_connected(False, "refused")
+        bus._set_waiting()
+        bus._set_waiting()
+        self.assertEqual(bus.snapshot()["mqtt"], {"host": "broker.invalid", "connected": False, "waiting": True,
+                                                  "error": ""})
+        self.assertEqual(len(events), 2)
+        bus._set_connected(True)
+        bus._set_waiting()
+        self.assertEqual(events[-1], {"type": "mqtt", "connected": True, "host": "broker.invalid"})
+        self.assertFalse(bus.snapshot()["mqtt"]["waiting"])
+
+    def test_a_refused_subscriber_that_exits_at_once_never_shows_waiting(self) -> None:
+        bus, events = fake_bus()
+        bus.emit = events.append  # type: ignore[method-assign,assignment]
+        proc = mock.Mock(stdout=iter(["Error: Connection refused\n"]), **{"wait.return_value": 1, "poll.return_value": 1})
+        with mock.patch.object(MB.subprocess, "Popen", return_value=proc), \
+                mock.patch.object(MB.threading, "Timer", _AtOnce):
+            bus._subscribe_once(bus.sub_command())
+        self.assertEqual(events, [{"type": "mqtt", "connected": False,
+                                   "error": "mosquitto_sub exited (1): Error: Connection refused"}])
+
+    def test_a_read_error_still_ends_the_client(self) -> None:
+        def broken() -> Iterator[str]:
+            raise RuntimeError("pipe")
+            yield ""
+        for wait in ({"return_value": -15}, {"side_effect": MB.subprocess.TimeoutExpired("mosquitto_sub", 2)}):
+            bus, events = fake_bus()
+            bus.emit = events.append  # type: ignore[method-assign,assignment]
+            proc = mock.Mock(stdout=broken(), **{"poll.return_value": None}, **{f"wait.{k}": v for k, v in wait.items()})
+            with mock.patch.object(MB.subprocess, "Popen", return_value=proc), self.assertRaises(RuntimeError):
+                bus._subscribe_once(bus.sub_command())
+            proc.terminate.assert_called_once_with()
+            proc.wait.assert_called_once_with(timeout=2)
+            self.assertEqual(proc.kill.call_count, 0 if "return_value" in wait else 1)
+
+    def test_a_client_that_exits_by_itself_keeps_its_exit_code(self) -> None:
+        bus, events = fake_bus()
+        bus.emit = events.append  # type: ignore[method-assign,assignment]
+        proc = mock.Mock(stdout=iter([]), **{"wait.return_value": 3, "poll.return_value": None})   # still exiting
+        with mock.patch.object(MB.subprocess, "Popen", return_value=proc):
+            bus._subscribe_once(bus.sub_command())
+        proc.terminate.assert_not_called()
+        self.assertEqual(events[-1]["error"], "mosquitto_sub exited (3)")
 
     def test_a_thread_that_ends_on_an_error_says_disconnected(self) -> None:
         bus, events = fake_bus()

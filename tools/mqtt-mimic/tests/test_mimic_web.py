@@ -158,6 +158,33 @@ class Page(unittest.TestCase):
         self.assertNotIn("/api/", self.script)
 
 
+_STATUS_HARNESS = r"""
+const els = { "mqtt-dot": {}, "mqtt-label": {} };
+const $ = (id) => els[id];
+eval(process.argv[1]);
+const out = JSON.parse(process.argv[2]).map((m) => { showMqtt(m); return [els["mqtt-dot"].className, els["mqtt-label"].textContent]; });
+console.log(JSON.stringify(out));
+"""
+
+
+@unittest.skipUnless(shutil.which("node"), "node is not installed")
+class MacMimicStatus(unittest.TestCase):
+    """The Mac mimic page's MQTT line: connected, waiting (a neutral dot) or down with its reason."""
+
+    def test_waiting_is_neutral_and_only_an_error_is_bad(self) -> None:
+        text = (SCRIPTS / "lcos_mqtt_mimic.html").read_text(encoding="utf-8")
+        fn = text[text.index("    function showMqtt("):]
+        fn = fn[:fn.index("\n    }\n") + 6]
+        states = [{"connected": True, "host": "pi"}, {"connected": False, "waiting": True, "host": "pi"},
+                  {"connected": False, "error": "mosquitto_sub exited (1)"},
+                  {"connected": False, "waiting": False, "error": "", "host": "pi"}]
+        done = subprocess.run(["node", "-e", _STATUS_HARNESS, fn, json.dumps(states)],
+                              capture_output=True, text=True, check=True)
+        self.assertEqual(json.loads(done.stdout), [["dot ok", "MQTT pi"], ["dot ", "MQTT pi (waiting)"],
+                                                   ["dot bad", "MQTT disconnected mosquitto_sub exited (1)"],
+                                                   ["dot ", "MQTT pi (waiting)"]])
+
+
 class SharedView(unittest.TestCase):
     """Both pages draw with the same style and render code; only the transport differs."""
 
