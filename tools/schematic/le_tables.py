@@ -4,10 +4,12 @@ naming-layers step 11) and that the main and upper blocks drawn are numbered as 
 from __future__ import annotations
 
 import copy
+import functools
 import sys
 import xml.etree.ElementTree as ET
-from collections.abc import Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
+from typing import Any, Protocol
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from le_common import BLOCK_SYS, BuildError, DEVICE_MAP  # noqa: E402  (and hartlib on the path)
@@ -18,6 +20,17 @@ from hartlib.levels import MAIN_UPPER  # noqa: E402
 from hartlib.railroad_facts import MasterRow  # noqa: E402
 
 
+# One band's names as le_names gives them ({"turnouts", "os", "blocks", "xover_blocks", "masts", ...}).
+BandNames = Mapping[str, Any]
+
+
+class DrawnPanel(Protocol):
+    """What the checks read of the plugin's drawn panel: its blocks, and its segments' and turnouts' rows."""
+    blocks: Iterable[str]
+    segments: Sequence[Mapping[str, Any]]
+    turnouts: Sequence[Mapping[str, Any]]
+
+
 # The main and upper blocks' numbers (IB:C3:<nnnn>, ILB<1000 + n>) are hartlib.block_numbering's: block_numbering.csv
 # read and checked there, the rule there, and build_device_map.py copies them into the block rows' jmri_name and
 # layout_block. The build reads them off the rows (level_block_beans) and keeps the numbering
@@ -26,36 +39,36 @@ NUMBERING = block_numbering.PATH
 NUMBERING_COLUMNS = block_numbering.COLUMNS
 
 
-def load_numbering(path: Path = NUMBERING, names=None) -> tuple[dict, tuple, tuple]:
-    """(BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS) from block_numbering.csv, by block name
-    (hartlib.block_numbering.read, its ids named by `names`, default the repo's); BuildError on any problem."""
+def load_numbering(path: Path = NUMBERING,
+                   names: Mapping[tuple[str, str], str] | None = None) -> block_numbering.Numbering:
+    """block_numbering.csv by block name (hartlib.block_numbering.read, its ids named by `names`, default the repo's):
+    numbered_as, appended and retired. BuildError on any problem."""
     try:
-        n = block_numbering.read(path, names)
+        return block_numbering.read(path, names)
     except block_numbering.NumberingError as exc:
         raise BuildError(str(exc)) from exc
-    return dict(n.numbered_as), n.appended, n.retired
 
 
+@functools.cache
+def numbering() -> block_numbering.Numbering:
+    """The repo's block_numbering.csv (load_numbering), read once on first use, not at import: it names its blocks
+    through the device master, and a master that does not load must not stop every importer of this module before
+    device-map can rebuild it or say what is wrong. A test patches this function."""
+    return load_numbering()
+
+
+# The numbering's parts under the names build_layout_le re-exports and older tests read: {block: name it is numbered
+# as}, the appended blocks, the retired blocks. Each reads numbering() when asked for.
 NUMBERING_NAMES = ("BLOCK_NUMBERED_AS", "APPENDED_BLOCKS", "RETIRED_BLOCKS")
+_NUMBERING_FIELDS = dict(zip(NUMBERING_NAMES, ("numbered_as", "appended", "retired")))
 
 
-def __getattr__(name: str):
-    """BLOCK_NUMBERED_AS, APPENDED_BLOCKS and RETIRED_BLOCKS, read from block_numbering.csv on first use, not at
-    import: they name their blocks through the device master, and a master that does not load must not stop every
-    importer of this module before device-map can rebuild it or say what is wrong."""
-    if name in NUMBERING_NAMES:
-        values = dict(zip(NUMBERING_NAMES, load_numbering()))
-        globals().update(values)
-        return values[name]
+def __getattr__(name: str) -> Any:
+    """BLOCK_NUMBERED_AS, APPENDED_BLOCKS and RETIRED_BLOCKS: numbering()'s fields (a dict and two tuples)."""
+    if name in _NUMBERING_FIELDS:
+        value = getattr(numbering(), _NUMBERING_FIELDS[name])
+        return dict(value) if name == "BLOCK_NUMBERED_AS" else value
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def numbering() -> tuple[dict, tuple, tuple]:
-    """(BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS), read once on first use (a test may patch them)."""
-    g = globals()
-    if not all(n in g for n in NUMBERING_NAMES):
-        __getattr__(NUMBERING_NAMES[0])
-    return tuple(g[n] for n in NUMBERING_NAMES)
 
 
 # ---------------------------------------------------------------- tables
@@ -90,11 +103,11 @@ RETIRED_TURNOUT_PREFIX = "IT:HART:YL:"
 def retire_yard_ladder(root: ET.Element) -> int:
     """Take the yard-ladder internal turnouts, and every route one of them controls or sets, out of tables `root`;
     the count taken out. Stops when any other reference to one is left."""
-    gone, users = 0, set()
+    gone, users = 0, set[str]()
     for sec in root.findall("turnouts"):
         for t in [t for t in sec.findall("turnout")
                   if (t.findtext("systemName") or "").startswith(RETIRED_TURNOUT_PREFIX)]:
-            users |= {t.findtext("userName")} - {None, ""}
+            users |= {(t.findtext("userName") or "").strip()} - {""}
             sec.remove(t)
             gone += 1
     for sec in root.findall("routes"):
@@ -158,13 +171,13 @@ def is_level_bean(el: ET.Element, names: set[str]) -> bool:
     return (el.findtext("systemName") or el.get("systemName") or "").strip() in names
 
 
-def numbered_blocks(blocks, require_listed: bool = False) -> list:
+def numbered_blocks(blocks: Iterable[str], require_listed: bool = False) -> list[str]:
     """The main and upper blocks in the order their system names are numbered (hartlib.block_numbering.order over
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS and RETIRED_BLOCKS). Give it RETIRED_BLOCKS too to keep their numbers taken.
+    numbering()). Give it the retired blocks too to keep their numbers taken.
     With require_listed (the build), a block named in block_numbering.csv that is not among `blocks` stops it: the row
     is stale."""
     try:
-        return block_numbering.order(blocks, block_numbering.Numbering(*numbering()), require_listed)
+        return block_numbering.order(blocks, numbering(), require_listed)
     except block_numbering.NumberingError as exc:
         raise BuildError(str(exc)) from exc
 
@@ -177,7 +190,8 @@ def level_block_beans(path: Path = DEVICE_MAP) -> dict[str, tuple[str, str]]:
         rows = devices.load(path)
     except devices.DevicesError as exc:
         raise BuildError(f"{paths.rel(path)}: {exc}") from exc
-    out, bad = {}, []
+    out: dict[str, tuple[str, str]] = {}
+    bad: list[str] = []
     for r in rows:
         if r.level not in MAIN_UPPER or r.layer != "block":
             continue
@@ -214,7 +228,7 @@ def stale_block_beans(path: Path = DEVICE_MAP, numbering_path: Path = NUMBERING)
             if (r["jmri_name"], r["layout_block"]) != want[r["user_name"]]]
 
 
-def band_blocks(nm: dict) -> set[str]:
+def band_blocks(nm: BandNames) -> set[str]:
     """Every block one band's names (`nm`: the plugin's names of a band) give its track: its OS blocks, a double
     crossover's corner blocks and each track's blocks."""
     return set(nm["os"].values()) | {b for v in nm.get("xover_blocks", {}).values() for b in v.values()} | \
@@ -229,13 +243,14 @@ def bean_names(root: ET.Element) -> dict[str, set[str]]:
                 masts=set(tables.mast_system_names(root)))
 
 
-def drawn_blocks(P, bands: set[int]) -> set[str]:
+def drawn_blocks(P: DrawnPanel, bands: set[int]) -> set[str]:
     """The blocks the plugin drew on `bands` (band indexes): its track segments' and turnouts' legs'."""
     return {s["block"] for s in P.segments if s.get("band") in bands and s.get("block")} | \
         {b for t in P.turnouts if t.get("band") in bands for b in (t.get("blocks") or {}).values() if b}
 
 
-def check_level_blocks(root: ET.Element, P, staging_keys: set, names: dict) -> None:
+def check_level_blocks(root: ET.Element, P: DrawnPanel, staging_keys: set[str],
+                       names: Mapping[str, BandNames]) -> None:
     """The numbering checks on the main and upper blocks the panel draws (every drawn block but the staging bands'
     names', `staging_keys`), now that the base holds their beans (hartlib.tables_build.base): none is a retired block
     drawn again (block_numbering.csv's retired rows), no block_numbering.csv row names a block not drawn (a stale row:
@@ -244,7 +259,7 @@ def check_level_blocks(root: ET.Element, P, staging_keys: set, names: dict) -> N
     or its OS block's for a part). BuildError names them."""
     staging_blocks = {b for k in staging_keys for b in band_blocks(names[k])}
     drawn = {b for b in P.blocks if b not in staging_blocks}
-    retired = set(numbering()[2])
+    retired = set(numbering().retired)
     if drawn & retired:
         raise BuildError(f"retired blocks drawn again: {sorted(drawn & retired)}; take them out of "
                          f"{NUMBERING.name}'s retired rows")
@@ -261,7 +276,8 @@ def check_level_blocks(root: ET.Element, P, staging_keys: set, names: dict) -> N
                          f"map): {unbound}")
 
 
-def check_bound(root: ET.Element, P, names: dict, staging_keys: set, staging_ix: set, base_name: str) -> None:
+def check_bound(root: ET.Element, P: DrawnPanel, names: Mapping[str, BandNames], staging_keys: set[str],
+                staging_ix: set[int], base_name: str) -> None:
     """One check for every level, on the tables the panel is drawn on (`root`: the base, which holds every level's
     beans, base_name names it): each turnout, block and mast a band's names bind (`names`: {band key: names}) is a
     bean of `root`; the staging bands (`staging_keys`, band indexes `staging_ix`: their names are the staging device

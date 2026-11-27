@@ -338,7 +338,11 @@ class OtherKeys(unittest.TestCase):
             with self.assertRaisesRegex(devices.DevicesError, "the master is broken"):
                 mod.numbering()
         importlib.reload(le_tables)
-        self.assertIn("Track 107 Loop 2", le_tables.numbering()[1])
+        self.assertIn("Track 107 Loop 2", le_tables.numbering().appended)
+        self.assertEqual(le_tables.APPENDED_BLOCKS, le_tables.numbering().appended)     # the names build_layout_le re-exports
+        self.assertEqual(le_tables.BLOCK_NUMBERED_AS, dict(le_tables.numbering().numbered_as))
+        with self.assertRaises(AttributeError):
+            le_tables.NOT_A_NAME  # noqa: B018
 
     def test_block_numbering_names_its_ids(self) -> None:
         import le_tables
@@ -348,7 +352,8 @@ class OtherKeys(unittest.TestCase):
                             "block:107B-107C#1,Track 107 Loop,,,\nblock:107B-107C#2,,1,,\n,,,Track 131-H1,\n",
                             encoding="utf-8")
             names = {("2", "block:107B-107C#1"): "Track Loop A", ("2", "block:107B-107C#2"): "Track Loop B"}
-            self.assertEqual(le_tables.load_numbering(path, names),
+            got = le_tables.load_numbering(path, names)
+            self.assertEqual((dict(got.numbered_as), got.appended, got.retired),
                              ({"Track Loop A": "Track 107 Loop"}, ("Track Loop B",), ("Track 131-H1",)))
             path.write_text("id,numbered_as,append_order,retired,notes\nblock:9X-9Y,,1,,\n", encoding="utf-8")
             with self.assertRaisesRegex(le_tables.BuildError, "no main or upper device"):
