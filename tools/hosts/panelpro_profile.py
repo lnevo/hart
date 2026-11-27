@@ -50,6 +50,10 @@ SAFE_PATH = re.compile(r"[A-Za-z0-9._/@+=,:-]+")
 _TAG = re.compile(r"<perform\b[^>]*>")
 
 
+class ProfileError(Exception):
+    """A profile step refused or failed; main() prints the message and exits 1."""
+
+
 def live_profile_dir() -> Path:
     return Path.home() / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri"
 
@@ -101,17 +105,17 @@ def quiet_startup(profile: Path, run_script: str) -> list[str]:
     loads = [name for t in _TAG.findall(text)
              if "PerformFileModelXml" in t and (name := _attr(t, "name")) is not None and name.endswith("tables.xml")]
     if len(loads) != 1:
-        raise SystemExit(f"{profile}: expected one tables load in Start Up, found {len(loads)}")
+        raise ProfileError(f"{profile}: expected one tables load in Start Up, found {len(loads)}")
     profile.write_text(text, encoding="utf-8")
     jmri_profile.insert_after(profile, run_script, loads[0])
     text = profile.read_text(encoding="utf-8")
     still = [t for t in _TAG.findall(text)
              if 'enabled="no"' not in t and not _allowed(t) and _basename(_attr(t, "name") or "") != run_base]
     if still:
-        raise SystemExit(f"{profile}: a Start Up item could not be switched off: {still[0]}")
+        raise ProfileError(f"{profile}: a Start Up item could not be switched off: {still[0]}")
     runs = [t for t in _TAG.findall(text) if _basename(_attr(t, "name") or "") == run_base and 'enabled="yes"' in t]
     if len(runs) != 1:
-        raise SystemExit(f"{profile}: {run_base} is not in Start Up exactly once, enabled")
+        raise ProfileError(f"{profile}: {run_base} is not in Start Up exactly once, enabled")
     notes.append(f"run: {run_script}" + (" (replaced an earlier entry)" if removed else ""))
     return notes
 
@@ -136,20 +140,20 @@ def backup_profile(profile: Path) -> Path:
     """Copy profile to its fixed backup path; refuse if a backup from an unfinished run is there."""
     bak = backup_path(profile)
     if bak.exists() or seal_path(profile).exists():
-        raise SystemExit(
+        raise ProfileError(
             f"{bak} exists: an earlier wrapper run did not restore the profile (killed?).\n"
             f"  The profile may still hold that run's Start Up changes. Quit the PanelPro it left, then\n"
             f"  {recovery_command(profile)}"
         )
     if not profile.is_file():
-        raise SystemExit(f"profile.xml not found: {profile}")
+        raise ProfileError(f"profile.xml not found: {profile}")
     shutil.copy2(profile, bak)
     return bak
 
 
 def seal_profile(profile: Path) -> Path:
     if not backup_path(profile).is_file():
-        raise SystemExit(f"no backup for {profile}; seal comes after backup and patching")
+        raise ProfileError(f"no backup for {profile}; seal comes after backup and patching")
     seal = seal_path(profile)
     seal.write_text(_sha(profile) + "\n", encoding="utf-8")
     return seal
@@ -159,7 +163,7 @@ def restore_profile(profile: Path, force: bool = False) -> str:
     """Put the backup back over profile and remove the backup and the seal."""
     bak, seal = backup_path(profile), seal_path(profile)
     if not bak.is_file():
-        raise SystemExit(f"no backup to restore: {bak}")
+        raise ProfileError(f"no backup to restore: {bak}")
     note = ""
     sealed = seal.read_text(encoding="utf-8").strip() if seal.is_file() else None
     current = _sha(profile) if profile.is_file() else None
@@ -168,14 +172,14 @@ def restore_profile(profile: Path, force: bool = False) -> str:
         try:
             running = tables.jmri_running()
         except tables.JmriCheckError as exc:
-            raise SystemExit(f"{exc}; not restored (restore --force skips this check)") from exc
+            raise ProfileError(f"{exc}; not restored (restore --force skips this check)") from exc
         if running:
-            raise SystemExit("PanelPro, DecoderPro or CATS is running; quit it, then restore")
+            raise ProfileError("PanelPro, DecoderPro or CATS is running; quit it, then restore")
         if sealed is None:
-            raise SystemExit(f"{seal} is missing (the run stopped while patching): compare {profile} "
+            raise ProfileError(f"{seal} is missing (the run stopped while patching): compare {profile} "
                              f"with {bak} by hand, then restore with --force")
         if unexpected:
-            raise SystemExit(f"{profile} changed since the run patched it (not the sealed file); "
+            raise ProfileError(f"{profile} changed since the run patched it (not the sealed file); "
                              f"compare it with {bak}, then restore with --force")
     elif unexpected:
         note = f" (overwrote changes made to {profile} after the run patched it)"
@@ -225,7 +229,7 @@ def _unescape(chars: str, where: Path) -> str:
         if c == "u":
             code = chars[i + 1:i + 5]
             if not re.fullmatch(r"[0-9a-fA-F]{4}", code):
-                raise SystemExit(f"{where}: malformed \\u escape {chars[i - 1:i + 5]!r}")
+                raise ProfileError(f"{where}: malformed \\u escape {chars[i - 1:i + 5]!r}")
             out.append(chr(int(code, 16)))
             i += 5
             continue
@@ -283,20 +287,20 @@ def profile_user_files(profile_dir: Path) -> Path:
             if v:
                 nodes[p] = v
         if len(set(nodes.values())) > 1:
-            raise SystemExit(f"{profile_dir}: its node folders name different user files folders "
+            raise ProfileError(f"{profile_dir}: its node folders name different user files folders "
                              f"({sorted(set(nodes.values()))}); make them agree")
         if nodes:
             value = next(iter(nodes.values()))
     found = _portable_dir(value, profile_dir)
     if found is None:
-        raise SystemExit(f"{profile_dir}: user files {value!r} is a form this cannot resolve "
+        raise ProfileError(f"{profile_dir}: user files {value!r} is a form this cannot resolve "
                          "(use home:, profile: or an absolute folder)")
     return found
 
 
 def _safe(what: str, value: str) -> None:
     if not SAFE_PATH.fullmatch(value):
-        raise SystemExit(f"{what} {value!r} holds a space or a shell character; StartJMRI splits it. "
+        raise ProfileError(f"{what} {value!r} holds a space or a shell character; StartJMRI splits it. "
                          "Use a path of letters, digits and . _ - / only")
 
 
@@ -307,7 +311,7 @@ def check_profile(profile: Path, launch: str, user_files: str | None) -> Path:
     if user_files:
         _safe("JMRI_USER_FILES", user_files)
     if profile.name != "profile.xml" or profile.parent.name != "profile":
-        raise SystemExit(f"not a JMRI profile.xml (want <name>.jmri/profile/profile.xml): {profile}")
+        raise ProfileError(f"not a JMRI profile.xml (want <name>.jmri/profile/profile.xml): {profile}")
     profile_dir = profile.parent.parent
     live = profile_dir.resolve() == live_profile_dir().resolve()
     pid = read_properties(profile.parent / "profile.properties").get("profile.id", "")
@@ -316,33 +320,56 @@ def check_profile(profile: Path, launch: str, user_files: str | None) -> Path:
         if not target.is_dir() and Path(launch + ".jmri").is_dir():
             target = Path(launch + ".jmri")
         if target.resolve() != profile_dir.resolve():
-            raise SystemExit(
+            raise ProfileError(
                 f"JMRI_PROFILE {launch} is not the profile of JMRI_PROFILE_XML {profile}: "
                 "the run would patch one profile and start another"
             )
     elif not pid:
-        raise SystemExit(f"{profile.parent / 'profile.properties'} has no profile.id to check JMRI_PROFILE {launch} against")
+        raise ProfileError(f"{profile.parent / 'profile.properties'} has no profile.id to check JMRI_PROFILE {launch} against")
     elif pid != launch:
-        raise SystemExit(
+        raise ProfileError(
             f"JMRI_PROFILE {launch} is not the profile of JMRI_PROFILE_XML {profile} (its id is {pid}): "
             "the run would patch one profile and start another"
         )
     elif not live and launch == LIVE_PROFILE_ID:
-        raise SystemExit(f"{profile_dir} carries the live profile's id; JMRI could start the live profile. "
+        raise ProfileError(f"{profile_dir} carries the live profile's id; JMRI could start the live profile. "
                          "Leave JMRI_PROFILE unset so the run starts it by folder")
     found = profile_user_files(profile_dir)
     if not live and found.resolve() == live_user_files().resolve():
-        raise SystemExit(
+        raise ProfileError(
             f"{profile_dir} uses the live user files folder {found}. For a rehearsal set "
             f"{USER_FILES_KEY}=<scratch folder>/ in its profile/profile.properties (and any node "
             "folder's), then run again"
         )
     if user_files and Path(user_files).resolve() != found.resolve():
-        raise SystemExit(f"JMRI_USER_FILES {user_files} is not the user files folder of {profile_dir} ({found})")
+        raise ProfileError(f"JMRI_USER_FILES {user_files} is not the user files folder of {profile_dir} ({found})")
     return found
 
 
 JMRI_UNKNOWN = 2      # jmri-running's exit when the check cannot say (pgrep missing or failing)
+
+
+def _dispatch(ap: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    """Run one profile action; a refusal raises ProfileError."""
+    if args.profile is None:
+        ap.error(f"{args.action} requires --profile")
+    if args.action == "check-profile":
+        if not args.launch:
+            ap.error("check-profile requires --launch")
+        print(check_profile(args.profile, args.launch, args.user_files))
+    elif args.action == "quiet-startup":
+        if not args.run:
+            ap.error("quiet-startup requires --run")
+        try:
+            print("\n".join(quiet_startup(args.profile, args.run)))
+        except jmri_profile.StartupPatchError as exc:     # one line, as the profile checks above
+            raise ProfileError(f"{args.profile}: {exc}") from exc
+    elif args.action == "backup":
+        print(backup_profile(args.profile))
+    elif args.action == "seal":
+        print(seal_profile(args.profile))
+    else:
+        print(restore_profile(args.profile, args.force))
 
 
 def main() -> None:
@@ -360,25 +387,10 @@ def main() -> None:
         if state is tables.JmriState.UNKNOWN:
             print("unknown", file=sys.stderr)
         sys.exit({tables.JmriState.RUNNING: 0, tables.JmriState.STOPPED: 1}.get(state, JMRI_UNKNOWN))
-    if args.profile is None:
-        ap.error(f"{args.action} requires --profile")
-    if args.action == "check-profile":
-        if not args.launch:
-            ap.error("check-profile requires --launch")
-        print(check_profile(args.profile, args.launch, args.user_files))
-    elif args.action == "quiet-startup":
-        if not args.run:
-            ap.error("quiet-startup requires --run")
-        try:
-            print("\n".join(quiet_startup(args.profile, args.run)))
-        except jmri_profile.StartupPatchError as exc:     # one line, as the profile checks above
-            sys.exit(f"{args.profile}: {exc}")
-    elif args.action == "backup":
-        print(backup_profile(args.profile))
-    elif args.action == "seal":
-        print(seal_profile(args.profile))
-    else:
-        print(restore_profile(args.profile, args.force))
+    try:
+        _dispatch(ap, args)
+    except ProfileError as exc:
+        sys.exit(str(exc))
 
 
 if __name__ == "__main__":

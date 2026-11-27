@@ -66,10 +66,14 @@ class TheStagingRows(unittest.TestCase):
     def test_staging_rows_read_the_field_file_and_never_the_generated_one(self):
         names = bdm.staging_part_names()            # the name memory: the generated file, read before the watch
         with opens() as got:
-            rows = bdm.staging_rows(self.bands, self.joined, self.runs, part_names=names)
+            rows, drawn = bdm.staging_rows(self.bands, self.joined, self.runs, part_names=names)
         self.assertNotIn(GENERATED, got)
         self.assertIn(FIELD, got)
         self.assertGreater(len(rows), 100)
+        # drawn: every block row's id, and only those, by the name the drawing gives it
+        blocks = {r["id"]: r for r in rows if r["layer"] == "block" and not r["part_of"]}
+        self.assertEqual(set(drawn), set(blocks))
+        self.assertEqual(len(set(drawn.values())), len(drawn))                 # one generated name per block
 
     def test_staging_wired_rows_read_the_field_file_and_never_the_generated_one(self):
         with opens() as got:
