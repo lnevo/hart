@@ -123,8 +123,9 @@ class LcosRule(unittest.TestCase):
             coordinator.lcos_rule(Path(tempfile.gettempdir()) / "no-such-dir" / "sml_lcos.py")
 
     def test_a_module_that_does_not_import(self) -> None:
-        with self.assertRaisesRegex(coordinator.CoordinatorError, "does not import: .*jmri"):
-            coordinator.lcos_rule(self.module("import jmri\n"))
+        # not "import jmri": other suites in one discover run leave a fake jmri in sys.modules
+        with self.assertRaisesRegex(coordinator.CoordinatorError, "does not import: .*hart_no_such_module"):
+            coordinator.lcos_rule(self.module("import hart_no_such_module\n"))
         self.assertNotIn(coordinator._LCOS_MODULE, sys.modules)
 
     def test_a_module_without_the_rule(self) -> None:
@@ -133,6 +134,7 @@ class LcosRule(unittest.TestCase):
             with self.subTest(body=body), self.assertRaisesRegex(coordinator.CoordinatorError, "no longer defines"):
                 coordinator.lcos_rule(self.module(body))
             self.assertNotIn(coordinator._LCOS_MODULE, sys.modules)
+
 
 if __name__ == "__main__":
     unittest.main()

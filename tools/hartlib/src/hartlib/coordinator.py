@@ -120,7 +120,6 @@ def lcos_rule(path: Path = LCOS_RULE) -> LcosRule:
     try:
         spec.loader.exec_module(module)
     except Exception as exc:    # running a module's top level can raise any error; each becomes this one
-
         del sys.modules[_LCOS_MODULE]
         raise CoordinatorError(f"{_rel(path)}: does not import: {exc}") from exc
     is_head = getattr(module, "_is_lcos_ih_sys", None)
