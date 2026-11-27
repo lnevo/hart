@@ -116,6 +116,7 @@ The owner started a third round from the wave 2 report card, one PR per lane:
 | L4b | Card generators, after L4 and L5: `cars.py` split under the size limit; `generate_cc_waybill_labels`, `generate_waybill_cards` and `generate_single_card` on the shared sticker deck writer and typed records |
 | L6 | Types, after L1 to L5 and L4b: `build_device_map` and `build_cats_panel` typed to B+ |
 | L7 | Exemplary core, after L6 (owner): `build_device_map.py`, `build_cats_panel.py` and `device_map_records.py` to A or better, as examples of the repo's best code; outputs and panels unchanged |
+| L8 | Data-in-code check (owner): a `tools/audit/` check beside `check_data_readers.py` that fails when railroad data is typed into code, with a CSV allow list read through hartlib and a baseline of the 131 Python tables and the JS tables |
 
 Moved to a later wave (owner):
 - The device-row callers that still read by key, and `tools/ops` to mypy strict (L6 part 2). L7 updates only the callers it breaks.
