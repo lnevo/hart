@@ -24,7 +24,7 @@ check:  ## Run every repo check
 static:  ## Quick local checks before a push or make remote: check.sh's static group, less the panels-* jobs (about 20 s warm)
 	CHECK_ONLY="^($$(python3 tools/pipeline/manifest.py jobs check --group static | awk '{print $$1}' | grep -v '^panels-' | paste -sd'|' -))$$" ./tools/check.sh
 
-baselines:  ## Lower the four ratchet baselines (mypy, habits, py sizes, hand tables) with --update: the queue holder's wave-end sweep PR
+baselines:  ## The queue holder's wave-end sweep PR: lower the mypy, habits and hand tables baselines with --update; py sizes --update only drops rows of files gone or at or under their limit
 	python3 tools/audit/check_mypy.py --update
 	python3 tools/audit/check_habits.py --update
 	python3 tools/audit/check_py_sizes.py --update
