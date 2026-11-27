@@ -9,9 +9,6 @@
  "cats/scripts/tests/test_build_cats_panel_pieces.py": {
   "dated-note": 1
  },
- "cats/scripts/tests/test_live_desk_levels.py": {
-  "dated-note": 1
- },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
   "dated-note": 1,
   "import-exit": 3
@@ -167,9 +164,6 @@
   "import-exit": 3
  },
  "tools/hartlib/src/hartlib/paths.py": {
-  "import-exit": 1
- },
- "tools/hartlib/src/hartlib/tables_build.py": {
   "import-exit": 1
  },
  "tools/hartlib/tests/test_block_lengths.py": {
