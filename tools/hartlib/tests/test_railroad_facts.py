@@ -578,6 +578,29 @@ class DeviceRows(unittest.TestCase):
         self.assertNotEqual(r, replace(r, line=6))      # two rows also hold line and comment to each other
         self.assertEqual(hash(r), hash(replace(r)))
 
+    def test_cells_are_the_row_as_the_master_holds_it(self) -> None:
+        r = drow("mast", "Mast 2L", "home", comment="built", line=5, written_by="build_masts.py", dir="east")
+        cells = r.cells()
+        self.assertEqual(list(cells), list(devices.COLUMNS))     # every column, in file order
+        self.assertEqual((cells["level"], cells["layer"], cells["dir"], cells["notes"]), ("2", "mast", "east", ""))
+        self.assertNotIn("comment", cells)                       # built text and the place are no columns
+        self.assertNotIn("line", cells)
+        self.assertTrue(all(isinstance(v, str) for v in cells.values()))
+        self.assertEqual(r.level_cell, "2")
+        cells["dir"] = "west"                                   # a new dict: the row stays as it was
+        self.assertEqual((r.dir, r.cells()["dir"]), ("east", "east"))
+        self.assertIsNot(r.cells(), r.cells())
+
+    def test_cells_read_back_to_the_same_row(self) -> None:
+        cells = dict.fromkeys(devices.COLUMNS, "") | dict(level="3", layer="block", role="track", id="block:7",
+                                                         user_name="Track 7", blocks="Track 7")
+        r = rf.MasterRow.from_master(cells, 9, "here")
+        self.assertEqual(r.cells(), cells)
+        self.assertEqual(rf.MasterRow.from_master(r.cells(), 9, "here"), r)
+        store = cells | dict(level="", role="", id="", assignment="field", jmri_name="IS9", system_name="IS9")
+        kept = rf.MasterRow.from_master(store, 5, "here")       # a Store's level-less row: level ""
+        self.assertEqual((kept.level_cell, kept.cells()), ("", store))
+
     def test_from_master_reads_a_master_rows_text(self) -> None:
         cells = dict.fromkeys(devices.COLUMNS, "") | dict(level="1", layer="block", role="os", id="os:1",
                                                          user_name="OS Switch 1")
