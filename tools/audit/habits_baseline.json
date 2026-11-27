@@ -105,9 +105,6 @@
  "tools/audit/check_name_copies.py": {
   "dated-note": 1
  },
- "tools/audit/check_py_sizes.py": {
-  "dated-note": 1
- },
  "tools/audit/tests/test_build_device_map.py": {
   "dated-note": 4
  },
