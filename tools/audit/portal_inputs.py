@@ -41,7 +41,8 @@ SITE_TOOLS = ("tools/ops/build_pipeline_map.py", "tools/ops/pipeline_map_page.ht
               "tools/ops/pipeline_map_view_rail.js", "tools/ops/pipeline_map_view_nav.js",
               "tools/ops/pipeline_map_view_input.js",
               "tools/ops/pipeline_map_eff.py", "tools/ops/agent_docs_map.py",
-              "jmri/layouts/hart/scripts/render_le_layout.py", "tools/wiring/write_inventory.py")
+              "jmri/layouts/hart/scripts/render_le_layout.py", "jmri/layouts/hart/scripts/render_le_geometry.py",
+              "jmri/layouts/hart/scripts/render_le_draw.py", "tools/wiring/write_inventory.py")
 NO_CHANGE = 3
 
 
