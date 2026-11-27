@@ -102,8 +102,10 @@ class Verdict(unittest.TestCase):
     def test_a_docs_only_branch_is_docs(self) -> None:
         self.s.write("wiki/a.md", "# A\n\nmore\n")
         self.s.write("docs/decisions/ADR-1.md", "# ADR\n")
+        self.s.write(".claude/skills/s/SKILL.md", "# S\n")
+        self.s.write(".claude/agents/a.md", "# A\n")
         self.s.commit("docs")
-        self.assertEqual("docs: 2 changed paths, all Markdown docs", self.s.verdict())
+        self.assertEqual("docs: 4 changed paths, all Markdown docs", self.s.verdict())
 
     def test_uncommitted_and_untracked_markdown_count(self) -> None:
         self.s.write("wiki/a.md", "# A, edited\n")
@@ -118,7 +120,7 @@ class Verdict(unittest.TestCase):
         # a Markdown file under docs/pipeline-map/ is data to the light rule, whose declarations this scratch repo
         # does not hold: full, with that reason
         for rel, text, why in (("tools/x.py", "x = 2\n", "tools/x.py is code"),
-                               (".claude/skills/s/SKILL.md", "# S\n", ".claude/skills/s/SKILL.md is under .claude/"),
+                               (".claude/commands/s.md", "# S\n", ".claude/commands/s.md is under .claude/"),
                                ("AGENTS.md", "# A2\n", "AGENTS.md is code or agent rules"),
                                ("docs/pipeline-map/notes.md", "# Map\n", "the declarations cannot be read")):
             with self.subTest(rel):
@@ -404,6 +406,39 @@ class DocsUnitTests(unittest.TestCase):
         self.assertFalse(covers(("docs/x.json",)))
         self.assertTrue(covers(("docs/jmri/*/**/*",)))     # a wildcard segment in the middle
         self.assertTrue(covers(("wiki/*/notes/*.md",)))
+        self.assertTrue(covers(check_stamps.AGENT_DOCS))
+        self.assertTrue(covers((".claude/skills/*/SKILL.md",)))
+        self.assertFalse(covers(check_stamps.CODE))
+
+    def test_the_tests_that_read_agent_docs_run_on_the_docs_path(self) -> None:
+        # a skill or subagent Markdown change is docs (changed_kind.CLAUDE_DOCS): every test declared on those files
+        # runs on the docs path or is left out with its reason
+        readers = {k for k, v in check_stamps.EXTRA.items() if set(check_stamps.AGENT_DOCS) <= set(v)}
+        self.assertIn("unit-guards test_agent_docs_map", readers)
+        run = {stamp for stamp, *_ in docs_unit_tests.tests()}
+        self.assertEqual(set(), readers - run - set(docs_unit_tests.LEFT_OUT))
+
+    def test_every_claude_file_is_code_or_an_agent_doc(self) -> None:
+        # the unit suites declare .claude/ code whole (check_stamps.CLAUDE_CODE in CODE) and the agent docs only where
+        # read: each tracked file under .claude/ is in exactly one, and the agent docs are what changed_kind calls docs
+        files = subprocess.run(["git", "-C", str(ROOT), "ls-files", ".claude"], capture_output=True, text=True,
+                               check=True).stdout.splitlines()
+        self.assertTrue(files)
+        for path in files:
+            with self.subTest(path):
+                code = any(_glob(path, pat) for pat in check_stamps.CODE)
+                doc = any(_glob(path, pat) for pat in check_stamps.AGENT_DOCS)
+                self.assertNotEqual(code, doc, "in both or in neither of check_stamps.CLAUDE_CODE and AGENT_DOCS")
+                self.assertEqual(doc, changed_kind.is_docs(path))
+
+    def test_a_skill_doc_reruns_no_whole_suite_and_a_hook_reruns_them_all(self) -> None:
+        units = {k: v for k, v in check_stamps.BY_KIND.items() if k.startswith("unit-")}
+        for doc in (".claude/skills/deploy/SKILL.md", ".claude/agents/panel-tracer.md"):
+            with self.subTest(doc):
+                self.assertEqual([], [k for k, pats in units.items() if any(_glob(doc, p) for p in pats)])
+        for code in (".claude/hooks/main_guard.py", ".claude/settings.json", ".claude/skills/dashboard/sampler.sh"):
+            with self.subTest(code):
+                self.assertEqual([], [k for k, pats in units.items() if not any(_glob(code, p) for p in pats)])
 
     def test_check_sh_lists_are_read(self) -> None:
         self.assertIn("test_build_layout_le", check_sh_list("LE_TESTS"))
@@ -438,13 +473,18 @@ class Kinds(unittest.TestCase):
         self.assertEqual(kind_of(["wiki/STATUS.md", "tools/check.sh"]), "full")
 
     def test_agent_rules_are_full(self):
-        for p in ("AGENTS.md", "CLAUDE.md", "cats/AGENTS.md", ".claude/skills/x/SKILL.md", ".claude/agents/a.md"):
+        for p in ("AGENTS.md", "CLAUDE.md", "cats/AGENTS.md", ".claude/skills/AGENTS.md"):
             self.assertEqual(kind_of([p]), "full", p)
 
-    def test_everything_under_claude_is_full(self):
-        # check_stamps declares .claude/**/* for the unit suites, and the docs path runs none of them
-        for p in (".claude/commands/done.md", ".claude/hooks/a.md", ".claude/a.md", ".claude/skills/x/run.sh",
-                  ".claude/skills/x/notes/a.md", ".claude/agents/a.json", ".claude/settings.json"):
+    def test_skill_and_subagent_markdown_is_docs(self):
+        for p in (".claude/skills/x/SKILL.md", ".claude/skills/x/notes/a.md", ".claude/agents/a.md"):
+            self.assertEqual(kind_of([p]), "docs", p)
+        self.assertEqual(kind_of(["wiki/a.md", ".claude/skills/x/SKILL.md", ".claude/agents/a.md"]), "docs")
+
+    def test_the_rest_of_claude_is_full(self):
+        for p in (".claude/commands/done.md", ".claude/hooks/a.md", ".claude/hooks/main_guard.py", ".claude/a.md",
+                  ".claude/skills/x/run.sh", ".claude/skills/x/page.html", ".claude/agents/a.json",
+                  ".claude/settings.json", ".claude/skillsx/a.md", ".claude/skills/../hooks/a.md"):
             self.assertEqual(kind_of([p]), "full", p)
         v = changed_kind.verdict([".claude/commands/done.md"])
         self.assertEqual("full: .claude/commands/done.md is under .claude/, where every file is code, JMRI or CATS "

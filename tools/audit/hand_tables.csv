@@ -94,7 +94,6 @@ tools/audit/check_name_copies.py,SKIP_PREFIXES,16,keep,its values are used only 
 tools/audit/check_stamps.py,AUDIT_SAMPLE,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_stamps.py,BY_KIND,14,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/audit/check_stamps.py,EXTRA,36,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/audit/check_stamps.py,REPO_FILES,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/portal_inputs.py,SITE_TOOLS,15,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"

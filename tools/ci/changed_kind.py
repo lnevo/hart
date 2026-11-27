@@ -12,9 +12,11 @@ checks (tools/ci/docs_checks.sh).
     changed_kind.py --jobs (--git [--base B] | --compare A)
                                       the check.sh jobs a light change runs, one per line; exit 1 when it is not light
 
-"docs" only when every path is prose that the quick docs checks cover. "light" when every path is docs or a data
-file that no code, host or full-only test depends on (light_problem says each rule), so make static, the static
-checks that read it and the quick docs checks cover it. Anything else, and an empty list, is "full". The paths are
+"docs" only when every path is prose that the quick docs checks cover: Markdown outside the agent rules (AGENTS.md,
+CLAUDE.md) and the generated map folder, and under .claude/ only the skills' and subagents' (CLAUDE_DOCS). "light"
+when every path is docs or a data file that no code, host or full-only test depends on (light_problem says each
+rule), so make static, the static checks that read it and the quick docs checks cover it. Anything else, and an
+empty list, is "full". The paths are
 repo-relative with "/" separators (git diff --name-only).
 
 Which checks read a data file comes from the declarations, never a list here: each check.sh job's step in
@@ -44,6 +46,10 @@ from portal_inputs import ChangedFilesError, changed_files, git_lines  # noqa: E
 AGENT_FILES = {"AGENTS.md", "CLAUDE.md"}
 # Generated from the repo and compared by tests that only the full run executes.
 GENERATED = ("docs/pipeline-map/",)
+# The folders under .claude/ whose Markdown is docs: the skills and the subagents. The unit suites that read them
+# declare them (tools/audit/check_stamps.py AGENT_DOCS) and the docs path runs those (tools/ci/docs_unit_tests.py).
+# Every other file under .claude/ (hooks, settings, commands) is code or agent rules.
+CLAUDE_DOCS = (".claude/skills/", ".claude/agents/")
 # Code, for the light rule: the suffixes of programs, configuration and JMRI or CATS files, and the folders whose every
 # file is code or rules (the JMRI and CATS trees, CI, git hooks, the agent rules). check.sh and checks.toml are .sh
 # and .toml files.
@@ -120,7 +126,9 @@ def plain(path: str) -> str | None:
 
 def is_docs(path: str) -> bool:
     p = plain(path)
-    if p is None or p.startswith(".claude/") or p.split("/")[-1] in AGENT_FILES or p.startswith(GENERATED):
+    if p is None or p.split("/")[-1] in AGENT_FILES or p.startswith(GENERATED):
+        return False
+    if p.startswith(".claude/") and not p.startswith(CLAUDE_DOCS):
         return False
     return p.endswith(".md")
 

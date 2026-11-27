@@ -4,9 +4,9 @@
     python3 tools/ci/docs_unit_tests.py      one shell line per test file: its name, then its unittest command
 
 A unit test whose stamp declaration (tools/audit/check_stamps.py: BY_KIND, EXTRA, the manifest checks' fallback,
-RUNS_JOBS) covers a Markdown file under docs/ or wiki/ can break on a docs-only change, so the docs-only path runs it,
-unless LEFT_OUT says why not (a short list: whole suites that only partly read docs stay out). Its
--k filter, when only one class reads docs, is check_stamps.DOCS_K's. A line is the stamp name with a hyphen
+RUNS_JOBS) covers a Markdown file under docs/, wiki/, .claude/skills/ or .claude/agents/ can break on a docs-only
+change, so the docs-only path runs it, unless LEFT_OUT says why not (a short list: whole suites that only partly read
+docs stay out). Its -k filter, when only one class reads docs, is check_stamps.DOCS_K's. A line is the stamp name with a hyphen
 ("unit-guards-test_name_copies"), then `python3 -m unittest discover -b -q -s DIR -p FILE [-k K]`, the form
 docs_checks.sh reads for the manifest's lines.
 
@@ -47,7 +47,8 @@ LEFT_OUT = {
     "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
     "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
                                      "(docs/pipeline-map/) alters; both pages are the pipeline-map check",
-    "unit-guards test_pipeline_map_coverage": "the agent docs it checks are .claude/ and AGENTS.md files: full path",
+    "unit-guards test_pipeline_map_coverage": "its real-repo test fails on an agent doc with no box, which the "
+                                              "pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
     "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
                                        "pipeline-map check's build_pipeline_map.py --check also fails on",
@@ -76,13 +77,17 @@ class Problem(Exception):
     """The list cannot be made as the declarations stand; the message names each reason."""
 
 
+# Where the Markdown docs are: docs/, wiki/, and the skills and subagents under .claude/ (changed_kind.CLAUDE_DOCS).
+DOCS_ROOTS = ("docs/", "wiki/", ".claude/skills/", ".claude/agents/")
+
+
 def covers_markdown_docs(patterns: tuple[str, ...]) -> bool:
-    """Whether a stamp declaration covers a Markdown file under docs/ or wiki/, matched by the stamps' own rule
-    (panel_stamps._glob_match). Each docs/ or wiki/ pattern is probed with a path made from its own segments, a
+    """Whether a stamp declaration covers a Markdown doc (DOCS_ROOTS), matched by the stamps' own rule
+    (panel_stamps._glob_match). Each pattern under DOCS_ROOTS is probed with a path made from its own segments, a
     wildcard segment named "x" and the last one "x.md"."""
-    probes = {"docs/x.md", "wiki/x.md"}
+    probes = {"docs/x.md", "wiki/x.md", ".claude/skills/x/SKILL.md", ".claude/agents/x.md"}
     for p in patterns:
-        if p.startswith(("docs/", "wiki/")):
+        if p.startswith(DOCS_ROOTS):
             parts = ["x" if "*" in part else part for part in p.split("/")]
             if not parts[-1].endswith(".md"):
                 parts[-1] = "x.md"
