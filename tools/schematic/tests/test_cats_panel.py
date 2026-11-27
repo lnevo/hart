@@ -305,12 +305,55 @@ class TestDeskErrors(unittest.TestCase):
     """The desk modules raise CatsPanelError; only build_cats_panel.main turns it into an exit."""
 
     def test_main_exits_with_the_error_message(self):
+        import contextlib
+        import io
         from unittest import mock
         bad = B.CatsPanelError("switch 107 is drawn twice on main and upper")
-        with mock.patch.object(B.pd, "plugin", return_value=Path("plugin")), \
-                mock.patch.object(B, "generate", side_effect=bad), self.assertRaises(SystemExit) as caught:
-            B.main(["--check"])
-        self.assertEqual(caught.exception.code, "switch 107 is drawn twice on main and upper")
+        for argv in (["--check"], []):
+            err = io.StringIO()
+            with mock.patch.object(B.pd, "plugin", return_value=Path("plugin")), \
+                    mock.patch.object(B.pd.paths, "exit_if_overridden"), \
+                    mock.patch.object(B, "generate", side_effect=bad), contextlib.redirect_stderr(err):
+                self.assertEqual(B.main(argv), 1, argv)
+            self.assertEqual(err.getvalue(), "switch 107 is drawn twice on main and upper\n")
+
+    def test_a_missing_plugin_stops_a_build_and_skips_a_check(self):
+        import contextlib
+        import io
+        from unittest import mock
+        gone = B.pd.PluginMissing("schematic-maps plugin not found")
+        for argv, env, status in ((["--check"], {}, 0), (["--check"], {"SCHEMATIC_REQUIRED": "1"}, 1), ([], {}, 1)):
+            out, err = io.StringIO(), io.StringIO()
+            with mock.patch.object(B.pd, "plugin", side_effect=gone), \
+                    mock.patch.object(B.pd.paths, "exit_if_overridden"), \
+                    mock.patch.dict(B.os.environ, env), mock.patch.object(B, "generate") as generate, \
+                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                if "SCHEMATIC_REQUIRED" not in env:
+                    B.os.environ.pop("SCHEMATIC_REQUIRED", None)
+                self.assertEqual(B.main(argv), status, (argv, env))
+            generate.assert_not_called()
+            if argv:
+                self.assertIn("SKIPPED CATS panel check: schematic-maps plugin not found", out.getvalue())
+            else:
+                self.assertEqual(err.getvalue(), "schematic-maps plugin not found\n")
+
+    def test_compare_writes_only_without_check(self):
+        import contextlib
+        import io
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp:
+            live, fresh = Path(tmp) / "live.xml", Path(tmp) / "fresh.xml"
+            live.write_text("old\n", encoding="utf-8")
+            fresh.write_text("new\n", encoding="utf-8")
+            with mock.patch.object(B.pd, "REPO", Path(tmp)), contextlib.redirect_stdout(io.StringIO()) as out:
+                self.assertEqual(B.compare({live: fresh}, check=True), 1)
+                self.assertEqual(live.read_text(encoding="utf-8"), "old\n")
+                self.assertIn("live.xml is stale", out.getvalue())
+                self.assertEqual(B.compare({live: fresh}, check=False), 0)
+                self.assertEqual(live.read_text(encoding="utf-8"), "new\n")
+                self.assertEqual(B.compare({live: fresh}, check=True), 0)
+                self.assertIn("live.xml is current", out.getvalue())
 
     def test_the_cause_is_kept(self):
         with self.assertRaises(B.CatsPanelError) as caught:

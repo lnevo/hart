@@ -278,6 +278,23 @@ class TheSplit(TempFiles):
         with self.assertRaisesRegex(bdm.MapError, "Switch 201: not frozen in wiring.csv, and no node was picked"):
             bdm._switch_rows(st, 2, "North", "CP 201", "201", None)
 
+    def test_the_build_records_are_device_map_records(self):
+        import device_map_records as rec
+        for name in ("Corners", "DeviceMapRow", "Drawing", "MapBuild", "MapInputs", "MapOutput", "MastKind", "Runs"):
+            with self.subTest(name=name):
+                self.assertIs(getattr(bdm, name), getattr(rec, name))
+
+    def test_map_inputs_come_from_the_railroad(self):
+        rr = SimpleNamespace(plan_overrides=SimpleNamespace(data={"edits": []}), level_control_points=["cp"],
+                             lcos_nodes=["node"], local_switches=["local"])
+        self.assertEqual(bdm.MapInputs.of(rr), bdm.MapInputs({"edits": []}, ["cp"], ["node"], ["local"]))
+        self.assertEqual(bdm.MapInputs({}, [], []).local, ())
+
+    def test_build_returns_its_named_parts(self):
+        """build() returns MapOutput; a caller unpacks it as (control points, rows, parts) or reads it by name."""
+        self.assertEqual(bdm.MapOutput._fields, ("control_points", "rows", "parts"))
+        self.assertEqual(bdm.Drawing._fields, ("bands", "joined", "runs", "corners"))
+
     def test_the_builder_re_exports_the_schematic_helpers(self):
         for name in self.SCHEMATIC:
             with self.subTest(name=name):
