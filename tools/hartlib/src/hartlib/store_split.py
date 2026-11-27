@@ -235,7 +235,8 @@ def verify(p: Plan, c: Choices, repo: ET.Element, rebuilt: ET.Element, template:
             continue
         for key, store_el in ((i.key, i.store),) + i.also:
             if store_el is None:        # a rename or comment is of a bean the Store holds (store_plan._build_drafts)
-                raise SplitError(f"{i.id} {label(key)}: the plan merges a {i.part} of a bean the Store lacks")
+                bad.append(f"{i.id} {label(key)}: the plan merges a {i.part} of a bean the Store lacks")
+                continue
             el = _rebuilt_bean(N, key, store_el)
             if el is None or value(el, i.part) != value(store_el, i.part):
                 bad.append(f"{i.id} {label(key)}: the rebuilt tables give {i.part} {value(el, i.part)!r}, not the "

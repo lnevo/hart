@@ -303,8 +303,10 @@ def _numbered(drafts: list[Draft]) -> list[Item]:
     counts = dict.fromkeys(KINDS, 0)
     items = []
     for d in drafts:
-        if (d.kind == DEVICE) != bool(d.edits):
-            raise SplitError(f"{d.kind} item {d.key!r} has {len(d.edits)} edits")
+        if d.kind == DEVICE and not d.edits:
+            raise SplitError(f"device item {d.key!r} has no edits: a device merge writes at least one")
+        if d.kind != DEVICE and d.edits:
+            raise SplitError(f"{d.kind} item {d.key!r} has {len(d.edits)} edit(s): only a device item merges")
         counts[d.kind] += 1
         items.append(d.item(f"{ID_PREFIX[d.kind]}{counts[d.kind]}"))
     return items

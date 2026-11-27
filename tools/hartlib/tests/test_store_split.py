@@ -646,21 +646,21 @@ class Invariants(unittest.TestCase):
 
     def test_a_device_draft_with_no_edits_stops(self) -> None:
         draft = sp.Draft(ss.DEVICE, self.KEY, sp.Sides(None, None, None), "userName", "merge writes nothing")
-        with self.assertRaisesRegex(ss.SplitError, "device item .* has 0 edits"):
+        with self.assertRaisesRegex(ss.SplitError, "device item .* has no edits"):
             sp._numbered([draft])
 
     def test_a_dropped_draft_with_edits_stops(self) -> None:
         edit = ss.Edit(("1", "x"), "user_name", "a", "b")
         draft = sp.Draft(ss.DROPPED, self.KEY, sp.Sides(None, None, None), "userName", "dropped", edits=(edit,))
-        with self.assertRaisesRegex(ss.SplitError, "dropped item .* has 1 edits"):
+        with self.assertRaisesRegex(ss.SplitError, "dropped item .* has 1 edit\\(s\\): only a device item merges"):
             sp._numbered([draft])
 
-    def test_a_merged_rename_of_a_bean_the_store_lacks_stops_verify(self) -> None:
+    def test_a_merged_rename_of_a_bean_the_store_lacks_is_a_verify_problem(self) -> None:
         item = ss.Item("D1", ss.DEVICE, self.KEY, "userName", "merge writes", store=None,
                        edits=(ss.Edit(("1", "x"), "user_name", "a", "b"),), part="userName")
         p = ss.Plan([item], True, "f")
-        with self.assertRaisesRegex(ss.SplitError, "D1 turnout M2T408: the plan merges a userName"):
-            ss.verify(p, ss.Choices(merge=frozenset({"D1"})), doc(), doc(), doc(template=True))
+        bad = ss.verify(p, ss.Choices(merge=frozenset({"D1"})), doc(), doc(), doc(template=True))
+        self.assertIn("D1 turnout M2T408: the plan merges a userName of a bean the Store lacks", bad)
 
 
 if __name__ == "__main__":
