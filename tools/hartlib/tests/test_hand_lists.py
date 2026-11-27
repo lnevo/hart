@@ -187,6 +187,51 @@ class PanelItems(Temp):
             panel_items.load(self.tmp / "none.json")
 
 
+class PanelLamps(Temp):
+    def test_the_committed_file(self):
+        lamps = hand_lists.read_panel_lamps()
+        self.assertEqual([lamp.system_name for lamp in lamps], ["M2S1567", "IS:SML_MODE", "IS:TRACK_POWER", "IH9990"])
+        self.assertEqual({(lamp.layer, lamp.icon) for lamp in lamps}, {("sensor", "sensor"), ("head", "signalhead")})
+
+    def stops(self, edit, pattern: str) -> None:
+        path = self.copy(hand_lists.PANEL_LAMPS, edit)
+        with self.assertRaisesRegex(hand_lists.HandListError, pattern):
+            hand_lists.read_panel_lamps(path)
+
+    def test_a_missing_file_stops(self):
+        with self.assertRaisesRegex(hand_lists.HandListError, "cannot read none.csv"):
+            hand_lists.read_panel_lamps(self.tmp / "none.csv")
+
+    def test_a_missing_column_stops(self):
+        self.stops(lambda t: t.replace(",jmri_comment", "", 1), r"columns \[.*\], not \[")
+
+    def test_a_short_row_stops(self):
+        self.stops(lambda t: t.rstrip("\n") + "\nIS:X,sensor\n", r"line 6: not 7 fields")
+
+    def test_an_empty_cell_stops(self):
+        self.stops(lambda t: t.replace(",Bridge HBLOOP,", ",,", 1), r"line 2: user_name empty")
+
+    def test_a_system_name_listed_twice_stops(self):
+        self.stops(lambda t: t.replace("IS:TRACK_POWER", "IS:SML_MODE", 1),
+                   r"line 4: system_name 'IS:SML_MODE' is listed twice")
+
+    def test_a_user_name_listed_twice_stops(self):
+        self.stops(lambda t: t.replace(",Track Power,", ",SML Mode,", 1), r"line 4: user_name 'SML Mode' is listed twice")
+
+    def test_an_unknown_layer_stops(self):
+        self.stops(lambda t: t.replace("IH9990,head,", "IH9990,mast,", 1), r"line 5: layer 'mast' is not one of")
+
+    def test_an_icon_not_its_layers_stops(self):
+        self.stops(lambda t: t.replace(",field,signalhead,", ",field,sensor,", 1),
+                   r"line 5: icon 'sensor'; a head lamp's is signalhead")
+
+    def test_an_unknown_assignment_stops(self):
+        self.stops(lambda t: t.replace(",virtual,", ",spare,", 1), r"line 3: assignment 'spare' is not one of")
+
+    def test_a_file_with_no_lamps_stops(self):
+        self.stops(lambda t: t.splitlines()[0] + "\n", "no lamps")
+
+
 class SourcesStations(unittest.TestCase):
     def test_the_stations_file_is_a_source(self):
         self.assertEqual(railroad.Sources.under(Path("/x")).stations, Path("/x/schematic/stations.csv"))

@@ -201,7 +201,9 @@ class ReviewFlagRetired(unittest.TestCase):
 
     def test_the_discovery_wrapper_passes_no_review(self):
         """build_tables.py has no --review any more; HART_TABLES_REVIEW only lets the wrapper skip its own approval
-        check (check_approved.py le-panel), never passed to build_tables.py."""
+        check (check_approved.py le-panel), never passed to build_tables.py.
+        Source text on purpose: the wrapper drives PanelPro on a host, so no test can run it; what it passes to
+        build_tables.py is visible only in its lines."""
         text = (Path(__file__).resolve().parents[3] / "jmri/layouts/hart/scripts/run_sml_discover.sh").read_text()
         self.assertNotIn("--review", text)
         self.assertEqual([line for line in text.splitlines() if "REVIEW" in line and "build_tables.py" in line], [])

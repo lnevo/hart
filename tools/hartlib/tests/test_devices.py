@@ -280,7 +280,7 @@ def part(user="Track 9-11", part_of="OS Switch 9", **cells) -> dict:
 
 
 class TheParts(unittest.TestCase):
-    """A block row with part_of is a piece of track inside another block (owner, 2026-11-20): it makes no JMRI block,
+    """A block row with part_of is a piece of track inside another block: it makes no JMRI block,
     layout block or occupancy row of its own, and the block it names exists and is no part itself."""
 
     def test_a_part_of_an_existing_block_passes(self):
@@ -294,7 +294,7 @@ class TheParts(unittest.TestCase):
         self.assertIn("part_of is for a block row", problems([block(), part(layer="occupancy")]))
 
     def test_a_part_has_no_detector_of_its_own_on_every_level(self):
-        """One rule for every level (owner, 2026-11-20): a part is a JMRI block whose occupancy sensor is its block's,
+        """One rule for every level: a part is a JMRI block whose occupancy sensor is its block's,
         so it has no detector, wiring, node or DCC address of its own, and no field assignment."""
         for level in ("1", "2"):
             home = block(level=level) if level == "1" else block(level="2", assignment="none", system_name="",
@@ -306,7 +306,7 @@ class TheParts(unittest.TestCase):
                                   problems([home, part(level=level, **{col: value})]))
 
     def test_a_part_may_be_a_jmri_block_of_its_own_on_every_level(self):
-        # main and upper's links and staging's 16 pieces (owner, 2026-11-20): a JMRI block and layout block whose
+        # main and upper's links and staging's 16 pieces: a JMRI block and layout block whose
         # sensor is its block's
         main = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
         D.check_rows([main, part(level="2", system_name="IB9", jmri_name="IB9", layout_block="ILB9",
@@ -364,7 +364,7 @@ def unplaced(user="Test 999", **cells) -> dict:
 
 class TheUnplacedDevices(unittest.TestCase):
     """A device added in PanelPro and not on the layout yet has no level, cp or role, and carries its Store beans in
-    jmri_bean (owner, 2026-11-20); it comes after every level's rows."""
+    jmri_bean; it comes after every level's rows."""
 
     def test_a_level_less_row_with_its_bean_passes(self) -> None:
         D.check_rows([turnout(), unplaced()])
@@ -480,7 +480,7 @@ class TheRowForms(unittest.TestCase):
 
 
 def hand_keep(files, layer="turnout", user="Switch 1"):
-    """Make one row of the copied master hand-kept again (no written_by; since 2026-11-20 every committed row has a
+    """Make one row of the copied master hand-kept again (no written_by; every committed row has a
     writer), moved ahead of the writers' rows of its level as a hand-kept row stands, and return it."""
     rows = [r.cells() for r in D.load(files)]
     i = next(i for i, r in enumerate(rows) if r["layer"] == layer and r["user_name"] == user)
@@ -761,14 +761,14 @@ class TheKindFromTheRow(unittest.TestCase):
 
 
 class TheStagingFacts(unittest.TestCase):
-    """What the pnm_ columns held that the master's own columns lacked, now in them (R9e follow-up, 2026-11-21)."""
+    """What the pnm_ columns held that the master's own columns lacked, now in them."""
 
     @classmethod
     def setUpClass(cls):
         cls.rows = {(r.level_cell, r.layer, r.user_name): r.cells() for r in D.load()}
 
     def test_a_line_blocks_cp_lists_the_places_it_joins(self):
-        """The owner's rule (2026-11-21): the stations (or control points) of the switches at a line block's two ends,
+        """The stations (or control points) of the switches at a line block's two ends,
         plus a station whose tracks name it, in stations.csv's order; its sensor has its block's."""
         cp = lambda layer, name, level="1": self.rows[(level, layer, name)]["cp"]  # noqa: E731
         self.assertEqual(cp("block", "Track Main East"), "Barn;East End")
