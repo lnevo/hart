@@ -171,7 +171,9 @@ class SmlUi(object):
             space.repaint()
             print("mqtt_signalhead: SML toggle on PanelPro button strip")
             return True
-        except (ImportError, RuntimeException) as exc:  # not PanelPro (no apps), or a Swing failure
+        # not PanelPro (no apps), an older JMRI without Apps.buttonSpace, or a Swing failure: the retry goes on;
+        # a TypeError is a bug in this script and is raised
+        except (ImportError, AttributeError, RuntimeException) as exc:
             self._attach_failed(attempt, _ascii(exc))
             return False
 
@@ -245,6 +247,8 @@ class SmlUi(object):
         # invokeAndWait wraps what the dialog raised (InvocationTargetException) or is interrupted; on the
         # Swing thread the plain dialog's own RuntimeException arrives unwrapped. Each counts as No.
         except (InvocationTargetException, InterruptedException, RuntimeException) as exc:
+            if isinstance(exc, InterruptedException):
+                Thread.currentThread().interrupt()  # keep the interrupt for the code that waits on this thread
             print("mqtt_signalhead: override dialog failed: " + _ascii(exc))
             return False
         return holder[0] == JOptionPane.YES_OPTION

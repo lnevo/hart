@@ -97,9 +97,13 @@ class Coordinator(unittest.TestCase):
             coordinator.sibling_modules(other)
 
 
-
 class LcosRule(unittest.TestCase):
     """coordinator.lcos_rule: signal_coordinator.py's sml_lcos.py, imported in CPython."""
+
+    def setUp(self) -> None:
+        saved = sys.modules.pop(coordinator._LCOS_MODULE, None)
+        if saved is not None:
+            self.addCleanup(sys.modules.__setitem__, coordinator._LCOS_MODULE, saved)
 
     def module(self, body: str) -> Path:
         holder = tempfile.TemporaryDirectory()
@@ -134,6 +138,13 @@ class LcosRule(unittest.TestCase):
             with self.subTest(body=body), self.assertRaisesRegex(coordinator.CoordinatorError, "no longer defines"):
                 coordinator.lcos_rule(self.module(body))
             self.assertNotIn(coordinator._LCOS_MODULE, sys.modules)
+
+    def test_a_failed_load_keeps_the_good_one(self) -> None:
+        coordinator.lcos_rule()
+        good = sys.modules[coordinator._LCOS_MODULE]
+        with self.assertRaises(coordinator.CoordinatorError):
+            coordinator.lcos_rule(self.module("import hart_no_such_module\n"))
+        self.assertIs(sys.modules[coordinator._LCOS_MODULE], good)
 
 
 if __name__ == "__main__":

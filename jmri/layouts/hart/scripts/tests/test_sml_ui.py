@@ -129,6 +129,14 @@ class SmlUi(unittest.TestCase):
         self.assertEqual(lines[0], "mqtt_signalhead: buttonSpace attempt 1 failed: strip gone")
         self.assertEqual(lines[-1], GIVE_UP)
 
+    def test_a_python_error_on_the_strip_is_a_failed_attempt_and_the_retry_goes_on(self) -> None:
+        space = _Space()
+        space.add = lambda c: (_ for _ in ()).throw(AttributeError("no add"))
+        self.layout.button_space = space
+        lines = self.run_attach()
+        self.assertEqual(lines[0], "mqtt_signalhead: buttonSpace attempt 1 failed: no add")
+        self.assertEqual(lines[-1], GIVE_UP)
+
     def test_an_unreadable_component_is_printed_once_and_skipped(self) -> None:
         space = _Space()
         space.components.append(_BadComponent(RuntimeError("no text")))

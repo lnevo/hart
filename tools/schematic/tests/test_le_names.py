@@ -1,6 +1,6 @@
 """le_names on small made-up bands and rows (no plugin, no solve): the track runs through turnbacks, the crossover
-tracks, the staging and main lengths, the LCOS head rule from signal_coordinator.py's sml_lcos.py and its guard, and the device-map names
-put in place of the placeholders."""
+tracks, the staging and main lengths, the LCOS head rule from signal_coordinator.py's sml_lcos.py and its guard, and
+the device-map names put in place of the placeholders."""
 import sys
 import unittest
 from pathlib import Path

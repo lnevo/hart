@@ -549,6 +549,7 @@ inputs = [
   { path = "jmri/scripts/sml_events.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_quit.py", label = "check", side = "check" },
   { path = "jmri/scripts/sml_ui.py", label = "check", side = "check" },
+  { path = "jmri/scripts/sml_lcos.py", label = "check", side = "check" },
   { path = "external/lcos-bridge/lcos_mqtt_bridge.cpp", label = "check", side = "check" },
   { path = "external/lcos-bridge/serial_to_mqtt.py", label = "check", side = "check" },
 ]

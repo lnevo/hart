@@ -116,16 +116,24 @@ def lcos_rule(path: Path = LCOS_RULE) -> LcosRule:
     if spec is None or spec.loader is None:
         raise CoordinatorError(f"{_rel(path)}: cannot be imported as a module")
     module = importlib.util.module_from_spec(spec)
+    previous = sys.modules.get(_LCOS_MODULE)
     sys.modules[_LCOS_MODULE] = module
+
+    def restore() -> None:
+        """Put back what a failed load replaced, so an earlier good load stays registered."""
+        if previous is None:
+            sys.modules.pop(_LCOS_MODULE, None)
+        else:
+            sys.modules[_LCOS_MODULE] = previous
     try:
         spec.loader.exec_module(module)
     except Exception as exc:    # running a module's top level can raise any error; each becomes this one
-        del sys.modules[_LCOS_MODULE]
+        restore()
         raise CoordinatorError(f"{_rel(path)}: does not import: {exc}") from exc
     is_head = getattr(module, "_is_lcos_ih_sys", None)
     in_mast = getattr(module, "_HEAD_IN_MAST", None)
     if not callable(is_head) or not isinstance(in_mast, re.Pattern):
-        del sys.modules[_LCOS_MODULE]
+        restore()
         raise CoordinatorError(f"{_rel(path)}: no longer defines _is_lcos_ih_sys (a function) and _HEAD_IN_MAST "
                                "(a compiled pattern)")
     return LcosRule(is_head, in_mast)
