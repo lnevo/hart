@@ -218,9 +218,6 @@
  "tools/schematic/block_layer.py": {
   "dated-note": 3
  },
- "tools/schematic/build_cats_panel.py": {
-  "dated-note": 3
- },
  "tools/schematic/build_device_map.py": {
   "dated-note": 1
  },
