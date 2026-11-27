@@ -43,7 +43,9 @@ master or a copy elsewhere, so moving does not make a data file for one script. 
 is one source and stays. The tables the owner marked move during the review stay move whatever their reason says. Where tables in several files
 are the same table, they become one shared source: for tables only the website's JavaScript reads, a shared file under
 `www/js/`, as `game-engine.js` is, not a CSV with a build step (the track warrant form is `www/js/track-warrant.js`).
-Tables that are different selections of the same things stay apart, and a test holds their names together: the
+Tables of a parked feature (Entry/Exit, the Dispatcher System, the USS CTC machine; `hartlib.parked`) and Jython
+that runs inside JMRI (it cannot import hartlib) stay in code until the feature is unparked; so do a game's own story
+text and the tables the owner kept because no other file re-uses them. Tables that are different selections of the same things stay apart, and a test holds their names together: the
 Chartiers stations of `www/play/road-engine.js` ST, `pir.js` POINTS and `warrant.js`' form choices
 (`www/scripts/tests/play_through_test.js`).
 
