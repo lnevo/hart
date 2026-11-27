@@ -1,4 +1,5 @@
-# JMRI jython -- the loader signal_coordinator.py and panel_status.py import their sibling modules with.
+# JMRI jython -- the loader signal_coordinator.py and panel_status.py import their sibling modules with,
+# and the one helper those modules share (once_printer).
 #
 # JMRI runs a Start Up script from preference:jython with no __file__ and without that folder on sys.path, and
 # keeps every imported module across runs of the script. Each script puts the folder on sys.path, imports this
@@ -19,6 +20,24 @@ except NameError:  # CPython 3, where the tests run the scripts
 class SiblingModuleError(ImportError):
     """A sibling module is missing from the jython folder, does not compile, fails to import, or was loaded from
     another folder."""
+
+
+def once_printer():
+    """A new print function that prints each message the first time only, with its own record of what it printed.
+
+    A module calls this at its top level (`_log_once = once_printer()`), so each module keeps its own record and
+    a reload of that module starts a new one: a failure line that repeats on every bean or turnout event is
+    printed once per run of the script.
+    """
+    printed = set()
+
+    def log_once(msg):
+        """Print msg the first time only."""
+        if msg not in printed:
+            printed.add(msg)
+            print(msg)
+
+    return log_once
 
 
 def reload_module(module):

@@ -46,6 +46,7 @@ jmri/layouts/hart/data/schematic/stations.csv
 jmri/layouts/hart/data/switches.csv
 jmri/scripts/signal_coordinator.py
 jmri/scripts/jython_siblings.py
+jmri/scripts/sml_lcos.py
 jmri/scripts/sml_beans.py
 jmri/scripts/sml_claims.py
 jmri/scripts/sml_handoff.py

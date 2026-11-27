@@ -12,6 +12,7 @@ from java.awt.event import ActionListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
 
+from jython_siblings import once_printer
 from panel_status_clicks import head_sys
 
 TWOSENSOR = jmri.Turnout.TWOSENSOR
@@ -32,15 +33,8 @@ _icon_rebound = False
 _last_fb_appearance = None
 # sys name -> feedback mode of each included plant. A full scan fills it; a turnout's own event updates its entry.
 _plant_modes = {}
-# Messages already printed: a scan repeats on every turnout event, so a failure that repeats is printed once.
-_logged = set()
-
-
-def _log_once(msg):
-    """Print msg the first time only."""
-    if msg not in _logged:
-        _logged.add(msg)
-        print(msg)
+# Failure lines are printed once each: a scan repeats on every turnout event.
+_log_once = once_printer()
 
 
 def _turnouts():

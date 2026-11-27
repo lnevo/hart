@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Loads Extra East (exam/run.html's scripts, in its order) into the fake DOM and plays every run to its end screen,
    always taking the first button. On a track warrant it first copies the warrant as the dispatcher reads it. It checks
-   that the five scripts share their names through window.ExtraEast, that the clock reads 0:01 a minute past midnight,
+   that the six run scripts share their names through window.ExtraEast, that the clock reads 0:01 a minute past midnight,
    and that no run throws. No dependencies. Usage: node exam_run_test.js [--dump], where --dump prints every screen of
    every run as JSON instead, to compare two versions of the scripts. */
 "use strict";
@@ -12,7 +12,7 @@ const vm = require("vm");
 const { El, roots, mk, doc } = require("./fake_dom.js");
 
 const WWW = path.join(__dirname, "..", "..");
-const SCRIPTS = ["js/game-engine.js", "js/track-warrant.js", "exam/signals.js", "exam/run-data.js", "exam/run.js", "exam/run-1949.js", "exam/run-modern.js",
+const SCRIPTS = ["js/game-engine.js", "js/track-warrant.js", "exam/signals.js", "exam/run-data.js", "exam/run.js", "exam/run-tto.js", "exam/run-1949.js", "exam/run-modern.js",
   "exam/run-signals.js", "exam/run-yard.js", "exam/run-title.js"]; // run.html's order
 const ERAS = ["tto", "twc", "yard", "sig"]; // the start buttons
 const RUNS = ["tto", "twc", "yard", "sigs", "sigr"]; // "sig" plays speed signals, or route signals with the switch on
@@ -37,7 +37,7 @@ vm.runInContext("var __s=7;Math.random=function(){__s=(Math.imul(__s,1664525)+10
 for (const f of SCRIPTS) vm.runInContext(fs.readFileSync(path.join(WWW, f), "utf8"), ctx, { filename: f });
 
 const X = ctx.window.ExtraEast;
-for (const name of ["ROAD_TTO", "STN_TTO", "ROAD_TWC", "startTWC", "startSIG", "YLOC", "renderYardMap", "startYARD"])
+for (const name of ["startTTO", "solvePar", "ROAD_TTO", "STN_TTO", "ROAD_TWC", "startTWC", "startSIG", "YLOC", "renderYardMap", "startYARD"])
   assert.ok(X[name], `window.ExtraEast has no ${name}: a later script did not add it`);
 assert.strictEqual(typeof ctx.STATIONS, "undefined", "run.js leaks its names as globals");
 

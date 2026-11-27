@@ -181,9 +181,6 @@
  "tools/schematic/evolution.py": {
   "import-exit": 5
  },
- "tools/schematic/le_names.py": {
-  "exec-parts": 1
- },
  "tools/schematic/tests/test_band_panels.py": {
   "dated-note": 1
  },
