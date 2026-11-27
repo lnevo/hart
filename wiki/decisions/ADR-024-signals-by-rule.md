@@ -13,7 +13,7 @@ A review on 2026-11-18 compared staging's hand masts with the rule. Most of them
 
 ## Decision
 
-One mast process places every mast on every level (owner, 2026-11-20). The rules live in `tools/schematic/mast_rule.py`; `tools/schematic/mast_plan.py` (`plan`) runs them as one process, which `build_device_map.py` calls for every level (staging's through `device_map_masts.py` since naming-layers step 12, 2026-11-25: one writer of every mast and head row); `build_masts.py` writes every level's masts into `masts.csv`. Only the block layer each reads is still its level's own. Two masts of one number and direction take A and B in the plan order of the tracks they face (`mast_rule.letter_order`), not by drawn row (step 12); staging keeps its letters as the owner's names in `devices_field.csv`.
+One mast process places every mast on every level (owner, 2026-11-20). The rules live in `tools/schematic/mast_rule.py`; `tools/schematic/mast_plan.py` (`plan`) runs them as one process, which `build_device_map.py` calls for every level (staging's through `device_map_masts.py` since naming-layers step 12, 2026-11-25: one writer of every mast and head row); `build_masts.py` writes every level's masts into `masts.csv`. Only the block layer each reads is still its level's own. Two masts of one number and direction take A and B in the plan order of the tracks they face (`plan_tracks.letter_order`), not by drawn row (step 12); staging keeps its letters as the owner's names in `devices_field.csv`.
 
 **Where masts go**
 - A home mast stands where a track from outside an interlocking meets one of its switches.

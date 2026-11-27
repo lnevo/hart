@@ -10,18 +10,18 @@ the level's block layer:
    from running track, a dwarf from a yard, lead or siding.
 2. Intermediates (APB pairs): at each block boundary inside a running track (main, running by rule, or a long track
    inside one interlocking) with at least one end in an interlocking, where both blocks hold a train (over
-   mast_rule.LONG_CM). Named from the milepost in tenths, odd westbound and even eastbound, after the level's line
+   mast_routes.LONG_CM). Named from the milepost in tenths, odd westbound and even eastbound, after the level's line
    code (LINE_CODE: A main, B upper, none on staging, where a name stops at 98 so it never reads as a three-digit
    home mast). A number another intermediate already holds moves on to the next free one of its parity
    (assign_numbers).
    West is toward the lower milepost; on a balloon loop, which starts and ends at one switch, the
    eastbound mast faces Loop 1 (the half from leg B).
-3. Virtual masts only as destinations: every route of each kept home mast is walked (mast_rule.route_ends) to the
+3. Virtual masts only as destinations: every route of each kept home mast is walked (mast_routes.route_ends) to the
    first visible mast; a route that reaches a buffer stop first gets a hidden bumper mast there, facing it. Nothing
    else gets one. A bumper mast is named as a home mast is, from the switch the track to the buffer stop leaves (its
    number + 1) and the letter a train heading for the buffer stop reads; masts of one number and letter take A, B ...
    in the plan order of their tracks (the switch leg each leaves: hartlib.track_names.end_order, as home masts follow
-   mast_rule.letter_order), after the letters the visible masts use (120RA and 120RB stand,
+   plan_tracks.letter_order), after the letters the visible masts use (120RA and 120RB stand,
    so the bumper mast is 120RC); a visible mast with the bare name stops the build.
 
 The block layer is each level's own: staging's from its device map's block rows and
@@ -37,10 +37,16 @@ import sys
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Literal, NamedTuple, NotRequired, TypedDict
+from typing import Literal, NamedTuple, NotRequired, TypedDict
 
 import le_names as ln
+import mast_routes
 import mast_rule as mr
+import plan_bands
+import plan_tracks
+from map_error import MapError
+from plan_bands import Band, Bands
+from plan_tracks import Leg
 import publish_draft  # noqa: F401  imported for its side effect: it puts hartlib on the path before the hartlib import below
 from hartlib import hand_lists, level_masts
 from hartlib.track_names import end_order
@@ -53,11 +59,6 @@ CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
 LOOP_FIRST = next(leg for leg, half in mr.LOOP_HALF.items() if half == 1)   # a loop's half 1 leaves from leg B
 SWITCHES = ("switch", "dx")
 
-# A solved band of the schematic-maps plugin (nodes, strands, rail, mp ...): the plugin's own JSON shape, read by key,
-# so its values are Any at this boundary.
-Band = dict[str, Any]
-Bands = Sequence[tuple[str, Band, dict]]       # (title, band, overrides) of every band, in the plugin's order
-Leg = tuple[str, str]                          # a switch leg or track end on a band: (node, port), as mast_rule.Leg
 Direction = Literal["west", "east"]
 
 
@@ -179,7 +180,7 @@ def signal_number(mp: float, west: bool, code: str = "") -> int:
     n = int(mp * 10 + 1e-9)
     number = (n if n % 2 else n + 1) if west else (n if n % 2 == 0 else n + 1)
     if not code and number > 98:
-        raise mr.MapError(f"MP {mp:.2f} gives intermediate number {number}; names with no line code stop at 98")
+        raise MapError(f"MP {mp:.2f} gives intermediate number {number}; names with no line code stop at 98")
     return number
 
 
@@ -204,7 +205,7 @@ def assign_numbers(pending: Sequence[Pending]) -> list[Intermediate]:
             while f"{code}{number}" in natural or f"{code}{number}" in holder:
                 number += 2
             if not code and number > 98:
-                raise mr.MapError(f"MP {p.mp:.3f}: intermediate {p.number} is held by MP {held.mp:.3f} and the next "
+                raise MapError(f"MP {p.mp:.3f}: intermediate {p.number} is held by MP {held.mp:.3f} and the next "
                                   f"free number {number} is over 98; names with no line code stop at 98")
             name = f"{code}{number}"
             print(f"mast_plan: MP {p.mp:.3f} would be intermediate {code}{p.number}, which MP {held.mp:.3f} holds; "
@@ -229,19 +230,19 @@ def _needs_lengths(blocks: Iterable[str], cm: Mapping[str, float]) -> None:
     """MapError naming each of `blocks` that `cm` gives no length."""
     missing = sorted(set(blocks) - set(cm))
     if missing:
-        raise mr.MapError(f"no length for block(s) {missing}: a mast's place and milepost need every block's length")
+        raise MapError(f"no length for block(s) {missing}: a mast's place and milepost need every block's length")
 
 
-def home_masts(bands: Bands, joined: mr.Joined, found: list[mr.Track], cp_of: Mapping[str, str], running: set[str],
+def home_masts(bands: Bands, joined: plan_tracks.Joined, found: list[plan_tracks.Track], cp_of: Mapping[str, str], running: set[str],
                *, levels: Mapping[str, int], corner_blocks: dict | None = None,
                split: frozenset[str] | set[str] = frozenset()) -> list[mr.HomeMast]:
     """Step 1 (module text): the home masts of `levels`, each with its heads and kind; `running`: the running tracks
     by rule (mast_rule.running_tracks)."""
     spurs = mr.signalled_spurs(found, cp_of)
-    home = mr.masts(bands, None, found, cp_of, corner_blocks or {}, levels=levels, running_extra=running,
+    home = mr.masts(bands, found, cp_of, corner_blocks or {}, levels=levels, running_extra=running,
                     spurs=spurs, split=split, joined=joined)
     for m in home:
-        if m["heads"] == 1 and mr.facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
+        if m["heads"] == 1 and mast_routes.facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
             m["heads"] = 2
         m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
     return home
@@ -276,7 +277,7 @@ def _boundary_pair(run: Run, sw: list[str], a: str, b: str, *, level: int, bi: i
     """The westbound and eastbound intermediates at the boundary of blocks `a` and `b` on `run` (end switches `sw`)."""
     start, seq, end = run
     if start[0] not in mp_at or end[0] not in mp_at:
-        raise mr.MapError(f"the boundary {a}|{b} cannot be numbered: switch "
+        raise MapError(f"the boundary {a}|{b} cannot be numbered: switch "
                           f"{sw[0] if start[0] not in mp_at else sw[1]} is not on the milepost count")
     total = sum(cm[x] for x in seq)
     from_start = sum(cm[x] for x in seq[:seq.index(b)])
@@ -298,18 +299,18 @@ def _boundary_pair(run: Run, sw: list[str], a: str, b: str, *, level: int, bi: i
     return out
 
 
-def intermediates(bands: Bands, found: list[mr.Track], runs_by_band: Mapping[int, list[Run]],
+def intermediates(bands: Bands, found: list[plan_tracks.Track], runs_by_band: Mapping[int, list[Run]],
                   layer: Mapping[int, Mapping[str, dict]], cm: Mapping[str, float], cp_of: Mapping[str, str],
                   running: set[str], levels: Mapping[str, int]) -> list[Intermediate]:
-    """Step 2 (module text): a pair at each boundary of two long blocks (over mast_rule.LONG_CM) inside a run that
+    """Step 2 (module text): a pair at each boundary of two long blocks (over mast_routes.LONG_CM) inside a run that
     takes intermediates (_signalled_run), named by assign_numbers. MapError on a band of runs with no level."""
-    legs = mr.by_leg(found)
+    legs = plan_tracks.by_leg(found)
     pending: list[Pending] = []
     for bi, runs in sorted(runs_by_band.items()):
         band = bands[bi][1]
-        level = mr.band_level(bands[bi][0], levels)
+        level = plan_bands.band_level(bands[bi][0], levels)
         if level is None:
-            raise mr.MapError(f"band {bands[bi][0]!r} has runs but no level")
+            raise MapError(f"band {bands[bi][0]!r} has runs but no level")
         code = LINE_CODE[level]
         os_ = layer[bi]["os"]
         mp_at = node_mileposts(band)
@@ -321,21 +322,21 @@ def intermediates(bands: Bands, found: list[mr.Track], runs_by_band: Mapping[int
             body = [b for b in run.blocks if b not in (os_.get(run.start[0]), os_.get(run.end[0]))]
             _needs_lengths(run.blocks, cm)
             for a, b in zip(body, body[1:]):
-                if cm[a] > mr.LONG_CM and cm[b] > mr.LONG_CM:
+                if cm[a] > mast_routes.LONG_CM and cm[b] > mast_routes.LONG_CM:
                     pending += _boundary_pair(run, sw, a, b, level=level, bi=bi, code=code, mp_at=mp_at, cm=cm,
                                               cp_of=cp_of)
     return assign_numbers(pending)
 
 
-def _buffer_stop_needs(bands: Bands, joined: mr.Joined,
+def _buffer_stop_needs(bands: Bands, joined: plan_tracks.Joined,
                        home: Sequence[mr.HomeMast]) -> dict[tuple[int, str], set[str]]:
-    """{(band, buffer stop node): the home masts whose routes end there} (mast_rule.route_ends)."""
+    """{(band, buffer stop node): the home masts whose routes end there} (mast_routes.route_ends)."""
     posts: defaultdict[int, set[tuple[str, str]]] = defaultdict(set)
     for m in home:
         posts[m["band"]].add((m["node"], m["leg"]))
     need: defaultdict[tuple[int, str], set[str]] = defaultdict(set)
     for m in home:
-        _signal, bumpers = mr.route_ends(bands, m["band"], m["node"], m["leg"], posts, joined)
+        _signal, bumpers = mast_routes.route_ends(bands, m["band"], m["node"], m["leg"], posts, joined)
         for e in bumpers:
             need[e].add(m["name"])
     return need
@@ -354,7 +355,7 @@ def _buffer_stop_tracks(bands: Bands,
     return reach
 
 
-def virtual_masts(bands: Bands, joined: mr.Joined, home: Sequence[mr.HomeMast],
+def virtual_masts(bands: Bands, joined: plan_tracks.Joined, home: Sequence[mr.HomeMast],
                   runs_by_band: Mapping[int, list[Run]], cm: Mapping[str, float], taken: set[str],
                   levels: Mapping[str, int]) -> list[VirtualMast]:
     """Step 3 (module text): each VirtualMast; node and leg are the switch leg the track to the buffer stop leaves,
@@ -367,20 +368,20 @@ def virtual_masts(bands: Bands, joined: mr.Joined, home: Sequence[mr.HomeMast],
     groups: defaultdict[tuple[int, str], list[tuple[tuple, VirtualFields]]] = defaultdict(list)
     for e, who in sorted(need.items()):
         if e not in reach:
-            raise mr.MapError(f"the routes of {', '.join(sorted(who, key=mr.natural))} end at buffer stop {e[1]} on "
+            raise MapError(f"the routes of {', '.join(sorted(who, key=mr.natural))} end at buffer stop {e[1]} on "
                               f"{bands[e[0]][0]!r}, which no track from a switch reaches: no virtual mast can stand "
                               "there")
         bi, ((n, p), seq) = e[0], reach[e]
         band = bands[bi][1]
         letter = "R" if letter_at(band, n, p) == "L" else "L"      # the letter a train heading for the stop reads
         sw = _label(band, n)
-        level = mr.band_level(bands[bi][0], levels)
+        level = plan_bands.band_level(bands[bi][0], levels)
         if level is None:
-            raise mr.MapError(f"band {bands[bi][0]!r} has a buffer stop mast but no level")
+            raise MapError(f"band {bands[bi][0]!r} has a buffer stop mast but no level")
         _needs_lengths(seq, cm)
         # lettered in the plan order of the track to the buffer stop, by the switch leg it leaves (end_order of its
         # end_leg: Track 209 Spur 1 from 209B before Spur 2 from 209C), as the home masts are
-        groups[(int(sw) + 1, letter)].append((end_order(mr.end_leg(bands, joined, bi, (n, p))), VirtualFields(
+        groups[(int(sw) + 1, letter)].append((end_order(plan_tracks.end_leg(bands, joined, bi, (n, p))), VirtualFields(
             level=level, band=bi, node=n, leg=p, switch=sw,
             bumper=e[1], dir="west" if letter == "L" else "east", facing=seq[-1], seq=seq,
             total=round(sum(cm[b] for b in seq), 1), needed_by=sorted(who, key=mr.natural))))
@@ -389,12 +390,12 @@ def virtual_masts(bands: Bands, joined: mr.Joined, home: Sequence[mr.HomeMast],
         stem = f"{number}{letter}"
         used = sorted(t.removeprefix(stem) for t in taken if t == stem or re.fullmatch(re.escape(stem) + "[A-Z]", t))
         if "" in used:
-            raise mr.MapError(f"Mast {stem} stands already; the virtual mast(s) at its buffer stop(s) cannot be "
+            raise MapError(f"Mast {stem} stands already; the virtual mast(s) at its buffer stop(s) cannot be "
                               "lettered")
         ms.sort(key=lambda x: x[0])
         letters = [c for c in "ABCD" if c not in used] if used or len(ms) > 1 else [""]
         if len(ms) > len(letters):
-            raise mr.MapError(f"Mast {stem}: {len(used) + len(ms)} masts of one number and letter, more than A to D")
+            raise MapError(f"Mast {stem}: {len(used) + len(ms)} masts of one number and letter, more than A to D")
         for (_row, fields), suffix in zip(ms, letters):
             out.append((number, {**fields, "name": stem + suffix}))
     return [m for _n, m in sorted(out, key=lambda x: (x[0], x[1]["name"]))]
@@ -407,14 +408,14 @@ def read_retired(path: Path = RETIRED) -> dict[str, str]:
     try:
         return hand_lists.read_retired_masts(path)
     except hand_lists.HandListError as exc:
-        raise mr.MapError(str(exc)) from exc
+        raise MapError(str(exc)) from exc
 
 
 def _ordinal(system: str) -> int:
     """The ordinal of a virtual mast's system name; MapError on any other name."""
     k = level_masts.virtual_ordinal(system)
     if k is None:
-        raise mr.MapError(f"{system!r} is not a virtual mast system name")
+        raise MapError(f"{system!r} is not a virtual mast system name")
     return k
 
 
@@ -431,19 +432,19 @@ def virtual_system_names(masts: Sequence[str], level: int, old: Mapping[str, str
     retired = read_retired() if retired is None else retired
     back = sorted(f"Mast {m}" for m in masts if f"Mast {m}" in retired)
     if back:
-        raise mr.MapError(f"{RETIRED.name} lists {', '.join(back)}, which the rule places again; take the row out "
+        raise MapError(f"{RETIRED.name} lists {', '.join(back)}, which the rule places again; take the row out "
                           "and give the mast its retired ordinal back")
     moved = sorted(m for m in set(old) & set(retired) if old[m] != retired[m])
     if moved:
-        raise mr.MapError(f"{RETIRED.name} gives {', '.join(moved)} another system name than the device master")
+        raise MapError(f"{RETIRED.name} gives {', '.join(moved)} another system name than the device master")
     gone = sorted((m for m in old if m.removeprefix("Mast ") not in masts and m not in retired), key=mr.natural)
     if gone:
-        raise mr.MapError(f"the rule no longer places {', '.join(gone)}: add each to {RETIRED.name} with its system "
+        raise MapError(f"the rule no longer places {', '.join(gone)}: add each to {RETIRED.name} with its system "
                           "name, so its ordinal is never given to another mast")
     low = level_masts.VIRTUAL_BASE[level]
     wrong = sorted(m for m, x in old.items() if level_masts.virtual_level(x) != level)
     if wrong:
-        raise mr.MapError(f"virtual mast(s) {', '.join(wrong)} of level {level} have ordinals outside {low + 1} to "
+        raise MapError(f"virtual mast(s) {', '.join(wrong)} of level {level} have ordinals outside {low + 1} to "
                           f"{low + 999}")
     used = [k for x in [*old.values(), *retired.values()] if low < (k := _ordinal(x)) < low + 1000]
     nxt = max(used, default=low) + 1
@@ -452,7 +453,7 @@ def virtual_system_names(masts: Sequence[str], level: int, old: Mapping[str, str
         system = old.get(f"Mast {m}")
         if system is None:
             if nxt >= low + 1000:
-                raise mr.MapError(f"level {level} has no virtual mast ordinal left after {low + 999}")
+                raise MapError(f"level {level} has no virtual mast ordinal left after {low + 999}")
             system, nxt = f"IF$vsm:basic:one-low(${nxt})", nxt + 1
         out[m] = system
     return out
@@ -466,25 +467,25 @@ def home_posts(home: Iterable[mr.HomeMast]) -> dict[tuple[int, str, str], str]:
     for m in home:
         key = (m["band"], m["node"], m["leg"])
         if key in out:
-            raise mr.MapError(f"Masts {out[key]} and {m['name']} stand at one switch leg")
+            raise MapError(f"Masts {out[key]} and {m['name']} stand at one switch leg")
         out[key] = m["name"]
     return out
 
 
-def plan(bands: Bands, joined: mr.Joined, found: list[mr.Track], *, levels: Mapping[str, int],
+def plan(bands: Bands, joined: plan_tracks.Joined, found: list[plan_tracks.Track], *, levels: Mapping[str, int],
          cp_of: Mapping[str, str], layer: Mapping[int, Mapping[str, dict]], cm: Mapping[str, float],
          corner_blocks: dict | None = None, split: frozenset[str] | set[str] = frozenset(),
          home: list[mr.HomeMast] | None = None) -> MastPlan:
     """Every mast of `levels` ({band key: level}) by the one process (module text). `found`: the named tracks
-    (mast_rule.tracks, track_names); `cp_of`: {switch: interlocking} of those levels; `layer`: {band index: {"os":
+    (plan_tracks.tracks, track_names); `cp_of`: {switch: interlocking} of those levels; `layer`: {band index: {"os":
     {switch node: OS block}, "blocks": {strand: [block]}}}, the level's block layer, for every band of `levels`; `cm`:
     {block: cm}; `corner_blocks`: a double crossover's corner blocks (device_map_schematic.corner_blocks_of); `split`:
-    the owner's block splits (mast_rule.read_block_splits). `home`: home_masts' masts when the caller has them already
+    the owner's block splits (block_override_rows.read_block_splits). `home`: home_masts' masts when the caller has them already
     (the block layer reads where they stand: home_posts). MapError when a band of `levels` has no block layer or the
     masts' names are not all different."""
-    wanted = {bi for bi, (title, _b, _o) in enumerate(bands) if mr.band_level(title, levels)}
+    wanted = {bi for bi, (title, _b, _o) in enumerate(bands) if plan_bands.band_level(title, levels)}
     if wanted - set(layer):
-        raise mr.MapError(f"no block layer for band(s) {[bands[bi][0] for bi in sorted(wanted - set(layer))]}")
+        raise MapError(f"no block layer for band(s) {[bands[bi][0] for bi in sorted(wanted - set(layer))]}")
     runs_by_band = {bi: run_blocks(bands[bi][1], layer[bi]) for bi in sorted(wanted)}
     running = mr.running_tracks(bands, found, cp_of)
     if home is None:
@@ -496,5 +497,5 @@ def plan(bands: Bands, joined: mr.Joined, found: list[mr.Track], *, levels: Mapp
     names = visible + [m["name"] for m in virtual]
     twice = sorted({n for n in names if names.count(n) > 1}, key=mr.natural)
     if twice:
-        raise mr.MapError(f"mast names given twice: {', '.join(twice)}")
+        raise MapError(f"mast names given twice: {', '.join(twice)}")
     return {"home": home, "intermediates": inter, "virtual": virtual}

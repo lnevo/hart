@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from process_car_images import ROAD_ALIASES, _norm
+from process_car_images import ROAD_ALIASES, norm_text
 
 
 def road_code(row: dict) -> str:
@@ -12,7 +12,7 @@ def road_code(row: dict) -> str:
     marks = (row.get("reporting_marks") or row.get("road_name") or "").strip()
     if not marks:
         return ""
-    return ROAD_ALIASES.get(marks) or ROAD_ALIASES.get(_norm(marks), _norm(marks))
+    return ROAD_ALIASES.get(marks) or ROAD_ALIASES.get(norm_text(marks), norm_text(marks))
 
 
 def manifest_car_id(row: dict) -> str:

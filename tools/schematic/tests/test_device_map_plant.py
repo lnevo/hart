@@ -12,7 +12,7 @@ sys.path[:0] = [str(HERE.parent), str(HERE.parents[2] / "tools/hartlib/src")]
 import device_map_plant as plant  # noqa: E402
 import device_map_records as rec  # noqa: E402
 from device_map_inputs import UID, Places  # noqa: E402
-from mast_rule import MapError  # noqa: E402
+from map_error import MapError  # noqa: E402
 
 NODE = 7        # the node the stand-in allocator picks
 
@@ -198,7 +198,7 @@ class Tracks(unittest.TestCase):
         self.assertEqual(plant.track_note(dict(t, main=False), None, False), "120.0 cm " + plant.OFF_MAIN)
         self.assertEqual(plant.track_note(t, 2, False), "60.0 cm, half of the balloon loop from leg C")
         self.assertEqual(plant.track_note(t, 1, True),
-                         f"60.0 cm, half 1 of the split track ({plant.mast_rule.OVERRIDES_NAME})")
+                         f"60.0 cm, half 1 of the split track ({plant.block_override_rows.OVERRIDES_NAME})")
 
     def test_a_main_track_takes_the_next_block_input(self):
         st = self.lined(track("Track 201-203", [("sw", "201"), ("sw", "203")]))

@@ -20,7 +20,7 @@ import build_device_map as bdm  # noqa: E402
 from hartlib import devices  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
-HEAD = ",".join(BL.mr.OVERRIDE_COLUMNS) + "\n"
+HEAD = ",".join(BL.block_override_rows.OVERRIDE_COLUMNS) + "\n"
 # a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2);
 # the OS block by its device ID
 SCALE_AT_7 = "1,track,5,7,2,7,os:7:A-13C,23,,a test row\n"
@@ -233,7 +233,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
     def test_a_track_rows_block_is_an_os_block_id(self):
         """naming-layers step 5: a track row gives its OS block's device ID (os:<n>, a crossover half's
         os:<n>:A-<end>), which comes back as the generated name; a name, or a half no crossover_half row has, stops."""
-        rows = BL.mr.read_block_overrides(bdm.block_overrides(), ("track",))
+        rows = BL.block_override_rows.read_block_overrides(bdm.block_overrides(), ("track",))
         got = {(r["switch_a"], r["switch_b"], r["end"]): (r["id"], r["block"]) for r in rows if r["level"] == "1"}
         self.assertEqual(got[("13", "15", "")], ("os:15", "OS Switch 15"))
         self.assertEqual(got[("35", "37", "")], ("os:35:A-33A", "OS Switch 35a"))

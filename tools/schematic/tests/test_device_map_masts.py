@@ -469,7 +469,7 @@ class CommittedData(unittest.TestCase):
             self.assertLess(number, 100)
 
     def test_the_owners_names_keep_staging_letters(self):
-        """The plan's letter order (mast_rule.letter_order) would give staging's 6L and 8R pairs the other letters;
+        """The plan's letter order (plan_tracks.letter_order) would give staging's 6L and 8R pairs the other letters;
         the owner's names in the field file keep them, and the generated ones are kept on
         the masts the rule places."""
         renamed = {m["mast"]: m["generated"] for m in self.got["placed"] if "generated" in m}

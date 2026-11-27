@@ -10,7 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-import mast_rule  # noqa: E402  band_levels: a band's level from its plan-overrides section (after pd: hartlib's path)
+from map_error import MapError  # noqa: E402
+import plan_bands  # noqa: E402
 from hartlib import layer_files, railroad  # noqa: E402  the layer files; the railroad's facts, each read and checked once
 from hartlib import level_devices  # noqa: E402  the main and upper naming rule
 
@@ -92,7 +93,7 @@ def _where(level: int, height=ANY) -> str:
 
 def plan_places(data: Path | None = None) -> dict[str, tuple[str, int, float | None]]:
     """{band title: (section, level, height)} of every band of the schematic, from each section of plan_overrides.json
-    in `data` (default publish_draft.DATA, read when called; mast_rule.band_places: the owner's level numbers and
+    in `data` (default publish_draft.DATA, read when called; plan_bands.band_places: the owner's level numbers and
     heights, not the titles). Read once per folder and file state (its modification time and size), so a patched
     folder or an edited file is read again. BuildError names the file and section, for a band two sections title or
     two bands at one level and height."""
@@ -114,8 +115,8 @@ def _plan_places(folder: Path, _mtime_ns: int, _size: int) -> dict[str, tuple[st
     out, at = {}, {}
     for sheet in (k for k in whole if not k.startswith("_")):
         try:
-            places = mast_rule.band_places(whole[sheet])
-        except mast_rule.MapError as exc:
+            places = plan_bands.band_places(whole[sheet])
+        except MapError as exc:
             raise BuildError(f"plan_overrides.json section {sheet}: {exc}") from exc
         clash = sorted(set(places) & set(out))
         if clash:

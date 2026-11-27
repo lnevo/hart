@@ -8,7 +8,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
-import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
+from map_error import MapError  # noqa: E402
+import plan_bands  # noqa: E402
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of the device master)
 from hartlib import hand_lists, paths, railroad  # noqa: E402
 from hartlib.errors import HartlibError  # noqa: E402
@@ -107,9 +108,9 @@ def load_facts(rr: railroad.Railroad | None = None):
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
                      t.sensors, t.turnouts, t.masts, [r for r in rr.masts if r["level"] in dm_levels],
-                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()},
+                     {plan: h["block"] for plan, h in plan_bands.read_helix_tracks().items()},
                      hand_lists.half_letters(Path(pd.DATA) / hand_lists.OVERRIDES_NAME))
-    except (railroad.FactsError, mr.MapError, hand_lists.HandListError) as exc:
+    except (railroad.FactsError, MapError, hand_lists.HandListError) as exc:
         raise CatsPanelError(f"build_cats_panel.py: {exc}") from exc
 
 

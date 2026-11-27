@@ -73,7 +73,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   a keeps the switch's detector; b to d have none on a node until wired (NOT_WIRED). A mast at a double crossover
   protects its own leg's corner block ("home signal from Track X into OS Switch <n><corner>").
 - Track "Track <a>-<b>" from its end switches, "Track <n> Spur" to a bumper, "Track <n> Loop" back to the same
-  switch; parallel tracks between the same ends take " 1", " 2" in plan order (mast_rule.plan_order: by their ends' plan legs). A track up the helix is its helix
+  switch; parallel tracks between the same ends take " 1", " 2" in plan order (plan_tracks.plan_order: by their ends' plan legs). A track up the helix is its helix
   block (plan_overrides.json: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
   track below it: the staging device map names its staging piece, and the Layout Editor build
   binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives, and
@@ -99,10 +99,10 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   visible mast's route reaches a buffer stop first. What follows is the home mast rule as it stands here.
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
   or yard tracks that end at a bumper, and none where no route the mast would govern reaches another signal (every
-  route ends at a bumper or in dark track: mast_rule.reaches_signal, which leaves out 125B's mast
+  route ends at a bumper or in dark track: mast_routes.reaches_signal, which leaves out 125B's mast
   into Switch 129's spurs). "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number and direction
   has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
-  control point before the next signal (mast_rule.facing_on_route), else one; high (searchlight) facing from running
+  control point before the next signal (mast_routes.facing_on_route), else one; high (searchlight) facing from running
   track, a dwarf (low) from a yard, lead or siding. East is the schematic's (ADR-022 amendment: away from the helix on these levels).
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
@@ -119,9 +119,9 @@ Naming rules (ADR-005 grammar, LCOS conventions):
 - Hand lists keyed by end switches (block_overrides.csv, with a level column, and wiring.csv's main and upper detectors; running track and
   exit dwarfs are rules, mast_rule.running_tracks and signalled_spurs): columns switch_a,
   switch_b (the owner's switch numbers, lower first; switch_b blank for a spur, whose other end is a
-  bumper), `parallel` (1, 2 in mast_rule.plan_order, only where two tracks run between the same switches) and, in the pins,
+  bumper), `parallel` (1, 2 in plan_tracks.plan_order, only where two tracks run between the same switches) and, in the pins,
   `half` (1, 2: a balloon loop or split track, half 1 at the lower-numbered switch). Each row is resolved to the
-  generated track at build time (mast_rule.resolve_track), so a renumber moves rows with their tracks; a pair that
+  generated track at build time (block_override_rows.resolve_track), so a renumber moves rows with their tracks; a pair that
   matches no track, or two tracks with no `parallel`, stops the build naming the file, line and candidates. A pin on a
   helix block gives the owner's block name instead (no switches).
 - DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first. Each
@@ -141,15 +141,14 @@ from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
-from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
-    LOOP_HALF, TAU, MapError, band_levels, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
-    TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
 import block_layer  # noqa: E402  the one block process for every level
+import block_override_rows  # noqa: E402  OVERRIDES_NAME
 import device_map_masts  # noqa: E402  staging's mast and head rows
 import mast_plan  # noqa: E402  the one mast process for every level
-import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
-from mast_plan import Bands  # noqa: E402  the plugin's solved bands
-from mast_rule import Joined, Track  # noqa: E402  the plugin's connector partners; a named track
+import plan_bands  # noqa: E402  band_level
+from map_error import MapError  # noqa: E402
+from plan_bands import Bands, band_levels, read_helix_tracks  # noqa: E402,F401  callers read them from this module too
+from plan_tracks import Joined, Track  # noqa: E402  the plugin's connector partners; a named track
 from hartlib import block_numbering, devices, layer_files, level_masts, railroad, wiring  # noqa: E402,F401  facts, the master
 from hartlib.errors import FactsError  # noqa: E402
 from device_map_inputs import (  # noqa: E402,F401  the readers; re-exported: callers read them from this module
@@ -209,7 +208,7 @@ def sources() -> railroad.Sources:
 
 def band_level(title: str) -> int | None:
     """The level (2 or 3) of a main or upper band by its title, from the plan overrides' `level`s; None for staging."""
-    return mast_rule.band_level(title, LEVELS)
+    return plan_bands.band_level(title, LEVELS)
 
 
 def load_cps(path: Path = CPS) -> list[railroad.Interlocking]:
@@ -279,7 +278,7 @@ def build(bands: Bands, joined: Joined, runs: Runs, inputs: MapInputs, corners: 
     check_helix_ends(bands, joined, found, helix)
     planned = plan_masts(bands, joined, runs, found, cp_of, corners)
     if planned.lay.inside:      # the main and upper drawing gives each strand one block: a piece there is a part
-        raise MapError(f"{mast_rule.OVERRIDES_NAME} keeps {', '.join(sorted(planned.lay.inside))} inside an OS block on "
+        raise MapError(f"{block_override_rows.OVERRIDES_NAME} keeps {', '.join(sorted(planned.lay.inside))} inside an OS block on "
                        "main or upper, whose drawing gives each strand one block; leave inside empty (a part)")
     trials, track_ids = level_keys(bands, joined, planned.lay)
     held = _held(inputs.node_rows, pins, frozen, found=found, split_names=planned.split_names, track_ids=track_ids)

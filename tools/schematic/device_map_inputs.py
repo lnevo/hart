@@ -22,7 +22,10 @@ from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, and the hartlib path
-from mast_rule import MapError, Track, key_problem, resolve_track  # noqa: E402
+from block_override_rows import resolve_track  # noqa: E402
+from hartlib.hand_lists import key_problem  # noqa: E402
+from map_error import MapError  # noqa: E402
+from plan_tracks import Track  # noqa: E402
 from hartlib import devices, layer_files, railroad, wiring  # noqa: E402
 
 SOURCES = railroad.Sources.under()
@@ -37,8 +40,8 @@ Pin = tuple[int, int]               # a detector's (node, block input index from
 
 
 # The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
-# spur, whose other end is a bumper; mast_rule.track_key), so a renumbered switch moves its row with it. `parallel`
-# (1, 2 in mast_rule.plan_order) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
+# spur, whose other end is a bumper; plan_tracks.track_key), so a renumbered switch moves its row with it. `parallel`
+# (1, 2 in plan_tracks.plan_order) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
 # loop or split track, half 1 at the lower-numbered switch. A pin on a helix or OS block has its id (det:<block id>) and
 # no switches (wiring.csv's detector rows); its name is the name store's.
 

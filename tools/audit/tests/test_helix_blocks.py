@@ -15,7 +15,9 @@ from hartlib import devices, paths, tables, wiring  # noqa: E402
 
 FIELD = devices.FIELD_FILE
 import le_tables as T  # noqa: E402
-import mast_rule as mr  # noqa: E402
+from map_error import MapError  # noqa: E402
+import plan_bands  # noqa: E402
+import plan_tracks  # noqa: E402
 import check_device_master as cdm  # noqa: E402
 from hartlib import railroad, track_names  # noqa: E402
 
@@ -36,8 +38,8 @@ def copied(edit=None) -> Path:
     tmp = root / "schematic"
     tmp.mkdir()
     for name in ("plan_overrides.json", "preferences.json"):
-        shutil.copyfile(mr.HELIX_SOURCE.parent / name, tmp / name)
-    shutil.copyfile(devices.field_path(mr.HELIX_SOURCE.parent.parent), root / devices.FIELD_FILE)
+        shutil.copyfile(plan_bands.HELIX_SOURCE.parent / name, tmp / name)
+    shutil.copyfile(devices.field_path(plan_bands.HELIX_SOURCE.parent.parent), root / devices.FIELD_FILE)
     track_names.repo_inputs(tmp)        # the plan graphs the name store reads: the repo's, by opt-in
     for old, new, name in edit or ():
         f = (root if name == FIELD else tmp) / name
@@ -53,7 +55,7 @@ class HelixTracks(unittest.TestCase):
     from the plugin's track_labels preference."""
 
     def test_the_committed_plan(self):
-        got = mr.read_helix_tracks()
+        got = plan_bands.read_helix_tracks()
         self.assertEqual(list(got), ["Helix Outer", "Helix Inner"])       # the main_upper helix map's order
         self.assertEqual({k: v["block"] for k, v in got.items()},
                          {"Helix Outer": "Track Helix Outer", "Helix Inner": "Track Helix Inner"})
@@ -63,7 +65,7 @@ class HelixTracks(unittest.TestCase):
                          {"Helix Outer": "McKees Rocks", "Helix Inner": "McKeesport"})
 
     def test_a_track_with_no_label_shows_its_plan_name(self):
-        got = mr.read_helix_tracks(copied([('"block:37B-helix": "McKeesport"', '"block:9B-end": "McKeesport"',
+        got = plan_bands.read_helix_tracks(copied([('"block:37B-helix": "McKeesport"', '"block:9B-end": "McKeesport"',
                                             "preferences.json")]))
         self.assertEqual(got["Helix Inner"]["shown"], "Helix Inner")
 
@@ -78,8 +80,8 @@ class HelixTracks(unittest.TestCase):
                            "track_labels"),
                           ([('"block:39B-helix": "McKees Rocks"', '"Helix Outer": "McKees Rocks"', "preferences.json")],
                            "track_labels key 'Helix Outer' is 'Helix Outer', not a block ID"),):
-            with self.subTest(msg=msg), self.assertRaisesRegex(mr.MapError, msg):
-                mr.read_helix_tracks(copied(edit))
+            with self.subTest(msg=msg), self.assertRaisesRegex(MapError, msg):
+                plan_bands.read_helix_tracks(copied(edit))
 
     def staging_ends(self, change) -> Path:
         """A copy of the plan overrides whose staging `end` edit's ends are changed by `change` (a function of the
@@ -97,8 +99,8 @@ class HelixTracks(unittest.TestCase):
         def named(ends):
             i = next(i for i, x in enumerate(ends) if x[2] == "helix")
             ends[i] = ends[i][:2] + ["Helix Outer"] + ends[i][2:]
-        with self.assertRaisesRegex(mr.MapError, r"are not \[switch, leg, kind, to\]"):
-            mr.read_helix_tracks(self.staging_ends(named))
+        with self.assertRaisesRegex(MapError, r"are not \[switch, leg, kind, to\]"):
+            plan_bands.read_helix_tracks(self.staging_ends(named))
 
     def test_the_device_map_reads_the_helix_tracks_of_its_overrides_when_called(self):
         """build_device_map.helix_tracks reads OVERRIDES as it is then, so a patched one is honoured."""
@@ -109,27 +111,27 @@ class HelixTracks(unittest.TestCase):
         self.assertEqual(list(bdm.helix_tracks()), ["Helix Outer", "Helix Inner"])
 
     def test_tags_follow_the_overrides_order(self):
-        helix = mr.read_helix_tracks()
+        helix = plan_bands.read_helix_tracks()
         over = {"helix": {"T210": "Helix Outer", "T281": "Helix Inner"}}
-        self.assertEqual(mr.helix_blocks(over, helix), {"H1": "Track Helix Outer", "H2": "Track Helix Inner"})
-        with self.assertRaisesRegex(mr.MapError, "the helix tracks are"):
-            mr.helix_blocks({"helix": {"T210": "Helix Outer"}}, helix)
+        self.assertEqual(plan_bands.helix_blocks(over, helix), {"H1": "Track Helix Outer", "H2": "Track Helix Inner"})
+        with self.assertRaisesRegex(MapError, "the helix tracks are"):
+            plan_bands.helix_blocks({"helix": {"T210": "Helix Outer"}}, helix)
 
     def test_a_helix_track_takes_its_block_name(self):
         found = [dict(ends=(("sw", "131"), ("helix", "H1")), trial=["Track e88"], row=0),
                  dict(ends=(("sw", "107"), ("sw", "109")), trial=["Track e1"], row=0)]
-        mr.track_names(found, {"H1": "Track Helix Outer"})
+        plan_tracks.track_names(found, {"H1": "Track Helix Outer"})
         self.assertEqual([t["name"] for t in found], ["Track Helix Outer", "Track 107-109"])
-        with self.assertRaisesRegex(mr.MapError, "is no helix track of the plan overrides"):
-            mr.track_names([dict(ends=(("sw", "131"), ("helix", "H2")), trial=["Track e89"], row=0)],
+        with self.assertRaisesRegex(MapError, "is no helix track of the plan overrides"):
+            plan_tracks.track_names([dict(ends=(("sw", "131"), ("helix", "H2")), trial=["Track e89"], row=0)],
                            {"H1": "Track Helix Outer"})
         staging = [dict(ends=(("sw", "37"), ("helix", "H")), trial=["Track e37"], row=0)]
-        mr.track_names(staging)                                  # staging's own mast rule names by the stem
+        plan_tracks.track_names(staging)                                  # staging's own mast rule names by the stem
         self.assertEqual(staging[0]["name"], "Track 37-H")
 
 
 def track(name, a, b=None, row=0, trial=None, loop=False, helix=False, level=3):
-    """An in-memory track entry, as mast_rule.tracks gives them: ends by switch, a bumper (b None) or the helix."""
+    """An in-memory track entry, as plan_tracks.tracks gives them: ends by switch, a bumper (b None) or the helix."""
     far = ("helix", "H1") if helix else ("sw", b) if b else ("bumper", None)
     return dict(name=name, ends=(("sw", a), far), row=row, trial=trial or [f"Track {name}"], loop=loop, main=True,
                 level=level)

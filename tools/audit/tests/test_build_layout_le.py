@@ -55,7 +55,7 @@ def _level_counts() -> tuple[int, int, int, int]:
     each a block of its own, step 5 part 2); a virtual sensor for every block row, the helix blocks' too, which the
     parts share with their OS blocks; and masts.csv."""
     from hartlib import devices
-    helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
+    helix = {h["block"] for h in sys.modules["plan_bands"].read_helix_tracks().values()}
     rows = [r["user_name"] for _n, r in devices.device_map_lines(("2", "3"), B.DEVICE_MAP) if r["layer"] == "block"]
     parts = devices.part_lines(("2", "3"), B.DEVICE_MAP)
     masts = B.read_level_masts()

@@ -107,6 +107,25 @@ class Cli(unittest.TestCase):
         write.assert_called_once_with(rg.ROOT / "www")
         self.assertEqual("unchanged: www/%s\n" % rg.PAGE_REL, out.getvalue())
 
+    def test_an_error_goes_to_stderr_with_exit_1(self):
+        with mock.patch.object(rg, "write", side_effect=rg.PageError("a &amp; b")), \
+                mock.patch("sys.stdout", new_callable=io.StringIO) as out, \
+                mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(1, rg.main([]))
+        self.assertEqual("", out.getvalue())
+        self.assertEqual("repo_guide_page: a & b\n", err.getvalue())
+
+    def test_a_stale_page_fails_the_check_on_stderr(self):
+        with mock.patch.object(rg, "fill", return_value="changed"), \
+                mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(1, rg.main(["--check"]))
+        self.assertIn("is stale", err.getvalue())
+
+    def test_facts_are_a_typed_record_of_counts(self):
+        f = rg.facts()
+        self.assertEqual(set(f), set(rg.Facts.__annotations__))
+        self.assertTrue(all(isinstance(v, int) for v in f.values()))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,10 +17,12 @@ import le_common  # noqa: E402  bare: a switch label as the plan prints it
 import mast_plan  # noqa: E402  virtual_system_names
 from device_map_nodes import NoBoardRoom  # noqa: E402
 from device_map_plant import add  # noqa: E402
-from device_map_records import Group, LineMast, MapBuild, PlacedMast, VirtualNames, VisibleMast  # noqa: E402
+from device_map_records import (  # noqa: E402
+    Group, LineMast, MapBuild, OldVirtual, PlacedMast, VirtualNames, VisibleMast)
 from hartlib import device_ids, devices, level_masts, railroad  # noqa: E402
+from map_error import MapError  # noqa: E402
 from mast_plan import Intermediate, MastPlan, VirtualMast  # noqa: E402
-from mast_rule import HomeMast, MapError  # noqa: E402
+from mast_rule import HomeMast  # noqa: E402
 
 HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked"
 LEVELS = ("2", "3")     # the main and upper levels, as the master writes them
@@ -52,12 +54,32 @@ def head_name(user: str, level: int | str) -> str:
 
 
 def master_virtual_names(files: devices.Files) -> VirtualNames:
-    """{mast id: (user name, system name)} of the main and upper virtual masts as the builder last wrote them (each
-    keeps its ordinal by its ID, so a mast whose letter changed keeps its system name): name memory, its one
-    read-back of its own output (devices.allocated_names)."""
-    return {r["id"]: (u, r["jmri_name"])
+    """{mast id: its old names} of the main and upper virtual masts as the builder last wrote them (each keeps its
+    ordinal by its ID, so a mast whose letter changed keeps its system name): name memory, its one read-back of its
+    own output (devices.allocated_names)."""
+    return {r["id"]: OldVirtual(u, r["jmri_name"])
             for u, r in devices.allocated_names(LEVELS, "mast", files=files).items()
             if level_masts.virtual_ordinal(r["jmri_name"])}
+
+
+def owner_name(ident: str, generated: str, name: str) -> str | None:
+    """The owner's name `name` ("Mast <...>", its field row's user_name) for the mast of device ID `ident` when it is
+    not the `generated` one, else None: the owner's name wins on every level, and the mast's heads are named from it.
+    MapError on a name out of the grammar (level_masts.MAST_USER)."""
+    if not name or name == generated:
+        return None
+    if not level_masts.MAST_USER.fullmatch(name):
+        raise MapError(f"{devices.FIELD_FILE}: mast {ident} named {name!r}, not Mast <number>[L|R][letter]")
+    return name
+
+
+def head_users(mast: str, heads: int) -> list[str]:
+    """A mast's head user names, in order, on every level: "Head <key>" on a one-head mast, Top and Bottom on a
+    two-head mast ("Mast 2L", 2: Head 2L Top, Head 2L Bottom). MapError on a head count that is not 1 or 2."""
+    if heads not in (1, 2):
+        raise MapError(f"{mast}: {heads} heads; a mast has 1 or 2")
+    key = mast.removeprefix("Mast ")
+    return [f"Head {key}"] if heads == 1 else [f"Head {key} {p}" for p in ("Top", "Bottom")]
 
 
 def owner_mast_names(files: devices.Files) -> dict[str, str]:
@@ -74,7 +96,7 @@ class NamedMast(TypedDict):
     name: str
 
 
-def virtual_memory(virtual: Iterable[NamedMast], old: Mapping[str, tuple[str, str]]
+def virtual_memory(virtual: Iterable[NamedMast], old: Mapping[str, OldVirtual]
                    ) -> dict[int, dict[str, str]]:
     """{level: {"Mast <name>": system name}} of the virtual masts' old system names (`old`: master_virtual_names,
     by ID), each under its mast's name now (`virtual`: the planned virtual masts, each with its `id` and final
@@ -150,10 +172,8 @@ def owner_renames(masts: Iterable[tuple[PlacedMast, str]], owner: Mapping[str, s
     renamed = {}
     for mast, ident in masts:
         mast["id"] = ident
-        name = owner.get(mast["id"], "")
-        if name and name != f"Mast {mast['name']}":
-            if not level_masts.MAST_USER.fullmatch(name):
-                raise MapError(f"{devices.FIELD_FILE}: mast {mast['id']} named {name!r}, not Mast <number>[L|R][letter]")
+        name = owner_name(ident, f"Mast {mast['name']}", owner.get(ident, ""))
+        if name:
             renamed[mast["name"]] = mast["name"] = name.removeprefix("Mast ")
     return renamed
 
@@ -161,7 +181,7 @@ def owner_renames(masts: Iterable[tuple[PlacedMast, str]], owner: Mapping[str, s
 def name_masts(st: MapBuild, home: list[HomeMast], line: list[LineMast], virtual: list[VirtualMast],
                owner: Mapping[str, str], old_names: VirtualNames) -> dict[str, str]:
     """Every mast's ID, then the owner's name by it (the field file): a mast and its heads take it, as on staging
-    (device_map_masts.owner_names); a virtual mast's needed_by follows the renames. Returns {virtual mast name: its
+    (owner_name, as device_map_masts.owner_names); a virtual mast's needed_by follows the renames. Returns {virtual mast name: its
     system name}, each level's ordinals from its own thousand (hartlib.level_masts); `old_names`: the virtual masts
     that have a name already (master_virtual_names). MapError on an owner's name out of the grammar or two masts
     with one name."""
@@ -228,8 +248,7 @@ def mast_rows(st: MapBuild, group: Group, first: str, m: VisibleMast) -> None:
     """One home or intermediate mast's row and its heads' rows (head_wiring). Heads with no board room keep their
     virtual names and wait as HEAD_NOT_WIRED, the comment saying where the mast stands."""
     lv, cp = group.level, group.cp
-    parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-    users = [f"Head {m['name']}" + (f" {part}" if part else "") for part in parts]
+    users = head_users(f"Mast {m['name']}", m["heads"])
     wired = head_wiring(st, group, first, m, users)
     virtual = mast_system_name(m["kind"], [head_name(u, lv) for u in users])
     facts: dict[str, str] = {}
