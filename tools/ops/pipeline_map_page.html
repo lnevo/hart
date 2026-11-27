@@ -132,6 +132,14 @@ svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
+svg.mline .node,svg.mline .edge{opacity:.3}
+svg.mline .elabel{opacity:.15}
+svg.mline .node.ml{opacity:1}
+svg.mline .edge.ml{opacity:1;stroke-opacity:1;stroke-width:3;stroke:#1d4ed8}
+svg.mline .edge.ml.upstream{stroke:#b45309}
+svg.mline .node.mlf .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
+svg.far.mline .edge.ml{stroke-width:2.5px}
+svg.far.mline .node.mlf .box{stroke-width:3px}
 svg.far #elabels{display:none}
 svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
@@ -153,6 +161,7 @@ svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:calc(1.75px * var
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
 .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
+svg.mline.hovering .node.hn,svg.mline .node.hit{opacity:1}
 .hidden{display:none}
 svg.faceted .node.dim.dim,svg.searching .node:not(.hit){opacity:.16}
 svg.faceted .edge.dim.dim,svg.searching .edge{opacity:.08}
@@ -225,6 +234,8 @@ html.dark svg.far .edge{stroke-opacity:.45}
 html.dark .elabel{fill:#e2e8f0;stroke:#0f172a}
 html.dark svg.focus .edge.on{stroke:#60a5fa}
 html.dark svg.focus .edge.on.upstream{stroke:#f59e0b}
+html.dark svg.mline .edge.ml{stroke:#60a5fa}
+html.dark svg.mline .edge.ml.upstream{stroke:#f59e0b}
 html.dark svg.hovering .edge.he.he{stroke:#c4b5fd}
 html.dark svg.hovering .node.hn .box{stroke:#c4b5fd}
 html.dark #lens{background:#0f172a;border-color:#94a3b8}
@@ -331,7 +342,8 @@ to an earlier step.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder, or double-click its box,
 to draw its chain: everything that feeds it, back to the sources, and everything it feeds, out to the end products. The
 second row holds the step counters for each side (0 hides that side, all runs to the end); [ and ] take one step off or
-add one on both sides. <b>Start ▾</b> lists common questions, each drawing one chain.</div>
+add one on both sides. <b>Start ▾</b> lists common questions, each drawing one chain full width with its main line lit,
+from where the work starts to what it makes, and the rest of the chain dimmed; a click on a box or the map ends it.</div>
 <div><b>Find</b> (or /) lists the boxes whose name, path or description holds the text: the name itself first, then names
 that start with it, names that hold it, paths and descriptions. Arrows move in the list and Enter draws that box's chain;
 the other boxes fade while the list is open.</div>

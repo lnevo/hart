@@ -389,9 +389,9 @@ process.stdout.write(JSON.stringify(out));"""
         """growRank: the hover first, then what it lights, the selection and hits, then the selected box's neighbours
         (sn, so the boxes a hover grew stay grown after the click); a box with none of these does not grow."""
         cases = [[True, []], [False, ["hn"]], [False, ["sel"]], [False, ["hit"]], [False, ["sn"]], [False, ["sn", "hn"]],
-                 [False, ["near"]], [False, []]]
+                 [False, ["near"]], [False, []], [False, ["ml"]]]  # ml: a Start button's main line, with the selection
         got = self.run_js("a.map(([h, cs]) => m.growRank(h, c => cs.includes(c)))", cases)
-        self.assertEqual(got, [0, 1, 2, 2, 3, 1, 4, 4])
+        self.assertEqual(got, [0, 1, 2, 2, 3, 1, 4, 4, 2])
 
     def test_hover_skips_side_links_and_runners(self) -> None:
         """hoverStop, hoverWalks: a hovered line's chain stops at runners and hubs and does not walk side links or a
