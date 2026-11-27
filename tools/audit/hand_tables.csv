@@ -82,7 +82,7 @@ tools/audit/check_stamps.py,EXTRA,46,keep,"stamp declarations built from Python 
 tools/audit/check_stamps.py,SIDECAR_MASTERS,17,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 17 for the three waybill rule files and the layout docs labels, new masters a test checks the list against"
 tools/audit/portal_inputs.py,SITE_TOOLS,14,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
+tools/ci/docs_unit_tests.py,LEFT_OUT,15,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/stamp_gate.py,MACHINERY,18,keep,"shared in code, so already one source: check_stamps.py and traced.py import it (review fix after the code review)"
 tools/ctc_history/film_cats.py,FRAMES,13,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/ctc_history/film_ctc.py,EXPLICIT_CROPS,5,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
