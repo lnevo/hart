@@ -42,7 +42,6 @@
  "jmri/layouts/hart/scripts/tests/test_sts_car_sync_worker.py": 2,
  "jmri/layouts/hart/scripts/tests/test_uss_switch_levers.py": 3,
  "ops/hart-ops/card_pipeline/card_template_docx.py": 2,
- "ops/hart-ops/card_pipeline/crop_car_image.py": 1,
  "ops/hart-ops/card_pipeline/loco_backdrop.py": 1,
  "ops/hart-ops/card_pipeline/process_car_images.py": 1,
  "ops/hart-ops/publications/rebuild_crew_instructions.py": 1,
