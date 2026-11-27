@@ -76,7 +76,7 @@
       <div class="meta">
         <span><span class="pill running">active</span></span>
         <span>Coordinator: hart-bb (merge queue and deploys); lanes run by a background wave 2 coordinator</span>
-        <span>Started 14:15 on 2026-11-26</span>
+        <span data-wave-start="14:15">Started 14:15 on 2026-11-26</span>
         <a href="https://github.com/lnevo/hart/blob/main/wiki/projects/code-quality-wave.md">Wave page</a>
       </div>
       <div class="clock" id="clock">
@@ -120,7 +120,7 @@
       <div class="chart" id="load-chart"><h3>Load (1-minute average)</h3><div data-draw="load" data-source="samples"></div></div>
       <div class="chart" id="agents-chart"><h3>Claude sessions and agents running</h3><div data-draw="agents" data-source="samples"></div></div>
     </div>
-    <p class="muted">Sampled every 2 minutes from the Mac and the Windows box; agent counts every 10 minutes. Dashed lines: each host's CPU count, and the cap of 8 Claude sessions.</p>
+    <p class="muted">Sampled every 2 minutes from the Mac and the Windows box, Claude session and agent counts included; the data syncs every 10 minutes. Dashed lines: each host's CPU count, and the cap of 8 Claude sessions.</p>
   </section>
 
   <section id="lanes-section">
@@ -182,8 +182,15 @@ dash.draw('events', (ul)=>{
   });
 });
 
-function hm(s){ const m=/^(\d{1,2}):(\d{2})$/.exec(String(s||'').trim()); return m ? (+m[1])*60+(+m[2]) : null; }
-function fmt(m){ const h=Math.floor(m/60), mi=Math.round(m%60); return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); }
+// Clock times are HH:MM with no date. A time more than an hour before the wave's start belongs to the next day,
+// so it is counted past 24:00 (00:15 becomes 24:15) and the timeline and charts keep running left to right.
+function waveStart(){ let s=null; document.querySelectorAll('.w2 [data-wave-start]').forEach((e)=>{ s=e.dataset.waveStart; }); const m=/^(\d{1,2}):(\d{2})$/.exec(String(s||'')); return m ? (+m[1])*60+(+m[2]) : 6*60; }
+function hm(s){ const m=/^(\d{1,2}):(\d{2})$/.exec(String(s||'').trim()); if(!m) return null; const v=(+m[1])*60+(+m[2]); return v < waveStart()-60 ? v+1440 : v; }
+function fmt(m){ const d=((Math.round(m)%1440)+1440)%1440, h=Math.floor(d/60), mi=d%60; return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0'); }
+function nowMin(){ const n=new Date(); const v=n.getHours()*60+n.getMinutes(); return v < waveStart()-60 ? v+1440 : v; }
+function midnightMark(svg, x, lo, hi, y1, y2){ for(let d=1440; d<=hi; d+=1440){ if(d<=lo) continue; const px=x(d);
+  svg.append('line').attr('x1',px).attr('x2',px).attr('y1',y1).attr('y2',y2).style('stroke','var(--cds-chart-reference)').style('stroke-width',1.5);
+  svg.append('text').attr('x',px+3).attr('y',y1+10).text('midnight').style('fill','var(--cds-text-secondary)').style('font-size','11px'); } }
 function shortName(x){ if(x.short) return String(x.short); const n=String(x.lane||x.id||''); return n.startsWith('lnevo-5f ') ? n.slice(9) : n.split(' ')[0]; }
 document.querySelectorAll('.w2 .chip[data-tl]').forEach((b)=>{
   b.addEventListener('click', ()=>{
@@ -195,7 +202,7 @@ dash.draw('timeline', (el)=>{
   const r=laneRows();
   el.replaceChildren();
   if(!r){ el.textContent = dash.data('lanes').status==='error' ? 'The timeline did not load.' : '—'; return; }
-  const now=new Date(); const nowM=now.getHours()*60+now.getMinutes();
+  const nowM=nowMin();
   const pts=r.map(x=>{ const done=isDone(x.status); const t = done ? (hm(x.updated)??hm(x.eta)) : (hm(x.eta)??hm(x.updated)); return t==null?null:{x, t, done, label: shortName(x)}; }).filter(Boolean).sort((a,b)=>a.t-b.t);
   const want=(dash.params().tl)||'all';
   const keep=(p)=> want==='all' || (want==='done' && p.done) || (want==='planned' && !p.done)
@@ -211,6 +218,7 @@ dash.draw('timeline', (el)=>{
   const g=svg.append('g').attr('class','axis').attr('transform',`translate(0,${axisY})`);
   g.call(d3.axisBottom(x).tickValues(ticks).tickFormat(fmt).tickSizeOuter(0));
   svg.append('rect').attr('x',x(lo)).attr('y',axisY-3).attr('width',Math.max(0,x(nowM)-x(lo))).attr('height',3).style('fill',dash.colors[0]).style('opacity',0.5);
+  midnightMark(svg, x, lo, hi, top, axisY+4);
   svg.append('line').attr('x1',x(nowM)).attr('x2',x(nowM)).attr('y1',top).attr('y2',axisY+4).style('stroke','var(--cds-chart-reference)').style('stroke-dasharray','3 3');
   // level 0 holds only the "now" label; milestone labels take levels 1..levels
   const nowText=svg.append('text').attr('y',top+10).text('now '+fmt(nowM)).style('fill','var(--cds-text-secondary)');
@@ -278,17 +286,19 @@ dash.draw('agents', (el)=> lineChart(el,
 </script>
 <script>
 const CLOCK_SOURCES = ['lanes', 'events', 'samples'];
-const hhmmss = (d) => d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false});
+const hhmmss = (d) => [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) => String(n).padStart(2, '0')).join(':');
 dash.draw('clock-now', {
   mount(el) { const tick = () => { el.textContent = hhmmss(new Date()); }; tick(); return setInterval(tick, 1000); },
   update() {},
   unmount(el, timer) { clearInterval(timer); },
 });
 let lastRefreshed = null;
+let wasBusy = true;   // the stamp moves only when the sources finish loading, not on a redraw
 dash.draw('clock-refreshed', (el) => {
   const all = CLOCK_SOURCES.map((id) => dash.data(id));
   const busy = all.some((d) => d.status === 'loading' || d.refreshing);
-  if (!busy && all.every((d) => d.status === 'ok')) lastRefreshed = new Date();
+  if (wasBusy && !busy && all.every((d) => d.status === 'ok')) lastRefreshed = new Date();
+  wasBusy = busy;
   el.textContent = busy ? 'refreshing…' : (lastRefreshed ? hhmmss(lastRefreshed) : '—');
   document.querySelectorAll('.w2 .clock .refresh').forEach((b) => { b.disabled = busy; });
 });
