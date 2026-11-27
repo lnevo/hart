@@ -1,7 +1,7 @@
 # Code-quality wave (2026-11-26)
 
-Status: active (wave 5 done 2026-11-27 06:35; wave 6 next)
-Coordinator: wave 6 coordinator (a background agent of hart-e0), from 2026-11-27 06:45 (holds the merge queue and the deploys; took over from the wave 5 coordinator)
+Status: active (wave 5 done 2026-11-27 06:35; wave 6 running from 06:40)
+Coordinator: wave 6 coordinator (a background agent of hart-e0), from 2026-11-27 06:36 (holds the merge queue and the deploys; took over from the wave 5 coordinator)
 Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the background coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
@@ -247,3 +247,24 @@ Checked and closed: the repository guide and tables file pages are current by th
 - Dated history in some tests (`test_block_layer.py`, `test_blocks_every_level.py`, `test_masts_every_level.py`, `test_live_desk_levels.py:63`) and in `lcc_turnout_contract.py:9`.
 - The top gaps to B+ after `archive.js`: `device_map_staging.py`, `gallery.js`, `build_exam_answers.js`, `hart_pub_helpers.py`, `rebuild_scale_operating_instructions.py`, `check_layout_facts.py`, `levels_page.py`, `le_names.py`.
 - Not checked: the WiThrottle "readLine failure limit exceeded" line comes every 5 minutes from a client that opens port 12090 and closes; it is not tied to PanelPro quits, and nothing on the Pi starts it.
+
+## Wave 6 (2026-11-27)
+
+The wave 6 coordinator (a background agent of hart-e0) planned these lanes from the wave 5 card and the list above. Lanes 6-L1 to 6-L7 start first; 6-L8 to 6-L14 start as those finish.
+
+| Lane | Scope | PR |
+|------|-------|----|
+| 6-L1 | Site viewer: `archive.js` and `gallery.js` share one lightbox, view bar and toast module; the archive mount split into functions | |
+| 6-L2 | CATS panel: typed `Facts` in `cats_panel_facts.py`, annotations, the unused `F` parameter; `cats_panel.py`, `cats_panel_dress.py` | |
+| 6-L3 | `tables_build.py` re-exports dropped and callers repointed; `refuse_generated` and `tables_page.PageError` off SystemExit; `test_turnout_startup` skip narrowed; hartlib README | |
+| 6-L4 | `check_layout_facts.py` split by job, SystemExit at 396 | |
+| 6-L5 | Jython: swallowed errors in `sml_beans.py` and `sml_ui.py`; the setAppearance failure printed once per message; `lcc_turnout_contract.py` | |
+| 6-L6 | Host scripts: one Jython list for `apply_hart_package_local.sh` and `common.sh`; the audit's stored counts from one source | |
+| 6-L7 | Exam JS: `run-1949.js`, `run-signals.js`, `run-yard.js` on `take` and `give`; the answer key reads data; `build_cats_layout_index.py` | |
+| 6-L8 | `device_map_staging.py` and `staging_device_map.py` | |
+| 6-L9 | `le_names.py`, `le_tables.py`, `render_le_layout.py` (800 of 800 lines) | |
+| 6-L10 | Ops publications: `hart_pub_helpers.py`, `rebuild_scale_operating_instructions.py`, `rebuild_crew_instructions.py` | |
+| 6-L11 | `levels_page.py`, speed-match `make_job.py`, `freeze_wiring.py` | |
+| 6-L12 | Mimic: the broker shown connected only after `mosquitto_sub` proves itself; POST 404 before 400; `build_mimic_web` error | |
+| 6-L13 | `device_map_rows.py`, `device_map_masts.py`; dated history in the block and mast tests | |
+| 6-L14 | Test selection: unit declarations for `ops/` and `www/data/` narrowed to what each check reads | |
