@@ -10,36 +10,8 @@ const TW_SEL={s:STATIONS.map(x=>x.n),t:["Main","Main 1","Main 2"],w:["101","102"
   train:["2211 West","640 East","844 East"],time:["6:15","6:20","6:25","7:00","8:00","9:00"],mph:["10","20","30","40"],
   txt:["Joint with work train 292 between Birchwood and Cobb","Joint with 640 East between Hollis and Ironton",
   "Joint with 2211 West between Dunmore and Elk Gap"]};
-const BOXES=[
-  [1,"Track warrant no. {w} is void"],
-  [2,"Proceed from {s} to {s} on {t} track"],
-  [3,"Proceed from {s} to {s} on {t} track"],
-  [4,"Work between {s} and {s} on {t} track"],
-  [5,"Not in effect until {time}"],
-  [6,"This authority expires at {time}"],
-  [7,"Not in effect until after arrival of {train} at {s}"],
-  [8,"Hold main track at last named point"],
-  [9,"Do not foul limits ahead of {train}"],
-  [10,"Clear main track at last named point"],
-  [11,"Between {s} and {s} make all movements at restricted speed. Limits occupied by train."],
-  [12,"Between {s} and {s} make all movements at restricted speed. Limits occupied by men or equipment."],
-  [13,"Do not exceed {mph} MPH between {s} and {s}"],
-  [14,"Do not exceed {mph} MPH between {s} and {s}"],
-  [15,"Flag protection not required against following trains on the same track"],
-  [16,"Track bulletins in effect"],
-  [17,"Other specific instructions: {txt}"]];
-const SAY={3:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,4:v=>`Work between ${v[0]} and ${v[1]} on ${v[2]} track`,5:v=>`Not in effect until ${v[0]}`,
-  6:v=>`This authority expires at ${v[0]}`,9:v=>`Do not foul limits ahead of ${v[0]}`,
-  13:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,
-  14:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,
-  15:()=>"Flag protection not required against following trains on the same track",16:()=>"Track bulletins in effect",
-  2:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,
-  1:v=>`Track warrant number ${v[0].split("").join(" ")} is void`,
-  7:v=>`Not in effect until after arrival of ${v[0]} at ${v[1]}`,8:()=>"Hold main track at last named point",
-  10:()=>"Clear main track at last named point",
-  11:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by train`,
-  12:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by men or equipment`,
-  17:v=>`Other specific instructions: ${v[0]}`};
+/* The form's boxes and the dispatcher's words: www/js/track-warrant.js. */
+const {BOXES,SAY}=window.TrackWarrant;
 X.warrantForm={BOXES,SAY};   // the form and its spoken lines, for the exam test
 
 function warrantCopy(w){

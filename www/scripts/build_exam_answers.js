@@ -11,7 +11,9 @@ const ENGINE = require(path.join(__dirname, "..", "js", "game-engine.js"));
 
 const EXAM = path.join(__dirname, "..", "exam");
 /* The game's scripts in the order run.html loads them; the key reads them as one text. */
-const RUN_FILES = ["run.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js"].map(f => path.join(EXAM, f));
+/* The runs' files, and the track warrant form the modern run shares with play (js/track-warrant.js: BOXES, SAY). */
+const RUN_FILES = ["run.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js"].map(f => path.join(EXAM, f))
+  .concat(path.join(EXAM, "..", "js", "track-warrant.js"));
 const readRun = () => RUN_FILES.map(f => fs.readFileSync(f, "utf8")).join("\n");
 const OUT = path.join(EXAM, "answers.html");
 

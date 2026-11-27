@@ -30,7 +30,7 @@ function load(seedBox, phone) { // phone: { scroll(o) } pretends to be a phone a
   ctx.window = ctx; ctx.window.scrollTo = () => {};
   if (phone) { ctx.innerHeight = 844; ctx.matchMedia = () => ({ matches: true }); ctx.window.scrollTo = phone.scroll; }
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["js/game-engine.js", "play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/warrant.js", "play/passenger.js", "play/pcy.js", "play/pir.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["js/game-engine.js", "play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "js/track-warrant.js", "play/warrant.js", "play/passenger.js", "play/pcy.js", "play/pir.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
   /* The fake page has no checkboxes, so the warrant copy is read from this hook instead of the form: the warrant as the

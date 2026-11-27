@@ -151,9 +151,7 @@ www/exam/deck-data.js,SECTIONS,8,keep,"8 rulebook sections; the copy is guarded 
 www/exam/deck-data.js,SRC,7,move,"deck.js reads it and it repeats game-engine.js SOURCES' keys (SC, GC, TT, YL, TW, SG, SM) with other labels: merge into SOURCES (review fix after the code review)"
 www/exam/run-1949.js,ROAD_TTO,27,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-1949.js,STN_TTO,32,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/exam/run-modern.js,BOXES,17,move,"same 17 track warrant boxes as warrant.js BOXES: one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review))"
 www/exam/run-modern.js,ROAD_TWC,29,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/exam/run-modern.js,SAY,17,move,"spoken lines of the same form as warrant.js SAY, had drifted (no Box 4 line until this change): one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review)); raised 16 to 17 for the missing Box 4 line, matching the form's 17 boxes"
 www/exam/run-modern.js,TW_SEL,7,move,2 railroad names (switch)
 www/exam/run-signals.js,PLATE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/run-signals.js,RDELAY,18,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
@@ -166,6 +164,8 @@ www/exam/signals.js,PLATES,6,keep,its values are used only by this script: no re
 www/exam/signals.js,ROUTE,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/js/game-engine.js,DECK_SECTIONS,8,keep,"8 rulebook sections; the copy is guarded by test_exam_answers (Fable, pattern 5) (marked by claude (Fable's review))"
 www/js/game-engine.js,SOURCES,8,keep,"shared in code, so already one source: exported in the engine's api; play.js and run.js label sources through it. deck-data.js SRC repeats its keys and moves into it (review fix after the code review)"
+www/js/track-warrant.js,BOXES,17,keep,"the one shared copy of the GCOR track warrant form for the exam and play games (owner: shared JS, not a CSV); moved here from run-modern.js and warrant.js"
+www/js/track-warrant.js,SAY,17,keep,"the one shared copy of the GCOR track warrant form for the exam and play games (owner: shared JS, not a CSV); moved here from run-modern.js and warrant.js"
 www/play/passenger.js,Qs,19,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/passenger.js,SIG287,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/play/passenger.js,SIG292,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
@@ -191,8 +191,6 @@ www/play/road.js,STN,8,keep,"game text or schema: exam and play are separate rew
 www/play/road.js,coal,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/runs.js,NevilleRuns,7,move,"3 railroad names (industry, station)"
 www/play/runs.js,Q,8,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/play/warrant.js,BOXES,17,move,"same 17 track warrant boxes as run-modern.js BOXES: one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review))"
-www/play/warrant.js,SAY,17,move,"spoken lines shared with run-modern.js SAY: one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review))"
 www/play/warrant.js,TW_SEL,7,move,"2 railroad names (occupancy sensor, switch)"
 www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warrant game's exported functions and tables, read by its tests (review fix after the code review)"
 www/scripts/build_cats_layout_index.py,SIG_LOC,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move

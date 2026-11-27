@@ -17,32 +17,8 @@ const reduced=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motio
 const TW_SEL={s:["Duff Junction","McKees Rocks","Carnegie","Bridgeville","Hills","Canonsburg","Houston","Arden"],t:["Main"],w:["112","114","118","121","125"],
   train:["Local 1","Local 2","PIR work train"],time:BASE_TIMES.slice(),mph:["10","15","20","25","30"],
   txt:["Joint with PIR work train between Hills and Canonsburg","Joint with Local 2 between Bridgeville and Canonsburg","Joint with Local 1 between Duff Junction and Bridgeville"]};
-/* The seventeen boxes of the form, with their blanks. */
-const BOXES=[
-  [1,"Track warrant no. {w} is void"],
-  [2,"Proceed from {s} to {s} on {t} track"],
-  [3,"Proceed from {s} to {s} on {t} track"],
-  [4,"Work between {s} and {s} on {t} track"],
-  [5,"Not in effect until {time}"],
-  [6,"This authority expires at {time}"],
-  [7,"Not in effect until after arrival of {train} at {s}"],
-  [8,"Hold main track at last named point"],
-  [9,"Do not foul limits ahead of {train}"],
-  [10,"Clear main track at last named point"],
-  [11,"Between {s} and {s} make all movements at restricted speed. Limits occupied by train."],
-  [12,"Between {s} and {s} make all movements at restricted speed. Limits occupied by men or equipment."],
-  [13,"Do not exceed {mph} MPH between {s} and {s}"],
-  [14,"Do not exceed {mph} MPH between {s} and {s}"],
-  [15,"Flag protection not required against following trains on the same track"],
-  [16,"Track bulletins in effect"],
-  [17,"Other specific instructions: {txt}"]];
-/* What the dispatcher says for each box, from the values in its blanks. */
-const SAY={1:v=>`Track warrant number ${v[0].split("").join(" ")} is void`,2:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,3:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,
-  4:v=>`Work between ${v[0]} and ${v[1]} on ${v[2]} track`,5:v=>`Not in effect until ${v[0]}`,6:v=>`This authority expires at ${v[0]}`,7:v=>`Not in effect until after arrival of ${v[0]} at ${v[1]}`,
-  8:()=>"Hold main track at last named point",9:v=>`Do not foul limits ahead of ${v[0]}`,10:()=>"Clear main track at last named point",
-  11:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by train`,12:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by men or equipment`,
-  13:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,14:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,
-  15:()=>"Flag protection not required against following trains on the same track",16:()=>"Track bulletins in effect",17:v=>`Other specific instructions: ${v[0]}`};
+/* The form's boxes and the dispatcher's words: www/js/track-warrant.js. */
+const {BOXES,SAY}=window.TrackWarrant;
 
 /* The check: w.boxes is {box: [values]} for the boxes the dispatcher gave; got is {box: {on, v}} as the player filled the
    form. Returns the numbers of the boxes that are wrong: checked when not given, not checked when given, or with a blank

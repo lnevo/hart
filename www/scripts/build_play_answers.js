@@ -16,8 +16,8 @@ const vm = require("vm");
 const PLAY = path.join(__dirname, "..", "play");
 const RUNS = path.join(PLAY, "runs.js");
 const EXAM = path.join(PLAY, "..", "exam");
-/* The road runs' scripts, in load order: the Standard Code signals, the shared engine, then the runs. */
-const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "warrant.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js"), path.join(PLAY, "pcy.js"), path.join(PLAY, "pir.js")];
+/* The road runs' scripts, in load order: the Standard Code signals, the shared engine and track warrant form, then the runs. */
+const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "..", "js", "track-warrant.js"), path.join(PLAY, "warrant.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js"), path.join(PLAY, "pcy.js"), path.join(PLAY, "pir.js")];
 const OUT = path.join(PLAY, "answers.html");
 const TUMBLR = "https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 /* The section and source names, and the labels, the game shows (js/game-engine.js). */
