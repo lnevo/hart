@@ -169,7 +169,6 @@ www/play/pcy.js,SIGS,5,keep,its values are used only by this script: no reuse fo
 www/play/pcy.js,run,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/pir.js,POINTS,8,keep,"the PIR run's map points, its own selection of the line; play_through_test checks the names against road-engine.js ST (owner, wave 4)"
 www/play/pir.js,Qs,26,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/play/pir.js,box5Key,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/play/pir.js,run,16,keep,"the play game's own story text, which is not reworded; its railroad names are in the story (owner, wave 4)"
 www/play/play.js,LEN,11,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/play.js,LOC,25,keep,"the play game's own story text, which is not reworded; its railroad names are in the story (owner, wave 4)"
