@@ -13,7 +13,7 @@ const { El, roots, mk, doc } = require("./fake_dom.js");
 
 const WWW = path.join(__dirname, "..", "..");
 const SCRIPTS = ["js/game-engine.js", "js/track-warrant.js", "exam/signals.js", "exam/run.js", "exam/run-1949.js", "exam/run-modern.js",
-  "exam/run-signals.js", "exam/run-yard.js"]; // run.html's order
+  "exam/run-signals.js", "exam/run-yard.js", "exam/run-title.js"]; // run.html's order
 const ERAS = ["tto", "twc", "yard", "sig"];
 const MAX_STEPS = 2000;
 const DUMP = process.argv.includes("--dump");
@@ -127,4 +127,16 @@ assert.ok(copied.some((l) => /Warrant 101 OK/.test(l)), "no warrant run got warr
 const { BOXES, SAY } = X.warrantForm;
 const said = Array.from(BOXES, ([n]) => n).filter((n) => typeof SAY[n] !== "function");
 assert.deepStrictEqual(said, [], `track warrant boxes with no spoken line: ${said}`);
+// the copy check: a box checked when not given, one given but not checked, and a blank that differs are wrong
+const { wrongBoxes } = X.warrantForm;
+const form = (on) => Object.fromEntries(BOXES.map(([n]) => [n, { on: false, v: [] }]).concat(on));
+const w = { no: "1", boxes: { 2: ["Ashby", "Dunmore", "Main"], 10: [] } };
+assert.deepStrictEqual([...wrongBoxes(w, form([[2, { on: true, v: ["Ashby", "Dunmore", "Main"] }], [10, { on: true, v: [] }]]))], []);
+assert.deepStrictEqual([...wrongBoxes(w, form([[2, { on: true, v: ["Ashby", "Cobb", "Main"] }], [15, { on: true, v: [] }]]))], [2, 10, 15]);
+// run.js shares only what it names, and reads back exactly the names it expects from run-modern.js
+assert.strictEqual(X.take("t.js", ["fmt"]).fmt, X.fmt);
+assert.throws(() => X.take("t.js", ["fmt", "nope"]), /t\.js takes nope, which run\.js does not share/);
+assert.throws(() => X.give("t.js", {}), /run\.js reads nothing from t\.js/);
+assert.throws(() => X.give("run-modern.js", { startTWC: X.startTWC, ROAD_TWC: X.ROAD_TWC }), /run-modern\.js gives startTWC, ROAD_TWC; run\.js reads/);
+assert.throws(() => X.give("run-modern.js", { startTWC: X.startTWC, ROAD_TWC: X.ROAD_TWC, warrantForm: {}, extra: 1 }), /gives .*extra/);
 console.log("exam run OK");

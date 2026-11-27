@@ -1,9 +1,9 @@
 /* Extra East: the game's core: helpers, the railroad, the map, the 1949 run, the end screen and
    the start screen. The 1949 event pools and the modern, signals and yard runs are in run-1949.js,
-   run-modern.js, run-signals.js and run-yard.js.
+   run-modern.js, run-signals.js and run-yard.js; the title screen's pixel art in run-title.js.
    Each of run.js, run-1949.js, run-modern.js, run-signals.js and run-yard.js runs inside its own function; they
-   share window.ExtraEast, which run.js fills with its helpers and the run's state and each later file adds to.
-   run.html loads them in that order. */
+   share window.ExtraEast, which run.js fills with its helpers and the run's state and each later file adds to
+   (see "the interface with the run files" at the end). run.html loads them in that order. */
 (function(){
 "use strict";
 const X=window.ExtraEast={}; // the names the five files share; the later files add theirs
@@ -138,6 +138,12 @@ function renderStatus(){
 /* ---------- 1949: time-table and train orders ---------- */
 /* Regular trains. dir W runs Ironton→Ashby (index falling), E runs Ashby→Ironton.
    t[i] is the scheduled time at station i (one time = leaving time, Rule 5). act[i] is when the train actually passes. */
+/* The regular trains of time-table No 12: the first station's time (minutes from midnight), the spread drawn around it,
+   and minutes per mile. makeTT draws their schedules in this order; the answer key names the first westward one. */
+const REGULARS=[
+  {id:"1",name:"No 1",dir:"W",cls:"First class",start:370,spread:[-4,8],f:2.6},
+  {id:"2",name:"No 2",dir:"E",cls:"First class",start:420,spread:[-6,6],f:2.6},
+  {id:"21",name:"No 21",dir:"W",cls:"Second class",start:470,spread:[-8,8],f:3.4}];
 function makeTT(){
   const run=(mp0,mp1,f)=>Math.abs(mp1-mp0)*f;
   function sched(dir,startT,f){
@@ -147,9 +153,7 @@ function makeTT(){
     else{t[0]=startT;for(let i=1;i<=LAST;i++)t[i]=Math.round(t[i-1]+run(STATIONS[i-1].mp,STATIONS[i].mp,f))}
     return t;
   }
-  const no1={id:"1",name:"No 1",dir:"W",cls:"First class",t:sched("W",370+rnd(-4,8),2.6)};
-  const no2={id:"2",name:"No 2",dir:"E",cls:"First class",t:sched("E",420+rnd(-6,6),2.6)};
-  const no21={id:"21",name:"No 21",dir:"W",cls:"Second class",t:sched("W",470+rnd(-8,8),3.4)};
+  const [no1,no2,no21]=REGULARS.map(({start,spread,f,...tr})=>({...tr,t:sched(tr.dir,start+rnd(spread[0],spread[1]),f)}));
   [no1,no2,no21].forEach(tr=>{tr.act=tr.t.slice();tr.late=0});
   const trains=[no1,no21,no2];
   // No 2 runs in two sections on about half the runs: Second 2 is on the same schedule, about 10 minutes behind.
@@ -467,6 +471,9 @@ function arriveTTO(j,notes){
   else{const ev=drawStation();if(ev)scenes.push(ev)}
   front(...(notes||[]),...scenes,stationTTO);next();
 }
+/* The time order an open office gives on a westward regular train still ahead: the range its number is drawn from, the
+   minutes late it may name, and its words. The answer key shows it with the first of each. */
+const TIME_ORDER={no:[11,19],late:[20,25,30,35],words:(train,L)=>`${train} run ${L} mins late Ironton to Ashby`};
 function orderBoard(j){
   const out=[];
   out.push(ask({sec:"to",src:"SC · Rule 221",where:STATIONS[j].n,title:"The train order board",
@@ -477,12 +484,12 @@ function orderBoard(j){
     why:"Rule 221: the train order signal shows stop while an operator is on duty, and trains must not "+
       "leave without a Clearance Form A. The semaphore guide adds that a horizontal blade is always stop."}));
   // build the orders: a time order on a regular train still ahead of us, and sometimes a meet with an extra
-  const n1=rnd(11,19,randOrders);
+  const n1=rnd(TIME_ORDER.no[0],TIME_ORDER.no[1],randOrders);
   const cand=state.tt.trains.filter(tr=>tr.dir==="W"&&!tr.hidden&&tr.act[j]>state.clock+10);
   const orders=[];
   if(cand.length){
-    const tr=pick(cand,randOrders),L=pick([20,25,30,35],randOrders);
-    orders.push({no:n1,text:`${tr.name} run ${L} mins late Ironton to Ashby`,
+    const tr=pick(cand,randOrders),L=pick(TIME_ORDER.late,randOrders);
+    orders.push({no:n1,text:TIME_ORDER.words(tr.name,L),
       apply:()=>{tr.late+=L;tr.lateAt=tr.act.map(x=>x>state.clock);tr.act=tr.act.map(x=>x>state.clock?x+L:x)},tr,L});
   }
   const meet=(randOrders()<.6||!cand.length)&&j<6;
@@ -697,93 +704,29 @@ function showStart(){
       `${String(r.time%60).padStart(2,"0")}`:"none yet"};
   $("xwBest").textContent=runs.length?`Your best in this browser. ${Object.keys(RUNS).map(e=>RUNS[e].short+": "+best(e)).join(". ")}.`:"";
 }
-/* ---------- title screen (pixel art) ---------- */
-(function title(){
-  const cv=$("xwTitleCv");if(!cv)return;
-  let g=cv.getContext("2d");const W=cv.width,H=cv.height;
-  const SKY1="#e9dcb4",SKY2="#efe6c8",SKY3="#f5f0e1",SUN="#ead39a",GOLD="#ead39a",CREAM="#f5f0e1",RED="#a3302b",
-    HILL1="#d6c79f",HILL2="#c3b287",GROUND="#a99a72",RAIL="#1d2733",INK="#1d2733",POLE="#5d5a4e",MUTED="#5d5a4e";
-  const FONT={A:"01110100011000111111100011000110001",D:"11110100011000110001100011000111110",
-    E:"11111100001000011110100001000011111",H:"10001100011000111111100011000110001",
-    I:"11111001000010000100001000010011111",K:"10001100101010011000101001001010001",
-      L:"10000100001000010000100001000011111",N:"10001110011010110011100011000110001",
-    O:"01110100011000110001100011000101110",P:"11110100011000111110100001000010000",
-      R:"11110100011000111110101001001010001",S:"01111100001000001110000010000111110",
-    T:"11111001000010000100001000010000100",V:"10001100011000110001100010101000100",
-      W:"10001100011000110101101011010101010",X:"10001100010101000100010101000110001",
-    Y:"10001100010101000100001000010000100",C:"01111100001000010000100001000001111",
-      U:"10001100011000110001100011000101110",
-    B:"11110100011000111110100011000111110",M:"10001110111010110101100011000110001",
-      "4":"00010001100101010010111110001000010","6":"01110100001000011110100011000101110",
-    "·":"00000000000000000100000000000000000"," ":"00000000000000000000000000000000000"};
-  function text(str,x,y,sc,col,shadow){
-    const w=str.length*6*sc-sc;if(x==="c")x=Math.round((W-w)/2);
-    for(const pass of shadow?[[shadow,1],[col,0]]:[[col,0]]){
-      g.fillStyle=pass[0];
-        [...str].forEach((ch,i)=>{const f=FONT[ch]||FONT[" "];
-        for(let r=0;r<7;r++)for(let c=0;c<5;c++)if(f[r*5+c]==="1")g.fillRect(x+pass[1]+(i*6+c)*sc,y+pass[1]+r*sc,sc,
-        sc)});
-    }
-  }
-  // the still part of the picture, drawn once
-  const bg=document.createElement("canvas");bg.width=W;bg.height=H;const b=bg.getContext("2d");
-  [[0,SKY1],[30,SKY2],[52,SKY3]].forEach(([y,c],i,arr)=>{b.fillStyle=c;b.fillRect(0,y,W,(arr[i+1]?arr[i+1][0]:H)-y)});
-  b.fillStyle=SKY2;for(let x=0;x<W;x+=2)b.fillRect(x+(x/2%2),29,1,1); // dithered band edges
-  b.fillStyle=SKY3;for(let x=0;x<W;x+=2)b.fillRect(x+(x/2%2),51,1,1);
-  b.fillStyle=SUN;
-    for(let dy=-8;dy<=8;dy++){const w=Math.round(Math.sqrt(64-dy*dy));
-    b.fillRect(212-w,68+dy,w*2+1,1)} // rising sun (east is on the right)
-  function ridge(base,amp,step,col,seed){b.fillStyle=col;let h=0;
-    for(let x=0;x<W;x++){if(x%step===0)h=Math.round(amp*(.5+.5*Math.sin(x*.045+seed)+.35*Math.sin(x*.13+seed*2)));
-    b.fillRect(x,base-h,1,H)}}
-  ridge(84,22,4,HILL1,1.3);ridge(92,14,3,HILL2,4.1);
-  b.fillStyle=GROUND;b.fillRect(0,104,W,H-104);
-  b.fillStyle=RAIL;b.fillRect(0,103,W,1);b.fillStyle="#8c7e58";for(let x=0;x<W;x+=4)b.fillRect(x,105,2,1);
-  b.fillStyle=POLE;for(let x=10;x<W;x+=48){b.fillRect(x,82,1,21);b.fillRect(x-3,83,7,1)} // telegraph poles
-  for(let x=10;x<W-48;x+=48)for(let i=0;i<48;i++)b.fillRect(x+i,84+Math.round(2*Math.sin(Math.PI*i/48)),1,1);
-  { const keep=g;g=b; // the lettering never changes, so it goes on the still picture once
-    text("KESTREL VALLEY RAILROAD","c",7,1,INK);text("EXTRA EAST","c",19,3,INK,RED);
-      text("ASHBY TO IRONTON · 46 MILES","c",45,1,MUTED);g=keep }
-  // the train, 92 px long, facing east (right)
-  function train(x,f){
-    const px=(c,a,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x+a),y,w,h)};
-    // caboose
-    px(RED,0,92,14,9);px(RED,4,88,6,4);px(INK,3,87,8,1);px(CREAM,2,94,3,2);px(CREAM,9,94,3,2);
-    // boxcar
-    px("#6b4a33",16,90,20,11);px("#5a3d29",23,91,6,9);
-    // gondola with coal
-    px("#3d4652",38,95,18,6);px(INK,39,93,16,2);
-    // tender
-    px(INK,58,92,14,9);px("#2a2f36",59,90,12,2);
-    // engine 812: cab, boiler, stack, dome, headlight, pilot
-    px(INK,73,86,9,15);px(SUN,75,88,4,4);px(INK,82,92,18,7);px(INK,95,85,3,7);px(INK,94,84,5,1);px(INK,88,90,3,2);
-      px(SUN,100,92,2,2);px(INK,99,99,4,2);
-    // wheels and rods, turning
-    for(const a of [3,10,18,26,32,44,52,60,69])px(INK,a,101,3,2);
-    for(const a of [84,89,94])px(INK,a,99,4,4);
-    px(RED,84,100+(f%2),14,1);
-    // smoke
-    for(let i=0;i<4;i++){const p=(f+i*3)%12;g.fillStyle=`rgba(150,140,115,${(1-p/12)*.75})`;
-      g.fillRect(Math.round(x+96-p*2.2),82-p*2,2+(p>>2),2+(p>>2))}
-  }
-  function draw(t){
-    g.drawImage(bg,0,0);
-    const span=W+110,x=still?120:((t/40)%span)-100;
-    train(x,Math.floor(t/120));
-  }
-  const still=reduced;
-  if(still){draw(0);return}
-  let raf=0;const loop=t=>{draw(t);raf=requestAnimationFrame(loop)};
-  // run only while the title is on screen
-  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&!raf)raf=requestAnimationFrame(loop);
-    else if(!e.isIntersecting&&raf){cancelAnimationFrame(raf);raf=0}})});
-  io.observe(cv);draw(0);
-})();
 const sigEra=()=>$("sigSys").checked?"sigr":"sigs";
 $("sigSys").checked=store.get("xw_sigsys","sigs")==="sigr";
 $("sigSys").onchange=()=>{store.set("xw_sigsys",sigEra());showStart()};
 document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era==="sig"?sigEra():b.dataset.era));
 showStart();
-Object.assign(X,{state,$,fmt,esc,rnd,pick,shuffle,randSetup:()=>randSetup(),reduced,STATIONS,LAST,addTime,renderMap,
-  animateTo,renderStatus,renderSheet,runTime,drawRoad,drawStation,semSvg,finish,push,front,next,log,scene,ask,info});
+
+/* ---------- the interface with the run files ---------- */
+/* SHARED: what run.js shares. run-modern.js takes its names with X.take (an unshared name stops the page); the other
+   run files still read them off window.ExtraEast. GIVES: what run.js reads back from a file that uses X.give. */
+const SHARED={state,$,fmt,esc,rnd,pick,shuffle,randSetup:()=>randSetup(),reduced,STATIONS,LAST,addTime,renderMap,
+  animateTo,renderStatus,renderSheet,runTime,drawRoad,drawStation,semSvg,finish,push,front,next,log,scene,ask,info};
+const GIVES={"run-modern.js":["startTWC","ROAD_TWC","warrantForm"]};
+function take(file,names){
+  const missing=names.filter(n=>!Object.hasOwn(SHARED,n));
+  if(missing.length)throw new Error(`${file} takes ${missing.join(", ")}, which run.js does not share`);
+  return Object.fromEntries(names.map(n=>[n,SHARED[n]]));
+}
+function give(file,names){ // exactly the names GIVES lists for the file, each defined
+  const want=GIVES[file],got=Object.keys(names);
+  if(!want)throw new Error(`run.js reads nothing from ${file}`);
+  if(want.some(n=>names[n]===undefined)||got.some(n=>!want.includes(n)))
+    throw new Error(`${file} gives ${got.join(", ")}; run.js reads ${want.join(", ")}`);
+  Object.assign(X,names);
+}
+Object.assign(X,SHARED,{take,give});
 })();

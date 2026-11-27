@@ -10,12 +10,11 @@ from pathlib import Path
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
 RUN = WWW / "exam" / "run.js"          # the game's core; the runs and pools are in RUN_FILES
-RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")] + [
-    WWW / "js" / "track-warrant.js"]
+RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
 
 
 def run_source() -> str:
-    """The game's scripts as one text, as readRun in build_exam_answers.js reads them (the runs, then the form)."""
+    """The game's scripts as one text: every ask({ call the key reads."""
     return "\n".join(f.read_text() for f in RUN_FILES)
 RUN_PAGE = WWW / "exam" / "run.html"
 INDEX = WWW / "exam" / "index.html"
@@ -51,17 +50,19 @@ class ExamAnswers(unittest.TestCase):
             for field in (q["title"], q["body"], q["right"], *(w["t"] for w in q["wrong"])):
                 self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.js line {q['line']}")
 
-    # A minimal run.js: the pools, the modern-run markers and a figure helper.
-    FRAME = (
-        'function semSvg(a){return "<svg>"+a+"</svg>"}'
-        "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startSIG(){}function startYARD(){{YARD}}function finish(){}"
-    )
+    def files(self, body="", modern="", yard="", pool=""):
+        """Minimal scripts for extract: run.js with a figure helper, the pools, and one file per run."""
+        return [
+            {"file": "run.js", "where": "1949 run", "src": 'function semSvg(a){return "<svg>"+a+"</svg>"}' + body},
+            {"file": "run-1949.js", "where": "1949 run", "src": "const ROAD_TTO=[];const STN_TTO=[];"},
+            {"file": "run-modern.js", "where": "Modern run", "src": modern + "const ROAD_TWC=[" + pool + "];"},
+            {"file": "run-yard.js", "where": "Yard job", "src": yard},
+        ]
 
-    def mini(self, body="", modern="", yard=""):
-        src = self.FRAME.replace("{BODY}", body).replace("{MODERN}", modern).replace("{YARD}", yard)
+    def mini(self, body="", modern="", yard="", pool=""):
         return json.loads(node(
             f"const m=require({json.dumps(str(SCRIPT))});"
-            f"console.log(JSON.stringify(m.extract({json.dumps(src)})))"
+            f"console.log(JSON.stringify(m.extract({json.dumps(self.files(body, modern, yard, pool))})))"
         ))
 
     Q = 'ask({sec:"def",src:"GC · 6.13",title:"t",body:"b",right:"r",wrong:[["w"]],why:"y"%s});'
@@ -84,10 +85,37 @@ class ExamAnswers(unittest.TestCase):
         self.assertEqual(q[0]["body"], "a b 2 c")
 
     def test_modern_run_label_source_names_and_figures(self):
-        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)', self.Q % "")
-        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run", "Yard job"])
+        q = self.mini(self.Q % "", self.Q % ',extra:semSvg(0)', self.Q % "", "()=>" + self.Q % "")
+        self.assertEqual([x["where"] for x in q], ["1949 run", "Modern run", "Modern run, on the road", "Yard job"])
         self.assertEqual(q[0]["src"], "GCOR · 6.13")
         self.assertEqual(q[1]["extra"], "<svg>0</svg>")
+        self.assertEqual([(x["file"], x["line"]) for x in q][:2], [("run.js", 1), ("run-modern.js", 1)])
+
+    def test_bad_question_names_its_file(self):
+        with self.assertRaisesRegex(AssertionError, "run-yard.js line 2: question has no why"):
+            self.mini(yard='\nask({sec:"def",title:"t",body:"b",right:"r",wrong:[["w"]]});')
+
+    def test_pool_declared_twice_stops_the_build(self):
+        with self.assertRaisesRegex(AssertionError, "pool ROAD_TWC is declared in 2 scripts, not one"):
+            self.mini(yard="const ROAD_TWC=[];")
+
+    def warrant(self, plan, name="w1"):
+        return json.loads(node(
+            f"const m=require({json.dumps(str(SCRIPT))});"
+            f"console.log(JSON.stringify(m.warrant({plan},{json.dumps(name)})))"
+        ))
+
+    def test_warrant_from_the_plan(self):
+        w = self.warrant('{box5Lead:12,warrants:{w1:{no:"101",at:"A",boxes:{2:["A","B","Main"],5:null},'
+                         'draws:{hold:[{8:[]},{10:[]}]}}}}')
+        self.assertEqual(w["boxes"], {"2": {"vals": ["A", "B", "Main"], "some": False}, "5": {"vals": None, "some": False},
+                                      "8": {"vals": [], "some": True}, "10": {"vals": [], "some": True}})
+        with self.assertRaisesRegex(AssertionError, "warrant 101 sets box 8 twice"):
+            self.warrant('{warrants:{w1:{no:"101",at:"A",boxes:{8:[]},draws:{hold:[{8:[]},{10:[]}]}}}}')
+        with self.assertRaisesRegex(AssertionError, "draw hold is not a pair of box sets"):
+            self.warrant('{warrants:{w1:{no:"101",at:"A",boxes:{},draws:{hold:[{8:[]}]}}}}')
+        with self.assertRaisesRegex(AssertionError, "TWC_PLAN has no warrant w9"):
+            self.warrant('{warrants:{}}', "w9")
 
     def test_questions_needing_the_sheet_have_a_reference(self):
         out = node(
@@ -106,7 +134,7 @@ class ExamAnswers(unittest.TestCase):
         self.assertTrue(any(r == "order" for t, r in data["qs"] if t.startswith("Order No")))
         html = data["refs"]
         self.assertIn("Westward trains are superior to eastward trains of the same class", html["tt"])
-        # Box 5 is set at play time; Box 6 is set after the literal on every run; 8 and 10 depend on the run.
+        # Box 5 is set at play time; Box 6 is on every run; 8 and 10 depend on the run.
         self.assertIn("Not in effect until <b>[time]</b>", html["w101"])
         self.assertIn("arrival of <b>2211 West</b> at <b>Dunmore</b>", html["w102"])
         self.assertIn("expires at <b>9:00</b></td>", html["w102"])

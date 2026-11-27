@@ -186,6 +186,7 @@ www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warr
 www/scripts/build_cats_layout_index.py,SIG_LOC,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 www/scripts/build_exam_answers.js,ENT,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/build_exam_answers.js,FRIENDLY,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/build_exam_answers.js,RUN_FILES,5,keep,"the game's script files with the run each one's questions belong to, for the answer key's labels; not railroad data (marked by claude)"
 www/scripts/build_helix_page.py,GROUPS,6,move,holds sentences: page or card text?; the owner marked it move
 www/scripts/build_layout_docs.py,LABELS,14,move,10 railroad names (block); first sort: page text
 www/scripts/build_layout_docs.py,SOQ_WORDS,11,move,rows of values the rule cannot place; the owner marked it move
