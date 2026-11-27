@@ -80,7 +80,7 @@ def build(rel: str, make=None) -> str:
     try:
         text = make()
     except ERRORS as err:
-        raise ViewError(f"Cannot build {rel}:\n{err}") from None
+        raise ViewError(f"Cannot build {rel}:\n{err}") from err
     if not isinstance(text, str) or not text.strip():
         raise ViewError(f"Cannot build {rel}:\nits builder returned no page")
     return text
@@ -91,7 +91,7 @@ def write(out: Path, text: str) -> None:
     try:
         pipeline_map.write_page(out, text)
     except pipeline_map.GraphError as err:
-        raise ViewError(str(err)) from None
+        raise ViewError(str(err)) from err
 
 
 def refresh(root: Path = PORTAL, views: dict | None = None) -> list[str]:
