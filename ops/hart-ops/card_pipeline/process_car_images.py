@@ -14,21 +14,23 @@ For every PNG in ``Images/``:
 from __future__ import annotations
 
 import csv
-import os
 import re
 import sys
 from pathlib import Path
+from typing import NamedTuple, TypedDict
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+import hartlib_path  # sibling modules, on sys.path with this one
+
+hartlib_path.ensure_on_path()
 from hartlib import operations  # noqa: E402
 
-import numpy as np
-import pytesseract
-from PIL import Image, ImageFilter, ImageOps
+import numpy as np  # noqa: E402
+import pytesseract  # noqa: E402
+from PIL import Image, ImageFilter, ImageOps  # noqa: E402
 
-from crop_car_image import detect_car_bbox, process_image
-from car_paths import DATA, IMAGES_DIR, OCR_DIR, ROOT as BASE
+from car_paths import DATA, IMAGES_DIR, OCR_DIR, ROOT as BASE  # noqa: E402
+from car_records import CarRow  # noqa: E402
+from crop_car_image import detect_car_bbox, process_image  # noqa: E402
 
 CAR_IMAGES_DIR = BASE / "CarImages"
 ROSTER_XML = DATA / "OperationsCarRoster.xml"
@@ -76,7 +78,32 @@ INVALID_MARKS = {
 }
 
 
-def _norm(s: str) -> str:
+class RosterCar(TypedDict):
+    """One car of OperationsCarRoster.xml, under the image_metadata.csv column names."""
+
+    roster_id: str
+    roster_road: str
+    road_number: str
+    car_type: str
+    roster_length_ft: str
+    roster_weight_oz: str
+    roster_weight_tons: str
+
+
+class PhotoRead(NamedTuple):
+    """What OCR and the roster match read from one photo."""
+
+    ocr_text: str
+    ocr_zoom: Image.Image
+    parsed: dict[str, str]  # weights, build date, class and type read from the lettering
+    marks: str
+    number: str
+    roster_car: RosterCar | None
+    confidence: str  # how the roster car was matched; "none" when it was not
+
+
+def norm_text(s: str) -> str:
+    """``s`` in capitals with everything but letters and digits removed."""
     return re.sub(r"[^A-Z0-9]", "", s.upper())
 
 
@@ -90,27 +117,26 @@ def _is_weight_context(text: str, number: str) -> bool:
 
 
 def _valid_marks(marks: str) -> bool:
-    mk = _norm(marks)
+    mk = norm_text(marks)
     return bool(mk) and mk not in INVALID_MARKS and not any(
         bad in mk for bad in ("LTWT", "LDLMT", "LIGHT", "LOAD")
     )
 
 
-def load_roster() -> list[dict]:
-    cars = []
-    for el in operations.cars(ROSTER_XML):
-        cars.append(
-            {
-                "roster_id": el.get("id", ""),
-                "roster_road": el.get("roadName", ""),
-                "road_number": el.get("roadNumber", ""),
-                "car_type": el.get("type", ""),
-                "roster_length_ft": el.get("length", ""),
-                "roster_weight_oz": el.get("weight", ""),
-                "roster_weight_tons": el.get("weightTons", ""),
-            }
+def load_roster() -> list[RosterCar]:
+    """Every car of OperationsCarRoster.xml; a missing attribute reads as ""."""
+    return [
+        RosterCar(
+            roster_id=el.get("id", ""),
+            roster_road=el.get("roadName", ""),
+            road_number=el.get("roadNumber", ""),
+            car_type=el.get("type", ""),
+            roster_length_ft=el.get("length", ""),
+            roster_weight_oz=el.get("weight", ""),
+            roster_weight_tons=el.get("weightTons", ""),
         )
-    return cars
+        for el in operations.cars(ROSTER_XML)
+    ]
 
 
 def _source_images() -> list[Path]:
@@ -165,7 +191,7 @@ def _digits(text: str) -> str:
     return re.sub(r"\D", "", text.upper().translate(table))
 
 
-def ocr_lettering(crop: Image.Image) -> dict:
+def ocr_lettering(crop: Image.Image) -> dict[str, str]:
     """Read reporting marks, road number and weights from a finished car crop.
 
     Looks at the left-centre of the car side, where the big lettering sits on the
@@ -197,8 +223,7 @@ def ocr_lettering(crop: Image.Image) -> dict:
     return out
 
 
-
-def _parse_markings(text: str) -> dict:
+def _parse_markings(text: str) -> dict[str, str]:
     out: dict[str, str] = {}
     m = re.search(r"CAPY\s*([0-9,]+)", text)
     if m:
@@ -224,7 +249,7 @@ def _parse_markings(text: str) -> dict:
 
 def _find_in_road_context(
     text: str,
-    roster: list[dict],
+    roster: list[RosterCar],
     road_code: str,
     display_marks: str,
     context_pat: str,
@@ -243,13 +268,13 @@ def _find_in_road_context(
             continue
         if re.search(rf"(?<![0-9]){re.escape(num)}(?![0-9])", text):
             return display_marks, num
-        if len(num) >= 5 and _norm(num) in _norm(text):
+        if len(num) >= 5 and norm_text(num) in norm_text(text):
             return display_marks, num
     return "", ""
 
 
-def _find_road_mark(text: str, roster: list[dict]) -> tuple[str, str]:
-    compact = _norm(text)
+def _find_road_mark(text: str, roster: list[RosterCar]) -> tuple[str, str]:
+    compact = norm_text(text)
 
     m = re.search(r"N\s*[&]?\s*W\s*(\d{4,6})", text)
     if m:
@@ -273,12 +298,12 @@ def _find_road_mark(text: str, roster: list[dict]) -> tuple[str, str]:
             return found
 
     for car in sorted(roster, key=lambda c: len(c["road_number"]), reverse=True):
-        num = _norm(car["road_number"])
+        num = norm_text(car["road_number"])
         if not num:
             continue
         road = car["roster_road"]
         for mark in (road, "N&W" if road == "NW" else road, "B&O" if road == "BO" else road):
-            if _norm(f"{mark}{num}") in compact:
+            if norm_text(f"{mark}{num}") in compact:
                 return mark, car["road_number"]
 
     patterns = [
@@ -310,7 +335,7 @@ def _find_road_mark(text: str, roster: list[dict]) -> tuple[str, str]:
     return "", ""
 
 
-def _excluded_numbers(parsed: dict) -> set[str]:
+def _excluded_numbers(parsed: dict[str, str]) -> set[str]:
     return {
         v
         for v in (
@@ -323,8 +348,8 @@ def _excluded_numbers(parsed: dict) -> set[str]:
 
 
 def _match_roster(
-    text: str, roster: list[dict], marks: str, number: str, parsed: dict
-) -> tuple[dict | None, str]:
+    text: str, roster: list[RosterCar], marks: str, number: str, parsed: dict[str, str]
+) -> tuple[RosterCar | None, str]:
     if number:
         if _is_weight_context(text, number):
             number = ""
@@ -333,7 +358,7 @@ def _match_roster(
             if len(hits) == 1:
                 return hits[0], "road_number"
             if len(hits) > 1 and marks and _valid_marks(marks):
-                mk = _norm(marks)
+                mk = norm_text(marks)
                 alias = ROAD_ALIASES.get(mk) or ROAD_ALIASES.get(mk.replace("AND", ""))
                 if alias:
                     for c in hits:
@@ -342,7 +367,7 @@ def _match_roster(
                 return hits[0], "road_number_ambiguous"
 
     excluded = _excluded_numbers(parsed)
-    text_compact = _norm(text)
+    text_compact = norm_text(text)
     for car in sorted(roster, key=lambda c: len(c["road_number"]), reverse=True):
         num = car["road_number"]
         if not num or num in excluded or len(num) < 4:
@@ -351,7 +376,7 @@ def _match_roster(
             continue
         if re.search(rf"(?<![0-9]){re.escape(num)}(?![0-9])", text):
             return car, "road_number_in_text"
-        if len(num) >= 5 and _norm(num) in text_compact:
+        if len(num) >= 5 and norm_text(num) in text_compact:
             return car, "road_number_in_text"
     return None, "none"
 
@@ -373,100 +398,107 @@ def _analysis_notes(ocr_text: str, marks: str, number: str) -> str:
     return "; ".join(notes)
 
 
-def _identity_key(row: dict) -> str:
+def _identity_key(row: CarRow) -> str:
     if row.get("roster_id") and row.get("match_confidence") != "none":
         return f"roster:{row['roster_id']}"
     marks = row.get("reporting_marks", "").strip()
     number = row.get("road_number", "").strip()
     if marks and number and len(number) >= 5 and _valid_marks(marks):
-        alias = ROAD_ALIASES.get(_norm(marks), _norm(marks))
+        alias = ROAD_ALIASES.get(norm_text(marks), norm_text(marks))
         return f"marks:{alias}:{number}"
     return ""
 
 
-def process_all() -> list[dict]:
+def _read_photo(img: Image.Image, roster: list[RosterCar]) -> PhotoRead:
+    """OCR the car band of ``img`` and match the lettering to a roster car."""
+    ocr_text, ocr_zoom = _ocr_band(img, detect_car_bbox(img))
+    parsed = _parse_markings(ocr_text)
+    marks, number = _find_road_mark(ocr_text, roster)
+    roster_car, confidence = _match_roster(ocr_text, roster, marks, number, parsed)
+    return PhotoRead(ocr_text, ocr_zoom, parsed, marks, number, roster_car, confidence)
+
+
+def _metadata_row(src: Path, read: PhotoRead, crop_status: str) -> CarRow:
+    """The image_metadata.csv row of one photo; roster columns come from the matched car."""
+    parsed = read.parsed
+    row = CarRow(
+        source_image=src.name,
+        cropped_image=f"CarImages/{src.stem}.png",
+        ocr_zoom_image=f"OcrZoom/OCR_{src.stem}.png",
+        crop_status=crop_status,
+        duplicate_of="",
+        reporting_marks=read.marks,
+        road_name=read.marks,
+        road_number=read.number,
+        full_name="",
+        car_type=parsed.get("car_type", ""),
+        car_class=parsed.get("car_class", ""),
+        color="",
+        capy_lbs=parsed.get("capy_lbs", ""),
+        ld_lmt_lbs=parsed.get("ld_lmt_lbs", ""),
+        lt_wt_lbs=parsed.get("lt_wt_lbs", ""),
+        built=parsed.get("built", ""),
+        roster_id="",
+        roster_road="",
+        roster_length_ft="",
+        roster_weight_oz="",
+        roster_weight_tons="",
+        ocr_text=read.ocr_text[:400].replace("\n", " "),
+        match_confidence=read.confidence,
+        notes=_analysis_notes(read.ocr_text, read.marks, read.number),
+    )
+    car = read.roster_car
+    if car:
+        row["road_number"] = car["road_number"] or read.number
+        row["car_type"] = car["car_type"] or row["car_type"]
+        row["roster_id"] = car["roster_id"]
+        row["roster_road"] = car["roster_road"]
+        row["roster_length_ft"] = car["roster_length_ft"]
+        row["roster_weight_oz"] = car["roster_weight_oz"]
+        row["roster_weight_tons"] = car["roster_weight_tons"]
+    return row
+
+
+def _flag_duplicate(row: CarRow, seen: dict[str, str]) -> None:
+    """Mark ``row`` a duplicate of the first photo with the same identity, or record its identity in ``seen``."""
+    key = _identity_key(row)
+    if not key:
+        return
+    if key in seen:
+        row["duplicate_of"] = seen[key]
+        row["notes"] = f"{row['notes']}; duplicate photo of same car".strip("; ")
+    else:
+        seen[key] = row["source_image"]
+
+
+def process_all() -> list[CarRow]:
+    """Crop, OCR and match every photo in Images/; the rows are in photo-name order."""
     roster = load_roster()
     CAR_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     OCR_DIR.mkdir(parents=True, exist_ok=True)
-    rows: list[dict] = []
+    rows: list[CarRow] = []
     seen: dict[str, str] = {}
 
     for src in _source_images():
-        rel_source = src.name
-        img = Image.open(src).convert("RGB")
-        bbox = detect_car_bbox(img)
-        ocr_text, ocr_zoom = _ocr_band(img, bbox)
-        parsed = _parse_markings(ocr_text)
-        marks, number = _find_road_mark(ocr_text, roster)
-        roster_row, confidence = _match_roster(ocr_text, roster, marks, number, parsed)
-
+        read = _read_photo(Image.open(src).convert("RGB"), roster)
         cropped_name = f"{src.stem}.png"
-        ocr_name = f"OCR_{src.stem}.png"
-        crop_path = CAR_IMAGES_DIR / cropped_name
-        ocr_path = OCR_DIR / ocr_name
-        meta = process_image(src, crop_path)
-        ocr_zoom.save(ocr_path)
+        meta = process_image(src, CAR_IMAGES_DIR / cropped_name)
+        read.ocr_zoom.save(OCR_DIR / f"OCR_{src.stem}.png")
 
-        row = {
-            "source_image": rel_source,
-            "cropped_image": f"CarImages/{cropped_name}",
-            "ocr_zoom_image": f"OcrZoom/{ocr_name}",
-            "crop_status": meta["crop_status"],
-            "duplicate_of": "",
-            "reporting_marks": marks,
-            "road_name": marks,
-            "road_number": number,
-            "full_name": "",
-            "car_type": parsed.get("car_type", ""),
-            "car_class": parsed.get("car_class", ""),
-            "color": "",
-            "capy_lbs": parsed.get("capy_lbs", ""),
-            "ld_lmt_lbs": parsed.get("ld_lmt_lbs", ""),
-            "lt_wt_lbs": parsed.get("lt_wt_lbs", ""),
-            "built": parsed.get("built", ""),
-            "roster_id": "",
-            "roster_road": "",
-            "roster_length_ft": "",
-            "roster_weight_oz": "",
-            "roster_weight_tons": "",
-            "ocr_text": ocr_text[:400].replace("\n", " "),
-            "match_confidence": confidence,
-            "notes": _analysis_notes(ocr_text, marks, number),
-        }
-        if roster_row:
-            row.update(
-                {
-                    "road_number": roster_row["road_number"] or number,
-                    "car_type": roster_row["car_type"] or row["car_type"],
-                    "roster_id": roster_row["roster_id"],
-                    "roster_road": roster_row["roster_road"],
-                    "roster_length_ft": roster_row["roster_length_ft"],
-                    "roster_weight_oz": roster_row["roster_weight_oz"],
-                    "roster_weight_tons": roster_row["roster_weight_tons"],
-                }
-            )
-
-        key = _identity_key(row)
-        if key:
-            if key in seen:
-                row["duplicate_of"] = seen[key]
-                extra = "duplicate photo of same car"
-                row["notes"] = f"{row['notes']}; {extra}".strip("; ")
-            else:
-                seen[key] = rel_source
-
+        row = _metadata_row(src, read, meta["crop_status"])
+        _flag_duplicate(row, seen)
         rows.append(row)
         dup = f" DUP->{row['duplicate_of']}" if row["duplicate_of"] else ""
-        tag = row["roster_id"] or number or "?"
+        tag = row["roster_id"] or read.number or "?"
         print(
-            f"{rel_source} -> {cropped_name}  "
-            f"[{row['crop_status']}] [{confidence}] {tag}{dup}"
+            f"{src.name} -> {cropped_name}  "
+            f"[{row['crop_status']}] [{read.confidence}] {tag}{dup}"
         )
 
     return rows
 
 
-def write_csv(rows: list[dict]) -> None:
+def write_csv(rows: list[CarRow]) -> None:
     with METADATA_CSV.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=CSV_COLUMNS, extrasaction="ignore")
         w.writeheader()
@@ -483,7 +515,7 @@ def write_csv(rows: list[dict]) -> None:
 def main() -> None:
     if not ROSTER_XML.exists():
         raise FileNotFoundError(ROSTER_XML)
-    if "--rebuild-repository" not in os.sys.argv:
+    if "--rebuild-repository" not in sys.argv:
         raise SystemExit(
             "This rewrites image_metadata.csv from Images/ and loses every other car. "
             "Use cars.py intake. Pass --rebuild-repository only to start over."

@@ -36,51 +36,109 @@ import re
 import sys
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, TypedDict, Union
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import hand_lists, layer_files  # noqa: E402  the layout files' paths are theirs (check_data_readers)
 IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
-# A schema node: a dict whose "type" says which other keys it holds (the module docstring lists them).
-Schema = dict[str, Any]
 # A cross-field rule: the value (already shape-checked against its node, so of the node's type) -> a problem or None.
 Rule = Callable[[Any], "str | None"]
+
+
+# A schema node: a dict whose "type" says which other keys it holds (the module docstring lists them). Each type
+# has its own TypedDict, and Schema is their union tagged by "type".
+class _Node(TypedDict, total=False):
+    check: Rule | None          # optional on every node type
+
+
+class ObjectNode(_Node):
+    type: Literal["object"]
+    keys: dict[str, Schema]
+    required: tuple[str, ...]
+    other: Schema | None
+    closed: bool
+    key: Schema | None
+
+
+class ArrayNode(_Node):
+    type: Literal["array"]
+    items: Schema
+    prefix: list[Schema]
+    min: int
+    max: int | None
+    unique: str | None
+
+
+class StrNode(_Node):
+    type: Literal["str"]
+    values: tuple[str, ...] | None
+    pattern: str | None
+    file: bool
+    nonempty: bool
+
+
+class IntNode(_Node):
+    type: Literal["int"]
+    min: int | None
+    max: int | None
+
+
+class NumberNode(_Node):
+    type: Literal["number"]
+    above: float | None
+    min: float | None
+
+
+class BoolNode(_Node):
+    type: Literal["bool"]
+
+
+class AnyNode(_Node):
+    type: Literal["any"]
+
+
+class ConstNode(_Node):
+    type: Literal["const"]
+    value: object
+
+
+Schema = Union[ObjectNode, ArrayNode, StrNode, IntNode, NumberNode, BoolNode, AnyNode, ConstNode]
 
 
 # ---------------------------------------------------------------- schema nodes
 
 def obj(keys: dict[str, Schema] | None = None, required: Iterable[str] = (), other: Schema | None = None,
-        closed: bool = False, key: Schema | None = None, check: Rule | None = None) -> Schema:
+        closed: bool = False, key: Schema | None = None, check: Rule | None = None) -> ObjectNode:
     return {"type": "object", "keys": keys or {}, "required": tuple(required), "other": other, "closed": closed,
             "key": key, "check": check}
 
 
 def arr(items: Schema | None = None, prefix: Iterable[Schema] = (), min: int = 0, max: int | None = None,  # noqa: A002
-        unique: str | None = None, check: Rule | None = None) -> Schema:
+        unique: str | None = None, check: Rule | None = None) -> ArrayNode:
     return {"type": "array", "items": items or ANY, "prefix": list(prefix), "min": min, "max": max,
             "unique": unique, "check": check}
 
 
 def text(values: Iterable[str] | None = None, pattern: str | None = None, file: bool = False, nonempty: bool = False,
-         check: Rule | None = None) -> Schema:
+         check: Rule | None = None) -> StrNode:
     return {"type": "str", "values": tuple(values) if values else None, "pattern": pattern, "file": file,
             "nonempty": nonempty, "check": check}
 
 
-def whole(lo: int | None = None, hi: int | None = None) -> Schema:
+def whole(lo: int | None = None, hi: int | None = None) -> IntNode:
     return {"type": "int", "min": lo, "max": hi}
 
 
-def number(above: float | None = None, lo: float | None = None) -> Schema:
+def number(above: float | None = None, lo: float | None = None) -> NumberNode:
     return {"type": "number", "above": above, "min": lo}
 
 
-BOOL: Schema = {"type": "bool"}
-ANY: Schema = {"type": "any"}
+BOOL: BoolNode = {"type": "bool"}
+ANY: AnyNode = {"type": "any"}
 
 
-def const(value: object) -> Schema:
+def const(value: object) -> ConstNode:
     return {"type": "const", "value": value}
 
 
@@ -99,17 +157,17 @@ def _kind(v: object) -> str:
         type(v), "a number" if isinstance(v, (int, float)) else type(v).__name__)
 
 
-def _const(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _const(value: object, node: ConstNode, path: str, at: str, root: Path) -> list[str]:
     if value != node["value"] or type(value) is not type(node["value"]):
         return [f"{at}: must be {json.dumps(node['value'])}, not {json.dumps(value)}"]
     return []
 
 
-def _bool(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _bool(value: object, node: BoolNode, path: str, at: str, root: Path) -> list[str]:
     return [] if isinstance(value, bool) else [f"{at}: must be true or false, not {_kind(value)}"]
 
 
-def _int(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _int(value: object, node: IntNode, path: str, at: str, root: Path) -> list[str]:
     if isinstance(value, bool) or not isinstance(value, int):
         return [f"{at}: must be a whole number, not {_kind(value)}"]
     lo, hi = node["min"], node["max"]
@@ -119,7 +177,7 @@ def _int(value: object, node: dict, path: str, at: str, root: Path) -> list[str]
     return []
 
 
-def _number(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _number(value: object, node: NumberNode, path: str, at: str, root: Path) -> list[str]:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return [f"{at}: must be a number, not {_kind(value)}"]
     out = []
@@ -130,7 +188,7 @@ def _number(value: object, node: dict, path: str, at: str, root: Path) -> list[s
     return out
 
 
-def _str(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _str(value: object, node: StrNode, path: str, at: str, root: Path) -> list[str]:
     if not isinstance(value, str):
         return [f"{at}: must be text, not {_kind(value)}"]
     out = []
@@ -145,7 +203,7 @@ def _str(value: object, node: dict, path: str, at: str, root: Path) -> list[str]
     return out
 
 
-def _array(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _array(value: object, node: ArrayNode, path: str, at: str, root: Path) -> list[str]:
     if not isinstance(value, list):
         return [f"{at}: must be an array, not {_kind(value)}"]
     out = []
@@ -167,7 +225,7 @@ def _array(value: object, node: dict, path: str, at: str, root: Path) -> list[st
     return out
 
 
-def _object(value: object, node: dict, path: str, at: str, root: Path) -> list[str]:
+def _object(value: object, node: ObjectNode, path: str, at: str, root: Path) -> list[str]:
     if not isinstance(value, dict):
         return [f"{at}: must be an object, not {_kind(value)}"]
     out = [f"{_step(path, name)}: is required" for name in node["required"] if name not in value]
@@ -187,23 +245,36 @@ def _object(value: object, node: dict, path: str, at: str, root: Path) -> list[s
     return out
 
 
-# each schema node type -> its shape check: (value, node, path, "at" text, repo root) -> problems
-SHAPE_CHECKS: dict[str, Callable[[object, dict, str, str, Path], list[str]]] = {
-    "any": lambda value, node, path, at, root: [],
-    "const": _const, "bool": _bool, "int": _int, "number": _number, "str": _str, "array": _array, "object": _object,
-}
+def _shape(value: object, node: Schema, path: str, at: str, root: Path) -> list[str]:
+    """The shape problems of `value` against `node`: the check for the node's type (the tag narrows the node)."""
+    if node["type"] == "any":
+        return []
+    if node["type"] == "const":
+        return _const(value, node, path, at, root)
+    if node["type"] == "bool":
+        return _bool(value, node, path, at, root)
+    if node["type"] == "int":
+        return _int(value, node, path, at, root)
+    if node["type"] == "number":
+        return _number(value, node, path, at, root)
+    if node["type"] == "str":
+        return _str(value, node, path, at, root)
+    if node["type"] == "array":
+        return _array(value, node, path, at, root)
+    if node["type"] == "object":
+        return _object(value, node, path, at, root)
+    # a node written by hand with a type none of the helpers above makes
+    raise ValueError(f"schema node type {node['type']!r}")
 
 
-def problems(value: object, node: dict, path: str = "", root: Path = ROOT) -> list[str]:
+def problems(value: object, node: Schema, path: str = "", root: Path = ROOT) -> list[str]:
     """Every problem of `value` against `node`, each "path: what is wrong" ("top level" for the root)."""
     at = path or "top level"
-    check = SHAPE_CHECKS.get(node["type"])
-    if check is None:
-        raise ValueError(f"schema node type {node['type']!r}")
-    out = check(value, node, path, at, root)
+    out = _shape(value, node, path, at, root)
     # a cross-field rule runs only on a value whose own shape passed (it indexes its keys): fix shape errors first
-    if not out and node.get("check"):
-        msg = node["check"](value)
+    rule = node.get("check")
+    if not out and rule:
+        msg = rule(value)
         if msg:
             out.append(f"{at}: {msg}")
     return out
@@ -221,7 +292,7 @@ PLAN_EDIT = obj({"op": text(nonempty=True), "map": obj(other=text())}, required=
                 check=_relabel_map)
 BAND = obj({"name": text(nonempty=True), "level": whole(1, 3), "below": number(above=0)}, required=("name", "level"),
            other=ANY)
-PLAN_SECTION_KEYS = {
+PLAN_SECTION_KEYS: dict[str, Schema] = {
     "_layer": whole(),
     "edits": arr(PLAN_EDIT),                     # track_names, store_split, build_signals: each edit's op
     "level": whole(1, 3),                         # plan_bands.band_places: a one-band input's level
@@ -252,7 +323,7 @@ def _no_window_keys(section: dict) -> str | None:
 
 
 MIN_CELLS = arr(prefix=(text(nonempty=True), text(nonempty=True), whole(1)), items=text(pattern=r"block:.+"), min=3)
-PREF_SECTION_KEYS = {
+PREF_SECTION_KEYS: dict[str, Schema] = {
     "_layer": whole(),
     "title": arr(text()),
     "min_cells": arr(MIN_CELLS),                  # [from, to, cells, track ID ...] (track_names._map_pref_tracks)
@@ -267,8 +338,8 @@ PREFERENCES = obj({
     "_sections": const(True),
     "_note": text(),
     # build_staging_sets.py writes staging's detail_sheets to preferences_generated.json: a hand one would win
-    "staging": obj({**PREF_SECTION_KEYS, "detail_sheets": {"type": "any", "check": lambda v: (
-        "staging's detail_sheets is generated (preferences_generated.json); a hand value would hide it")}},
+    "staging": obj({**PREF_SECTION_KEYS, "detail_sheets": AnyNode(type="any", check=lambda v: (
+        "staging's detail_sheets is generated (preferences_generated.json); a hand value would hide it"))},
         other=ANY, check=_no_window_keys),
     "main_upper": obj({
         **PREF_SECTION_KEYS,
@@ -353,7 +424,7 @@ def _rel(path: Path) -> str:
 PLAN_OVERRIDES_FILE = _rel(layer_files.path("plan_overrides"))
 PREFERENCES_FILE = _rel(layer_files.path("preferences"))
 PANEL_ITEMS_FILE = _rel(hand_lists.PANEL_ITEMS)
-SCHEMAS = {
+SCHEMAS: dict[str, Schema] = {
     PLAN_OVERRIDES_FILE: PLAN_OVERRIDES,
     PREFERENCES_FILE: PREFERENCES,
     PANEL_ITEMS_FILE: PANEL_ITEMS,
@@ -361,7 +432,7 @@ SCHEMAS = {
 }
 
 
-def check_file(rel: str, root: Path = ROOT, schema: dict | None = None, path: Path | None = None) -> list[str]:
+def check_file(rel: str, root: Path = ROOT, schema: Schema | None = None, path: Path | None = None) -> list[str]:
     """The problems of one file, each starting with `rel`: the file `path` (default root/rel) against `schema`
     (default SCHEMAS[rel]); a `file` rule looks under `root`."""
     schema = SCHEMAS[rel] if schema is None else schema

@@ -17,6 +17,7 @@ with no timestamps.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -294,21 +295,29 @@ def view(src: Path | str = SRC) -> str:
     return data_text(load(src)[1])
 
 
-def main() -> None:
-    if "--check" not in sys.argv:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Write www/%s and www/%s from the tables file." % (PAGE_REL, OUT_REL))
+    parser.add_argument("--check", action="store_true",
+                        help="exit 1 when the page is stale or the data fails a check; write nothing")
+    args = parser.parse_args(argv)      # an unknown argument is a usage error (exit 2), never a write run
+    if not args.check:
         paths.exit_if_overridden(Path(__file__).name)
     try:
-        if "--check" in sys.argv:
+        if args.check:
             if stale():
-                sys.exit("www/%s is stale; run python3 www/scripts/build_tables_browser.py and commit it" % PAGE_REL)
+                print("www/%s is stale; run python3 www/scripts/build_tables_browser.py and commit it" % PAGE_REL,
+                      file=sys.stderr)
+                return 1
             print("tables-file.html is current and tables-browser.json builds and passes its checks")
-            return
+            return 0
         done = write()
     except BrowserDataError as err:
-        sys.exit(str(err))
+        print(err, file=sys.stderr)
+        return 1
     for rel, text in done.items():
         print("wrote www/%s (%d bytes)" % (rel, len(text.encode())))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
