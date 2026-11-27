@@ -312,6 +312,32 @@ class TheCommand(unittest.TestCase):
         with self.assertRaisesRegex(fw.devices.DevicesError, "occupancy 'BS Switch 9' has no role"):
             fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21")
 
+    def test_wiring_text_with_no_pin_group_or_an_empty_pin_is_a_freeze_error(self):
+        for comment in ("Node: 42 Turnout: 0", "Node: 42 Turnout: 0 | OU: 1", "Node: 42 Turnout: 0 | OU: 1 Ports:",
+                        "Node: 42 Turnout: 0 | OU: 1 Ports: ,", "Node: 42 Turnout: 0 | OU: 1 Ports: 1,,2",
+                        "Node: 42 Turnout: 0 | OU: 1 Ports: 1,"):
+            with self.subTest(comment):
+                rows = [dict(self.ROWS[0], comment=comment)]
+                with self.assertRaisesRegex(fw.FreezeError, "turnout Switch 9: its wiring .* gives no port"):
+                    fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21")
+        base = fw.wiring_row(level="2", status="wired")
+        with self.assertRaises(fw.Skip):
+            fw.pin_row(dict(self.ROWS[0], comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1,,2"), base)
+        row = fw.pin_row(dict(self.ROWS[0], comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1,2"), base)
+        self.assertEqual((row["board"], row["ports"]), ("OU1", "1,2"))
+
+    def test_an_unreadable_device_master_exits_2_naming_the_file_without_a_traceback(self):
+        with tempfile.TemporaryDirectory() as d:
+            missing = Path(d) / "no_such_master.csv"
+            real_load = fw.devices.load
+            with mock.patch.object(fw.devices, "load", lambda files=None: real_load(missing)), \
+                    mock.patch.object(fw.bdm, "read_helix_tracks", return_value={}), \
+                    mock.patch.object(fw, "track_keys", return_value=self.KEYS), \
+                    mock.patch("sys.stderr") as err:
+                self.assertEqual(fw.main(["--cp", "CP 9", "--dry-run"]), 2)
+        said = "".join(c.args[0] for c in err.write.call_args_list)
+        self.assertTrue(said.startswith(f"freeze_wiring.py: {missing}: "), said)
+
     def test_a_turnout_across_two_boards_stops(self):
         rows = [dict(self.ROWS[0], comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1 | OU: 2 Ports: 2")]
         with self.assertRaisesRegex(fw.FreezeError, "spans two boards; only a head's pins may"):

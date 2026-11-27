@@ -119,13 +119,16 @@ def _cp_sort(cp: str) -> list[int | str]:
 
 def pin_row(r: DeviceRow, base: WiringRow) -> WiringRow:
     """The row of a turnout, feedback sensor or head from its wiring text ("Node: 42 Turnout: 0 | OU: 1 Ports: 1,2").
-    Skip on a head with no node, a text that gives no port, or a non-head on two boards."""
+    Skip on a head with no node, a text that gives no port (no pin group, or an empty pin in a list like "1,,2"),
+    or a non-head on two boards."""
     if r["layer"] == "head" and not r["node"]:
         raise Skip(f"{r['user_name']} has no node (the board rule could not place it): place it first")
     m = PORTS.match(r["comment"])
     if not m:
         raise Skip(f"{r['layer']} {r['user_name']}: its wiring {r['comment']!r} gives no port")
     groups = GROUP.findall(m.group(4))           # a head's pins may span two boards
+    if not groups or not all(pin for _kind, _node, pins in groups for pin in pins.split(",")):
+        raise Skip(f"{r['layer']} {r['user_name']}: its wiring {r['comment']!r} gives no port")
     if len(groups) > 1 and r["layer"] != "head":
         raise Skip(f"{r['layer']} {r['user_name']}: its wiring {r['comment']!r} spans two boards; only a head's pins may")
     board = f"{groups[0][0]}{groups[0][1]}"
