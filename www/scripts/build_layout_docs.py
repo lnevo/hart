@@ -2,9 +2,8 @@
 """Write www/behind/layout-docs.html, the layout documentation, from its template and the layout's data.
 
 The page began as the Model Railroad Engineer SOQ (docs/ap/electrical) without the NMRA form, the
-checklist, the requirement framing and the wiring-record appendix (owner, 2026-11-22). It reads nothing
-from the SOQ, which was submitted and is frozen; the page is a live document that follows the layout's data
-(owner, 2026-11-25). Its text is layout_docs_template.html, and its drawings and photos are files under
+checklist, the requirement framing and the wiring-record appendix. It reads nothing from the SOQ, which was
+submitted and is frozen; the page is a live document that follows the layout's data. Its text is layout_docs_template.html, and its drawings and photos are files under
 www/assets/behind/layout-docs/, edited in place. This script fills in the list of detected sections (lengths
 and detectors from jmri/layouts/hart/data/block_lengths.csv by level and ID, names from the device master,
 where the owner's name wins), the track names the template gives by block ID ({{name:<id>}}), the switch names
@@ -24,7 +23,9 @@ import argparse
 import html
 import re
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TypedDict
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -73,7 +74,7 @@ LABELS = {
     "block:7B-33C": "Main line (east)", "block:37C-39C#2": "Return loop RS-2", "block:37C-39C#1": "Return loop RS-2",
     SIDING: "Passing siding", "block:7A-13C": "Yard lead", "block:3B-end": "Holding track",
     "block:3C-end": "Holding track"}
-# The siding's "about n 50 ft cars" (owner, 2026-11-25). A 50 ft car is 50 scale ft over the body, about 6.9 in at
+# The siding's "about n 50 ft cars". A 50 ft car is 50 scale ft over the body, about 6.9 in at
 # 1:87.1; with 5 scale ft added for the couplers and the gap between cars (about 55 ft coupler face to coupler face),
 # each car takes about 7.6 in of track. The scale is the plan's (plan_overrides.json, staging scale_ratio).
 CAR_FT, COUPLER_FT = 50, 5
@@ -95,7 +96,7 @@ def car_inches(scale_ratio: float | None = None) -> float:
             scale_ratio = float(layer_files.merged_section("staging")["scale_ratio"])
         except (KeyError, TypeError, ValueError) as exc:
             raise LayoutDocsError("build_layout_docs: plan_overrides.json has no staging scale_ratio to count the siding's "
-                             f"cars by ({exc!r})") from None
+                             f"cars by ({exc!r})") from exc
     return (CAR_FT + COUPLER_FT) * 12 / scale_ratio
 
 
@@ -143,7 +144,7 @@ def station_at(stations: list, did: str) -> str:
     return held[0][1]
 
 
-def label(section: dict, master: Master) -> str:
+def label(section: Section, master: Master) -> str:
     """The page's description of a detected section, by its block ID; an OS block's by its turnout's number."""
     if section["id"] in LABELS:
         return LABELS[section["id"]]
@@ -160,7 +161,56 @@ def master_rows(files: devices.Files | Path | None = None) -> Master:
     return {(r.level_cell, r.id): r for r in devices.load(files) if isinstance(r, DeviceRow) and r.id}
 
 
-def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
+class Section(TypedDict):
+    """A row of the page's list of detected sections (detected_sections)."""
+    id: str
+    name: str
+    node: int
+    ch: int
+    estimate: bool          # no timed length: `inches` is the plan lengths added up
+    inches: float
+
+
+@dataclass
+class _Detector:
+    """One detector ("Block n-c") as block_lengths.csv's rows on it are read: its section, its parts and lengths."""
+    node: int
+    ch: int
+    id: str | None = None
+    name: str | None = None
+    plan: float = 0.0
+    measured: float | None = None
+    parts: list[tuple[str, str]] = field(default_factory=list)     # (part's name, the section it is part of)
+
+
+def _detectors(lengths: dict[str, block_lengths.Block], master: Master,
+               measured: dict[str, block_lengths.Measured]) -> dict[str, _Detector]:
+    """{occupancy sensor: _Detector} of the plan's blocks on a "Block n-c" detector, in file order."""
+    by_sensor: dict[str, _Detector] = {}
+    for b in lengths.values():
+        m = re.fullmatch(r"Block (\d+)-(\d+)", b.occupancy_sensor)
+        if not m:
+            continue
+        row = master.get((b.level, b.id))
+        if row is None:
+            raise LayoutDocsError(f"build_layout_docs: block_lengths.csv line {b.line}: {b.id} is no level {b.level} "
+                             "device of the device master")
+        d = by_sensor.setdefault(b.occupancy_sensor, _Detector(int(m.group(1)), int(m.group(2))))
+        d.plan += b.plan_in
+        if row.role == "part":
+            d.parts.append((row.user_name, row.part_of))
+            continue
+        if d.id:
+            raise LayoutDocsError(f"build_layout_docs: {b.occupancy_sensor} has two sections, {d.name} and "
+                             f"{row.user_name}")
+        d.id, d.name = b.id, row.user_name
+        if row.user_name in measured:
+            d.measured = measured[row.user_name].measured_in
+    return by_sensor
+
+
+def detected_sections(lengths: dict[str, block_lengths.Block] | None = None, master: Master | None = None,
+                      measured: dict[str, block_lengths.Measured] | None = None) -> list[Section]:
     """One row per detector ("Block n-c"), by node and channel. Lengths and detectors come from block_lengths.csv
     (by level and ID), names from the device master, so a rename in the field file reaches the page with no build
     step between. A part (role part: a short piece on its OS block's detector) is folded into its block's row. The
@@ -170,42 +220,20 @@ def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
     lengths = block_lengths.plan_blocks() if lengths is None else lengths
     measured = block_lengths.measured_lengths() if measured is None else measured
     master = master_rows() if master is None else master
-    by_sensor: dict[str, dict] = {}
-    for b in lengths.values():
-        m = re.fullmatch(r"Block (\d+)-(\d+)", b.occupancy_sensor)
-        if not m:
-            continue
-        row = master.get((b.level, b.id))
-        if row is None:
-            raise LayoutDocsError(f"build_layout_docs: block_lengths.csv line {b.line}: {b.id} is no level {b.level} "
-                             "device of the device master")
-        s = by_sensor.setdefault(b.occupancy_sensor, {"node": int(m.group(1)), "ch": int(m.group(2)), "id": None,
-                                                      "name": None, "plan": 0.0, "measured": None})
-        s["plan"] += b.plan_in
-        if row.role == "part":
-            s.setdefault("parts", []).append((row.user_name, row.part_of))
-            continue
-        if s["id"]:
-            raise LayoutDocsError(f"build_layout_docs: {b.occupancy_sensor} has two sections, {s['name']} and "
-                             f"{row.user_name}")
-        s["id"], s["name"] = b.id, row.user_name
-        if row.user_name in measured:
-            s["measured"] = measured[row.user_name].measured_in
-    out = []
-    for sensor, s in by_sensor.items():
-        if not s["id"]:
+    out: list[Section] = []
+    for sensor, d in _detectors(lengths, master, measured).items():
+        if d.id is None or d.name is None:
             raise LayoutDocsError(f"build_layout_docs: {sensor} has only parts, no section of its own")
-        for piece, owner in s.get("parts", []):
-            if owner != s["name"]:
+        for piece, owner in d.parts:
+            if owner != d.name:
                 raise LayoutDocsError(f"build_layout_docs: {piece} is a part of {owner} but is on {sensor}, "
-                                 f"{s['name']}'s detector")
-        timed = s["measured"] is not None
-        out.append({"id": s["id"], "name": bare(s["name"]), "node": s["node"], "ch": s["ch"], "estimate": not timed,
-                    "inches": s["measured"] if timed else s["plan"]})
+                                 f"{d.name}'s detector")
+        out.append({"id": d.id, "name": bare(d.name), "node": d.node, "ch": d.ch, "estimate": d.measured is None,
+                    "inches": d.plan if d.measured is None else d.measured})
     return sorted(out, key=lambda s: (s["node"], s["ch"]))
 
 
-def sections_table(rows: list[dict], master: Master) -> str:
+def sections_table(rows: list[Section], master: Master) -> str:
     body = "".join(
         f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s, master))}</td>"
         f"<td>{html.escape(s['name'])}</td><td>C{s['node']} · {s['ch']}</td>"
@@ -217,7 +245,7 @@ def sections_table(rows: list[dict], master: Master) -> str:
             f'          <tbody>{body}</tbody>\n        </table>\n      </div>')
 
 
-def facts(rows: list[dict], master: Master | None = None) -> dict[str, str]:
+def facts(rows: list[Section], master: Master | None = None) -> dict[str, str]:
     """The figures the page's text states, from the section list and rounded as it shows them. A length from plan
     estimates (marked ≈ in the list) is said as "about". The crossovers are named by their turnouts' numbers."""
     master = master_rows() if master is None else master

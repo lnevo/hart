@@ -111,8 +111,23 @@ class LayoutDocs(unittest.TestCase):
 
     def test_a_missing_scale_stops_by_name(self):
         with mock.patch.object(ld.layer_files, "merged_section", return_value={}):
-            with self.assertRaisesRegex(ld.LayoutDocsError, "staging scale_ratio"):
+            with self.assertRaisesRegex(ld.LayoutDocsError, "staging scale_ratio") as cm:
                 ld.car_inches()
+        self.assertIsInstance(cm.exception.__cause__, KeyError)
+
+    def test_a_detector_needs_one_section(self):
+        def length(bid, sensor):
+            return ld.block_lengths.Block(2, "1", bid, bid, sensor, 5.0, "")
+        lengths = {b.id: b for b in (length("block:1A-3A", "Block 4-2"), length("block:3A-5A", "Block 4-2"))}
+        master = {("1", "block:1A-3A"): staging_row("block", "Track 1-3", "track"),
+                  ("1", "block:3A-5A"): staging_row("block", "Track 3-5", "track")}
+        with self.assertRaisesRegex(ld.LayoutDocsError, "Block 4-2 has two sections, Track 1-3 and Track 3-5"):
+            ld.detected_sections(lengths, master, {})
+        master = {k: replace(r, role="part", part_of="OS Switch 1") for k, r in master.items()}
+        with self.assertRaisesRegex(ld.LayoutDocsError, "Block 4-2 has only parts"):
+            ld.detected_sections(lengths, master, {})
+        with self.assertRaisesRegex(ld.LayoutDocsError, "block:1A-3A is no level 1 device"):
+            ld.detected_sections(lengths, {}, {})
 
     def test_station_names_in_drawings_are_labels(self):
         master = ld.master_rows()
