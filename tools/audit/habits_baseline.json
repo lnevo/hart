@@ -12,9 +12,6 @@
  "cats/scripts/tests/test_live_desk_levels.py": {
   "dated-note": 1
  },
- "jmri/layouts/hart/scripts/audit_panel_contracts.py": {
-  "dated-note": 3
- },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
   "dated-note": 1,
   "import-exit": 3

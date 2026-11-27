@@ -7,10 +7,11 @@ Reads only: the JMRI JSON turnout table and one retained turnout topic. Nothing 
 from __future__ import annotations
 
 import json
-import subprocess
 import urllib.request
 from collections.abc import Mapping
 from typing import Literal
+
+import mosquitto_cli  # sibling module: tools/mqtt is on sys.path wherever this module is imported
 
 FbState = Literal["CLOSED", "THROWN"]
 
@@ -67,14 +68,8 @@ def fb_state(turnout: Mapping[str, object]) -> FbState | None:
     return None
 
 
-def mqtt_retain(host: str, addr: int) -> str | None:
-    """The retained payload of turnout addr on host; None when there is none or mosquitto_sub fails."""
-    try:
-        out = subprocess.check_output(
-            ["mosquitto_sub", "-h", host, "-t", f"track/turnout/{addr}", "-C", "1", "-W", "1"],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-    except subprocess.CalledProcessError:
-        return None
-    return out or None
+def mqtt_retain(host: str, addr: int, run: mosquitto_cli.Runner = mosquitto_cli.run_command) -> str | None:
+    """The retained payload of turnout addr on host; None when the topic holds none. MosquittoError when
+    mosquitto_sub cannot be started or the broker cannot be read."""
+    found = mosquitto_cli.subscribe(host, f"track/turnout/{addr}", wait=1, count=1, run=run)
+    return (found[0].payload or None) if found else None

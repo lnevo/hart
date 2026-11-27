@@ -105,7 +105,7 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
 
     def test_wiring_lists_wired_heads_only(self) -> None:
         # ADR-024: Mast 6LB on IH432 is the one wired head; IH433 was dropped.
-        packed = {(r["mast_user_name"], r["packed"]) for r in self.rows}
+        packed = {(r.mast, r.packed) for r in self.rows}
         self.assertEqual(packed, {("Mast 6LB", 432)})
 
     def test_head_plan_mast_names_match_tables(self) -> None:
@@ -126,12 +126,11 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
 class PortErrorsTest(unittest.TestCase):
     """build_rows raises HeadPlanError, which main() reports with exit 2, for a lamp it cannot place."""
 
-    HEAD = ("Mast 9", 4, "C4", "", 432, "C4-OU2-3", "C4-OU2-2", "C4-OU2-1", "S", "")
-
     def setUp(self) -> None:
         self.m = load_module()
+        self.HEAD = self.m.WiredHead("Mast 9", 4, "C4", 432, "C4-OU2-3", "C4-OU2-2", "C4-OU2-1", "S")
 
-    def _rows(self, heads: list[tuple], cal_ports: set[str]) -> list[dict]:
+    def _rows(self, heads: list, cal_ports: set[str]) -> list:
         with unittest.mock.patch.object(self.m, "heads_3pin", return_value=heads), \
                 unittest.mock.patch.object(self.m.wiring, "calibration_ports", return_value=cal_ports):
             return self.m.build_rows()
@@ -141,7 +140,7 @@ class PortErrorsTest(unittest.TestCase):
             self._rows([self.HEAD], {"C4-OU2-1"})
 
     def test_two_lamps_on_one_port_are_refused(self) -> None:
-        other = ("Mast 10",) + self.HEAD[1:4] + (433,) + self.HEAD[5:]
+        other = self.HEAD._replace(mast="Mast 10", packed=433)
         with self.assertRaisesRegex(self.m.HeadPlanError, "duplicate port C4-OU2-1: Mast 9 S R and Mast 10"):
             self._rows([self.HEAD, other], set())
 
@@ -152,6 +151,51 @@ class PortErrorsTest(unittest.TestCase):
                 unittest.mock.patch("sys.stderr", err):
             self.assertEqual(self.m.main(), 2)
         self.assertIn("duplicate port X", err.getvalue())
+
+
+class WiringErrorsTest(unittest.TestCase):
+    """heads_3pin and plan_masts raise HeadPlanError for wiring rows that make no head or no mast."""
+
+    def setUp(self) -> None:
+        self.m = load_module()
+
+    @staticmethod
+    def lamp(color: str, port: str, packed: str = "432", disc: str = "S", mast: str = "Mast 9") -> dict[str, str]:
+        return {"packed": packed, "lamp_color": color, "mast_user_name": mast, "mqtt_node": "4",
+                "parent_node_id": "C4", "port_id": port, "disc_role": disc}
+
+    def heads(self, rows: list[dict[str, str]]) -> list:
+        with unittest.mock.patch.object(self.m.wiring, "digicon_rows", return_value=rows):
+            return self.m.heads_3pin()
+
+    def test_a_whole_head_is_read(self) -> None:
+        got = self.heads([self.lamp("R", "p1"), self.lamp("Y", "p2"), self.lamp("G", "p3")])
+        self.assertEqual(got, [self.m.WiredHead("Mast 9", 4, "C4", 432, "p3", "p2", "p1", "S")])
+
+    def test_a_head_missing_a_lamp_is_refused(self) -> None:
+        with self.assertRaisesRegex(self.m.HeadPlanError, r"IH432 has lamps \['R', 'Y'\]"):
+            self.heads([self.lamp("R", "p1"), self.lamp("Y", "p2")])
+
+    def test_a_lamp_given_twice_is_refused(self) -> None:
+        with self.assertRaisesRegex(self.m.HeadPlanError, "IH432 .* has two R lamps"):
+            self.heads([self.lamp("R", "p1"), self.lamp("R", "p2")])
+
+    def test_an_unknown_disc_is_refused(self) -> None:
+        rows = [self.lamp(c, p, disc="X") for c, p in (("R", "p1"), ("Y", "p2"), ("G", "p3"))]
+        with self.assertRaisesRegex(self.m.HeadPlanError, "disc 'X'"):
+            self.heads(rows)
+
+    def test_a_mast_with_four_heads_has_no_appearance(self) -> None:
+        pins = [self.m.HeadPin("Mast 9", 4, "C4", 430 + i, "S", "R", f"p{i}") for i in range(4)]
+        with self.assertRaisesRegex(self.m.HeadPlanError, "Mast 9 has 4 wired heads"):
+            self.m.plan_masts(pins)
+
+    def test_two_heads_plan_top_first(self) -> None:
+        pins = [self.m.HeadPin("Mast 9", 4, "C4", 433, "B", "R", "p4"),
+                self.m.HeadPin("Mast 9", 4, "C4", 432, "T", "R", "p1")]
+        (row,) = self.m.plan_masts(pins)
+        self.assertEqual(row["mast_system_name"], "IF$shsm:basic:two-searchlight(IH432)(IH433)")
+        self.assertEqual((row["physignal"], row["port_ids"]), ("double", "p4 p1"))
 
 
 if __name__ == "__main__":

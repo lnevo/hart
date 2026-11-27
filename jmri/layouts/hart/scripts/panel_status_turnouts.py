@@ -32,6 +32,15 @@ _icon_rebound = False
 _last_fb_appearance = None
 # sys name -> feedback mode of each included plant. A full scan fills it; a turnout's own event updates its entry.
 _plant_modes = {}
+# Messages already printed: a scan repeats on every turnout event, so a failure that repeats is printed once.
+_logged = set()
+
+
+def _log_once(msg):
+    """Print msg the first time only."""
+    if msg not in _logged:
+        _logged.add(msg)
+        print(msg)
 
 
 def _turnouts():
@@ -40,9 +49,11 @@ def _turnouts():
 
 
 def _has_two_fb_sensors(to):
+    """Whether both feedback sensors are assigned; a turnout whose sensors cannot be read is logged and left out."""
     try:
         return to.getFirstSensor() is not None and to.getSecondSensor() is not None
-    except Exception:
+    except Exception as e:
+        _log_once("panel_status: cannot read the feedback sensors of %s: %s" % (to.getSystemName(), e))
         return False
 
 
@@ -64,9 +75,11 @@ def _included_plant_turnouts():
 
 
 def _feedback_mode(to):
+    """The turnout's feedback mode; None, logged, when it cannot be read (the lamp then shows mixed)."""
     try:
         return to.getFeedbackMode()
-    except Exception:
+    except Exception as e:
+        _log_once("panel_status: cannot read the feedback mode of %s: %s" % (to.getSystemName(), e))
         return None
 
 
@@ -99,7 +112,8 @@ def _ensure_turnout_fb_head():
         if head is None:
             try:
                 head = mgr.getBySystemName(TURNOUT_FB_HEAD)
-            except Exception:
+            except Exception as e:
+                _log_once("panel_status: lookup of %s by system name failed: %s" % (TURNOUT_FB_HEAD, e))
                 head = None
         if head is not None:
             return head
@@ -122,12 +136,12 @@ def _set_head_appearance(head, appearance):
             try:
                 try:
                     head.setHeld(False)
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log_once("panel_status: Turnouts lamp setHeld(False) failed: %s" % e)
                 try:
                     head.setLit(True)
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log_once("panel_status: Turnouts lamp setLit(True) failed: %s" % e)
                 head.setAppearance(appearance)
             except Exception as e:
                 print("panel_status: setAppearance failed: %s" % e)
@@ -137,7 +151,8 @@ def _set_head_appearance(head, appearance):
             _Set().run()
         else:
             SwingUtilities.invokeLater(_Set())
-    except Exception:
+    except Exception as e:
+        _log_once("panel_status: cannot queue the Turnouts lamp on the EDT (%s); setting it on this thread" % e)
         _Set().run()
 
 
@@ -147,16 +162,6 @@ def _tooltip_text(icon):
     if tip is None:
         return None
     return tip.getText()
-
-
-_rebind_logged = set()   # rebind messages already printed: the scan repeats on every turnout event until found
-
-
-def _log_once(msg):
-    """Print a rebind message the first time only."""
-    if msg not in _rebind_logged:
-        _rebind_logged.add(msg)
-        print(msg)
 
 
 def _rebind_turnout_fb_icons(head):
@@ -288,10 +293,9 @@ def _toggle_turnout_fb_mode_body():
         return
     modes = set()
     for to in included:
-        try:
-            modes.add(to.getFeedbackMode())
-        except Exception:
-            pass
+        mode = _feedback_mode(to)      # one that cannot be read is logged and does not count
+        if mode is not None:
+            modes.add(mode)
     if modes == {TWOSENSOR}:
         target = DIRECT
         label = "DIRECT"
@@ -305,8 +309,8 @@ def _toggle_turnout_fb_mode_body():
             if target == TWOSENSOR:
                 try:
                     to.setInitialKnownStateFromFeedback()
-                except Exception:
-                    pass
+                except Exception as e:
+                    print("panel_status: %s known state from feedback failed: %s" % (to.getSystemName(), e))
             n += 1
         except Exception as e:
             print(

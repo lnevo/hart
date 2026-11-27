@@ -352,7 +352,8 @@ inputs = [
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/schematic/stations.csv",
                 "jmri/layouts/hart/data/devices_field.csv",
-                "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/masts.csv"]
+                "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/masts.csv",
+                "jmri/layouts/hart/data/switches.csv"]
 
 [[step]]
 name = "digicon-disabled"

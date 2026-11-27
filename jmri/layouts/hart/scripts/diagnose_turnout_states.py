@@ -17,7 +17,7 @@ Rules (SoR):
     python3 jmri/layouts/hart/scripts/diagnose_turnout_states.py --diagnose
 
 Read-only. Use tools/mqtt/sync_mqtt_turnouts_from_fb.py only when Digicon must track FB.
-Exits 1 when JMRI cannot be reached.
+Exits 1 when JMRI or the MQTT broker cannot be read.
 """
 
 from __future__ import annotations
@@ -33,6 +33,7 @@ sys.path[:0] = [str(p / sub) for p in Path(__file__).resolve().parents
     or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
+import mosquitto_cli  # noqa: E402
 import turnout_feedback as tf  # noqa: E402
 
 JMRI_JSON = jmri_json_url()
@@ -123,7 +124,11 @@ def main() -> int:
     except JmriUnreachable as e:
         print(f"{e}; no table to show", file=sys.stderr)
         return 1
-    return diagnose(by_name, lambda addr: tf.mqtt_retain(MQTT_HOST, addr))
+    try:
+        return diagnose(by_name, lambda addr: tf.mqtt_retain(MQTT_HOST, addr))
+    except mosquitto_cli.MosquittoError as e:
+        print(f"MQTT broker {MQTT_HOST} unreadable: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

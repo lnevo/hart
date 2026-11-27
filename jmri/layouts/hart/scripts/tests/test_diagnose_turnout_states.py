@@ -51,6 +51,19 @@ class Unreachable(unittest.TestCase):
         self.assertEqual(out.getvalue(), "")
 
 
+    def test_exits_1_with_a_message_when_the_broker_cannot_be_read(self) -> None:
+        mod = _load()
+        err = io.StringIO()
+        with mock.patch.object(mod, "read_turnouts", return_value={"M2T5": _turnout("M2T5", "Switch 5", 2, "R")}), \
+                mock.patch.object(mod.tf, "mqtt_retain", side_effect=mod.mosquitto_cli.MosquittoError("refused")), \
+                mock.patch.object(sys, "argv", ["diagnose_turnout_states.py"]), \
+                contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()) as out:
+            code = mod.main()
+        self.assertEqual(code, 1)
+        self.assertIn("unreadable: refused", err.getvalue())
+        self.assertEqual(out.getvalue(), "")
+
+
 class Table(unittest.TestCase):
     def test_rows_skip_yard_switches_and_flag_mismatches(self) -> None:
         mod = _load()

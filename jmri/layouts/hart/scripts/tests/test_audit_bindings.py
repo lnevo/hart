@@ -145,6 +145,29 @@ class AuditSettings(unittest.TestCase):
         t.set("continuing", "1")
         self.assertTrue(any("TOL29" in e for e in self.errors(root)))
 
+    def test_the_continuing_turnouts_are_switches_csvs_idents(self) -> None:
+        self.assertEqual(self.apc.continuing_closed_idents(), ("TOL29", "TOR36", "TO111", "TO113", "TO117"))
+
+    def test_a_continuing_switch_without_an_ident_is_an_audit_error(self) -> None:
+        source = self.apc.railroad_facts.Sources.under().switches
+        lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
+        header = lines[0].rstrip("\n").split(",")
+        col, sw = header.index("le_ident"), header.index("switch")
+        out = []
+        for line in lines:
+            cells = line.rstrip("\n").split(",")
+            if cells[sw] == "39" and cells[col]:
+                cells[col] = ""
+            out.append(",".join(cells) + "\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            copy_path = Path(tmp) / source.name
+            copy_path.write_text("".join(out), encoding="utf-8")
+            with self.assertRaisesRegex(self.apc.railroad_facts.FactsError, "no staging le_ident for Switch 39"):
+                self.apc.continuing_closed_idents(copy_path)
+            audit = self.apc.Audit("t", Path("t"))
+            self.apc.audit_generated_settings(self.root, audit, switches=copy_path)
+        self.assertEqual(audit.errors, ["continuing turnouts: switches.csv gives no staging le_ident for Switch 39"])
+
     def test_blockrouting_off_is_an_error(self) -> None:
         root = copy.deepcopy(self.root)
         next(root.iter("layoutblocks")).set("blockrouting", "no")
