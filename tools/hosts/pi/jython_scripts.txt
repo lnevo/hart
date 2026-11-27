@@ -18,6 +18,7 @@ macpi jmri/layouts/hart/scripts/sts_car_sync.py
 startup jmri/scripts/signal_coordinator.py
 pi jmri/layouts/hart/scripts/mimic_relay.py
 sibling jmri/scripts/jython_siblings.py
+sibling jmri/scripts/sml_lcos.py
 sibling jmri/scripts/sml_beans.py
 sibling jmri/scripts/sml_quit.py
 sibling jmri/scripts/sml_ui.py
