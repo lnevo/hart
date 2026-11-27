@@ -4582,6 +4582,16 @@
    "gen": "manifest"
   },
   {
+   "id": "tools/audit/check_devices_one_path.py",
+   "label": "check_devices_one_path",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Audit: no tracked .py outside hartlib names a devices file (devices_generated.csv, devices_field.csv) or opens the master itself; it reaches them through hartlib.devices (MASTER_FILE, FIELD_FILE, master_path, field_path, load, index, field_index, write_field).",
+   "path": "tools/audit/check_devices_one_path.py",
+   "gen": "manifest"
+  },
+  {
    "id": "tools/audit/check_mypy.py",
    "label": "check_mypy",
    "kind": "generator",
@@ -15149,6 +15159,13 @@
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
    "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
    "label": "plant names"
+  },
+  {
+   "from": "tools/audit/check_devices_one_path.py",
+   "to": "tools/check.sh",
+   "label": "check devices-one-path",
+   "side": "check",
+   "gen": "manifest"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
