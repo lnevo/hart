@@ -1,7 +1,6 @@
 # Code-quality wave (2026-11-26)
 
-Status: active (wave 5 done 2026-11-27 06:35; wave 6 running from 06:40)
-Coordinator: wave 6 coordinator (a background agent of hart-e0), from 2026-11-27 06:36 (holds the merge queue and the deploys; took over from the wave 5 coordinator)
+Status: done (wave 6, the last wave, ended 2026-11-27 10:15)
 Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the background coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
@@ -252,21 +251,64 @@ Checked and closed: the repository guide and tables file pages are current by th
 
 ## Wave 6 (2026-11-27)
 
-The wave 6 coordinator (a background agent of hart-e0) planned these lanes from the wave 5 card and the list above. Lanes 6-L1 to 6-L7 start first; 6-L8 to 6-L14 start as those finish.
+The wave 6 coordinator (a background agent of hart-e0) planned these lanes from the wave 5 card and the list above. Owner rulings during the wave added lanes 6-L15 to 6-L19.
 
 | Lane | Scope | PR |
 |------|-------|----|
-| 6-L1 | Site viewer: `archive.js` and `gallery.js` share one lightbox, view bar and toast module; the archive mount split into functions | |
-| 6-L2 | CATS panel: typed `Facts` in `cats_panel_facts.py`, annotations, the unused `F` parameter; `cats_panel.py`, `cats_panel_dress.py` | |
-| 6-L3 | `tables_build.py` re-exports dropped and callers repointed; `refuse_generated` and `tables_page.PageError` off SystemExit; `test_turnout_startup` skip narrowed; hartlib README | |
-| 6-L4 | `check_layout_facts.py` split by job, SystemExit at 396 | |
-| 6-L5 | Jython: swallowed errors in `sml_beans.py` and `sml_ui.py`; the setAppearance failure printed once per message; `lcc_turnout_contract.py` | |
-| 6-L6 | Host scripts: one Jython list for `apply_hart_package_local.sh` and `common.sh`; the audit's stored counts from one source | |
-| 6-L7 | Exam JS: `run-1949.js`, `run-signals.js`, `run-yard.js` on `take` and `give`; the answer key reads data; `build_cats_layout_index.py` | |
-| 6-L8 | `device_map_staging.py` and `staging_device_map.py` | |
-| 6-L9 | `le_names.py`, `le_tables.py`, `render_le_layout.py` (800 of 800 lines) | |
-| 6-L10 | Ops publications: `hart_pub_helpers.py`, `rebuild_scale_operating_instructions.py`, `rebuild_crew_instructions.py` | |
-| 6-L11 | `levels_page.py`, speed-match `make_job.py`, `freeze_wiring.py` | |
-| 6-L12 | Mimic: the broker shown connected only after `mosquitto_sub` proves itself; POST 404 before 400; `build_mimic_web` error | |
-| 6-L13 | `device_map_rows.py`, `device_map_masts.py`; dated history in the block and mast tests | |
-| 6-L14 | Test selection: unit declarations for `ops/` and `www/data/` narrowed to what each check reads | |
+| 6-L1 | Site viewer: `archive.js` and `gallery.js` share one lightbox, view bar and toast module (`photo-viewer.js`); the archive mount split into functions | #1320 merged |
+| 6-L2 | CATS panel: typed keyword-only `Facts` in `cats_panel_facts.py`, annotations, the unused `F` parameter; `cats_panel.py`, `cats_panel_dress.py` split | #1317 merged |
+| 6-L3 | `tables_build.py` re-exports dropped and callers repointed; `GeneratedTablesError`; `tables_page.PageError` off SystemExit; `test_turnout_startup` skip narrowed; hartlib README | #1318 merged |
+| 6-L4 | `check_layout_facts.py` split into five `layout_facts_*` modules, `LayoutFactsError` | #1321 merged |
+| 6-L5 | Jython: swallowed errors in `sml_beans.py`, `sml_ui.py`, `sml_events.py` printed once per message; `lcc_turnout_contract.py` | #1316 merged |
+| 6-L6 | Host scripts: one Jython list (`tools/hosts/pi/jython_scripts.txt`) for the Mac and the Pi; panel counts in one file | #1326 merged |
+| 6-L7 | Exam JS: run files on `take` and `give`, one leg helper, sheet notes as data, the warrant form shared with play | #1319 merged |
+| 6-L8 | `device_map_staging.py` and `staging_device_map.py` typed and split | #1325 merged |
+| 6-L9 | `render_le_layout.py` split (800 to 205, 266 and 431 lines), `le_names.py` and `le_tables.py` typed | #1323 merged |
+| 6-L10 | Ops publications: back page and colour key split, crew sheets load on use, domain errors | #1324 merged |
+| 6-L11 | `levels_page.py`, speed-match `make_job.py`, `freeze_wiring.py`: typed records and named errors | #1330 merged |
+| 6-L12 | Mimic: connected only after the first message, a neutral waiting state, the subscriber always cleaned up; POST 404 first; one-line builder errors | #1328 merged |
+| 6-L13 | `device_map_rows.py` and `device_map_masts.py` typed; dated history out of the block and mast tests | #1322 merged |
+| 6-L14 | Test selection: the unit-hart-ops and unit-schematic declarations narrowed to what their suites read | #1327 merged |
+| 6-L15 | `build_cats_layout_index.py`: guesses that never matched removed, a miss stops the build; LEFTCENT added to `SIG_LOC` by owner ruling | #1329 merged |
+| 6-L16 | `play/answers.html` share card: no photo of the PIR run's train exists; the owner kept the site card | none |
+| 6-L17 to 6-L19 | Six files that lost a grade after wave 3, fixed forward: `docs_unit_tests.py`, `status_counts.py`, hartlib `operations.py`, `le_common.py`, `pir.js`, `build_layout_docs.py` | #1333 merged |
+
+Other PRs: wave page #1315 and #1332 (the two owner rulings below). Session lnevo-5f's #1331 (the owner's move-list decisions and a station map names test) merged in the same queue. Shipped: layout deploys after #1316 (07:19), #1318 (07:39), #1326 (08:52), #1328 (09:10) and #1333 (09:47); site deploys after #1319 and #1320 (07:58), #1323 (08:32), #1326 and #1329 (09:26) and #1333 (09:48). Every layout deploy passed the Mac PanelPro smoke test and the strict panel audit, and the Pi's log showed no script errors after the restart. The site's Build counts stayed the same apart from the new `photo-viewer.js` (files 1431 to 1432).
+
+Owner rulings during the wave: parked code leaves the report card (listed, not graded; every column recomputed); wave 6 is the last wave; LEFTCENT goes into `SIG_LOC`, so Mast 68 and Mast B92 sit in place on the CATS index; the defaults the wave 5 coordinator chose stand; `play/answers.html` keeps the site card until a real photo of a PIR train exists.
+
+### Result
+
+Final report card (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE, "After wave 6 (final)"): the line-weighted average reaches 3.301, B+, over 534 source files and 123,997 lines, with parked code left out of every column. The margin over B+ is small: 117 grade-point-lines.
+
+| | Start | Wave 1 | Wave 2 | Wave 3 (corrected) | Wave 4 | Wave 5 | Wave 6 |
+|---|---|---|---|---|---|---|---|
+| Average | 2.868 | 3.039 | 3.130 | 3.197 | 3.224 | 3.260 | 3.301 |
+| C and D files | 63 | 32 | 15 | 1 | 1 | 2 | 2 |
+| A-range files | 8 | 18 | 133 | 157 | 167 | 189 | 200 |
+| Files read | 70 | 110 | 469 | 488 | 493 | 515 | 526 |
+
+These figures differ from the ones published after each wave for two reasons. Parked code (everything under `jmri/layouts/hart/parked/` and 16 scripts that serve only parked features, each checked by its callers) is left out by owner ruling. And each file now takes its newest real read across every card: the wave 4 card had carried stale sweep grades for 20 files that never changed, so waves 4 and 5 read slightly higher than first published.
+
+Two files are at C+: `tools/schematic/le_names.py` (it cuts functions out of `signal_coordinator.py` with regular expressions and runs them with `exec()`) and `www/scripts/build_exam_answers.js` (it builds the answer key by running pieces of the game's source with `Function()`). The code they are marked down for was there before wave 6; this read was closer. `archive.js` went from C+ to B+ and `cats_panel_facts.py` from C+ to B.
+
+### Left after the waves
+
+- Eight live table moves (session lnevo-5f, after the waves; some may become keep with a name check, the owner's call): ops/hart-ops/card_pipeline/train_cards.py TRAINS (copies trains.csv with the cards' order text); tools/mqtt-mimic/lcos_mqtt_mimic.py PLANT_ORDER; tools/mqtt-mimic/qa/run_native_sml_qa.py OCC, TO and SCENARIO; tools/schematic/panel_items.py STATUS_BEANS; www/scripts/build_layout_docs.py LABELS; www/scripts/share_card_recipes/panel_image.py ROSTER_ROWS.
+- Waybill traffic tables: the 7 waybill_data.py rows in tools/audit/hand_tables.csv wait for the owner's waybill-master decision (held past the end).
+- #1326: the Windows apply keeps its own Jython list (tools/hosts/windows ps1); audit_panel_graph loads panel_counts.json at import, so a broken file is an import traceback; ship_mac.sh skips a missing listed script silently (the stage check now catches it first).
+- #1330: levels_page read_meta does not check the levels_meta.json shape; freeze_wiring gives a traceback on an OSError reading the device master and an IndexError in pin_row on wiring text with no pin group (pre-existing).
+- #1329: cell_of accepts Unicode digits that int() rejects (the build still reports it).
+- #1328: the mimic page shows "waiting" until the first message on a quiet broker (by design); test_mimic_web keeps source-substring checks.
+- #1323: le_tables keeps a module __getattr__ for BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS (build_layout_le and its tests); render_le_layout ignores --labels and --scale with --all-views (pre-existing); lcos_rule exec kept (runs Jython source pieces).
+- #1325: staging_device_map.load() still takes 9 parameters; staging_rows fills the caller's drawn dict in place.
+- #1324: PUBLICATION in rebuild_crew_instructions is still read at import (a move-row table, lnevo-5f); ruff TRY003 flags messages on the new errors.
+- #1319: build_exam_answers.js still uses a scanner plus Function() eval; the 1949 run keeps its own arriveTTO path; packed style in run-*.js.
+- #1320: fleet.js has the same view code as archive.js and gallery.js; www/README.md does not name photo-viewer.js.
+- #1318: the parked occupancy_lamps_display_only.py ends GeneratedTablesError as a traceback (parked code stays as is).
+- #1316: _log_once has two copies (sml_beans and panel_status_turnouts, different script families).
+- #1327: unit-portal still declares all of www/ (node and bash reads untraced).
+- Runners had no Agent tool, so finding-verifier ran from the coordinator for non-nit findings only; nits were checked by the runners.
+- Not checked: the WiThrottle client that opens port 12090 every 5 minutes (a 4-minute ss watch on the Pi saw no peer).
+- play/answers.html keeps the site card until a real photo of a PIR train exists (owner, 2026-11-27); candidates found: a drawn card of the run's line sketch, the Chartiers track scheme, Ohio Central 2091.
+- From the final regrade: tools/schematic/le_names.py (C+) cuts functions out of signal_coordinator.py's source with regexes and runs them with exec() (le_names.py:140-157); www/scripts/build_exam_answers.js (C+) still builds the answer key by evaluating the game's source with Function() and with(), render() about 114 lines; run-signals.js startSIG about 195 lines and run-modern.js's track warrant copy scene duplicates play/warrant.js copy(); tools/hosts/deploy/stage.sh stage_package about 123 lines; www/scripts/jmri_additions_page.py raises PageError(str(e)) from None (103, 208); jmri/scripts/sml_ui.py broad excepts and long Swing functions (97-158); tests that assert on source text (test_speedmatch_offline, test_check_docs_only, test_build_tables, test_layout_docs, test_exam_answers); dated owner notes in test docstrings (test_build_cats_panel_bindings, test_devices).
