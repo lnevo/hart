@@ -112,9 +112,9 @@ SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive
 EVERYTHING = ("**/*",)
 # The files of ops/hart-ops/data/ that unit-hart-ops reads (a trace of the whole suite, the sts-helpers tests
 # included): the rest of that folder (trains.csv, locos.csv, the queues, the sidecars) is not its input.
-HART_OPS_DATA = ("HART_MergedCarRoster.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml", "crew.json",
-                 "image_metadata.csv", "industries.csv", "industry_notes.csv", "industry_sheet.csv", "loco_models.csv",
-                 "roads.csv", "spot_assignments.csv", "spot_usages.csv")
+UNIT_HART_OPS_DATA = ("HART_MergedCarRoster.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml",
+                      "crew.json", "image_metadata.csv", "industries.csv", "industry_notes.csv", "industry_sheet.csv",
+                      "loco_models.csv", "roads.csv", "spot_assignments.csv", "spot_usages.csv")
 
 # job-name prefix -> patterns (tools/check.sh is always added): what a CHECK_AUDIT run saw each unit job read
 # (`check_stamps.py audit-report DIR`), widened to whole folders. Other manifest jobs fall back to MANIFEST_CHECK.
@@ -143,7 +143,7 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     # the STS seed in external/sts-helpers
     "unit-hart-ops": (*CODE, "ops/hart-ops/card_pipeline/**/*", "ops/hart-ops/publications/**/*",
                       "ops/hart-ops/tests/**/*", "ops/hart-ops/operator_logos/**/*", "ops/station_maps/**/*",
-                      *(f"ops/hart-ops/data/{name}" for name in HART_OPS_DATA), "ops/hart-ops/requirements*.txt",
+                      *(f"ops/hart-ops/data/{name}" for name in UNIT_HART_OPS_DATA), "ops/hart-ops/requirements*.txt",
                       "ops/car-cards/**/*", "ops/hart-ops/CarImagesCardFill*/**/*", "docs/ops/**/*",
                       "www/data/crew.json", "external/sts-helpers/**/*"),
     # build_panels.sh (bash, untraced) runs stand-in steps in test_build_panels; test_panel_stamps runs every real

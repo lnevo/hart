@@ -128,6 +128,12 @@ class NarrowedDeclarations(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertTrue((ROOT / path).is_file(), path)
 
+    def test_each_hart_ops_data_name_is_a_file(self) -> None:
+        """A renamed or removed master left in UNIT_HART_OPS_DATA would match nothing, and its replacement go light."""
+        for name in check_stamps.UNIT_HART_OPS_DATA:
+            with self.subTest(name=name):
+                self.assertTrue((ROOT / "ops/hart-ops/data" / name).is_file(), name)
+
     def test_each_job_covers_what_it_reads_and_not_the_files_beside_them(self) -> None:
         for job, (reads, unread) in CASES.items():
             with self.subTest(job=job):
