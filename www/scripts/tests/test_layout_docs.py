@@ -3,13 +3,13 @@ master's names and DCC addresses and the station names; drawing D2 states the sa
 same lengths and the plans the live switch numbers; a rename in the field file renames the track or the switch on the
 page, and a rename in the stations file the station (and stops on a drawing's station label until it is edited);
 the siding's car count is in 50 ft cars at the plan's scale; the hand-edited drawings carry no SOQ wording."""
+import builtins
 import csv
 import io
 import re
 import shutil
 import sys
 import tempfile
-import tokenize
 import unittest
 from dataclasses import replace
 from unittest import mock
@@ -34,12 +34,20 @@ class LayoutDocs(unittest.TestCase):
                             f"{path} is stale: run python3 www/scripts/build_layout_docs.py")
 
     def test_page_reads_nothing_from_the_soq(self):
-        # The SOQ is submitted and frozen; the page is maintained on its own (owner, 2026-11-22).
+        # The SOQ is submitted and frozen; the page is maintained on its own.
         page = ld.PAGE.read_text()
         self.assertNotIn("docs/ap/electrical", page)
-        src = (SCRIPTS / "build_layout_docs.py").read_text()
-        strings = [t.string for t in tokenize.generate_tokens(io.StringIO(src).readline) if t.type == tokenize.STRING]
-        self.assertFalse([s for s in strings[1:] if "ap/electrical" in s or "build_soq" in s])   # [0] is the docstring
+        opened: list[str] = []
+        real_open = builtins.open
+
+        def recording_open(file, *args, **kwargs):
+            opened.append(str(file))
+            return real_open(file, *args, **kwargs)
+        with mock.patch.object(builtins, "open", recording_open), \
+                mock.patch.object(io, "open", recording_open):
+            ld.outputs()
+        self.assertTrue(opened)
+        self.assertFalse([f for f in opened if "ap/electrical" in f or "build_soq" in f], opened)
         for rel in set(re.findall(r'\.\./(assets/behind/layout-docs/[\w./-]+)', page)):
             self.assertTrue((ld.PORTAL / rel).is_file(), rel)
 

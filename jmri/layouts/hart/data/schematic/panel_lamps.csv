@@ -1,0 +1,5 @@
+system_name,layer,user_name,assignment,icon,jmri_comment,description
+M2S1567,sensor,Bridge HBLOOP,field,sensor,LCOS lamp; ACTIVE=link up,Panel lamp sensor Bridge HBLOOP: lit when the link is up.
+IS:SML_MODE,sensor,SML Mode,virtual,sensor,Signals lamp; ACTIVE=SML on,Panel lamp sensor SML Mode: lit when signal mast logic is on.
+IS:TRACK_POWER,sensor,Track Power,virtual,sensor,Track Power lamp; ACTIVE=on,Panel lamp sensor Track Power: lit when track power is on.
+IH9990,head,Turnout FB status,field,signalhead,Turnouts lamp: green feedback; red direct,"Panel lamp head: green shows turnout feedback, red shows a direct turnout."

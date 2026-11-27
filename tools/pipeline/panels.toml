@@ -188,8 +188,8 @@ outputs = [
   { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "writes (every level)" },
 ]
 
-# The status beans' rows of the device master (panel_items.py, written_by panel_items.json), from panel_items.json;
-# like device-map it writes the device master, so it runs before tables, which reads its rows.
+# The status beans' rows of the device master (panel_items.py, written_by panel_items.json), from panel_lamps.csv and
+# panel_items.json; like device-map it writes the device master, so it runs before tables, which reads its rows.
 [[step]]
 name = "panel-items"
 mode = "step"
@@ -197,9 +197,10 @@ cmd = ["python3", "tools/schematic/panel_items.py"]
 check_args = ["--check"]
 domain = "layout"
 label = "panel_items.py"
-desc = "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv (make panels' panel-items step, before tables); --check in check.sh."
+desc = "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv from panel_lamps.csv (make panels' panel-items step, before tables); --check in check.sh."
 inputs = [
   { path = "jmri/layouts/hart/data/schematic/panel_items.json", label = "reads, via hartlib.hand_lists" },
+  { path = "jmri/layouts/hart/data/schematic/panel_lamps.csv", label = "the status lamps, via hartlib.hand_lists" },
 ]
 outputs = [
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "status beans rows" },
