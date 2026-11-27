@@ -1,4 +1,5 @@
 """The repository guide's lists and counts follow the checkout, and the build stops on anything it cannot describe."""
+import io
 import shutil
 import sys
 import tempfile
@@ -81,6 +82,30 @@ class RepoGuide(unittest.TestCase):
             encoding="utf-8")
         self.assertTrue(rg.write(tmp))
         self.assertEqual((tmp / rg.PAGE_REL).read_text(encoding="utf-8"), self.page)
+
+
+class Cli(unittest.TestCase):
+    def test_check_writes_nothing_and_says_current(self):
+        with mock.patch.object(rg, "write", side_effect=AssertionError("wrote")), \
+                mock.patch("sys.stdout", new_callable=io.StringIO) as out:
+            self.assertEqual(0, rg.main(["--check"]))
+        self.assertEqual("repository-guide.html is current\n", out.getvalue())
+
+    def test_an_unknown_argument_is_a_usage_error_not_a_write_run(self):
+        for argv in (["--chek"], ["check"], ["--check", "extra"]):
+            with self.subTest(argv), mock.patch.object(rg, "write", side_effect=AssertionError("wrote")), \
+                    mock.patch("sys.stderr", new_callable=io.StringIO) as err, \
+                    self.assertRaises(SystemExit) as stop:
+                rg.main(argv)
+            self.assertEqual(2, stop.exception.code)
+            self.assertIn("usage:", err.getvalue())
+
+    def test_no_argument_is_a_write_run(self):
+        with mock.patch.object(rg, "write", return_value=False) as write, \
+                mock.patch("sys.stdout", new_callable=io.StringIO) as out:
+            self.assertEqual(0, rg.main([]))
+        write.assert_called_once_with(rg.ROOT / "www")
+        self.assertEqual("unchanged: www/%s\n" % rg.PAGE_REL, out.getvalue())
 
 
 if __name__ == "__main__":
