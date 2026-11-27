@@ -250,15 +250,50 @@ function linkChain(edges, from, to, stops) {
   return { boxes: new Set([...up, ...down]), lit, steps };
 }
 
+/* The main line through box focus in a drawing of these edges, as a Start button lights it: the longest run of links
+   from a source into focus, then the longest run on from focus to an end, as box ids in order. Side links and links
+   from a box to itself are not walked, nor on through a box where stops(box) is true (it can end the line). up and
+   down, when given, are the boxes drawn on each side (the steps the view shows): the upstream run stays inside up,
+   the downstream run inside down. A link that would close a loop is skipped, and the downstream run does not pass
+   through a box of the upstream one. Ties go to the neighbour whose id sorts first, so the same drawing always gives
+   the same line. */
+function mainLine(edges, focus, { stops = () => false, up = null, down = null } = {}) {
+  const ins = new Map(), outs = new Map();
+  const add = (m, k, v) => { if (!m.has(k)) m.set(k, new Set()); m.get(k).add(v); };
+  edges.forEach(e => { if (!e.side && e.from !== e.to) { add(outs, e.from, e.to); add(ins, e.to, e.from); } });
+  const longest = (adj, within, blocked) => {  // the longest run from focus along adj, focus first (depth first, memoised)
+    const memo = new Map(), onPath = new Set();
+    const go = v => {
+      if (memo.has(v)) return memo.get(v);
+      onPath.add(v);
+      let best = [v];
+      const next = v !== focus && stops(v) ? [] : [...(adj.get(v) || [])].sort();
+      for (const w of next) {
+        if (onPath.has(w) || blocked.has(w) || (within && !within.has(w))) continue;
+        const run = go(w);
+        if (run.length + 1 > best.length) best = [v, ...run];
+      }
+      onPath.delete(v);
+      memo.set(v, best);
+      return best;
+    };
+    return go(focus);
+  };
+  const upRun = longest(ins, up, new Set()).reverse();
+  const downRun = longest(outs, down, new Set(upRun.slice(0, -1)));
+  return [...upRun, ...downRun.slice(1)];
+}
+
 /* How faint a box or link steps links from a hovered line shows: "" (full) up to 2, "2" for 3 and 4, "3" beyond. */
 function fadeOf(steps) {
   return steps <= 2 ? "" : steps <= 4 ? "2" : "3";
 }
 /* Which boxes grow first when zoomed out (lower first; 4: not grown): the hovered box or the hovered line's ends (0),
    the rest the hover lights (1), the selected box and search hits (2), then the selected box's neighbours (3, class
-   "sn": every box a hover on it grew, so they stay grown after the click). has(c): whether the box has class c. */
+   "sn": every box a hover on it grew, so they stay grown after the click). A Start button's main line (class "ml",
+   mainLine) ranks with the selected box. has(c): whether the box has class c. */
 function growRank(isHovered, has) {
-  return isHovered ? 0 : has("hn") ? 1 : has("sel") || has("hit") ? 2 : has("sn") ? 3 : 4;
+  return isHovered ? 0 : has("hn") ? 1 : has("sel") || has("hit") || has("ml") ? 2 : has("sn") ? 3 : 4;
 }
 
 /* The free area is the part of the screen the reader can see the map in: below the toolbar and clear of the info
@@ -468,5 +503,5 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
+  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, mainLine, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
 }

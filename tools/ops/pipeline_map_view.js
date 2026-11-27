@@ -26,7 +26,7 @@ function app() {
   // f: the ticked filter values (pipeline_map_facets.js); hide: Hide the rest (left out, not faded)
   const view = { f: emptyFacets(), hide: false, focus: null, up: Infinity, down: Infinity, trim: false,
                  compact: true, group: false, open: new Set(), hover: true, near: false, steps: 0, spread: 1,
-                 overview: true, laneOpen: new Set(), eff: false };  // overview: the lane cards; laneOpen: the lanes drawn open
+                 overview: true, laneOpen: new Set(), eff: false, line: false };  // overview: the lane cards; laneOpen: the lanes drawn open; line: a Start button's main line
   const boxVals = {};  // each box's filter values
   DATA.nodes.forEach(n => (boxVals[n.id] = boxValues(n)));
   let groups = { members: {}, groupOf: {} }, gNodes = {}, lastBox = null;  // folder boxes in the current drawing; the last file box picked
@@ -173,6 +173,13 @@ function app() {
         return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
       });
       lit.forEach((n, i) => { if (n.id === hoverId) boxes[i] = clearOf(boxes[i], blocked, area); });  // the hovered box always shows
+      // a Start button's main line: each card moved up or down clear of the line's cards before it, so all of them show
+      const line = [];
+      lit.forEach((n, i) => {
+        if (n.id === hoverId || !nodeEl[n.id].classList.contains("ml")) return;
+        boxes[i] = clearOf(boxes[i], blocked.concat(line), area);
+        line.push(boxes[i]);
+      });
       for (const i of placeTags(boxes, blocked)) want.push([lit[i], kk, boxes[i].dx / s, boxes[i].dy / s]);
     }
     const now = new Set(want.map(([n]) => n.id));
@@ -423,7 +430,9 @@ function app() {
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
     if (!old && !asked && !settled && Math.abs(fitAspect() - screen) > 0.01) { render(false, undefined, true); return; }  // the panel changed the area
-    if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
+    const line = view.line && view.focus && !selected ? showLine() : null;  // a Start button's main line
+    if (!old && line) fitBoxes(line);  // fitted to the main line, not the whole chain
+    else if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
     else setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again against the panel as it is now
     updateNav();
     announce();

@@ -132,6 +132,14 @@ svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
+svg.mline .node,svg.mline .edge{opacity:.3}
+svg.mline .elabel{opacity:.15}
+svg.mline .node.ml{opacity:1}
+svg.mline .edge.ml{opacity:1;stroke-opacity:1;stroke-width:3;stroke:#1d4ed8}
+svg.mline .edge.ml.upstream{stroke:#b45309}
+svg.mline .node.mlf .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
+svg.far.mline .edge.ml{stroke-width:2.5px}
+svg.far.mline .node.mlf .box{stroke-width:3px}
 svg.far #elabels{display:none}
 svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
@@ -225,6 +233,8 @@ html.dark svg.far .edge{stroke-opacity:.45}
 html.dark .elabel{fill:#e2e8f0;stroke:#0f172a}
 html.dark svg.focus .edge.on{stroke:#60a5fa}
 html.dark svg.focus .edge.on.upstream{stroke:#f59e0b}
+html.dark svg.mline .edge.ml{stroke:#60a5fa}
+html.dark svg.mline .edge.ml.upstream{stroke:#f59e0b}
 html.dark svg.hovering .edge.he.he{stroke:#c4b5fd}
 html.dark svg.hovering .node.hn .box{stroke:#c4b5fd}
 html.dark #lens{background:#0f172a;border-color:#94a3b8}

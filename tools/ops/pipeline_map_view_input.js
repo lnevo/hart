@@ -44,8 +44,9 @@
   function walk(start, adj, key) { return reach(start, adj, key, Infinity); }
   function clearFocus(user) {
     if (!svg) return;  // the lane overview has no selection
-    svg.classList.remove("focus");
-    svg.querySelectorAll(".on,.sel,.upstream,.near,.sn").forEach(el => el.classList.remove("on", "sel", "upstream", "near", "sn"));
+    svg.classList.remove("focus", "mline");
+    svg.querySelectorAll(".on,.sel,.upstream,.near,.sn,.ml").forEach(el => el.classList.remove("on", "sel", "upstream", "near", "sn", "ml", "mlf"));
+    view.line = false;  // a click on a box, or on empty map, ends a Start button's main line
     info.style.display = "none";
     nav.classList.remove("focus"); nav.querySelectorAll("rect.on").forEach(r => r.classList.remove("on"));
     setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the wider free area
@@ -283,10 +284,51 @@
     const pr = DATA.presets[Number(b.dataset.preset)], steps = v => (v === "all" ? Infinity : v);
     document.getElementById("startmenu").open = false; document.getElementById("more").open = false;
     navStep();
-    view.focus = selected = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
+    view.focus = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
+    selected = null; view.line = true;  // no box picked, so no info panel: the main line lit instead (showLine)
     view.f = emptyFacets(); view.hide = false; view.trim = false;  // the preset's step counts as written
     fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
     syncControls(); render(false); writeHash();
+  }
+  /* A Start button's view: the main line through the file (mainLine: the longest run from a source, through it, to an
+     end, stopping at hubs, runners, hosts, hand work and caches as a hover's chain does, and not along a link drawn
+     back to an earlier step) lit and grown when zoomed
+     out, the rest of the chain dimmed. Called by render while view.line is set and no box is picked; returns the
+     line's box ids. */
+  function showLine() {
+    const side = (adj, key, n) => reach(view.focus, adj, key, n, true);  // the steps drawn on each side, as subset() walks them
+    // the links as laid out, less those drawn back to an earlier step, so the line runs left to right
+    const ids = mainLine(lay.edges.filter(e => !e.back && !overHub(e)), view.focus, { stops: endsHover,
+      up: side(ins1, "from", view.up), down: side(outs1, "to", view.down) }).filter(id => nodeEl[id]);
+    const on = new Set(ids);
+    const pairs = new Set(ids.slice(1).map((id, i) => ids[i] + "\u0000" + id));
+    svg.classList.add("mline");
+    ids.forEach(id => nodeEl[id].classList.add("ml"));
+    if (nodeEl[view.focus]) nodeEl[view.focus].classList.add("mlf");
+    const at = ids.indexOf(view.focus);
+    edgeEls.forEach(el => {
+      const f = el.dataset.from, t = el.dataset.to;
+      if (!pairs.has(f + "\u0000" + t)) return;
+      el.classList.add("ml");
+      if (ids.indexOf(t) <= at) el.classList.add("upstream");  // what feeds the file, amber as a click shows it
+    });
+    updateFar();
+    return on;
+  }
+  /* The view fitted to the boxes ids: their bounds in the free area above the corner overview (which shows once the
+     view is closer than Fit), with Fit's margin. */
+  function fitBoxes(ids) {
+    const ns = lay.nodes.filter(n => ids.has(n.id));
+    if (!ns.length) { fit(); return; }
+    const x0 = Math.min(...ns.map(n => n.x)), y0 = Math.min(...ns.map(n => n.y));
+    const x1 = Math.max(...ns.map(n => n.x + n.w)), y1 = Math.max(...ns.map(n => n.y + n.h));
+    const was = nav.hidden;
+    nav.hidden = false;
+    const corner = clean ? 0 : nav.offsetHeight + 10, free = freeShare(), sh = wrapEl.clientHeight;
+    nav.hidden = was;
+    if (sh > 0) free.bottom = Math.max(free.top + 0.2, free.bottom - corner / sh);
+    const f = fitView(x1 - x0, y1 - y0, 0, free, wrapEl.clientWidth, sh, FIT_PAD);
+    setVB(f.x + x0, f.y + y0, f.width, f.height);
   }
   document.getElementById("presets").addEventListener("click", usePreset);
 
