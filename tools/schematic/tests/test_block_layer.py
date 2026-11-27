@@ -1,6 +1,5 @@
 """block_layer.py, the one block process of every level, and build_device_map.staging_rows, which writes staging's
-block and occupancy rows from it: the rule, block_overrides.csv's rows and stops, and the invariants (level
-unification step 5 part 1). Runs over the committed drawing (needs the plugin; skipped without it,
+block and occupancy rows from it: the rule, block_overrides.csv's rows and stops, and the invariants. Runs over the committed drawing (needs the plugin; skipped without it,
 failing with SCHEMATIC_REQUIRED=1); every write goes to a temporary folder."""
 from __future__ import annotations
 
@@ -21,13 +20,13 @@ from hartlib import devices  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD = ",".join(BL.block_override_rows.OVERRIDE_COLUMNS) + "\n"
-# a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2);
-# the OS block by its device ID
+# a piece of track at one end inside an OS block, its length given (a row OS Switch 7 no longer has); the OS block
+# by its device ID
 SCALE_AT_7 = "1,track,5,7,2,7,os:7:A-13C,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
 # block (LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
 # home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,
-# 227-231, 229-233 for Masts 126RB, 202R, 228RA and 230LB; owner, 2026-11-20: the block boundary is at the mast)
+# 227-231, 229-233 for Masts 126RB, 202R, 228RA and 230LB: the block boundary is at the mast)
 MAIN_UPPER_LINKS = {
     "Track 101-103": "OS Switch 101", "Track 105-109": "OS Switch 105", "Track 109-111": "OS Switch 109",
     "Track 111-117": "OS Switch 111", "Track 113-115": "OS Switch 113", "Track 115-117": "OS Switch 115",
@@ -153,7 +152,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertIn("Track Scale", lay.tracks)
 
     def test_os_switch_7_ends_at_the_switch(self):
-        # owner, 2026-11-20 (step 5 part 2): Track Scale is one block, none of it inside OS Switch 7
+        # Track Scale is one block, none of it inside OS Switch 7
         lay = self.layer()
         self.assertNotIn("Track Scale at 7", lay.parts)
         scale = next(t for t, _h in lay.tracks.values() if t["name"] == "Track Scale")
@@ -166,7 +165,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertEqual(os_, {"OS Switch 7"})
 
     def test_every_level_folds_its_links(self):
-        self.assertFalse(hasattr(BL, "FOLD_LINKS"))      # one rule for every level (step 5 part 2)
+        self.assertFalse(hasattr(BL, "FOLD_LINKS"))      # one rule for every level
         lay = self.main_upper()
         self.assertEqual({k: v["part_of"] for k, v in lay.parts.items()}, MAIN_UPPER_LINKS)
         for name in MAIN_UPPER_LINKS:
@@ -231,7 +230,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
                    "no crossover half of Switch 7 has its leg A track running to Switch 9")
 
     def test_a_track_rows_block_is_an_os_block_id(self):
-        """naming-layers step 5: a track row gives its OS block's device ID (os:<n>, a crossover half's
+        """A track row gives its OS block's device ID (os:<n>, a crossover half's
         os:<n>:A-<end>), which comes back as the generated name; a name, or a half no crossover_half row has, stops."""
         rows = BL.block_override_rows.read_block_overrides(bdm.block_overrides(), ("track",))
         got = {(r["switch_a"], r["switch_b"], r["end"]): (r["id"], r["block"]) for r in rows if r["level"] == "1"}
@@ -620,7 +619,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             self.rows(edit)
 
     def test_an_owner_rename_is_kept_by_the_rows_id(self):
-        """naming-layers step 4: the field file is keyed by id, so a user name the owner changes there renames the
+        """The field file is keyed by id, so a user name the owner changes there renames the
         block (OS Switch 9, id os:9); its part (Track 9-11) and its detector's blocks cell follow, and its beans and
         wiring stay."""
         def edit(rows):
@@ -652,7 +651,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(got, want)
 
     def test_a_block_with_no_field_rows_is_generated(self):
-        """Naming-layers step 7: Track Barn's block and detector rows taken out of the field file are generated, as
+        """Track Barn's block and detector rows taken out of the field file are generated, as
         main and upper's are, instead of stopping; only the owner's cells they had change."""
         drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["id"].endswith("block:7A-13C"))]  # noqa
         got, want = self.by(self.rows(drop)), self.by(self.rows())
@@ -666,7 +665,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(got[("occupancy", "BS Barn")], want[("occupancy", "BS Barn")])
 
     def test_a_block_whose_field_row_gives_no_bean_names_is_numbered(self):
-        """Code review of step 7: a field row with the owner's name and words but no bean names (jmri_name,
+        """A field row with the owner's name and words but no bean names (jmri_name,
         layout_block) gets the builder's numbers; a row with one of the two stops."""
         def edit(rows):
             r = self.field(rows, "Track Barn")
@@ -707,7 +706,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             self.rows(add)
 
     def test_a_spare_in_the_field_file_with_no_name_is_found_by_its_id(self):
-        """Code review (2026-11-25): a field row's user name may be empty (the generated one stands), so a spare's
+        """A field row's user name may be empty (the generated one stands), so a spare's
         field row is found by its id too: one error for it, not a second "no block for" one."""
         def add(rows):
             occ = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "occupancy")
@@ -761,7 +760,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertIn("LCOS node 13", got["Switch 13"]["description"])
 
     def test_a_turnout_renamed_by_the_owner_keeps_its_wiring(self):
-        """naming-layers step 4: a staging turnout renamed in its field row (id switch:1) keeps its wiring.csv row,
+        """A staging turnout renamed in its field row (id switch:1) keeps its wiring.csv row,
         which knows it by its id."""
         d = Path(tempfile.mkdtemp())
         self.addCleanup(os.rmdir, d)
@@ -791,12 +790,12 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         return files
 
     def test_an_alias_note_names_its_turnout_as_readers_see_it(self):
-        """Code review (2026-11-25): the alias's note follows its turnout's owner name, by the switch number."""
+        """The alias's note follows its turnout's owner name, by the switch number."""
         got = {r["id"]: r for r in bdm.staging_wired_rows(self.field_copy({"switch:1": {"user_name": "Switch Brick"}}))}
         self.assertEqual(got["dcc:1"]["notes"], "LCC alias of Switch Brick (M2T408)")
 
     def test_a_turnout_bound_by_its_name_is_renamed_with_its_binding(self):
-        """Code review (2026-11-25), the main session's choice: Switch 23's panels bind it by its user name (its field
+        """Switch 23's panels bind it by its user name (its field
         jmri_name), so a rename of the user name alone stops, naming both cells; both together pass."""
         with self.assertRaisesRegex(bdm.MapError, r"staging turnout Switch East \(id switch:23\): its jmri_name "
                                                   r"'Switch 23' binds it by its old user name; change jmri_name and "
@@ -807,13 +806,13 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual((got["switch:23"]["user_name"], got["switch:23"]["jmri_name"]), ("Switch East", "Switch East"))
 
     def test_a_feedback_bound_by_its_old_name_stops(self):
-        """Code review of step 7: the binding check holds a feedback row too, after the owner's values go over it."""
+        """The binding check holds a feedback row too, after the owner's values go over it."""
         with self.assertRaisesRegex(bdm.MapError, r"staging fb FB Switch 1 N \(id fb:1:N\): its jmri_name 'FB Old' "
                                                   r"binds it by its old user name"):
             bdm.staging_wired_rows(self.field_copy({"fb:1:N": {"jmri_name": "FB Old"}}))
 
     def test_an_alias_with_no_dcc_address_stops(self):
-        """Code review of step 7: an alias field row whose switch has no DCC address anywhere stops (it would be a
+        """An alias field row whose switch has no DCC address anywhere stops (it would be a
         broken alias, system name MTT)."""
         with self.assertRaisesRegex(bdm.MapError, r"\(id dcc:1\): an LCC alias needs a DCC address"):
             bdm.staging_wired_rows(self.field_copy({"dcc:1": {"dcc": "", "system_name": "", "jmri_name": ""},
