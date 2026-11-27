@@ -81,9 +81,9 @@ def facts(**kw):
     occupancy = {n: (str(i), "BS " + n) for i, n in enumerate(
         ["OS Switch 1", "OS Switch 2a", "OS Switch 2b", "Track West", "Track Yard", "Track Main", "Track East",
          "Track Loop"])}
-    f = B.Facts(switches, {"TO1": ("11", "Switch 1"), "TO2": ("12", "Switch 2")}, occupancy, {},
-                B.StagingTracks(CHAINS), {"Mast 1L": "single"}, {"Mast 1L"},
-                half_letters={("1", "os:2:A-1B"): "a", ("1", "os:2:A-loop"): "b"})
+    f = B.Facts(switches=switches, turnout_io={"TO1": ("11", "Switch 1"), "TO2": ("12", "Switch 2")},
+                occupancy=occupancy, discipline={}, layout=B.StagingTracks(CHAINS), templates={"Mast 1L": "single"},
+                masts={"Mast 1L"}, half_letters={("1", "os:2:A-1B"): "a", ("1", "os:2:A-loop"): "b"})
     for k, v in kw.items():
         setattr(f, k, v)
     return f
@@ -642,12 +642,12 @@ class LevelMasts(unittest.TestCase):
             B.level_mast_bindings(bands, f, 0)
         # signal_head_plan.csv's templates win; the stock basic types fall back by head count (one single, two double)
         with mock.patch.object(cats_panel_facts, "appearance_templates", return_value={"one-low": "double"}):
-            self.assertEqual(B.template_by_type(f), {"one-low": "double", "one-searchlight": "single",
+            self.assertEqual(B.template_by_type(), {"one-low": "double", "one-searchlight": "single",
                                                      "two-searchlight": "double", "two-low": "double"})
         clash = ValueError("signal_head_plan.csv gives one-low masts two templates, single and double")
         with mock.patch.object(cats_panel_facts, "appearance_templates", side_effect=clash):
             with self.assertRaisesRegex(B.CatsPanelError, "gives one-low masts two templates"):
-                B.template_by_type(f)
+                B.template_by_type()
 
     def test_a_level_mast_with_its_own_plan_row_takes_that_template(self):
         """One rule for every level (cats_panel.mast_template): a main or upper mast's own signal_head_plan.csv row

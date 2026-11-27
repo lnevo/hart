@@ -6,9 +6,6 @@
   "dated-note": 11,
   "lost-cause": 1
  },
- "cats/scripts/tests/test_build_cats_panel_pieces.py": {
-  "dated-note": 1
- },
  "cats/scripts/tests/test_live_desk_levels.py": {
   "dated-note": 1
  },
@@ -24,9 +21,6 @@
  },
  "jmri/layouts/hart/scripts/jmri_cmd_watcher.py": {
   "exec-parts": 1
- },
- "jmri/layouts/hart/scripts/lcc_turnout_contract.py": {
-  "dated-note": 1
  },
  "jmri/layouts/hart/scripts/panelpro_smoke_test.py": {
   "dated-note": 2
