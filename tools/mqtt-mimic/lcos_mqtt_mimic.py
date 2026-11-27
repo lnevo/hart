@@ -14,32 +14,35 @@ also flip FB N/R sensors so JMRI KnownState follows feedback.
 
 Without --mqtt-host the broker comes from HART_MQTT_BROKER (hartlib.hosts).
   ./tools/mqtt-mimic/install_mimic_launchagent.sh   # stay-up LaunchAgent (survives Cursor quit)
+
+Its parts beside it: mimic_records.py (the layout JSON's records), mimic_bus.py (the mosquitto clients and the
+state heard from the broker) and mimic_http.py (the page and its API). build_mimic_web.py writes load_layout() for
+the JMRI-hosted page.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
-import json
-import queue
 import re
-import shutil
-import socket
-import subprocess
 import sys
-import threading
-import time
 import xml.etree.ElementTree as ET
 from collections.abc import Mapping
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import ThreadingHTTPServer
 from pathlib import Path
-from typing import NamedTuple, NotRequired, TypedDict
-from urllib.parse import urlparse
+from typing import NamedTuple
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices, level_devices, occupancy_bindings, paths, railroad, tables  # noqa: E402
+from hartlib.levels import STAGING as STAGING_LEVEL  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
+
+# the mimic's parts beside it: the page's records, the MQTT clients, the web server
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from mimic_bus import Bus, BusError, head_leaf, probe  # noqa: E402
+from mimic_http import make_handler  # noqa: E402
+from mimic_records import Block, Head, Layout, Turnout  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
@@ -53,16 +56,6 @@ SHARED_FILES = {
     "/mimic_view.js": "text/javascript; charset=utf-8",
 }
 
-# Set in main(): importers such as build_mimic_web.py never need the broker port.
-MQTT_PORT = 1883
-_MOSQUITTO = (
-    "/opt/local/bin",
-    "/opt/homebrew/bin",
-    "/usr/local/bin",
-    "/usr/bin",
-    r"C:\Program Files\mosquitto",
-    r"C:\Program Files (x86)\mosquitto",
-)
 
 SWITCH_TIPS = {
     1: "THROWN = Switch 5 / Plane (BOTTOM); CLOSED = LEFT",
@@ -96,39 +89,23 @@ def plant_rank(plant: str) -> int:
     return PLANT_ORDER.index(plant) if plant in PLANT_ORDER else len(PLANT_ORDER)
 
 
-def _which(name: str) -> str:
-    found = shutil.which(name)
-    if found:
-        return found
-    for d in _MOSQUITTO:
-        p = Path(d) / name
-        if p.is_file():
-            return str(p)
-        p = Path(d) / (name + ".exe")
-        if p.is_file():
-            return str(p)
-    raise SystemExit(f"{name} not found. Install mosquitto clients.")
+class MimicError(Exception):
+    """The layout cannot be loaded (a missing tables.xml, a device-map row the mimic cannot place) or no broker
+    answers; the message says which."""
 
 
-def _probe(host: str) -> bool:
-    try:
-        s = socket.create_connection((host, MQTT_PORT), timeout=0.8)
-        s.close()
-        return True
-    except OSError:
-        return False
-
-
-def pick_mqtt_host(explicit: str | None) -> str:
+def pick_mqtt_host(explicit: str | None, port: int) -> str:
+    """The first of --mqtt-host, HART_MQTT_BROKER, the hosts default and this machine that takes a connection on
+    port; MimicError naming each one tried when none does."""
     hosts = []
     for h in (explicit, mqtt_broker(), host_default("HART_MQTT_BROKER"), "127.0.0.1"):
         if h and h not in hosts:
             hosts.append(h)
     for h in hosts:
-        if _probe(h):
+        if probe(h, port):
             return h
-    raise SystemExit(
-        f"No MQTT broker on port {MQTT_PORT}. Tried: " + ", ".join(hosts)
+    raise MimicError(
+        f"No MQTT broker on port {port}. Tried: " + ", ".join(hosts)
         + "\nPass --mqtt-host or set HART_MQTT_BROKER."
     )
 
@@ -144,56 +121,6 @@ def _addr(sysname: str, prefix: str) -> str | None:
     return None
 
 
-def _head_leaf(name: str) -> str:
-    """MQTT topic leaf: packed digits (IH432 → 432)."""
-    name = (name or "").strip()
-    if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
-        return name[2:]
-    return name
-
-
-class Block(TypedDict):
-    """An occupancy detector on the page (JSON). A virtual one (main, upper) is set in JMRI directly."""
-    addr: str
-    label: str
-    userName: str
-    comment: str
-    plant: str
-    level: str
-    name: str
-    virtual: NotRequired[bool]
-
-
-class Turnout(TypedDict):
-    """A switch on the page (JSON): its feedback sensors' addresses when it has two (TWOSENSOR)."""
-    addr: str
-    label: str
-    num: NotRequired[int]       # staging only: the number in its user name
-    plant: str
-    feedback: str
-    n_addr: str | None
-    r_addr: str | None
-    tip: str
-    level: str
-    name: str
-    virtual: NotRequired[bool]
-
-
-class Head(TypedDict):
-    """A signal head on the page (JSON), by its MQTT topic leaf."""
-    id: str
-    systemName: str
-    mast: str
-    plant: str
-    level: str
-
-
-class Layout(TypedDict):
-    blocks: list[Block]
-    turnouts: list[Turnout]
-    heads: list[Head]
-
-
 class StagingSensor(NamedTuple):
     """An M2S sensor in tables.xml."""
     addr: str
@@ -205,7 +132,7 @@ class StagingSensor(NamedTuple):
 def load_layout(levels: bool = True) -> Layout:
     """Staging from tables.xml and the repo CSVs; with `levels`, also the main and upper levels (load_levels)."""
     if not TABLES.is_file():
-        raise SystemExit(f"missing {TABLES}")
+        raise MimicError(f"missing {TABLES}")
     root = tables.read(TABLES)
     cps = load_cps()
     sensors = _staging_sensors(root)
@@ -325,7 +252,7 @@ def _staging_heads(cps: Mapping[str, Mapping[str, str]]) -> list[Head]:
                 mast = (row.get("mast_user_name") or "").strip()
                 plant = mast_cp.get(mast) or infer_plant(mast)
                 for h in (row.get("head_system_names") or "").split():
-                    heads.append({"id": _head_leaf(h), "systemName": h, "mast": mast, "plant": plant,
+                    heads.append({"id": head_leaf(h), "systemName": h, "mast": mast, "plant": plant,
                                   "level": STAGING})
     heads.sort(key=lambda h: (plant_rank(h["plant"]), h["mast"], h["id"]))
     return heads
@@ -356,7 +283,7 @@ def load_levels(root: ET.Element, rr: railroad.Railroad | None = None) -> Layout
 
     def virtual(r: railroad.DeviceRow, prefix: str) -> str:
         if not r.jmri_name.startswith(prefix):
-            raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} is {r.jmri_name!r}, not a virtual "
+            raise MimicError(f"{dm.path} line {r.line}: {r.user_name} is {r.jmri_name!r}, not a virtual "
                              f"{prefix}* device; the mimic sets only those directly")
         return r.jmri_name
 
@@ -369,7 +296,7 @@ def load_levels(root: ET.Element, rr: railroad.Railroad | None = None) -> Layout
         sw = re.search(r"\| Switch (\d+)", r.comment or "")     # a spur exit dwarf at a local switch (ADR-024)
         if sw and region.get(sw.group(1)):
             return region[sw.group(1)]
-        raise SystemExit(f"{dm.path} line {r.line}: {r.user_name} has no cp and names no switch with a region")
+        raise MimicError(f"{dm.path} line {r.line}: {r.user_name} has no cp and names no switch with a region")
 
     def order(r: railroad.DeviceRow) -> tuple[object, ...]:
         return (r.level, railroad.natural(group(r)), railroad.natural(r.user_name))
@@ -402,7 +329,7 @@ def load_levels(root: ET.Element, rr: railroad.Railroad | None = None) -> Layout
             if h not in in_tables:
                 continue
             heads.append({
-                "id": _head_leaf(h), "systemName": h, "mast": r.user_name, "plant": group(r),
+                "id": head_leaf(h), "systemName": h, "mast": r.user_name, "plant": group(r),
                 "level": LEVELS[r.level],
             })
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
@@ -450,16 +377,16 @@ def load_cps() -> dict[str, dict[str, str]]:
     if not DEVICES.is_file():
         return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
     for row in devices.load(DEVICES):
-        if row["level"] != railroad.STAGING_LEVEL:
+        if row.level != STAGING_LEVEL:      # a Store's level-less row (level None) is not staging's either
             continue
-        layer, name = row["layer"], row["user_name"]
-        plant = infer_plant(name, "" if row["role"] == "lcc_alias" else devices.place(row))
+        layer, name = row.layer, row.user_name
+        plant = infer_plant(name, "" if row.role == "lcc_alias" else devices.place(row))
         if layer == "turnout":
             turnout[name] = plant
         elif layer == "occupancy":
             occupancy[name] = plant
-            if row["system_name"]:
-                occupancy[row["system_name"]] = plant
+            if row.system_name:
+                occupancy[row.system_name] = plant
         elif layer == "block":
             block[name] = plant
         elif layer == "mast":
@@ -484,261 +411,6 @@ def _plant_for_block(label: str, comment: str, uname: str, cps: Mapping[str, Map
     return infer_plant(f"{label} {uname}")
 
 
-class Bus:
-    def __init__(self, host: str):
-        self.host = host
-        self.pub_bin = _which("mosquitto_pub")
-        self.sub_bin = _which("mosquitto_sub")
-        self.sensors: dict[str, str] = {}
-        self.turnouts: dict[str, str] = {}
-        self.heads: dict[str, str] = {}
-        self.connected = False
-        self.subs: list[queue.Queue] = []
-        self.lock = threading.Lock()
-        self._stop = threading.Event()
-
-    def snapshot(self) -> dict:
-        with self.lock:
-            return {
-                "mqtt": {"host": self.host, "connected": self.connected},
-                "sensors": dict(self.sensors),
-                "turnouts": dict(self.turnouts),
-                "heads": dict(self.heads),
-            }
-
-    def emit(self, event: dict) -> None:
-        with self.lock:
-            subs = list(self.subs)
-        dead = []
-        payload = json.dumps(event)
-        for q in subs:
-            try:
-                q.put_nowait(payload)
-            except queue.Full:
-                dead.append(q)
-        if dead:
-            with self.lock:
-                self.subs = [s for s in self.subs if s not in dead]
-
-    def add_sub(self) -> queue.Queue:
-        q: queue.Queue = queue.Queue(maxsize=200)
-        with self.lock:
-            self.subs.append(q)
-        return q
-
-    def drop_sub(self, q: queue.Queue) -> None:
-        with self.lock:
-            self.subs = [s for s in self.subs if s is not q]
-
-    def publish(self, topic: str, payload: str) -> None:
-        subprocess.check_call(
-            [self.pub_bin, "-h", self.host, "-p", str(MQTT_PORT), "-r", "-t", topic, "-m", payload],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-
-    def set_occupancy(self, addr: str, state: str) -> None:
-        state = state.upper()
-        if state not in ("ACTIVE", "INACTIVE"):
-            raise ValueError("occupancy must be ACTIVE or INACTIVE")
-        self.publish(f"track/sensor/{addr}", state)
-
-    def set_turnout(self, layout: Layout, addr: str, state: str) -> None:
-        state = state.upper()
-        if state not in ("CLOSED", "THROWN"):
-            raise ValueError("turnout must be CLOSED or THROWN")
-        rec = next((t for t in layout["turnouts"] if t["addr"] == addr), None)
-        if rec is None:
-            raise ValueError(f"unknown turnout {addr}")
-        thrown = state == "THROWN"
-        if rec["n_addr"] and rec["r_addr"]:
-            self.publish(f"track/sensor/{rec['n_addr']}", "INACTIVE" if thrown else "ACTIVE")
-            self.publish(f"track/sensor/{rec['r_addr']}", "ACTIVE" if thrown else "INACTIVE")
-        self.publish(f"track/turnout/{addr}", state)
-
-    def clear_occupancy(self, layout: Layout) -> None:
-        for b in layout["blocks"]:
-            self.set_occupancy(b["addr"], "INACTIVE")
-
-    def _on_line(self, line: str) -> None:
-        line = line.strip()
-        if not line or " " not in line or line.lower().startswith("timed out"):
-            return
-        topic, payload = line.split(" ", 1)
-        payload = payload.strip()
-        with self.lock:
-            if topic.startswith("track/sensor/"):
-                addr = topic.rsplit("/", 1)[-1]
-                self.sensors[addr] = payload
-                kind = "sensor"
-            elif topic.startswith("track/turnout/"):
-                addr = topic.rsplit("/", 1)[-1]
-                self.turnouts[addr] = payload
-                kind = "turnout"
-            elif topic.startswith("track/signalhead/"):
-                addr = _head_leaf(topic.rsplit("/", 1)[-1])
-                self.heads[addr] = payload
-                kind = "head"
-            else:
-                return
-        self.emit({"type": kind, "addr": addr, "payload": payload, "topic": topic})
-
-    def loop_sub(self) -> None:
-        cmd = [
-            self.sub_bin,
-            "-h",
-            self.host,
-            "-p",
-            str(MQTT_PORT),
-            "-v",
-            "-t",
-            "track/sensor/#",
-            "-t",
-            "track/turnout/#",
-            "-t",
-            "track/signalhead/#",
-        ]
-        try:
-            while not self._stop.is_set():
-                self._subscribe_once(cmd)
-                if self._stop.is_set():
-                    break
-                time.sleep(1)
-        finally:            # however the thread ends, the page must not keep showing a live connection
-            if self.connected:
-                self.connected = False
-                self.emit({"type": "mqtt", "connected": False, "error": "the subscriber stopped"})
-
-    def _subscribe_once(self, cmd: list[str]) -> None:
-        """Run mosquitto_sub until it ends; a client that cannot start or stop is a disconnected event."""
-        try:
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
-        except (OSError, subprocess.SubprocessError) as e:   # no mosquitto_sub
-            self.connected = False
-            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
-            return
-        self.connected = True
-        self.emit({"type": "mqtt", "connected": True, "host": self.host})
-        assert proc.stdout is not None
-        for line in proc.stdout:
-            if self._stop.is_set():
-                break
-            self._read_line(line)
-        try:
-            proc.wait(timeout=2)
-        except subprocess.SubprocessError as e:              # it did not stop in time
-            self.connected = False
-            self.emit({"type": "mqtt", "connected": False, "error": str(e)})
-
-    def _read_line(self, line: str) -> None:
-        """One subscriber line; a line that cannot be read is logged and shown as a warning, and reading goes on."""
-        try:
-            self._on_line(line)
-        except Exception as e:  # noqa: BLE001  one bad message must not stop the subscriber; it is shown, not hidden
-            print(f"lcos_mqtt_mimic: cannot read {line.strip()!r}: {e!r}", file=sys.stderr)
-            self.emit({"type": "warning", "line": line.strip(), "error": repr(e)})
-
-    def start(self) -> None:
-        threading.Thread(target=self.loop_sub, name="mqtt-sub", daemon=True).start()
-
-    def stop(self) -> None:
-        self._stop.set()
-
-
-def make_handler(layout: Layout, bus: Bus, html: bytes) -> type[BaseHTTPRequestHandler]:
-    class Handler(BaseHTTPRequestHandler):
-        def log_message(self, fmt: str, *args) -> None:
-            if "GET /api/events" in (fmt % args):
-                return
-            sys.stderr.write("%s - %s\n" % (self.address_string(), fmt % args))
-
-        def _json(self, code: int, obj) -> None:
-            body = json.dumps(obj).encode()
-            self.send_response(code)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(body)
-
-        def _read_json(self) -> dict:
-            n = int(self.headers.get("Content-Length") or 0)
-            raw = self.rfile.read(n) if n else b"{}"
-            return json.loads(raw.decode() or "{}")
-
-        def do_GET(self) -> None:
-            path = urlparse(self.path).path
-            if path in ("/", "/index.html"):
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(html)))
-                self.end_headers()
-                self.wfile.write(html)
-                return
-            if path in SHARED_FILES:
-                body = (SHARED_WEB / path.lstrip("/")).read_bytes()
-                self.send_response(200)
-                self.send_header("Content-Type", SHARED_FILES[path])
-                self.send_header("Content-Length", str(len(body)))
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
-                self.wfile.write(body)
-                return
-            if path == "/api/layout":
-                self._json(200, layout)
-                return
-            if path == "/api/state":
-                self._json(200, bus.snapshot())
-                return
-            if path == "/api/events":
-                self.send_response(200)
-                self.send_header("Content-Type", "text/event-stream")
-                self.send_header("Cache-Control", "no-cache")
-                self.send_header("Connection", "keep-alive")
-                self.end_headers()
-                q = bus.add_sub()
-                try:
-                    self.wfile.write(b"data: " + json.dumps({"type": "hello"}).encode() + b"\n\n")
-                    self.wfile.flush()
-                    while True:
-                        try:
-                            msg = q.get(timeout=20)
-                            self.wfile.write(b"data: " + msg.encode() + b"\n\n")
-                            self.wfile.flush()
-                        except queue.Empty:
-                            self.wfile.write(b": ping\n\n")
-                            self.wfile.flush()
-                except (BrokenPipeError, ConnectionResetError, OSError):
-                    pass
-                finally:
-                    bus.drop_sub(q)
-                return
-            self.send_error(404)
-
-        def do_POST(self) -> None:
-            path = urlparse(self.path).path
-            try:
-                body = self._read_json()
-                if path == "/api/occupancy":
-                    bus.set_occupancy(str(body["addr"]), str(body["state"]))
-                    self._json(200, {"ok": True})
-                    return
-                if path == "/api/turnout":
-                    bus.set_turnout(layout, str(body["addr"]), str(body["state"]))
-                    self._json(200, {"ok": True})
-                    return
-                if path == "/api/occupancy/clear":
-                    bus.clear_occupancy(layout)
-                    self._json(200, {"ok": True})
-                    return
-            except (KeyError, ValueError, json.JSONDecodeError, subprocess.CalledProcessError) as e:
-                self._json(400, {"ok": False, "error": str(e)})
-                return
-            self.send_error(404)
-
-    return Handler
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mqtt-host", default=None)
@@ -746,26 +418,27 @@ def main() -> int:
     ap.add_argument("--bind", default="127.0.0.1")
     args = ap.parse_args()
 
-    global MQTT_PORT
-    MQTT_PORT = mqtt_port()
+    port = mqtt_port()
 
     for page in (HTML, *(SHARED_WEB / name.lstrip("/") for name in SHARED_FILES)):
         if not page.is_file():
             raise SystemExit(f"missing UI {page}")
 
-    host = pick_mqtt_host(args.mqtt_host)
-    # This server talks only MQTT, so it cannot set the main and upper levels' virtual JMRI devices.
     try:
+        host = pick_mqtt_host(args.mqtt_host, port)
+        # This server talks only MQTT, so it cannot set the main and upper levels' virtual JMRI devices.
         layout = load_layout(levels=False)
+        bus = Bus(host, port)
     except devices.DevicesError as exc:      # a bad row anywhere in the master stops the load, naming file, line and row
-        raise SystemExit(f"lcos_mqtt_mimic.py: the device master cannot be used: {exc}") from None
-    bus = Bus(host)
+        raise SystemExit(f"lcos_mqtt_mimic.py: the device master cannot be used: {exc}") from exc
+    except (MimicError, BusError) as exc:
+        raise SystemExit(str(exc)) from exc
     bus.start()
     html = HTML.read_bytes()
-    httpd = ThreadingHTTPServer((args.bind, args.http_port), make_handler(layout, bus, html))
+    httpd = ThreadingHTTPServer((args.bind, args.http_port), make_handler(layout, bus, html, SHARED_WEB, SHARED_FILES))
     url = f"http://127.0.0.1:{args.http_port}/" if args.bind in ("127.0.0.1", "0.0.0.0") else f"http://{args.bind}:{args.http_port}/"
     print(f"LCOS mimic UI  {url}", flush=True)
-    print(f"MQTT broker    {host}:{MQTT_PORT}", flush=True)
+    print(f"MQTT broker    {host}:{port}", flush=True)
     print(f"Turnouts {len(layout['turnouts'])}  blocks {len(layout['blocks'])}  heads {len(layout['heads'])}", flush=True)
     print("Publishes track/sensor + track/turnout only (no track/cmd). Ctrl-C to stop.", flush=True)
     try:
