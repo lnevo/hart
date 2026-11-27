@@ -47,7 +47,7 @@ class DefaultGuard(unittest.TestCase):
         self.assertEqual(got[0], "BS Extra")
         self.assertEqual(got.count("BS W-1"), 1)
         self.assertEqual(len(got), len(make_job.DEFAULT_GUARD) + 1)
-        with self.assertRaises(SystemExit):
+        with self.assertRaisesRegex(make_job.JobError, "cannot be combined"):
             make_job.guards(["none", "default"])
 
     def test_default_reaches_the_job(self):
@@ -205,6 +205,31 @@ class ProfileJob(unittest.TestCase):
                 make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py")])
             self.assertIn(fragment, str(cm.exception))
             self.assertFalse((d / "j.py").exists())
+
+    def test_a_payload_that_cannot_be_read_is_refused_without_a_traceback(self):
+        d = Path(tempfile.mkdtemp())
+        (d / "list.json").write_text("[]")
+        (d / "bad.json").write_text("{")
+        for name, fragment in (("missing.json", "cannot read the payload"), ("bad.json", "is not JSON"),
+                               ("list.json", "is not an object")):
+            with self.assertRaises(SystemExit) as cm:
+                make_job.main(["profile", "--payload", str(d / name), "--out", str(d / "j.py")])
+            self.assertIn(fragment, str(cm.exception))
+            self.assertIsInstance(cm.exception.__cause__, make_job.JobError)
+        self.assertFalse((d / "j.py").exists())
+
+    def test_a_point_without_a_whole_step_is_a_job_error(self):
+        for point in ({"forward_mm_s": 8.0, "reverse_mm_s": 9.0}, {"step": "x", "forward_mm_s": 8.0, "reverse_mm_s": 9.0},
+                      {"step": 127, "forward_mm_s": 8.0, "reverse_mm_s": 9.0}):
+            with self.assertRaisesRegex(make_job.JobError, "payload point"):
+                make_job.profile_point(point)
+        self.assertEqual(make_job.profile_point({"step": 63, "forward_mm_s": 1, "reverse_mm_s": 2.5}),
+                         {"key": 500, "step": 63, "forward": 1.0, "reverse": 2.5})
+
+    def test_two_points_on_one_throttle_key_are_refused(self):
+        d = self.payload(points=[{"step": 2, "forward_mm_s": 8.0, "reverse_mm_s": 9.0}] * 2)
+        with self.assertRaisesRegex(SystemExit, "share a throttle key"):
+            make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py")])
 
     def test_script_only_touches_the_roster_entry(self):
         src = (SM / "jython" / "write_profile.py").read_text()

@@ -325,6 +325,33 @@ class TheCommand(unittest.TestCase):
         with self.assertRaisesRegex(fw.FreezeError, "Head 10L has no node .*place it first"):
             fw.freeze_rows("CP 9", unplaced, self.KEYS, set(), "2026-11-21")
 
+    def test_every_device_that_cannot_be_frozen_is_named_in_one_error(self):
+        rows = [dict(self.ROWS[0], comment="CP 9 | Switch 9"), dict(self.ROWS[2], comment="Node: 42"),
+                self.ROWS[3]]
+        with self.assertRaises(fw.FreezeError) as cm:
+            fw.freeze_rows("CP 9", rows, {}, set(), "2026-11-21")
+        self.assertEqual(str(cm.exception).split("; "),
+                         ["CP 9: turnout Switch 9: its wiring 'CP 9 | Switch 9' gives no port",
+                          "occupancy BS Switch 9: its wiring 'Node: 42' gives no input",
+                          "BS 9-11: no track key for Track 9-11"])
+
+    def test_a_row_holds_every_column_in_order_and_no_other(self):
+        row = fw.wiring_row(level="2", kind="fb")
+        self.assertEqual(list(row), wiring.COLUMNS)
+        self.assertEqual((row["level"], row["kind"], row["node"]), ("2", "fb", ""))
+        with self.assertRaisesRegex(fw.FreezeError, "no wiring.csv column cp"):
+            fw.wiring_row(cp="CP 9")
+
+    def test_an_unreadable_wiring_csv_exits_2_without_a_traceback(self):
+        with tempfile.TemporaryDirectory() as d, \
+                mock.patch.object(fw.bdm, "read_helix_tracks", return_value={}), \
+                mock.patch.object(fw, "device_rows", return_value=self.ROWS), \
+                mock.patch.object(fw, "track_keys", return_value=self.KEYS), \
+                mock.patch.object(fw.wiring, "PATH", Path(d) / "wiring.csv"), \
+                mock.patch("sys.stderr") as err:
+            self.assertEqual(fw.main(["--cp", "CP 9", "--dry-run"]), 2)
+        self.assertIn("cannot read", "".join(c.args[0] for c in err.write.call_args_list))
+
 
 class OsPins(unittest.TestCase):
     def test_an_os_block_is_pinned_by_its_id(self):
