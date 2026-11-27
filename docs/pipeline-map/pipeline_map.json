@@ -15621,6 +15621,13 @@
   },
   {
    "from": "wiki/projects",
+   "to": ".claude/agents/panel-tracer.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
    "to": ".claude/agents/repo-auditor.md",
    "label": "points to",
    "gen": "agent-docs",
@@ -15629,6 +15636,20 @@
   {
    "from": "wiki/projects",
    "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": ".claude/agents/site-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
+   "to": ".claude/agents/tool-fixer.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
