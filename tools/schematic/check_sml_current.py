@@ -19,9 +19,9 @@ import build_layout_le as ble  # noqa: E402
 import build_tables as bt  # noqa: E402
 import publish_draft as pd  # noqa: E402
 from hartlib import paths  # noqa: E402
-from hartlib import tables_build as tb  # noqa: E402
+from hartlib import tables_sml as sml  # noqa: E402
 
-STAMP = tb.DISCOVERED.with_suffix(".stamp")
+STAMP = sml.DISCOVERED.with_suffix(".stamp")
 STALE = ("SML discovery is stale: make panels on the Mac discovers itself; elsewhere run "
          "jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), then make panels")
 # The exit code for stale, apart from 1 (an uncaught exception) and 2 (a build error): make panels on the Mac discovers
@@ -55,7 +55,7 @@ def main() -> int:
         return bt.EXIT_NO_PLUGIN
     try:
         current = base_digest()
-    except (tb.TablesBuildError, ble.BuildError) as exc:
+    except (sml.TablesBuildError, ble.BuildError) as exc:
         print(f"check_sml_current.py: {exc}", file=sys.stderr)
         return 2
     message = verdict(STAMP, current)

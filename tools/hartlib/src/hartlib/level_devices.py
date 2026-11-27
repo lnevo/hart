@@ -10,7 +10,7 @@ device, so a physical device is later swapped in by that mapping alone.
 - Block "<name>": its occupancy sensor SENSOR_PREFIX + block_key (IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
   IS:HART:C3:B:OS225b), user name occupancy_user ("BS 107-109", "BS Switch 225b").
 - Head "Head <mast>[ Top|Bottom]": head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top).
-- The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; tables_build.start_logixng, from
+- The LogixNG that sets every block sensor INACTIVE when the tables load (CLEAR_*; startup_logixng.start_logixng, from
   each row's start)
   and its reader clear_sensors; the same LogixNG sets every virtual turnout to its startup position, Closed except
   where the main route runs through the diverging leg, read by turnout_states.

@@ -5372,6 +5372,15 @@
    "path": "tools/schematic/block_layer.py"
   },
   {
+   "id": "tools/schematic/block_pieces.py",
+   "label": "block_pieces.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: the OS block a link joins and the pieces of a track block_overrides.csv gives to OS blocks, for block_layer.py.",
+   "path": "tools/schematic/block_pieces.py"
+  },
+  {
    "id": "tools/schematic/mast_rule.py",
    "label": "mast_rule.py",
    "kind": "generator",
@@ -13082,6 +13091,11 @@
    "label": "imports"
   },
   {
+   "from": "tools/schematic/block_pieces.py",
+   "to": "tools/schematic/block_layer.py",
+   "label": "imports"
+  },
+  {
    "from": "tools/schematic/block_layer.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
@@ -14546,6 +14560,11 @@
   {
    "from": "tools/schematic/plan_bands.py",
    "to": "tools/schematic/staging_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/block_pieces.py",
    "label": "imports"
   },
   {
