@@ -70,9 +70,6 @@
  "jmri/layouts/hart/scripts/tests/test_audit_station_comments.py": {
   "dated-note": 1
  },
- "jmri/layouts/hart/scripts/tests/test_cs105_consist.py": {
-  "exec-parts": 1
- },
  "jmri/layouts/hart/scripts/tests/test_discover_nx_publish_free.py": {
   "exec-parts": 1
  },
