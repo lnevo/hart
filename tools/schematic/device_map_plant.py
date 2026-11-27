@@ -17,6 +17,7 @@ from typing import cast
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import mast_rule  # noqa: E402  OVERRIDES_NAME, LOOP_HALF, MapError
 from device_map_inputs import PINS, UID, loop_placeholder  # noqa: E402
+from device_map_nodes import DetectorInput  # noqa: E402
 from device_map_records import DeviceMapRow, Group, Layer, MapBuild, MasterCells, cells  # noqa: E402
 from device_map_rows import Wired, device_row, switch_device_rows  # noqa: E402
 from device_map_schematic import line_role  # noqa: E402
@@ -33,7 +34,6 @@ OFF_MAIN = "no detector: off the main line"
 DETECTOR_OF_NOTE = {NOT_WIRED: "not_wired", NO_DETECTOR: "none"}    # an occupancy row with no input: its detector fact
 PART_OF_OS = re.compile(r"OS Switch (\d+)[a-d]?")
 PIN_RE = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)$")
-DetectorInput = tuple[int, int, int]    # (node, block input on it, packed LCOS ID), as Nodes.detector and take give
 
 
 def block_sensor(block: str) -> str:
@@ -265,7 +265,7 @@ def track_detector(st: MapBuild, level: int, sws: list[str]) -> DetectorInput:
     area = st.area_of[sws[0]][1]
     node = st.nodes.pick(level, area, "block", prefer=[st.home[s] for s in sws if st.area_of[s][0] == level])
     k, packed = st.nodes.take(node, "block")
-    return node, k, packed
+    return DetectorInput(node, k, packed)
 
 
 def check_frozen_cps(rows: Iterable[DeviceMapRow], cps: frozenset[str], held_devices: set[tuple[str, str]],

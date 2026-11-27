@@ -5,9 +5,17 @@ level 1) and are never handed out here."""
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import NamedTuple
 
 from device_map_inputs import NODES, PINS, UID
 from mast_rule import MapError
+
+
+class DetectorInput(NamedTuple):
+    """A block detector's input: its LCOS node, the block input slot on it, and the packed LCOS ID."""
+    node: int
+    slot: int
+    packed: int
 
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
 MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
@@ -105,21 +113,21 @@ class Nodes:
         self.used[node][what] += 1
         return k, node * 100 + UID[what] + k
 
-    def take_pinned(self, block):
-        """(node, index, packed id) of `block`'s pinned detector, once; None when it has no pin."""
+    def take_pinned(self, block: str) -> DetectorInput | None:
+        """The input of `block`'s pinned detector, once; None when it has no pin."""
         if block not in self.pins:
             return None
         node, k = self.pins.pop(block)
-        return node, k, node * 100 + UID["block"] + k
+        return DetectorInput(node, k, node * 100 + UID["block"] + k)
 
-    def detector(self, block: str, level: int, area: str, prefer: int, pin_level: dict[str, int]) -> tuple[int, int, int]:
-        """(node, index, packed id) of `block`'s detector: its pin, else the next free block input of the node `pick`
+    def detector(self, block: str, level: int, area: str, prefer: int, pin_level: dict[str, int]) -> DetectorInput:
+        """The input of `block`'s detector: its pin, else the next free block input of the node `pick`
         gives (`prefer` first). MapError on a pin of another level (`pin_level`: {block: level} of the pins)."""
         pinned = self.take_pinned(block)
         if pinned and pin_level.get(block, level) != level:
             raise MapError(f"{PINS.name}: {block} is a level {level} block, not level {pin_level[block]}")
         node = pinned[0] if pinned else self.pick(level, area, "block", prefer=[prefer])
-        return pinned or (node, *self.take(node, "block"))
+        return pinned or DetectorInput(node, *self.take(node, "block"))
 
     def check_pins(self):
         """Stop when a pin names a block the map has no detector row for (a stale or misspelt pin)."""
