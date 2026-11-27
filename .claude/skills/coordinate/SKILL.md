@@ -46,6 +46,8 @@ Batch small related lanes into one PR: each merge costs a merge of main and a CI
 
 **Baseline sweep (owner, 2026-11-27):** lanes do not lower baselines (`mypy_baseline.json`, `habits_baseline.json`, `py_sizes.csv`, `hand_tables.csv`); a count that falls passes with a note. At the end of each wave the queue holder runs `make baselines` in one PR, which lowers all four. A lane still adds a row for a new or moved file.
 
+**Main red (owner, 2026-11-27):** while main's push run of `check` is red (failure, cancelled or timed out), the queue holder gives no "go". The PR that broke it fixes forward, or one PR reverts it. Nothing deploys: the deploy gate stops a red main itself (G0c, `ci_pass.py --main-red`).
+
 **A merge out of turn:** tell the coordinator at once, giving the merge commit, what the PR changed and whether it ships. Then go back to the queue.
 
 ## Hand-over
