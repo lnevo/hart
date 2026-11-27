@@ -16,8 +16,8 @@ const TW_SEL={s:STATIONS.map(x=>x.n),t:["Main","Main 1","Main 2"],w:["101","102"
   train:["2211 West","640 East","844 East"],time:["6:15","6:20","6:25","7:00","8:00","9:00"],mph:["10","20","30","40"],
   txt:["Joint with work train 292 between Birchwood and Cobb","Joint with 640 East between Hollis and Ironton",
     "Joint with 2211 West between Dunmore and Elk Gap"]};
-/* The form's boxes, the dispatcher's words, the blank form and the copy check: www/js/track-warrant.js. */
-const {BOXES,SAY,formHtml,compare:wrongBoxes}=window.TrackWarrant;
+/* The form's boxes, the dispatcher's words, the copy check and the copy scene: www/js/track-warrant.js. */
+const {BOXES,SAY,compare:wrongBoxes,copyScene}=window.TrackWarrant;
 /* The run's three warrants: run-data.js TWC_PLAN, which the answer key reads too. */
 const {TWC_PLAN}=window.ExtraEastData;
 
@@ -33,83 +33,14 @@ function drawWarrant(name,drawn){
   return {no:plan.no,at:plan.at,boxes};
 }
 
-/* The dispatcher's words for warrant w, a line at a time. Every box must have its values by now. */
-function dispatcherLines(w){
-  const nums=Object.keys(w.boxes).map(Number).sort((a,b)=>a-b);
-  const unset=nums.filter(b=>!Array.isArray(w.boxes[b]));
-  if(unset.length)throw new Error(`warrant ${w.no}: box ${unset.join(", ")} read out before it was filled`);
-  return [`Track warrant number ${w.no.split("").join(" ")}, to KV 812 East at ${w.at}.`,
-    ...nums.map(b=>`Box ${b}. ${SAY[b](w.boxes[b])}.`),"Dispatcher RK. Read it back."];
-}
-/* The form as the player filled it: {box: {on, v}}, on for the checkbox and v the blanks' values in order. */
-function readForm(){
-  return Object.fromEntries(BOXES.map(([n])=>[n,{on:$("c"+n).checked,
-    v:[...$("row"+n).querySelectorAll("select")].map(s=>s.value)}]));
-}
-
-/* The copy scene: the dispatcher reads warrant w, the player fills the form and repeats it back. A wrong copy costs
-   2 minutes and, the first time, a miss (GCOR 14.9); a right one puts the OK time on the warrant. */
+/* What the copy scene (js/track-warrant.js copyScene) takes from this game. */
+const COPY_GAME={scene,$,esc,fmt,addTime,renderStatus,log,next,S:state};
+/* The copy scene: the dispatcher reads warrant w to KV 812 East, the player fills the form and repeats it back. The
+   form is dated today, in 1997. */
 function warrantCopy(w){
-  return ()=>{
-    state.attempts=0;
-    const lines=dispatcherLines(w);
-    scene(w.at,"Copy track warrant "+w.no,
-      `<p>The dispatcher reads the warrant at copying speed. Check each box he gives and fill in its blanks, then repeat it back.</p><div class="xw-dict" id="dict"></div>
-      <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})} 1997<br><span style="font-weight:400">To KV 812 East at ${esc(w.at)}</span></div>${formHtml(TW_SEL,esc)}<div class="okline">OK ____  Dispatcher ____</div></div>
-      <div class="choices"><button class="xw-btn primary" id="rb">Repeat it to the dispatcher</button></div><div class="result" hidden></div>`);
-    // read it out a line at a time
-    const d=$("dict");
-    let i=0;
-    const tick=()=>{
-      if(!d.isConnected)return;
-      if(i<lines.length){
-        d.textContent+=(i?"\n":"")+lines[i++];
-        if(!reduced)setTimeout(tick,650);
-        else tick();
-      }
-    };
-    tick();
-    $("rb").onclick=()=>{
-      const bad=wrongBoxes(w,readForm());
-      BOXES.forEach(([n])=>{
-        const row=$("row"+n);
-        row.classList.remove("bad");
-        if(bad.includes(n))row.classList.add("bad");
-      });
-      const r=document.querySelector("#xwScene .result");
-      r.hidden=false;
-      if(bad.length)copiedWrong(w,bad,r);
-      else copiedRight(w,r);
-    };
-  };
-}
-function copiedWrong(w,bad,r){
-  state.attempts++;
-  addTime(2);
-  renderStatus();
-  r.innerHTML=`<div class="verdict no">“That's not what I gave you.” <small `+
-    `style="font-size:14px;font-family:var(--mono)">+2 min</small></div><p>The dispatcher corrects `+
-    `box${bad.length>1?"es":""} ${bad.join(", ")}. Fix the shaded rows and repeat it again.</p>`+(state.attempts>=2?`<p class="src">The dispatcher's words are in the blue panel above. Each box he names is checked, `+
-      `with its blanks in the order he reads them.</p>`:"");
-  log("Warrant "+w.no+" read back with errors in "+bad.join(", "));
-  if(state.attempts===1)state.misses.push({title:"Copying track warrant "+w.no,
-    why:"GCOR 14.9: the employee writes all the information and repeats it, preprinted and written words, "+
-      "to the dispatcher, who checks it before giving the OK.",src:"GC · 14.9",sec:"twc"});
-}
-function copiedRight(w,r){
-  const ok=fmt(state.clock+1);
-  w.ok=ok;
-  document.querySelector(".xw-tw .okline").innerHTML=`OK <b>${ok}</b>  Dispatcher <b>RK</b>`;
-  $("rb").disabled=true;
-  r.innerHTML=`<div class="verdict ok">“That is correct. OK ${ok}, RK.”</div><div><button class="xw-btn primary" `+
-    `id="xwGo">Continue</button></div>`;
-  log("Warrant "+w.no+" OK "+ok);
-  addTime(1);
-  renderStatus();
-  $("xwGo").onclick=()=>{
-    $("xwGo").disabled=true;
-    next();
-  };
+  return copyScene(COPY_GAME,w,{sel:TW_SEL,to:"KV 812 East",reduced:!!reduced,
+    date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})+" 1997",
+    intro:"The dispatcher reads the warrant at copying speed. Check each box he gives and fill in its blanks, then repeat it back."});
 }
 
 /* A stretch from station `from` to `to` (run.js leg): the events given, or one drawn from the road pool as the train

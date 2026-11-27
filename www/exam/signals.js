@@ -2,14 +2,35 @@
    Data in the guides' own words: the Standard Code speed signals (Rules 281-292), the Signals guide's route
    signal chart and its plates. In a page it is a plain script whose names are globals to the scripts loaded after
    it; in node require() returns the same names (the answer key's build reads them so). */
+/* A key that none of the tables below holds: an arm or lamp letter, or a plate. `table` names the table, `key` is the
+   key asked for and `where` the call it came in, with its argument. */
+class UnknownSignalKey extends Error{
+  constructor(table,key,where){
+    super(`${where}: ${JSON.stringify(key)} is not in ${table}`);
+    this.name="UnknownSignalKey";
+    this.table=table;
+    this.key=key;
+  }
+}
+/* The entry for key in table (named tableName), or UnknownSignalKey naming the call `where`. */
+function signalEntry(table,tableName,key,where){
+  if(!Object.prototype.hasOwnProperty.call(table,key))throw new UnknownSignalKey(tableName,key,where);
+  return table[key];
+}
+
 /* A speed-signal drawing: semaphore arms top to bottom, as the Standard Code draws them (Rules 281-292).
    R red horizontal, Y yellow 45 degrees up, G green vertical. */
 const ARM={R:{a:0,c:"#b8322b",t:"#fff",w:"red, horizontal"},Y:{a:-45,c:"#e0b52a",t:"#1d2733",w:"yellow, 45° up"},G:{a:-90,c:"#2d7a4a",t:"#fff",w:"green, vertical"}};
-const armWords=arms=>[...arms].map(k=>ARM[k].w).join("; ");
+/* The arms of a semaphore as letters, each checked against ARM; `where` names the call for the error. */
+function armsOf(arms,where){
+  if(typeof arms!=="string"||!arms)throw new TypeError(`${where}: the arms must be a string of letters, not ${JSON.stringify(arms)}`);
+  return [...arms].map(k=>signalEntry(ARM,"ARM",k,`${where}(${JSON.stringify(arms)})`));
+}
+const armWords=arms=>armsOf(arms,"armWords").map(A=>A.w).join("; ");
 function sigFig(arms,plate){
   const n=arms.length,top=34,gap=46,h=top+(n-1)*gap+34;
   let g="";
-  [...arms].forEach((k,i)=>{const y=top+i*gap,A=ARM[k];
+  armsOf(arms,"sigFig").forEach((A,i)=>{const y=top+i*gap,k=arms[i];
     g+=`<g transform="rotate(${A.a} 30 ${y})"><rect x="30" y="${y-5}" width="34" height="10" fill="none" stroke="currentColor" stroke-width="2"/></g><circle cx="30" cy="${y}" r="9" fill="${A.c}" stroke="currentColor" stroke-width="1.5"/><text x="30" y="${y+4}" text-anchor="middle" font-size="11" font-weight="700" fill="${A.t}" font-family="system-ui,sans-serif">${k}</text>`});
   const pl=plate?`<rect x="24" y="${h-30}" width="${plate.length>1?28:20}" height="15" fill="#f5f0e1" stroke="currentColor" stroke-width="1.5"/><text x="${24+(plate.length>1?14:10)}" y="${h-19}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1d2733" font-family="system-ui,sans-serif">${plate}</text>`:"";
   return `<svg class="ce-sig" viewBox="0 0 76 ${h}" width="76" height="${h}" role="img" aria-label="Semaphore signal, arms top to bottom: ${armWords(arms)}${plate?", "+plate+" plate":""}"><line x1="21" y1="${top-14}" x2="21" y2="${h-6}" stroke="currentColor" stroke-width="3"/><line x1="10" y1="${h-6}" x2="32" y2="${h-6}" stroke="currentColor" stroke-width="4"/>${g}${pl}</svg>`;
@@ -17,12 +38,17 @@ function sigFig(arms,plate){
 
 /* A color-light route signal: heads top to bottom, R red, Y yellow, G green (Signals guide chart). */
 const LAMP={R:{c:"#c0392b",w:"red"},Y:{c:"#e0b52a",w:"yellow"},G:{c:"#2d8a4e",w:"green"}};
-const lampWords=heads=>[...heads].map(k=>LAMP[k].w).join(" over ");
+/* The heads of a color-light signal as letters, each checked against LAMP; `where` names the call for the error. */
+function lampsOf(heads,where){
+  if(typeof heads!=="string"||!heads)throw new TypeError(`${where}: the heads must be a string of letters, not ${JSON.stringify(heads)}`);
+  return [...heads].map(k=>signalEntry(LAMP,"LAMP",k,`${where}(${JSON.stringify(heads)})`));
+}
+const lampWords=heads=>lampsOf(heads,"lampWords").map(L=>L.w).join(" over ");
 function lightFig(heads,plate){
   const n=heads.length,top=26,gap=40,h=top+(n-1)*gap+44;
   let g="";
-  [...heads].forEach((k,i)=>{const y=top+i*gap;
-    g+=`<rect x="14" y="${y-15}" width="30" height="30" rx="15" fill="#1d2733"/><circle cx="29" cy="${y}" r="10" fill="${LAMP[k].c}"/>`});
+  lampsOf(heads,"lightFig").forEach((L,i)=>{const y=top+i*gap;
+    g+=`<rect x="14" y="${y-15}" width="30" height="30" rx="15" fill="#1d2733"/><circle cx="29" cy="${y}" r="10" fill="${L.c}"/>`});
   const pl=plate?`<rect x="34" y="${h-34}" width="${plate.length>2?36:26}" height="16" fill="#f5f0e1" stroke="currentColor" stroke-width="1.5"/><text x="${34+(plate.length>2?18:13)}" y="${h-22}" text-anchor="middle" font-size="11" font-weight="700" fill="#1d2733" font-family="system-ui,sans-serif">${plate}</text>`:"";
   return `<svg class="ce-sig" viewBox="0 0 80 ${h}" width="80" height="${h}" role="img" aria-label="Color light signal, ${lampWords(heads)}${plate?", "+plate+" plate":""}"><line x1="29" y1="${top+15}" x2="29" y2="${h-6}" stroke="currentColor" stroke-width="3"/><line x1="18" y1="${h-6}" x2="40" y2="${h-6}" stroke="currentColor" stroke-width="4"/>${g}${pl}</svg>`;
 }
@@ -71,7 +97,9 @@ const PLATES={
 /* The wrong choices for a plate question: every other plate's action, leaving out its own and any `near` one too close
    to call wrong. At an absolute plate (abs), a choice that passes the signal without permission ends the run. */
 function plateWrongs(key){
-  const P=PLATES[key],close=new Set([P.act,...(P.near||[]).map(k=>PLATES[k].act)]);
+  const where=`plateWrongs(${JSON.stringify(key)})`;
+  const P=signalEntry(PLATES,"PLATES",key,where);
+  const close=new Set([P.act,...(P.near||[]).map(k=>signalEntry(PLATES,"PLATES",k,`${where}, its near list`).act)]);
   return [...new Set(Object.values(PLATES).map(x=>x.act))].filter(t=>!close.has(t))
     .map(t=>({t,ends:!!P.abs&&/without stopping|Stop, then proceed/.test(t)}));
 }
@@ -96,4 +124,4 @@ function pickStories(fixed,allowed,once,rand,clash=(a,b)=>a===b){
 }
 
 if(typeof module!=="undefined"&&module.exports)
-  module.exports={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords,plateWrongs,routeWhy,pickStories};
+  module.exports={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords,plateWrongs,routeWhy,pickStories,UnknownSignalKey};
