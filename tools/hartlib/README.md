@@ -378,7 +378,11 @@ takes it), CLASH (the repo changed it too, or there is no base: reviewed), DEVIC
 device-master row: reviewed, `Edit`s to write) and DROPPED (the build's: the repo wins, with what to change instead).
 `new_template()` writes the chosen template items, `edited_rows()` the merged cells, and `verify()` checks a
 rebuild gives exactly what the plan promised. `read_template()` accepts an extra section a split kept (a Route
-table, say), never a second copy of a known one. Errors are `SplitError`.
+table, say), never a second copy of a known one. Errors are `SplitError`. The code is in three modules, and
+`store_split` imports the names callers use from the other two: `store_items` (`index`, `label`, `change_text`, who
+claims an item, the JMRI version), `store_plan` (`plan()` and its records; each item is a typed `Draft` before it has
+its id) and `store_split` (choices, `new_template()`, `edited_rows()`, `verify()`, `report()`).
+`tests/test_store_split_real.py` runs the plan on Stores made from this checkout's `tables.xml` by known edits.
 
 ### `hartlib.places` and `hartlib.occupancy_bindings`
 
@@ -420,6 +424,20 @@ Reads Operations Pro roster files: `cars(path)`, `engines(path)` and `trains(pat
 form, `ids(elements)` their ids. `ROSTERS` names the repo's files in `jmri/layouts/hart/operations/` (ADR-015);
 the car pipeline passes its own copies in `ops/hart-ops/data/`. A broken file raises `ET.ParseError` naming it.
 It only reads: the tools that change a roster keep JMRI's header and layout themselves.
+
+It is also the one reader of the roads and models the rosters and the car pipeline name, kept by hand in
+`ops/hart-ops/data/`: `read_roads(path)` gives `Roads` from `roads.csv` (`codes`; `display`, road code to the marks a
+card shows; `car_aliases` and `engine_aliases`, a spelling to its road code), and `read_loco_models(path)` gives
+`{model: builder}` from `loco_models.csv` in file order. A bad file or row stops with `OpsDataError` (a `ValueError`; `RoadsError` is the same class)
+naming the file, and the line for a bad row; a spelling must be in capitals, as the matchers look it up.
+`engine_lookup.py` and `process_car_images.py` read them; `locos.csv`'s `road_name` refers to `roads.csv` (its
+sidecar).
+
+It also reads the operator sheet's industry tables, kept by hand beside them: `read_industry_sheet(path)` gives the
+`IndustrySheet` rows of `industry_sheet.csv` in file order (industry_id, the sheet's name for it, sheet and waybill
+order, logo and width), `read_industry_notes(path)` the history paragraphs of `industry_notes.csv` by industry_id, and
+`read_spot_usages(path)` the label for each spot usage of `spot_usages.csv`. `operator_sheet_data.py`,
+`generate_operator_sheet.py` and `waybill_data.py` build their tables from them.
 
 ### `hartlib.parked`
 

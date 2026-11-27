@@ -2028,7 +2028,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "crop_car_image, crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
+   "desc": "crop_car_image (with crop_runs, crop_span, crop_level, crop_settings), crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
    "path": "ops/hart-ops/card_pipeline/crop_car_image.py"
   },
   {
@@ -2201,6 +2201,51 @@
    "domain": "ops",
    "desc": "Locomotive repository: road, number, model, DCC address, length, maker, decoder. Feeds loco cards and JMRI import.",
    "path": "ops/hart-ops/data/locos.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/roads.csv",
+   "label": "roads.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The roster road codes the car pipeline names: the marks a card shows and the spellings the car photo and loco matchers turn into the code (hartlib.operations). locos.csv's road_name refers to it.",
+   "path": "ops/hart-ops/data/roads.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/loco_models.csv",
+   "label": "loco_models.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Each locomotive model and its builder, in the order engine_lookup.manufacturer_for_model reads them (hartlib.operations).",
+   "path": "ops/hart-ops/data/loco_models.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/industry_sheet.csv",
+   "label": "industry_sheet.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The operator sheet's island industries by industry_id: the name the sheet and the waybill decks key them by, their sheet and waybill order, and their logo (hartlib.operations).",
+   "path": "ops/hart-ops/data/industry_sheet.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/industry_notes.csv",
+   "label": "industry_notes.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The operator sheet's history paragraphs for each industry, by industry_id and line (hartlib.operations).",
+   "path": "ops/hart-ops/data/industry_notes.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/spot_usages.csv",
+   "label": "spot_usages.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The label the operator sheet prints for each spot usage of spot_assignments.csv (hartlib.operations).",
+   "path": "ops/hart-ops/data/spot_usages.csv"
   },
   {
    "id": "ops/hart-ops/data/trains.csv",
@@ -3544,6 +3589,15 @@
    "domain": "wiring",
    "desc": "Publishes retained MQTT turnout state from JMRI FB N/R sensors via JMRI JSON; skips yard switches.",
    "path": "tools/mqtt/sync_mqtt_turnouts_from_fb.py"
+  },
+  {
+   "id": "tools/mqtt/mosquitto_cli.py",
+   "label": "mosquitto_cli.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Shared mosquitto_sub and mosquitto_pub runner for the MQTT tools: reads retained topics, sets or clears one retained topic, and raises MosquittoError when a client fails or the broker cannot be read.",
+   "path": "tools/mqtt/mosquitto_cli.py"
   },
   {
    "id": "tools/mqtt/turnout_feedback.py",
@@ -6828,6 +6882,26 @@
    "label": "FB sensors via JSON"
   },
   {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "tools/mqtt/turnout_feedback.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "tools/mqtt/clear_mqtt_cmd_sensor_retain.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "imports"
+  },
+  {
    "from": "tools/mqtt/turnout_feedback.py",
    "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
    "label": "imports"
@@ -8239,6 +8313,36 @@
   {
    "from": "ops/hart-ops/data/spot_assignments.csv",
    "to": "ops/hart-ops/card_pipeline/generate_waybill_cards.py"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_waybill_cards.py",
+   "label": "industry order"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet industries"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_notes.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet notes"
+  },
+  {
+   "from": "ops/hart-ops/data/spot_usages.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet usage labels"
+  },
+  {
+   "from": "ops/hart-ops/data/roads.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py",
+   "label": "road marks and spellings"
+  },
+  {
+   "from": "ops/hart-ops/data/loco_models.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py",
+   "label": "loco builders"
   },
   {
    "from": "ops/hart-ops/industries",
@@ -11232,6 +11336,41 @@
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/roads.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; locos.csv road_name refers to it",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/loco_models.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; refers to industries.csv",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_notes.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; refers to industries.csv",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/spot_usages.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",

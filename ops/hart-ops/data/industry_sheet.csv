@@ -1,0 +1,7 @@
+industry_id,sheet_name,sheet_order,waybill_order,logo,logo_width
+aristech,Aristech Plastics,0,0,aristech.png,1.95
+stucki,A Stucki Co,1,1,stucki.png,1.55
+calgon,Calgon Carbon,2,2,calgon.png,2.05
+ferrellgas,Ferrel Gas,3,3,ferrellgas.png,1.05
+kosmos,Kosmos Cement,4,4,kosmos.png,1.45
+shenango,Shenango Coke Works,5,,shenango.png,0.55

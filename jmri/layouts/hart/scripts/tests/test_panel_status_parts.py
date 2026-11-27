@@ -197,6 +197,76 @@ class TurnoutsIconRebind(unittest.TestCase):
         self.assertIn("<tooltip>%s</tooltip>" % self.turnouts.TURNOUT_FB_TOOLTIP, items)
 
 
+class TurnoutsLamp(unittest.TestCase):
+    """The Turnouts lamp's colour from the plants' feedback modes, the click that flips them, and the failures it
+    logs instead of hiding."""
+
+    def setUp(self) -> None:
+        self.layout = jf.Layout(mqtt=False)
+        self.ps = jf.load_script(coordinator.PANEL_STATUS, self.layout)
+        self.turnouts = sys.modules["panel_status_turnouts"]
+        running = jf.running(self.layout)
+        running.__enter__()
+        self.addCleanup(running.__exit__, None, None, None)
+        jf.Timer.pending.clear()
+
+    def plant(self, name: str, mode: int) -> jf.FakeTurnout:
+        fb = (jf.FakeSensor(name + "N"), jf.FakeSensor(name + "R"))
+        return self.layout.turnouts.add(jf.FakeTurnout(name, *fb, mode=mode))
+
+    def lamp(self) -> int:
+        self.turnouts.sync_turnout_fb_lamp()
+        return self.layout.heads.beans[self.turnouts.TURNOUT_FB_HEAD].appearance
+
+    def test_the_colour_follows_the_plants_modes(self) -> None:
+        self.assertEqual(self.lamp(), jf.SignalHead.YELLOW)          # no plants
+        self.plant("M2T1", jf.Turnout.TWOSENSOR)
+        self.plant("MTT2", jf.Turnout.TWOSENSOR)
+        self.layout.turnouts.add(jf.FakeTurnout("IT9", mode=jf.Turnout.DIRECT))   # not a plant
+        self.plant("IT10", jf.Turnout.DIRECT)                                     # not a plant either
+        self.assertEqual(self.lamp(), jf.SignalHead.GREEN)
+        self.plant("M2T3", jf.Turnout.DIRECT)
+        self.assertEqual(self.lamp(), jf.SignalHead.YELLOW)
+        for name in ("M2T1", "MTT2"):
+            self.layout.turnouts.beans[name].mode = jf.Turnout.DIRECT
+        self.assertEqual(self.lamp(), jf.SignalHead.RED)
+
+    def test_a_click_flips_every_plant_and_back(self) -> None:
+        plants = [self.plant("M2T1", jf.Turnout.TWOSENSOR), self.plant("M2T2", jf.Turnout.TWOSENSOR)]
+        self.turnouts.toggle_turnout_fb_mode()
+        jf.fire_timers()
+        self.assertEqual([t.mode for t in plants], [jf.Turnout.DIRECT] * 2)
+        self.turnouts.toggle_turnout_fb_mode()
+        jf.fire_timers()
+        self.assertEqual([t.mode for t in plants], [jf.Turnout.TWOSENSOR] * 2)
+        self.assertEqual([t.commanded for t in plants], [[], []])
+
+    def test_an_unreadable_mode_is_logged_once_and_left_out_of_the_click(self) -> None:
+        good = self.plant("M2T1", jf.Turnout.TWOSENSOR)
+        bad = self.plant("M2T2", jf.Turnout.TWOSENSOR)
+
+        def fail():
+            raise RuntimeError("mode gone")
+        bad.getFeedbackMode = fail
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(self.lamp(), jf.SignalHead.YELLOW)      # an unknown mode reads as mixed
+            self.lamp()
+            self.turnouts.toggle_turnout_fb_mode()
+            jf.fire_timers()
+        self.assertEqual(out.getvalue().count("cannot read the feedback mode of M2T2: mode gone"), 1)
+        self.assertEqual(good.mode, jf.Turnout.DIRECT)                # the readable plants were all TWOSENSOR
+
+    def test_unreadable_sensors_leave_the_turnout_out_with_a_message(self) -> None:
+        bad = self.plant("M2T1", jf.Turnout.TWOSENSOR)
+
+        def fail():
+            raise RuntimeError("no sensors")
+        bad.getFirstSensor = fail
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(self.lamp(), jf.SignalHead.YELLOW)      # no plant counted
+        self.assertIn("cannot read the feedback sensors of M2T1: no sensors", out.getvalue())
+
+
 class PartText(unittest.TestCase):
     """The rules the script keeps (no plant turnout commands, no yard-ladder paint) hold for each part too."""
 

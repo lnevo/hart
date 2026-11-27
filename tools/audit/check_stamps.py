@@ -98,7 +98,14 @@ STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or cache_dir("check-stamps", ROO
 # Folder groups. TOOLS is the code and its tests; LAYOUT the shared source and generated data every build reads.
 TOOLS = ("tools/**/*",)
 LAYOUT = ("jmri/**/*", "cats/**/*")
-REPO_FILES = ("Makefile", "AGENTS.md", "requirements.txt", ".github/**/*", ".githooks/**/*", ".claude/**/*",
+# Under .claude/: the code (settings, hooks, commands, the skills' scripts and pages) is in CODE. The skills' and
+# subagents' Markdown is AGENT_DOCS, declared only by the tests that read it, so a change to it alone is docs
+# (tools/ci/changed_kind.py CLAUDE_DOCS) and the docs path runs those tests (tools/ci/docs_unit_tests.py). A test
+# checks that every tracked file under .claude/ is in one of the two.
+CLAUDE_CODE = (".claude/*", ".claude/hooks/**/*", ".claude/commands/**/*", ".claude/skills/**/*.sh",
+               ".claude/skills/**/*.html")
+AGENT_DOCS = (".claude/skills/**/*.md", ".claude/agents/**/*.md")
+REPO_FILES = ("Makefile", "AGENTS.md", "requirements.txt", ".github/**/*", ".githooks/**/*", *CLAUDE_CODE,
               ".cursor/**/*", ".vscode/**/*")
 CODE = (*TOOLS, *LAYOUT, *REPO_FILES)       # what a unit job reads unless it says more
 SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive/**/*", "external/**/*")
@@ -113,12 +120,27 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     "ruff": ("**/*.py", "ruff.toml", "requirements.txt", ".gitignore", "**/.gitignore"),
     "portal": (*CODE, *SITE),
     # its node scripts (www/scripts/tests/*.js, build_exam_answers.js, build_play_answers.js) read only www/, and a
-    # package.json on the way up from them (none today) would set how node loads them
-    "unit-portal": (*CODE, "www/**/*", "docs/**/*", "ops/**/*", "package.json"),
-    "unit-hart-ops": (*CODE, *SITE),
-    "unit-schematic": (*CODE, "docs/ops/**/*", "wiki/pipelines/**/*", "www/crew/**/*", "www/data/**/*", "ops/**/*"),
-    "unit-anyrail": (*CODE, "www/build/**/*", "docs/**/*"),
-    "unit-hartlib": (*CODE, "**/*.py"),             # test_devices_one_path reads every tracked .py
+    # package.json on the way up from them (none today) would set how node loads them. Outside www/ its Python reads
+    # the pages' sources (docs/ops, the helix models, the pipeline map, docs/INDEX.md, the inventory workbook in
+    # docs/wiring), the crew master and the waybill data the crew pages use, and the card and publication code. The
+    # wiki and agent-doc Markdown it reads for the repo guide and the map lanes is in its trace only (docs-path files,
+    # left off on purpose: tests/test_check_stamps.py NARROWED)
+    "unit-portal": (*CODE, "www/**/*", "package.json", "docs/INDEX.md", "docs/ops/**/*", "docs/benchwork/**/*",
+                    "docs/pipeline-map/**/*", "docs/wiring/*.xlsx", "ops/hart-ops/AGENTS.md",
+                    "ops/hart-ops/card_pipeline/**/*", "ops/hart-ops/publications/**/*", "ops/station_maps/**/*",
+                    "ops/hart-ops/data/crew.json",
+                    "ops/hart-ops/data/HART_Spot_Waybills.csv", "ops/hart-ops/data/industries.csv",
+                    "ops/hart-ops/data/spot_assignments.csv"),
+    # the car cards, intake and publications: all of ops/, the Operating Instructions .docx in docs/ops, the site
+    # files the gallery and crew pages write or compare (www/), and the STS seed in external/sts-helpers
+    "unit-hart-ops": (*CODE, "ops/**/*", "docs/ops/**/*", "www/**/*", "external/sts-helpers/**/*"),
+    # build_panels.sh (bash, untraced) draws and checks every output in scratch checkouts and the real one: kept wide
+    "unit-schematic": (*CODE, "docs/ops/**/*", "docs/pipeline-map/pipeline_map.json", "wiki/pipelines/**/*",
+                       "www/crew/**/*", "www/data/**/*", "ops/**/*"),
+    # test_levels_page compares the article it builds; nothing under docs/ is read
+    "unit-anyrail": (*CODE, "www/build/**/*"),
+    # test_devices_one_path reads every tracked .py; test_roads reads the car pipeline's roads and models
+    "unit-hartlib": (*CODE, "**/*.py", "ops/hart-ops/data/roads.csv", "ops/hart-ops/data/loco_models.csv"),
     "unit-mimic": CODE,
     "unit-cats": CODE,
     "unit-jmri-scripts": CODE,
@@ -138,38 +160,48 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_name_copies": EVERYTHING,
     # cs105_roster_sync.sh (bash) refuses when the submodule is not checked out, and the test skips on that answer
     "unit-hosts test_pi_ssh_scripts": ("external/jmri-cs105-roster-sync/**/*",),
-    "unit-guards test_check_sh_tables": ("www/**/*",),
+    # build_layout_index.py --check (the PNG stamp of the schematic) and check.sh's start, whose verdict
+    # (tools/ci/changed_kind.py) reads the pipeline map
+    "unit-guards test_check_sh_tables": ("www/scripts/**/*", "www/assets/layout/*.png",
+                                         "docs/pipeline-map/pipeline_map.json"),
     # tools/ops/status_counts.py reads wiki/status/ (ADR-038); its git status only compares the tree before and after
-    "unit-guards test_hart_tables_writers": ("wiki/status/**/*", "tools/ops/status_counts.py", "www/scripts/**/*"),
+    # the www/scripts table writers it runs are .py files
+    "unit-guards test_hart_tables_writers": ("wiki/status/**/*", "tools/ops/status_counts.py", "www/scripts/*.py"),
     # it lists the STL folder to check every file there is classified
-    "unit-guards test_helix_stl_index": ("www/scripts/**/*", "docs/benchwork/helix/stl/**/*"),
-    "unit-guards test_jmri_process_patterns": ("docs/**/*", "ops/**/*", "www/scripts/**/*"),
+    "unit-guards test_helix_stl_index": ("www/scripts/*.py", "docs/benchwork/helix/stl/**/*"),
+    # git ls-files "*.sh" "*.ps1" "*.py": those files anywhere in the checkout, nothing else
+    "unit-guards test_jmri_process_patterns": ("**/*.sh", "**/*.ps1", "**/*.py"),
     # the map build draws the agent-doc lane from the wiki and docs/INDEX.md too (tools/ops/agent_docs_map.py)
     # the map build also reads .gitmodules (the submodule nodes) and lists ops/hart-ops/card_pipeline (a folder node
     # of the map, docs/pipeline-map/pipeline_map.json)
     "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
                                       "docs/INDEX.md", "ops/hart-ops/AGENTS.md", ".gitmodules",
-                                      "ops/hart-ops/card_pipeline/**/*"),
+                                      "ops/hart-ops/card_pipeline/**/*", *AGENT_DOCS),
     # the map and the entry files outside CODE (www/scripts/deploy_hartrailroad.sh); its output roots are in CODE
     "unit-guards test_pipeline_map_coverage": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
-                                               "docs/INDEX.md", "ops/hart-ops/AGENTS.md"),
+                                               "docs/INDEX.md", "ops/hart-ops/AGENTS.md", *AGENT_DOCS),
     # the step manifest's loader checks domains, edge sides and local nodes against the map (manifest.repo())
     "unit-guards test_pipeline_manifest": ("docs/pipeline-map/pipeline_map.json",),
-    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
+    # and its DocsUnitTests list every tracked file under .claude/ (CLAUDE_CODE or AGENT_DOCS, never neither)
+    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json", ".claude/**/*"),
     # check_sh_problems takes the steps' scripts from manifest.repo(), which reads the map
     "unit-guards test_stamp_gate": ("docs/pipeline-map/pipeline_map.json",),
+    # it loads changed_kind's declarations, the map's boxes among them
+    "unit-guards test_unit_declarations": ("docs/pipeline-map/pipeline_map.json",),
     # SkipConditionTest reads every tracked tests/test*.py (git ls-files), ops/ and www/ included: .py files only
     "unit-guards test_stamps_keys": ("**/*.py",),
     # the scanners' scan lists against the manifest: the map (manifest.repo()), the site build's sources and imports
-    "unit-guards test_manifest_scans": ("docs/pipeline-map/pipeline_map.json", "www/scripts/**/*",
-                                        "ops/hart-ops/card_pipeline/**/*"),
+    # and check_hand_tables' scan list, whose CSV masters entities.csv names (hartlib.hand_tables.master_files)
+    "unit-guards test_manifest_scans": ("docs/pipeline-map/pipeline_map.json", "docs/data/entities.csv",
+                                        "www/scripts/**/*", "ops/hart-ops/card_pipeline/**/*", *AGENT_DOCS),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
-                                        "ops/hart-ops/AGENTS.md", ".gitmodules"),
+                                        "ops/hart-ops/AGENTS.md", ".gitmodules", *AGENT_DOCS),
     # it builds the committed map with both lanes, as test_agent_docs_map does
     "unit-guards test_map_lane": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
-                                  "ops/hart-ops/AGENTS.md", ".gitmodules"),
+                                  "ops/hart-ops/AGENTS.md", ".gitmodules", *AGENT_DOCS),
     # the agent-doc cells it checks are in the wiki (home.md, the decisions, pipelines, projects, STATUS.md)
-    "unit-guards test_agent_docs_cells": ("wiki/**/*",),
+    # and check_agent_docs.py's PATTERNS hold .claude/**, the skills and subagents included
+    "unit-guards test_agent_docs_cells": ("wiki/**/*", *AGENT_DOCS),
     # check_ai_speak.DEFAULT_GLOBS (a test keeps the two the same): it lists their folders and fails a glob that
     # matches nothing
     "unit-guards test_ai_speak": ("www/ai/*.html", "www/library/*.html", "www/behind/*.html", "www/guides/*.html",
@@ -182,24 +214,27 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # the merge drivers run under the repo's own .gitattributes in a scratch repo
     "unit-guards test_merge_pipeline_map": (".gitattributes",),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
-    "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/**/*"),
+    # the drawings it compares in docs/ops, and hartlib.map_revision's pages: www/data/crew.json from the crew master
+    # (ops/hart-ops/data/crew.json through ops/hart-ops/publications), publications.json and the map pages
+    "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/hart-ops/data/crew.json", "ops/hart-ops/publications/**/*",
+                                       "www/data/**/*", "www/crew/**/*"),
     "unit-guards test_site_device_names": ("www/assets/layout/*.png", "www/scripts/**/*"),  # the PNG stamp, ADR-036
-    "unit-guards test_write_inventory": ("docs/wiring/**/*",),
+    "unit-guards test_write_inventory": ("docs/wiring/LCOS_Layout_Inventory_v*.xlsx",),  # write_inventory.OUT
     # it runs check_data_readers.py over every tracked .py (docs/, ops/ and www/ included)
     "unit-guards test_check_data_readers": ("**/*.py",),
-    "unit-guards test_docs_index": ("docs/**/*",),
-    "unit-hosts test_live_paths": ("docs/**/*",),
-    "unit-hosts test_host_copies": ("ops/**/*",),
-    "unit-hosts test_pull_tables": ("ops/**/*",),
-    "unit-jmri test_infer_block_lengths": ("docs/jmri/**/*",),
-    "unit-jmri test_speedmatch": ("docs/jmri/**/*",),
-    "unit-jmri test_speedmatch_dashboard": ("docs/jmri/**/*",),
-    "unit-jmri test_speedmatch_distance": ("docs/jmri/**/*",),
-    "unit-jmri test_speedmatch_publish_live": ("docs/jmri/**/*",),
-    "unit-jmri test_speedmatch_site_export": ("docs/jmri/**/*", "www/ai/**/*"),
+    # the card pipeline's car tools and the host packages' files it compares with the hosts' copies
+    "unit-hosts test_host_copies": ("ops/hart-ops/card_pipeline/**/*", "ops/packages/**/*"),
+    # test_docs_index, test_live_paths and test_pull_tables run their tools in scratch trees only: no line here
+    "unit-jmri test_infer_block_lengths": ("docs/jmri/speedmatching/profile-2026-11-08/block_events.csv",),
+    "unit-jmri test_speedmatch": ("docs/jmri/speedmatching/profile-2026-11-08/block_events.csv",),
+    "unit-jmri test_speedmatch_distance": ("docs/jmri/speedmatching/RUNBOOK.md",),
+    # the website page shares the live page's ids; its node run reads stdin only
+    "unit-jmri test_speedmatch_site_export": ("www/ai/speed-runs.html",),
 }
 # "kind test" of EXTRA -> the -k filter tools/ci/docs_unit_tests.py runs it with: the one class that reads docs
-DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource."}  # RUNBOOK.md's log tags
+DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource.",
+                          "unit-guards test_check_docs_only": "DocsUnitTests.",
+                          "unit-guards test_agent_docs_map": "AgentFrontMatter."}  # RUNBOOK.md's log tags
 
 
 # "kind test" -> folders the job only lists (a bare exists-or-not look; no file in them is read), left out of the stamp.

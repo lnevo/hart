@@ -7,12 +7,14 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import sys
 import unittest
 from pathlib import Path
 from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "tools/mqtt/clear_mqtt_cmd_sensor_retain.py"
+sys.path.insert(0, str(SCRIPT.parent))      # its sibling mosquitto_cli, as when the script runs
 
 
 def _load() -> ModuleType:
@@ -47,14 +49,39 @@ class FakeBroker:
 
 
 class ClearRetain(unittest.TestCase):
-    def _run(self, broker: FakeBroker) -> tuple[int, str]:
+    def _run(self, broker: FakeBroker, err: io.StringIO | None = None) -> tuple[int, str]:
         mod = _load()
         setattr(mod, "_sub", broker.sub)       # the broker calls, replaced by the fake
         setattr(mod, "_clear", broker.clear)
         out = io.StringIO()
-        with contextlib.redirect_stdout(out):
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err or io.StringIO()):
             code = mod.main()
         return code, out.getvalue()
+
+    def test_a_failed_clear_stops_the_run_and_exits_1(self) -> None:
+        import mosquitto_cli
+
+        class Refusing(FakeBroker):
+            def clear(self, topic: str) -> None:
+                raise mosquitto_cli.MosquittoError(f"clear of {topic} exited 5: not authorised")
+
+        err = io.StringIO()
+        code, out = self._run(Refusing({"track/cmd/sensor/1": "ACTIVE"}), err)
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("cleared=0 then stopped: clear of track/cmd/sensor/1 exited 5", err.getvalue())
+
+    def test_an_unreadable_broker_exits_1_not_0(self) -> None:
+        import mosquitto_cli
+
+        class Down(FakeBroker):
+            def sub(self, topic: str, wait: str = "1") -> list[tuple[str, str]]:
+                raise mosquitto_cli.MosquittoError("connection refused")
+
+        err = io.StringIO()
+        code, _ = self._run(Down({}), err)
+        self.assertEqual(code, 1)
+        self.assertIn("connection refused", err.getvalue())
 
     def test_a_non_digit_ih_leaf_is_neither_cleared_nor_left_over(self) -> None:
         broker = FakeBroker({

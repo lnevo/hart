@@ -4,9 +4,9 @@
     python3 tools/ci/docs_unit_tests.py      one shell line per test file: its name, then its unittest command
 
 A unit test whose stamp declaration (tools/audit/check_stamps.py: BY_KIND, EXTRA, the manifest checks' fallback,
-RUNS_JOBS) covers a Markdown file under docs/ or wiki/ can break on a docs-only change, so the docs-only path runs it,
-unless LEFT_OUT says why not (a short list: whole suites that only partly read docs stay out). Its
--k filter, when only one class reads docs, is check_stamps.DOCS_K's. A line is the stamp name with a hyphen
+RUNS_JOBS) covers a Markdown file under docs/, wiki/, .claude/skills/ or .claude/agents/ can break on a docs-only
+change, so the docs-only path runs it, unless LEFT_OUT says why not (a short list: whole suites that only partly read
+docs stay out). Its -k filter, when only one class reads docs, is check_stamps.DOCS_K's. A line is the stamp name with a hyphen
 ("unit-guards-test_name_copies"), then `python3 -m unittest discover -b -q -s DIR -p FILE [-k K]`, the form
 docs_checks.sh reads for the manifest's lines.
 
@@ -36,21 +36,16 @@ LEFT_OUT = {
     "manifest checks": "the ones a docs-only change can break are docs_only steps, run from docs_checks.sh's list",
     "public-text": "check_public_text.py is in docs_checks.sh's list",
     "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
-    "unit-portal": "whole suite of site builders (39 s); reads docs/ops and docs/wiring only as page sources",
+    "unit-portal": "whole suite of site builders (39 s); its declaration names docs/INDEX.md, read only for "
+                   "the repo guide, which the repo-guide check builds (the wiki it also reads is left off on purpose)",
     "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
     "unit-schematic": "whole suite; reads wiki/pipelines/ only in part",
-    "unit-anyrail": "whole suite; reads docs/ only for the track plan article",
     "unit-guards test_check_stamps": "the stamp machinery's own tests (38 s); declared on its sample jobs' "
-                                     "declarations (RUNS_JOBS), docs/ through unit-anyrail's",
+                                     "declarations (RUNS_JOBS), docs/ through RUNBOOK.md (test_speedmatch_distance)",
     "unit-guards test_hart_tables_writers": "runs each table writer only to see it refuse to write under "
                                             "HART_TABLES; status_counts.py reads wiki/status/ on the way",
-    "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
     "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
                                      "(docs/pipeline-map/) alters; both pages are the pipeline-map check",
-    "unit-guards test_pipeline_map_coverage": "the agent docs it checks are .claude/ and AGENTS.md files: full path",
-    "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
-    "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
-                                       "pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_map_lane": "its tests on the real map (the committed graph is current, a hand edit fails) are "
                                  "what the pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_agent_docs_cells": "its runs of check_agent_docs.py on the real wiki and AGENTS.md are what "
@@ -61,13 +56,6 @@ LEFT_OUT = {
                                       "docs_checks.sh's list also fails on",
     "unit-guards test_helix_stl_index": "lists the docs/benchwork/helix/stl/ models, no Markdown",
     "unit-guards test_publish_draft": "reads docs/ops/ drawings and JSON, no Markdown",
-    "unit-guards test_write_inventory": "reads docs/wiring/ CSV, no Markdown",
-    "unit-hosts test_live_paths": "reads the docs/ paths the deploy scripts name, not Markdown text",
-    "unit-jmri test_infer_block_lengths": "reads docs/jmri/ data files, no Markdown",
-    "unit-jmri test_speedmatch": "reads docs/jmri/ data files (block_events.csv), no Markdown",
-    "unit-jmri test_speedmatch_dashboard": "reads docs/jmri/ data files, no Markdown",
-    "unit-jmri test_speedmatch_publish_live": "reads docs/jmri/ data files, no Markdown",
-    "unit-jmri test_speedmatch_site_export": "reads docs/jmri/ and www/ai/ data files, no Markdown",
 }
 K_RE = re.compile(r"[A-Za-z_]\w*\.?")      # a class ("Name.") or a word, as check.sh writes its -k filters
 
@@ -76,13 +64,17 @@ class Problem(Exception):
     """The list cannot be made as the declarations stand; the message names each reason."""
 
 
+# Where the Markdown docs are: docs/, wiki/, and the skills and subagents under .claude/ (changed_kind.CLAUDE_DOCS).
+DOCS_ROOTS = ("docs/", "wiki/", ".claude/skills/", ".claude/agents/")
+
+
 def covers_markdown_docs(patterns: tuple[str, ...]) -> bool:
-    """Whether a stamp declaration covers a Markdown file under docs/ or wiki/, matched by the stamps' own rule
-    (panel_stamps._glob_match). Each docs/ or wiki/ pattern is probed with a path made from its own segments, a
+    """Whether a stamp declaration covers a Markdown doc (DOCS_ROOTS), matched by the stamps' own rule
+    (panel_stamps._glob_match). Each pattern under DOCS_ROOTS is probed with a path made from its own segments, a
     wildcard segment named "x" and the last one "x.md"."""
-    probes = {"docs/x.md", "wiki/x.md"}
+    probes = {"docs/x.md", "wiki/x.md", ".claude/skills/x/SKILL.md", ".claude/agents/x.md"}
     for p in patterns:
-        if p.startswith(("docs/", "wiki/")):
+        if p.startswith(DOCS_ROOTS):
             parts = ["x" if "*" in part else part for part in p.split("/")]
             if not parts[-1].endswith(".md"):
                 parts[-1] = "x.md"

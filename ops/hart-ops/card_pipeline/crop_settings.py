@@ -23,6 +23,8 @@ class FrameSettings:
     pad_bottom: float = 0.02  # slight margin below trucks
     row_expand_up: float = 0.03  # small extra headroom after body-top detection
     min_rotation_deg: float = 0.05
+    review_min_w: float = 0.20  # a car box narrower than this share of the width is flagged for review
+    review_min_h: float = 0.12  # or lower than this share of the height
 
 
 @dataclass(frozen=True)
@@ -70,7 +72,6 @@ class SpanSettings:
     track_peel_max_frac: float = 0.08  # max peel of bare track past couplers
     track_peel_lfrac_max: float = 0.35  # trucks/couplers read darker than bare rail stubs
     crane_reach_frac: float = 0.045  # extend for crane booms past the deck
-    shadow_wedge_frac: float = 0.20  # upper-band darkness for corner vignette
     body_span_min_frac: float = 0.35  # deck fallback when silhouette span is too narrow
     silhouette_trust_frac: float = 0.08  # trust body silhouette without dark_frac widen
     small_car_span_frac: float = 0.22  # small cars — peel left track stubs past couplers
@@ -81,6 +82,33 @@ class SpanSettings:
 
 
 @dataclass(frozen=True)
+class TopEdgeSettings:
+    """The top of the car's row band: body rows, a left-end handbrake, roof gear, and the band's padding.
+
+    Column bands are fractions of the analysis band width; row reaches are fractions of the
+    height from the body top down to the track.
+    """
+
+    center_band: tuple[float, float] = (0.25, 0.75)  # car body columns
+    left_band: tuple[float, float] = (0.08, 0.32)  # left end, past the studio-flag wedges
+    extreme_left: float = 0.08  # the extreme-left strip where studio-flag wedges live
+    handbrake_band: tuple[float, float] = (0.10, 0.20)  # handbrake staff / wheel columns
+    center_body_min: float = 0.02  # share of the centre band that marks a body row
+    left_body_min: float = 0.015  # share of the left band that marks a body row
+    extreme_left_max: float = 0.08  # a left-band top with more wedge than this is not the car
+    wedge_stop: float = 0.10  # stop the handbrake walk at a row this dark in the wedge strip
+    handbrake_frac: tuple[float, float] = (0.04, 0.12)  # open range of a handbrake row's share
+    handbrake_center_max: float = 0.01  # a handbrake row has almost no body in the centre
+    body_resume: float = 0.02  # centre share that ends the handbrake walk ...
+    body_resume_handbrake_max: float = 0.05  # ... when the handbrake band is this clear
+    roof_reach: float = 0.22  # how far above the body top roof gear is looked for
+    roof_dark_min: float = 0.06  # centre share of a roof-gear row
+    roof_std_min: float = 18.0  # or the grey spread of a roof-gear row
+    roof_gap: float = 0.06  # stop at the first plain row this far above the body top
+    band_pad: float = 0.02  # padding above and below the row band
+
+
+@dataclass(frozen=True)
 class CropSettings:
     """The tuned values detection and cropping read, tuned on the fleet's light-box photos."""
 
@@ -88,6 +116,7 @@ class CropSettings:
     tone: ToneSettings = field(default_factory=ToneSettings)
     rows: RowSettings = field(default_factory=RowSettings)
     span: SpanSettings = field(default_factory=SpanSettings)
+    top: TopEdgeSettings = field(default_factory=TopEdgeSettings)
 
 
 CROP = CropSettings()

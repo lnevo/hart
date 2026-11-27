@@ -41,8 +41,10 @@ the reason in the row (as for a fix that completes a table, such as the exam war
 The owner's review set the rule for the rest: a table stays in code unless its values are re-used by another table, a
 master or a copy elsewhere, so moving does not make a data file for one script. A table other scripts already import
 is one source and stays. The tables the owner marked move during the review stay move whatever their reason says. Where tables in several files
-hold the same labels (the track warrant form, the Chartiers stations in the website games), they become one shared
-source. For tables only the website's JavaScript reads, that source is a shared file under `www/js/`, as
-`game-engine.js` is, not a CSV with a build step.
+are the same table, they become one shared source: for tables only the website's JavaScript reads, a shared file under
+`www/js/`, as `game-engine.js` is, not a CSV with a build step (the track warrant form is `www/js/track-warrant.js`).
+Tables that are different selections of the same things stay apart, and a test holds their names together: the
+Chartiers stations of `www/play/road-engine.js` ST, `pir.js` POINTS and `warrant.js`' form choices
+(`www/scripts/tests/play_through_test.js`).
 
 Which script writes or reads a given file is in `docs/pipeline-map/pipeline_map.json`. The rule is in [ADR-039](../../wiki/decisions/ADR-039-data-masters-in-git.md).

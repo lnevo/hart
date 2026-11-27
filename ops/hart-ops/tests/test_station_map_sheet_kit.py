@@ -59,10 +59,22 @@ class WriteSheetDocx(unittest.TestCase):
                 self.assertEqual(z.read("docProps/core.xml"), CORE)
                 self.assertEqual(z.read("word/document.xml"), b"<doc>station_map_west_yard.png</doc>")
 
-    def test_missing_template_stops_with_its_name(self) -> None:
-        with self.assertRaises(SystemExit) as cm:
+    def test_missing_template_is_a_named_error_with_its_name(self) -> None:
+        with self.assertRaises(sheet_kit.SheetTemplateMissing) as cm:
             sheet_kit.write_sheet_docx(Path("/nowhere/t.docx"), Path("/nowhere/p.png"), Path("/nowhere/d.docx"))
         self.assertIn("/nowhere/t.docx", str(cm.exception))
+        self.assertFalse(Path("/nowhere/d.docx").exists())
+
+    def test_returns_dest_and_prints_nothing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            png = root / "map.png"
+            png.write_bytes(b"new-png")
+            out = io.StringIO()
+            with mock.patch.object(sys, "stdout", out):
+                written = sheet_kit.write_sheet_docx(template(root / "t.docx"), png, root / "d.docx")
+            self.assertEqual(written, root / "d.docx")
+            self.assertEqual(out.getvalue(), "")
 
 
 class Drawing(unittest.TestCase):

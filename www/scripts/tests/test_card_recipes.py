@@ -13,7 +13,7 @@ import make_share_cards  # noqa: E402,F401  (loads the kit before the recipes, a
 from share_card_recipes.editor_view import SHOWN_FUNCTION, function_lines, shown_lines  # noqa: E402
 from share_card_recipes import CardError  # noqa: E402
 from share_card_recipes.panel_image import ROSTER_ROWS, roster_rows  # noqa: E402
-from share_card_recipes import composites, forms  # noqa: E402
+from share_card_recipes import composites, forms, page_figures  # noqa: E402
 
 SOURCE = """#include "x.h"
 static bool helper(void);
@@ -182,6 +182,47 @@ class Bands(unittest.TestCase):
         im = Image.new("RGB", (2400, 3000))
         self.assertEqual(composites._top_band(im, 50).size, (2400, 1260))
         self.assertEqual(composites._top_band(im, 50, 84, 2316).size, (2232, 1172))
+
+
+class PageStyle(unittest.TestCase):
+    def test_every_style_block_is_joined(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "p.html").write_text("<style>a{}</style><p>x</p><style>b{}</style>", encoding="utf-8")
+            with mock.patch.object(page_figures, "PORTAL", Path(tmp)):
+                self.assertEqual(page_figures._page_style("p.html"), "a{}b{}")
+
+    def test_a_page_without_style_is_a_card_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "p.html").write_text("<p>x</p>", encoding="utf-8")
+            with mock.patch.object(page_figures, "PORTAL", Path(tmp)), \
+                    self.assertRaisesRegex(CardError, "p.html has no <style> block"):
+                page_figures._page_style("p.html")
+
+
+class FillBand(unittest.TestCase):
+    BG = (250, 250, 250)
+    BAND = (200, 220, 240)
+
+    def _shot(self, top: int, bottom: int):
+        from PIL import Image
+        im = Image.new("RGB", (100, 630), self.BG)
+        im.paste(Image.new("RGB", (100, bottom - top), self.BAND), (0, top))
+        return im
+
+    def test_the_band_is_centred_on_its_own_colour(self) -> None:
+        out = page_figures._fill_band(self._shot(100, 300))
+        self.assertEqual(out.size, (100, 630))
+        self.assertEqual(out.getpixel((8, 0)), self.BAND)
+        self.assertEqual(out.getpixel((8, 629)), self.BAND)
+
+    def test_a_band_that_fills_the_height_is_kept(self) -> None:
+        im = self._shot(0, 630)
+        self.assertIs(page_figures._fill_band(im), im)
+
+    def test_no_band_is_a_card_error(self) -> None:
+        from PIL import Image
+        with self.assertRaisesRegex(CardError, "no lane band"):
+            page_figures._fill_band(Image.new("RGB", (100, 630), self.BG))
 
 
 if __name__ == "__main__":

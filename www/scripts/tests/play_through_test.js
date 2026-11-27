@@ -30,7 +30,7 @@ function load(seedBox, phone) { // phone: { scroll(o) } pretends to be a phone a
   ctx.window = ctx; ctx.window.scrollTo = () => {};
   if (phone) { ctx.innerHeight = 844; ctx.matchMedia = () => ({ matches: true }); ctx.window.scrollTo = phone.scroll; }
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["js/game-engine.js", "play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/warrant.js", "play/passenger.js", "play/pcy.js", "play/pir.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["js/game-engine.js", "play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "js/track-warrant.js", "play/warrant.js", "play/passenger.js", "play/pcy.js", "play/pir.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
   /* The fake page has no checkboxes, so the warrant copy is read from this hook instead of the form: the warrant as the
@@ -148,6 +148,7 @@ function main() {
   }
   scrollCheck(failures);
   logicCheck(env.ctx, failures);
+  stationNameCheck(env.ctx, failures);
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");
 }
@@ -191,6 +192,22 @@ function scrollCheck(failures) {
   click("ask"); click("yes");
   if (doc.getElementById("xwStart").hidden) failures.push("exit: Leave did not return to the start screen");
 }
+/* The Chartiers stations are kept in three places, each its own selection (owner, the hand-tables review): road-engine.js
+   ST (the time-table's line, Carnegie to Washington), pir.js POINTS (the PIR run's map) and warrant.js TW_SEL.s (the
+   warrant form's station blank). A name in the other two must be one of ST's, or a point of the PIR run north of Carnegie,
+   so a station is spelled one way everywhere. */
+const NORTH_OF_CARNEGIE = new Set(["McKees Rocks", "McKees Rocks diamond", "Duff Junction", "POV Junction"]);
+function stationNameCheck(ctx, failures) {
+  const RE = ctx.window.RoadEngine;
+  const line = new Set(Array.from(RE.ST, (s) => s.n));
+  for (const n of NORTH_OF_CARNEGIE) if (RE.pirPoints && !RE.pirPoints.includes(n)) failures.push(`stations: "${n}" is in NORTH_OF_CARNEGIE but not a point of pir.js POINTS`);
+  for (const [where, names] of [["pir.js POINTS", RE.pirPoints], ["warrant.js TW_SEL.s", RE.twc.TW_SEL.s]]) {
+    if (!names) { failures.push(`stations: ${where} is not exposed`); continue; }
+    for (const n of names)
+      if (!line.has(n) && !NORTH_OF_CARNEGIE.has(n)) failures.push(`stations: ${where} names "${n}", which is not a station of road-engine.js ST`);
+  }
+}
+
 /* The start screen's choices: the run suggested after a run, and which rows each view shows. */
 function logicCheck(ctx, failures) {
   const L = ctx.window.PlayLogic, runs = ctx.window.NevilleRuns, keys = Object.keys(runs);

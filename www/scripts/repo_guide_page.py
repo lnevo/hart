@@ -20,6 +20,7 @@ prepare_github_pages.py fills the built copy on every site build.
 """
 from __future__ import annotations
 
+import argparse
 import configparser
 import html
 import re
@@ -87,9 +88,11 @@ SUBMODULES = {
 }
 
 # hartlib modules. The four main parts have their own paragraphs on the page; every other module is named in the
-# sentence before them with a short phrase. railroad_facts, railroad_invariants and device_rows are parts of railroad.
+# sentence before them with a short phrase. railroad_facts, railroad_invariants and device_rows are parts of railroad,
+# and store_items and store_plan of store_split.
 HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
-HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad", "device_rows": "railroad"}
+HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad", "device_rows": "railroad",
+                 "store_items": "store_split", "store_plan": "store_split"}
 HARTLIB_OTHER = {
     "names": "the DCC group of a JMRI comment",
     "devices": "the device master, its dictionary and its checks",
@@ -248,11 +251,13 @@ def write(www: Path, root: Path = ROOT) -> bool:
     return new != old
 
 
-def main(argv=None) -> int:
-    argv = sys.argv[1:] if argv is None else argv
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Fill www/%s's lists and counts from the checkout." % PAGE_REL)
+    parser.add_argument("--check", action="store_true", help="exit 1 when the page is stale; write nothing")
+    args = parser.parse_args(argv)      # an unknown argument is a usage error (exit 2), never a write run
     www = ROOT / "www"
     try:
-        if "--check" in argv:
+        if args.check:
             old = (www / PAGE_REL).read_text(encoding="utf-8")
             if fill(old, facts()) != old:
                 print("www/%s is stale; run python3 www/scripts/repo_guide_page.py" % PAGE_REL)
