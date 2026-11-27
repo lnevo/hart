@@ -64,6 +64,24 @@ class Schema(unittest.TestCase):
         out = self.broken(lambda m: m["schematic"].update(revision="1"))
         self.assertTrue(any(p.startswith("schematic: revision and effective") for p in out), out)
 
+    def test_every_map_needs_its_tracks(self):
+        out = self.broken(lambda m: m["maps"][0].pop("tracks"))
+        self.assertIn(f"map {MASTER['maps'][0]['id']!r}: no tracks (the map page lists them)", out)
+        out = self.broken(lambda m: m["maps"][1]["tracks"][0].update(purpose="", map="nowhere"))
+        mid, track = MASTER["maps"][1]["id"], MASTER["maps"][1]["tracks"][0]["track"]
+        self.assertIn(f"map {mid!r}: track row 1 has no purpose", out)
+        self.assertIn(f"map {mid!r}: track {track!r} links map 'nowhere', which is no map", out)
+
+    def test_spot_sheet_needs_its_desk_notes(self):
+        out = self.broken(lambda m: m["spotsheet"].pop("desk"))
+        self.assertEqual(out, ["spot sheet: no desk notes (the spot sheet page ends with them)"])
+        did = MASTER["spotsheet"]["desk"][0]["id"]
+        out = self.broken(lambda m: m["spotsheet"]["desk"][0].update(tag="", lists=[{"label": "Jobs"}]))
+        self.assertIn(f"spot sheet desk {did!r}: no tag", out)
+        self.assertIn(f"spot sheet desk {did!r}: list 1 needs a label and items", out)
+        out = self.broken(lambda m: m["spotsheet"]["desk"].append(dict(m["spotsheet"]["desk"][0])))
+        self.assertIn(f"spot sheet: desk id {did!r} is given twice", out)
+
     def test_lineup_row_needs_a_route(self):
         out = self.broken(lambda m: cm.job(m, "dispatcher")["lineup"][0].update(route=""))
         self.assertIn("job 'dispatcher' row '1': a lineup row needs route and action", out)

@@ -52,6 +52,7 @@ from collections.abc import Callable, Iterable, Mapping
 from typing import TYPE_CHECKING
 
 from . import paths
+from .device_rows import MasterRow, row_cells
 
 if TYPE_CHECKING:
     from . import devices as devices_mod
@@ -263,11 +264,12 @@ def lists_beside(source: devices_mod.Files | Path | str | None) -> Path | None:
 SWITCH_ID = re.compile(r"(?:switch|dcc):([1-9]\d*)")   # a turnout row's id: Switch <n> or DCC Switch <n>
 
 
-def of(row: Mapping[str, str], schematic: Path | None = None) -> str:
-    """The place a device row sits in, by name. A turnout row has no cp cell: its place is its
-    switch's (switch_place, from the lists in `schematic`, default the repo's; lists_beside finds a copy's), "" for a
-    local switch or a level-less row. Any other row's place is its cp cell. FactsError on a turnout row with a level
-    whose id is not switch:<n> or dcc:<n> (devices.check_rows refuses one too)."""
+def of(device: MasterRow | Mapping[str, str], schematic: Path | None = None) -> str:
+    """The place a device row (a MasterRow, or a row of the master's text) sits in, by name. A turnout row has no cp
+    cell: its place is its switch's (switch_place, from the lists in `schematic`, default the repo's; lists_beside
+    finds a copy's), "" for a local switch or a level-less row. Any other row's place is its cp cell. FactsError on a
+    turnout row with a level whose id is not switch:<n> or dcc:<n> (devices.check_rows refuses one too)."""
+    row = row_cells(device)
     if row["layer"] != "turnout":
         return row["cp"]
     if not row["level"]:

@@ -59,7 +59,7 @@ async function render(crewPath, kind, id, opts = {}) {
   const ctx = {
     document, console: { error: (e) => errors.push(String(e && e.message || e)) },
     location: { hash: "", pathname: "/", search: "" }, history: { replaceState() {} },
-    localStorage: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) },
+    localStorage: opts.localStorage || { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) },
     setTimeout, Promise, JSON, Math, Array, Number, String, Error, encodeURI, decodeURIComponent,
   };
   ctx.window = ctx;
@@ -76,6 +76,7 @@ async function render(crewPath, kind, id, opts = {}) {
     renderError: (el, o) => { el.innerHTML = "LOAD ERROR: " + (o.err && o.err.message); },
   });
   vm.runInContext(fs.readFileSync(crewPath, "utf8"), ctx, { filename: path.basename(crewPath) });
+  if (opts.keep) opts.keep.ctx = ctx; // a test that calls HARTCrew.lib after the page is drawn
   await ctx.HARTCrew.page(kind, id);
   const wrote = {};
   for (const [n, e] of Object.entries(els)) if (e.innerHTML || e.textContent) wrote[n] = e.innerHTML || e.textContent;
@@ -132,6 +133,34 @@ async function main() {
   const lost = await render(CREW_JS, "sheet", "no-such-job");
   assert.strictEqual(lost.wrote["crew-root"], "LOAD ERROR: No job no-such-job");
   assert.deepStrictEqual(lost.errors, ["No job no-such-job"]);
+
+  // The step ticks: kept per job, and a browser with no storage (it throws) starts clear and keeps drawing.
+  const kept = {};
+  await render(CREW_JS, "sheet", job.id, { keep: kept });
+  const lib = kept.ctx.HARTCrew.lib;
+  lib.writeTicks(job, [true, false, true]);
+  assert.deepStrictEqual(Array.from(lib.readTicks(job)), [true, false, true]);
+  const noStore = { getItem() { throw new Error("denied"); }, setItem() { throw new Error("denied"); } };
+  const closed = {};
+  const blocked = await render(CREW_JS, "sheet", job.id, { keep: closed, localStorage: noStore });
+  assert.deepStrictEqual(blocked.errors, []);
+  assert.match(blocked.wrote["crew-root"], /data-step="0"/);
+  assert.deepStrictEqual(Array.from(closed.ctx.HARTCrew.lib.readTicks(job)), []);
+  closed.ctx.HARTCrew.lib.writeTicks(job, [true]); // does not throw
+
+  // The map viewer's zoom: 1 to 6, about the stage centre when no point is given, and back to fit on reset.
+  assert.deepStrictEqual([lib.clampScale(0.2), lib.clampScale(2.5), lib.clampScale(10)], [1, 2.5, 6]);
+  const stage = { scrollLeft: 0, scrollTop: 0, getBoundingClientRect: () => ({ width: 400, height: 300, left: 0, top: 0 }) };
+  const img = { style: { width: "100%" } };
+  Object.defineProperty(img, "offsetWidth", { get: () => (parseFloat(img.style.width) / 100) * 400 });
+  Object.defineProperty(img, "offsetHeight", { get: () => (parseFloat(img.style.width) / 100) * 300 });
+  const zoom = lib.stageZoom(stage, img);
+  zoom.set(2);
+  assert.deepStrictEqual([zoom.scale(), img.style.width, stage.scrollLeft, stage.scrollTop], [2, "200%", 200, 150]);
+  zoom.set(100, 0, 0);
+  assert.deepStrictEqual([zoom.scale(), stage.scrollLeft, stage.scrollTop], [6, 600, 450]);
+  zoom.reset();
+  assert.deepStrictEqual([zoom.scale(), img.style.width, stage.scrollLeft, stage.scrollTop], [1, "100%", 0, 0]);
 
   console.log("crew pages: " + Object.keys(all).length + " renders OK");
 }
