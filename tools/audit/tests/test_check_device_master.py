@@ -392,7 +392,7 @@ class StagingLoad(unittest.TestCase):
         def edit(rows):
             hit = next(r for r in rows if r["level"] == "1" and r["user_name"] == user)
             hit.update(cols)
-        return sdm.load(self.band, device_map=self._copy(edit)[0])
+        return sdm.load(self.band, sdm.LoadOptions(device_map=self._copy(edit)[0]))
 
     def test_the_rules_stop_the_load(self):
         for user, cols, msg in (("BS Barn", dict(detector="planned"), "assignment field with detector 'planned'"),
@@ -416,8 +416,8 @@ class StagingLoad(unittest.TestCase):
             next(r for r in rows if r["level"] == "1" and r["user_name"] == "OS Switch 9")["cp"] = "Nowhere"
         dm = self._copy(edit)[0]
         with self.assertRaisesRegex(sdm.StagingMapError, "cp 'Nowhere' is no level 1 control point"):
-            sdm.load(self.band, device_map=dm)
-        sdm.load(self.band, device_map=dm, interlockings_path=il)
+            sdm.load(self.band, sdm.LoadOptions(device_map=dm))
+        sdm.load(self.band, sdm.LoadOptions(device_map=dm, interlockings_path=il))
 
 
 if __name__ == "__main__":

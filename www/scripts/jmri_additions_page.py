@@ -95,7 +95,7 @@ def _lcos_range(root: Path) -> tuple[int, int]:
     try:
         src = coordinator.source(root / COORDINATOR)
     except coordinator.CoordinatorError as e:
-        raise PageError(str(e)) from None
+        raise PageError(str(e)) from e
     got = {k: int(v) for k, v in re.findall(r"^_LCOS_SIGNAL_UID_(MIN|MAX)\s*=\s*(\d+)", src, re.M)}
     if set(got) != {"MIN", "MAX"}:
         raise PageError("signal_coordinator.py no longer sets _LCOS_SIGNAL_UID_MIN and _MAX; update this script")
@@ -193,7 +193,7 @@ def _parts(root: Path) -> dict[str, tuple[str, ...]]:
     try:
         return {Path(script).name: coordinator.sibling_modules(root / script) for script in SPLIT_SCRIPTS}
     except coordinator.CoordinatorError as e:
-        raise PageError(str(e)) from None
+        raise PageError(str(e)) from e
 
 
 def _parts_sentence(parts: tuple[str, ...]) -> str:

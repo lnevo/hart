@@ -202,9 +202,6 @@
  "www/scripts/archive_catalogue.py": {
   "dated-note": 1
  },
- "www/scripts/jmri_additions_page.py": {
-  "lost-cause": 2
- },
  "www/scripts/tests/test_industry_ids.py": {
   "dated-note": 1
  },
