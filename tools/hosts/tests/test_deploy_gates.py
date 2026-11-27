@@ -695,6 +695,15 @@ class WhatShipsWhere(GateHarness):
         self.assertLess(calls.index(self.pi_applies()[0]), first_win_step, "Windows came before the Pi's apply")
         self.assertLess(done.stdout.index("Deploy → Pi"), done.stdout.index("Deploy → Windows"))
         self.assertTrue(done.stdout.rstrip().endswith("DONE"), done.stdout[-300:])
+        # each host runs the apply step its package carries, into the user files stage_env names; the tarball is in TMPDIR
+        pi, win = self.pi_applies()[0], self.win_applies()[0]
+        self.assertRegex(pi, r" HART=/tmp/hart-deploy\.fake JMRI_USERFILES='/srv/fake-pi/JMRI_UserFiles' .* "
+                             r"bash /tmp/hart-deploy\.fake/cats/scripts/pi/apply_hart_package_local\.sh$")
+        self.assertIn('-File "C:\\Temp\\hart-deploy-fake\\cats\\scripts\\windows\\apply_hart_package_local.ps1" '
+                      '-Hart "C:\\Temp\\hart-deploy-fake"', win)
+        self.assertTrue(win.endswith('-UserFiles "X:/fake-win/JMRI_UserFiles"'), win)
+        self.assertIn(f" {self.scratch}/hart-pkg.", self.scps()[0])
+        self.assertEqual([], sorted(p.name for p in self.scratch.iterdir()))
 
     def test_all_is_pi_and_win(self) -> None:
         done = self.deploy("--all")

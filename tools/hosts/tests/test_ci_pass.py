@@ -16,8 +16,11 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
+from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hosts/deploy"))
@@ -67,12 +70,12 @@ class FakeGitHub:
     def __init__(self, sha: str) -> None:
         self.sha = sha
         self.calls: list[list[str]] = []
-        self.runs = {"total_count": 1, "workflow_runs": [self.run()]}
-        self.jobs = {"total_count": 1, "jobs": [{
+        self.runs: dict[str, Any] = {"total_count": 1, "workflow_runs": [self.run()]}
+        self.jobs: dict[str, Any] = {"total_count": 1, "jobs": [{
             "id": JOB_ID, "name": "check", "head_sha": sha, "status": "completed", "conclusion": "success",
             "steps": [{"name": "Run ./tools/check.sh", "conclusion": "success"},
                       {"name": "Save the check stamps for pull requests on this commit", "conclusion": "success"}]}]}
-        self.caches = {"total_count": 1, "actions_caches": [{"key": f"check-stamps-{sha}", "ref": "refs/heads/main"}]}
+        self.caches: dict[str, Any] = {"total_count": 1, "actions_caches": [{"key": f"check-stamps-{sha}", "ref": "refs/heads/main"}]}
         self.log = fixture("main_pass.txt")
         self.fail: dict[str, Exception] = {}
 
@@ -287,6 +290,27 @@ class CiPassTest(GhRepoCase):
                 setattr(self.gh, attr, reply)
                 self.assert_runs_g4(text, lead="CI stamps unreadable")
 
+    def test_records_of_another_shape_are_unreadable(self) -> None:
+        """Every GitHub record the check reads is typed: an entry that is not an object, or a field of another type,
+        is unreadable, never skipped or taken as it is."""
+        def run_with(**over: object) -> None:
+            self.gh.runs = {"total_count": 1, "workflow_runs": [self.gh.run(**over)]}
+        cases: tuple[tuple[Callable[[], object], str], ...] = (
+            (lambda: run_with(id="111"), "a check.yml run has no int 'id'"),
+            (lambda: run_with(run_number=True), "a check.yml run has no int 'run_number'"),
+            (lambda: run_with(conclusion=0), "a check.yml run has 'conclusion' 0, not a string or null"),
+            (lambda: self.gh.jobs["jobs"].append("x"), "run 111's jobs hold an entry that is not an object"),
+            (lambda: self.gh.jobs["jobs"][0]["steps"].append(None), "job 222 hold an entry that is not an object"),
+            (lambda: self.gh.jobs["jobs"][0]["steps"][0].pop("name"), "a step of job 222 has no str 'name'"),
+            (lambda: self.gh.caches["actions_caches"].append(7), "CI's cache list hold an entry that is not an object"),
+            (lambda: self.gh.caches["actions_caches"][0].pop("ref"), "a CI cache entry has no str 'ref'"),
+        )
+        for change, text in cases:
+            with self.subTest(text=text):
+                self.gh = FakeGitHub(self.sha)
+                change()
+                self.assert_runs_g4(text, lead="CI stamps unreadable")
+
     def test_a_job_for_another_commit_is_unreadable(self) -> None:
         self.gh.jobs["jobs"][0]["head_sha"] = "f" * 40
         self.assert_runs_g4("job 222 names commit ffffffffffff", lead="CI stamps unreadable")
@@ -301,8 +325,8 @@ class CiPassTest(GhRepoCase):
         self.assertNotIn("Traceback", out)
 
     def test_a_submodule_at_another_commit_counts_and_edits_inside_one_do_not(self) -> None:
-        """Review finding (2026-11-24): local edits inside a submodule (sts-docker's compose data) must not block
-        the skip; a submodule checked out at another commit than the one recorded must."""
+        """Local edits inside a submodule (sts-docker's compose data) do not block the skip; a submodule checked out
+        at another commit than the one recorded does."""
         sub = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, sub, True)
         git(sub, "init", "-q", "-b", "main")
@@ -464,6 +488,43 @@ class MainRedTest(GhRepoCase):
         rc, out = self.red()
         self.assertEqual(0, rc, out)
         self.assertEqual(f"main red check: failed for {self.sha[:12]}: KeyError: 'a bug'; {self.NOT_BLOCKING}\n", out)
+
+    def test_a_bad_call_does_not_block(self) -> None:
+        """A --main-red call argparse refuses still prints the gate's line and exits 0; without --main-red a bad call
+        is exit 2, and an abbreviation does not stand for --main-red."""
+        for argv, text in ((["--main-red"], "the following arguments are required: --commit"),
+                           (["--main-red", "--commit"], "argument --commit: expected one argument"),
+                           (["--main-red", "--commit", self.sha, "--extra"], "unrecognized arguments: --extra")):
+            with self.subTest(argv=argv):
+                out = io.StringIO()
+                with redirect_stdout(out), redirect_stderr(out):
+                    rc = ci_pass.main(argv, root=self.repo, gh=self.gh)
+                self.assertEqual(0, rc, out.getvalue())
+                self.assertEqual(f"main red check: a bad call ({text}); {self.NOT_BLOCKING}\n", out.getvalue())
+        out = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(out):
+            rc = ci_pass.main(["--main", "--commit", self.sha], root=self.repo, gh=self.gh)
+        self.assertEqual(2, rc, out.getvalue())
+        self.assertIn("unrecognized arguments: --main", out.getvalue())
+        self.assertEqual([], self.gh.calls)
+
+    def test_a_crash_before_the_checks_handler_does_not_block(self) -> None:
+        """A failure while the call is read, before main_red_verdict's own handler, still ends in the line."""
+        out = io.StringIO()
+        with unittest.mock.patch.object(ci_pass, "parser", side_effect=RuntimeError("no parser")), \
+                redirect_stdout(out), redirect_stderr(out):
+            rc = ci_pass.main(["--main-red", "--commit", self.sha], root=self.repo, gh=self.gh)
+        self.assertEqual(0, rc, out.getvalue())
+        self.assertEqual(f"main red check: failed before the check: RuntimeError: no parser; {self.NOT_BLOCKING}\n",
+                         out.getvalue())
+
+    def test_the_script_run_alone_prints_the_line_for_a_bad_call(self) -> None:
+        done = subprocess.run([sys.executable, str(ROOT / "tools/hosts/deploy/ci_pass.py"), "--main-red"],
+                              capture_output=True, text=True, timeout=60)
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertEqual(f"main red check: a bad call (the following arguments are required: --commit); "
+                         f"{self.NOT_BLOCKING}\n", done.stdout)
+        self.assertEqual("", done.stderr)
 
     def test_a_bad_commit_does_not_block(self) -> None:
         rc, out = self.red("HEAD")

@@ -18,12 +18,27 @@
 #
 # Exit: 0 quit (or not running) · 1 still running after the wait · 2 watcher not ready or a
 # command already pending · 3 the dropped Jython failed · 4 another dialog appeared ·
-# 5 the Pi's processes could not be listed.
+# 5 the Pi's processes could not be listed · 64 an unknown argument (nothing is run).
 #
 # Usage: tools/hosts/pi_quit_panelpro.sh            (host from HART_PI_SSH, default "pi")
 #        tools/hosts/pi_quit_panelpro.sh --for-deploy  (quit before a Pi deploy, which restarts it)
 #        tools/hosts/pi_quit_panelpro.sh --print    (print the Jython it would drop, no ssh)
 set -euo pipefail
+USAGE="usage: pi_quit_panelpro.sh [--for-deploy | --print]"
+FOR_DEPLOY=0
+PRINT=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --for-deploy) FOR_DEPLOY=1 ;;
+    --print) PRINT=1 ;;
+    *) printf 'pi_quit_panelpro.sh: unknown argument: %s\n%s\n' "$1" "$USAGE" >&2; exit 64 ;;
+  esac
+  shift
+done
+if (( FOR_DEPLOY && PRINT )); then
+  printf 'pi_quit_panelpro.sh: --for-deploy and --print exclude each other\n%s\n' "$USAGE" >&2
+  exit 64
+fi
 HOSTS="$(cd "$(dirname "$0")" && pwd)"
 source "$(cd "$HOSTS/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
 PI_HOST="$HART_PI_SSH"
@@ -108,11 +123,7 @@ for _ in range(WAIT_S * 2):
 RESULT = "done"
 PY
 
-FOR_DEPLOY=0
-if [[ "${1:-}" == "--for-deploy" ]]; then
-  FOR_DEPLOY=1
-fi
-if [[ "${1:-}" == "--print" ]]; then
+if (( PRINT )); then
   printf '%s\n' "$JYTHON"
   exit 0
 fi

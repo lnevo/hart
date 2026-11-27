@@ -147,25 +147,35 @@ exit 4
                 self.assertNotIn("main is red", done.stderr)
                 self.assertNotIn("Traceback", done.stdout + done.stderr)
 
-    def test_a_crash_of_the_check_does_not_block(self) -> None:
-        """ci_pass.py --main-red that dies (an import error, exit 1) leaves the deploy going on to G4."""
-        (self.tmp / "tables_stale").touch()
-        self.main_run(conclusion="failure")
+    def crash_check(self, rc: int, stdout: str = "") -> None:
+        """ci_pass.py --main-red dies before it can print its line (an import error): it prints `stdout`, a
+        traceback on stderr, and exits `rc`."""
         crash = self.tmp / "bin3/python3"
-        crash.parent.mkdir()
+        crash.parent.mkdir(exist_ok=True)
         crash.write_text(f"""#!/bin/bash
 for a in "$@"; do
-  if [[ "$a" == --main-red ]]; then echo "Traceback (stand-in): ImportError" >&2; exit 1; fi
+  if [[ "$a" == --main-red ]]; then printf '%s' '{stdout}'; echo "Traceback (stand-in): ImportError" >&2; exit {rc}; fi
 done
 exec "{self.tmp / 'bin2/python3'}" "$@"
 """, encoding="utf-8")
         crash.chmod(0o755)
         self.env["PATH"] = f"{crash.parent}:{self.env['PATH']}"
-        done = self.deploy("--pi", "--win")
-        self.assertIn("Traceback (stand-in): ImportError", done.stderr)
-        self.assertNotIn("main is red", done.stderr)
-        self.assertIn("ran G4: ", done.stdout)
-        self.assertIn("STOP: tables.xml is not what", done.stderr)
+
+    def test_a_crash_of_the_check_does_not_block_and_says_so(self) -> None:
+        """A crash before ci_pass.py's own handler (no line, or another exit than 0 and 4) leaves the deploy going on
+        to G4, and the gate prints the not-blocking line the script could not."""
+        (self.tmp / "tables_stale").touch()
+        self.main_run(conclusion="failure")
+        for rc, stdout in ((1, ""), (0, ""), (1, "half a line")):
+            with self.subTest(rc=rc, stdout=stdout):
+                self.crash_check(rc, stdout)
+                done = self.deploy("--pi", "--win")
+                self.assertIn("Traceback (stand-in): ImportError", done.stderr)
+                self.assertIn(f"main red check: ci_pass.py --main-red exited {rc} without its verdict (its error is "
+                              f"above); {NOT_BLOCKING}", done.stdout)
+                self.assertNotIn("main is red", done.stderr)
+                self.assertIn("ran G4: ", done.stdout)
+                self.assertIn("STOP: tables.xml is not what", done.stderr)
 
     def test_check_only_staging_and_the_mac_alone_do_not_ask(self) -> None:
         self.main_run(conclusion="failure")
