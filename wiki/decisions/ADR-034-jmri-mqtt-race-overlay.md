@@ -22,6 +22,6 @@ With the pull request submitted, the owner asked for the overlay back for the MQ
 
 ## Consequences
 
-- The exception in AGENTS.md covers this one class until the hosts run a JMRI release that carries #16004. Then remove `tools/jmri/mqtt_overlay/` and the deploy lines that call it (the version check has already taken it out of `jmri.conf` by then).
+- The exception in AGENTS.md covers this one class until the hosts run a JMRI release that carries #16004: the 5.20 production release, not the 5.19.2 test release (owner, 2026-11-27). Then remove `tools/jmri/mqtt_overlay/` and the deploy lines that call it (the version check has already taken it out of `jmri.conf` by then).
 - A change asked for in #16004 is copied into `MqttAdapter.java` and the jar rebuilt, so the hosts run what JMRI reviews.
 - `install_overlay.py --remove --settings-dir <dir>` takes it off one host by hand.
