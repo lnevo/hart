@@ -14325,6 +14325,31 @@
    "to": ".claude/skills/dashboard/sampler.sh"
   },
   {
+   "from": "www/scripts/wiring_sheet.py",
+   "to": "www/scripts/wiring_inventory.py",
+   "label": "imports"
+  },
+  {
+   "from": "www/scripts/wiring_inventory.py",
+   "to": "www/scripts/build_wiring_json.py",
+   "label": "Inventory"
+  },
+  {
+   "from": "tools/mqtt-mimic/mimic_records.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt-mimic/mimic_bus.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "Bus"
+  },
+  {
+   "from": "tools/mqtt-mimic/mimic_http.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "make_handler"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -15065,31 +15090,6 @@
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
-  },
-  {
-   "from": "www/scripts/wiring_sheet.py",
-   "to": "www/scripts/wiring_inventory.py",
-   "label": "imports"
-  },
-  {
-   "from": "www/scripts/wiring_inventory.py",
-   "to": "www/scripts/build_wiring_json.py",
-   "label": "Inventory"
-  },
-  {
-   "from": "tools/mqtt-mimic/mimic_records.py",
-   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/mqtt-mimic/mimic_bus.py",
-   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
-   "label": "Bus"
-  },
-  {
-   "from": "tools/mqtt-mimic/mimic_http.py",
-   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
-   "label": "make_handler"
   }
  ]
 }

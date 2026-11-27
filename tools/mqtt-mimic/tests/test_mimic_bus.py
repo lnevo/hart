@@ -10,8 +10,9 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import mimic_bus as MB  # noqa: E402
+from mimic_records import Layout  # noqa: E402
 
-LAYOUT = {"blocks": [], "heads": [],
+LAYOUT: Layout = {"blocks": [], "heads": [],
           "turnouts": [{"addr": "7", "label": "Switch 7", "plant": "Barn", "feedback": "TWOSENSOR", "n_addr": "100",
                         "r_addr": "101", "tip": "", "level": "staging", "name": "M2T7"}]}
 
@@ -25,7 +26,7 @@ def fake_bus() -> tuple[MB.Bus, list[dict[str, object]]]:
     def emit(e: dict[str, object]) -> None:
         events.append(e)
         bus._stop.set()
-    bus.emit = emit  # type: ignore[method-assign]
+    bus.emit = emit  # type: ignore[method-assign,assignment]
     return bus, events
 
 
@@ -115,7 +116,7 @@ class Reconnect(unittest.TestCase):
             events.append(e)
             if e.get("connected") is False:
                 bus._stop.set()
-        bus.emit = emit  # type: ignore[method-assign]
+        bus.emit = emit  # type: ignore[method-assign,assignment]
         proc = mock.Mock(stdout=iter(["bad line\n", "track/sensor/1 ACTIVE\n"]))
         read = []
 
@@ -135,7 +136,7 @@ class Reconnect(unittest.TestCase):
 
     def test_a_thread_that_ends_on_an_error_says_disconnected(self) -> None:
         bus, events = fake_bus()
-        bus.emit = events.append  # type: ignore[method-assign]
+        bus.emit = events.append  # type: ignore[method-assign,assignment]
 
         def broken():
             raise RuntimeError("pipe")
