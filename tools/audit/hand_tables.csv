@@ -193,7 +193,7 @@ www/scripts/make_share_cards.py,CARDS,32,keep,"shared in code, so already one so
 www/scripts/provenance.py,_BLOCKS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/provenance.py,_SCHEMA,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/repo_guide_page.py,FOLDERS,10,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/repo_guide_page.py,HARTLIB_OTHER,31,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
+www/scripts/repo_guide_page.py,HARTLIB_OTHER,32,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4); 32 for waybills, a hartlib module the page must describe"
 www/scripts/repo_guide_page.py,LAYOUT_TREE,8,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/repo_guide_page.py,SUBMODULES,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,6 railroad names (occupancy sensor); first sort: per-item tweak

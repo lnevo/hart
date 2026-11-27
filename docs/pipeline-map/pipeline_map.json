@@ -11697,6 +11697,27 @@
    "gen": "manifest"
   },
   {
+   "from": "ops/hart-ops/data/waybill_loads.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_parties.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/waybill_empty_returns.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "ops/hart-ops/data/locos.csv",
    "to": "tools/ops/check_locos.py",
    "label": "master",
