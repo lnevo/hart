@@ -6,7 +6,7 @@ A copy of the device master gets two field rows, as the owner would add them, an
 assignment field and jmri_name and system_name its planned head (IH3332, IH3333). Then, over the copy: the device map
 (build_device_map.master_outputs), masts.csv (build_masts.build, to a temporary file), the beans
 (hartlib.tables_build.base, to a temporary tables file), the railroad check, the device-master check, the Digicon
-heads (hartlib.wiring.digicon_rows, hartlib.tables_build.digicon_masts) and the CATS desks. The mast follows its
+heads (hartlib.wiring.digicon_rows, hartlib.tables_sml.digicon_masts) and the CATS desks. The mast follows its
 heads (device_map_rows.mast_on_heads) onto IH3332 and IH3333, masts.csv's check takes the swapped heads by the row
 (level_masts.read), and the heads are Digicon heads by their rows' assignment; every other row, bean and desk is as
 committed. Runs over the committed drawing (needs the plugin; skipped without it, failing with SCHEMATIC_REQUIRED=1).
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 import build_device_map as bdm  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 from plugin_needed import skip_or_fail  # noqa: E402
-from hartlib import devices, level_masts, paths, railroad, tables, tables_build, wiring  # noqa: E402
+from hartlib import devices, level_masts, paths, railroad, tables, tables_build, tables_sml, wiring  # noqa: E402
 
 TOP, BOTTOM, MAST = ("2", "mast:107:B:west:top"), ("2", "mast:107:B:west:bottom"), ("2", "mast:107:B:west")
 SWAP = {TOP: "IH3332", BOTTOM: "IH3333"}
@@ -141,7 +141,7 @@ class HeadSwapByRow(RepoReadOnly, unittest.TestCase):
                          ["C33-OU3-1", "C33-OU3-2", "C33-OU3-3"])
         self.assertEqual({r["system_name"] for r in wiring.digicon_rows()}, {"IH432"})     # the committed rows
         root = tables.read(self.tables_path)
-        self.assertEqual(tables_build.digicon_masts(root, self.wiring_path), {"Mast 108LA", "Mast 6LB"})
+        self.assertEqual(tables_sml.digicon_masts(root, self.wiring_path), {"Mast 108LA", "Mast 6LB"})
 
     # ---- the desks
 

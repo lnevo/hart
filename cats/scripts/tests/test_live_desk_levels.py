@@ -60,7 +60,7 @@ class LiveDeskLevels(unittest.TestCase):
         self.assertEqual(drawn & LEVEL_MASTS, LEVEL_MASTS)
 
     def test_main_and_upper_take_the_desk_discipline_and_their_virtual_sensors(self) -> None:
-        # CTC on the CTC desk, as staging is: CATS holds their signals and releases them (owner, 2026-11-17);
+        # CTC on the CTC desk, as staging is: CATS holds their signals and releases them;
         # ABS on the ABS twin. Each reports its virtual occupancy sensor; only the middle of 225's X has none.
         bound = json.loads(BINDINGS.read_text(encoding="utf-8"))["blocks"]
         level = {e.get("name", k): e for k, e in bound.items() if "_planned_occupied" in e or

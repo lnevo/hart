@@ -37,13 +37,13 @@ class BlockKindFromTheMaster(unittest.TestCase):
     def test_a_level_less_block_is_a_plain_block(self) -> None:
         import tempfile
         import xml.etree.ElementTree as ET
-        from hartlib import tables_build
+        from hartlib import jmri_bean, tables_sections
         el = ET.fromstring('<block systemName="IB999" length="0.0" curve="0"><systemName>IB999</systemName>'
                            '<userName>OS Store Added</userName><permissive>no</permissive></block>')
         row = {c: "" for c in devices.COLUMNS}
         row.update(layer="block", user_name="OS Store Added", assignment="field", system_name="IB999",
                    jmri_name="IB999", description="Added in PanelPro.")
-        row["jmri_bean"] = tables_build.bean_json([(tables_build.BLOCKS, el)], row)
+        row["jmri_bean"] = jmri_bean.bean_json([(tables_sections.BLOCKS, el)], row)
         with tempfile.TemporaryDirectory() as d:
             files = devices.Files(Path(d) / devices.MASTER_FILE, devices.Files.here().dictionary)
             devices.write_one_file([r.cells() for r in devices.load()] + [row], files)

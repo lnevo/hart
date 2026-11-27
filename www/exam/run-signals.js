@@ -1,10 +1,12 @@
 /* Extra East: the signals runs, speed semaphores or route signals, on the data in signals.js.
-   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+   Runs inside its own function. It takes the names it uses from run.js with ExtraEast.take and hands back its own with
+   ExtraEast.give (see run.js, GIVES). */
 (function(){
 "use strict";
 const X=window.ExtraEast;
-const {fmt,$,randSetup,rnd,pick,shuffle,STATIONS,LAST,state,addTime,renderMap,animateTo,runTime,finish,
-  push,front,next,log,ask,info}=X;
+const {fmt,randSetup,rnd,pick,shuffle,STATIONS,LAST,state,addTime,renderMap,leg,finish,push,next,log,ask,
+  info}=X.take("run-signals.js",["fmt","randSetup","rnd","pick","shuffle","STATIONS","LAST","state","addTime",
+  "renderMap","leg","finish","push","next","log","ask","info"]);
 /* ---------- the signals runs: speed semaphores (Standard Code 281-292) or route signals (Signals guide) ---------- */
 /* Signal data and drawings come from signals.js, shared with the study deck. A question drawn at a signal carries gen:
    the answer key lists those from the tables in signals.js instead of reading each call. */
@@ -45,15 +47,6 @@ function plateAsk(sys,plate,where,shown){
     body:`The signal shows Stop and carries ${P.with}. What do you do?`,
     extra:figBox(sys==="speed"?sigFig(shown,plate==="none"?"":plate):lightFig(shown,plate==="none"?"":plate)),
       right:P.act,wrong,why:P.note,after:()=>{addTime(d);state.parAdd+=d}});
-}
-function legSIG(from,to,events){
-  return ()=>{
-    state.moving=STATIONS[from].n+" and "+STATIONS[to].n;state.inSiding=false;
-    front(...events,
-      ()=>{animateTo(to,
-      ()=>{addTime(runTime(from,to));state.pos=to;state.moving=null;log("At "+STATIONS[to].n);next()})});
-    next();
-  };
 }
 function startSIG(sys){
   state.tt={leg:[]};for(let i=0;i<LAST;i++)state.tt.leg[i]=Math.round((STATIONS[i+1].mp-STATIONS[i].mp)*2.4)+rnd(-1,1);
@@ -236,7 +229,7 @@ function startSIG(sys){
         "interlocking where the line crosses another railroad, and CP Hollis, where double track begins, is "+
         "worked by a control operator. Read each signal as it comes up.</p>","Begin"));
   for(let i=0;i<LAST;i++){
-    push(legSIG(i,i+1,legEv[i]));
+    push(leg(i,i+1,()=>legEv[i]));
     if(meets.has(i+1)){const at=STATIONS[i+1].n;
       push(()=>{state.inSiding=true;addTime(8);state.parAdd+=8;log("In the "+at+" siding for the meet");renderMap();
         next()},
@@ -252,5 +245,5 @@ function startSIG(sys){
     finish((sp?"Extra 812 East":"KV 812 East")+" is in at Ironton at "+fmt(state.clock)+".",false)});
   next();
 }
-Object.assign(X,{startSIG});
+X.give("run-signals.js",{startSIG});
 })();

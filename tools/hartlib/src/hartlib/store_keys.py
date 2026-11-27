@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from typing import NamedTuple, overload
 
 BY_ID, BY_CONTENT = "id", "="
-SecKey = tuple[str, str | None]     # a section's (tag, class): tables_build.section_key
+SecKey = tuple[str, str | None]     # a section's (tag, class): tables_sections.section_key
 
 
 class ById(NamedTuple):
@@ -31,7 +31,7 @@ class PanelKey(NamedTuple):
 
 
 class SectionKey(NamedTuple):
-    """A whole section outside tables_build.SECTIONS."""
+    """A whole section outside tables_sections.SECTIONS."""
     kind: str           # "section"
     tag: str
     cls: str | None
@@ -52,7 +52,7 @@ class BeanKey(NamedTuple):
     kind: str           # "bean"
     section: SecKey
     tag: str
-    group: str          # tables_build.sort_group: "block-names" for the names-only pass of blocks
+    group: str          # tables_sections.sort_group: "block-names" for the names-only pass of blocks
     name: str           # its system name
 
 
