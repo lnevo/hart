@@ -1,7 +1,8 @@
 /* The GCOR track warrant form, shared by the two track warrant games: the exam's modern run (exam/run-modern.js) and
    play's PIR run (play/warrant.js). BOXES are the seventeen boxes with their blanks; SAY is what the dispatcher says for
-   each box, from the values in its blanks. One copy, so the two games cannot drift apart (the exam's lacked Box 4).
-   Loaded before either game; it sets window.TrackWarrant. */
+   each box, from the values in its blanks. formHtml draws the blank form and compare checks a copy of it. One copy,
+   so the two games cannot drift apart (the exam's lacked Box 4). Loaded before either game; it sets
+   window.TrackWarrant. */
 (function(){
 "use strict";
 /* The seventeen boxes of the form, with their blanks. */
@@ -30,5 +31,32 @@ const SAY={1:v=>`Track warrant number ${v[0].split("").join(" ")} is void`,2:v=>
   11:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by train`,12:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by men or equipment`,
   13:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,14:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,
   15:()=>"Flag protection not required against following trains on the same track",16:()=>"Track bulletins in effect",17:v=>`Other specific instructions: ${v[0]}`};
-window.TrackWarrant=Object.freeze({BOXES,SAY});
+/* The blank form: each box with a checkbox and, for each blank, a list of the game's choices. sel holds the choices by
+   blank kind (s, t, w, train, time, mph, txt); esc is the game's HTML escape. */
+function formHtml(sel,esc){
+  return BOXES.map(([n,txt])=>{
+    let k=0;
+    const blank=(_,t)=>{
+      if(!sel[t])throw new Error(`track warrant form: no choices for the {${t}} blank of box ${n}`);
+      const id=`b${n}_${k++}`;
+      return `<select id="${id}" aria-label="Box ${n} blank ${k}"><option value="">—</option>`+
+        `${sel[t].map(v=>`<option>${esc(v)}</option>`).join("")}</select>`;
+    };
+    const body=esc(txt).replace(/\{(\w+)\}/g,blank);
+    return `<label class="box" id="row${n}"><input type="checkbox" id="c${n}"><span class="n">${n}</span><span>${body}</span></label>`;
+  }).join("");
+}
+/* The check: w.boxes is {box: [values]} for the boxes the dispatcher gave; got is {box: {on, v}} as the player filled the
+   form, where a box left out of got counts as unchecked and blank. Returns the numbers of the boxes that are wrong:
+   checked when not given, not checked when given, or with a blank that differs. */
+function compare(w,got){
+  const bad=[];
+  BOXES.forEach(([n])=>{
+    const want=w.boxes[n],g=got[n]||{on:false,v:[]};
+    if(!!want!==!!g.on){bad.push(n);return}
+    if(want&&want.some((x,i)=>(g.v||[])[i]!==x))bad.push(n);
+  });
+  return bad;
+}
+window.TrackWarrant=Object.freeze({BOXES,SAY,formHtml,compare});
 })();
