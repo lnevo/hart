@@ -22,7 +22,6 @@
  "jmri/layouts/hart/scripts/tests/test_discover_nx_publish_free.py": 5,
  "jmri/layouts/hart/scripts/tests/test_hartlib_layout_sml_scripts.py": 3,
  "jmri/layouts/hart/scripts/tests/test_hartlib_moved_scripts.py": 3,
- "jmri/layouts/hart/scripts/tests/test_lcc_mqtt_turnout_aliases.py": 3,
  "jmri/layouts/hart/scripts/tests/test_loco_roster_import.py": 3,
  "jmri/layouts/hart/scripts/tests/test_name_lookups.py": 3,
  "jmri/layouts/hart/scripts/tests/test_panel_status_parts.py": 1,
