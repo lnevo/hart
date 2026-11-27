@@ -6,6 +6,7 @@ and is not in git, so a small stand-in (a 3x3 table) replaces it.
 """
 import contextlib
 import csv
+import dataclasses
 import io
 import sys
 import tempfile
@@ -80,20 +81,18 @@ class StationMapsSmoke(unittest.TestCase):
     def test_main_writes_a_png_and_docx_per_map(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            maps = [dict(m) for m in rlsm.MAPS]
-            for m in maps:
-                m["png"] = tmp / "assets" / m["png"].name
-                m["docx"] = tmp / "docs" / m["docx"].name
+            maps = [dataclasses.replace(m, png=tmp / "assets" / m.png.name, docx=tmp / "docs" / m.docx.name)
+                    for m in rlsm.MAPS]
             with mock.patch.object(rlsm, "MAPS", maps), \
                     mock.patch.object(rlsm, "ASSETS", tmp / "assets"), \
                     mock.patch.object(rlsm, "DOCS", tmp / "docs"):
                 run_quietly(rlsm.main)
-            drawn = [m for m in maps if not m.get("skip")]
+            drawn = [m for m in maps if not m.drawn_elsewhere]
             self.assertTrue(drawn)
             for m in drawn:
-                self.assertTrue(m["png"].is_file(), m["png"])
-                self.assertGreater(m["png"].stat().st_size, 1000, m["png"])
-                self.assertTrue(m["docx"].is_file(), m["docx"])
+                self.assertTrue(m.png.is_file(), m.png)
+                self.assertGreater(m.png.stat().st_size, 1000, m.png)
+                self.assertTrue(m.docx.is_file(), m.docx)
 
 
 if __name__ == "__main__":

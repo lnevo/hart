@@ -10,6 +10,7 @@ its file name and size, and text width is len * size / 2. Nothing is written int
 Golden data: tests/golden/w4c/maps_*.txt.
 """
 import contextlib
+import dataclasses
 import io
 import sys
 import tempfile
@@ -102,8 +103,8 @@ def draw_with_recorder(drawer, meta):
 
 
 def meta_for(key, **extra):
-    base = next(m for m in rlsm.MAPS if m["key"] == key)
-    return {**base, **extra}
+    base = next(m for m in rlsm.MAPS if m.key == key)
+    return dataclasses.replace(base, **extra)
 
 
 class GoldenDrawings(unittest.TestCase):
@@ -259,15 +260,51 @@ class SheetGeometry(unittest.TestCase):
 
 class Tables(unittest.TestCase):
     def test_every_map_has_a_drawer_and_unique_output_paths(self):
-        pngs = [m["png"] for m in rlsm.MAPS]
-        docxs = [m["docx"] for m in rlsm.MAPS]
+        pngs = [m.png for m in rlsm.MAPS]
+        docxs = [m.docx for m in rlsm.MAPS]
         self.assertEqual(len(set(pngs)), len(pngs))
         self.assertEqual(len(set(docxs)), len(docxs))
         for meta in rlsm.MAPS:
-            self.assertIn(meta["key"], rlsm.DRAWERS)
+            self.assertIn(meta.key, rlsm.DRAWERS)
+
+    def test_shared_revisions_are_one_record(self):
+        self.assertEqual({m.pub_id: m.revision for m in rlsm.MAPS},
+                         {"SM-02": rlsm.REV_A, "SM-03": rlsm.REV_A, "SM-04": rlsm.REV_A, "SM-05": rlsm.SM05_REV_B})
+        self.assertEqual([m.png.name for m in rlsm.MAPS if m.drawn_elsewhere],
+                         ["station_map_shenango.png", "station_map_shenango_rotated.png"])
+
+    def test_bad_records_are_named_errors(self):
+        good = rlsm.MAPS[0]
+        bad = {
+            "plane": {"key": "plane"},
+            "a4": {"sheet": "a4"},
+            "SM-": {"pub_id": "DS-01"},
+            ".png": {"png": Path("map.jpg")},
+        }
+        for needle, change in bad.items():
+            with self.subTest(change=change), self.assertRaises(rlsm.StationMapError) as cm:
+                dataclasses.replace(good, **change)
+            self.assertIn(needle, str(cm.exception))
 
     def test_switch_numbers_are_unique(self):
         self.assertEqual(len(set(rlsm.SWNUM.values())), len(rlsm.SWNUM))
+
+
+def station_map(**fields):
+    base = {"key": "west_yard", "title": "T", "pub_id": "SM-1", "revision": rlsm.Revision("A", "x"),
+            "docx": Path("x.docx"), "png": Path("x.png")}
+    return rlsm.StationMap(**{**base, **fields})
+
+
+class StationMapDefaults(unittest.TestCase):
+    def test_desk_sheet_defaults_to_minimal_chrome(self):
+        self.assertIs(station_map().minimal_chrome, True)
+
+    def test_letter_sheet_defaults_to_the_publication_footer(self):
+        self.assertIs(station_map(sheet="letter").minimal_chrome, False)
+
+    def test_stated_value_is_kept(self):
+        self.assertIs(station_map(sheet="letter", minimal_chrome=True).minimal_chrome, True)
 
 
 class DocxOutput(unittest.TestCase):
@@ -276,14 +313,13 @@ class DocxOutput(unittest.TestCase):
             tmp = Path(tmp)
             png = tmp / "map.png"
             Image.new("RGB", (80, 50), (255, 255, 255)).save(png)
-            meta = {**meta, "docx": tmp / "map.docx"}
+            meta = dataclasses.replace(meta, docx=tmp / "map.docx")
             result = rlsm.rebuild_docx(meta, png)
-            self.assertEqual(result, meta["docx"])
+            self.assertEqual(result, meta.docx)
             return Document(result)
 
     def test_eight_by_five_sheet_is_a_full_bleed_landscape_picture(self):
-        doc = self.build({"sheet": "8x5", "png_only": True, "title": "T", "pub_id": "SM-1", "revision": "A",
-                          "effective": "x"})
+        doc = self.build(station_map(sheet="8x5"))
         sec = doc.sections[0]
         self.assertEqual((sec.page_width.inches, sec.page_height.inches), (8.0, 5.0))
         self.assertEqual(sec.left_margin.inches, 0.0)
@@ -291,13 +327,13 @@ class DocxOutput(unittest.TestCase):
         self.assertEqual(doc.inline_shapes[0].width.inches, 8.0)
         self.assertEqual([p.text for p in doc.paragraphs if p.text], [])
 
-    def test_png_only_flag_alone_also_takes_the_sheet_path(self):
-        doc = self.build({"png_only": True, "title": "T", "pub_id": "SM-1", "revision": "A", "effective": "x"})
+    def test_desk_sheet_is_the_default(self):
+        doc = self.build(station_map())
         self.assertEqual(doc.sections[0].page_width.inches, 8.0)
 
     def test_letter_page_has_title_block_and_picture(self):
-        doc = self.build({"title": "Test Map", "subtitle": "A subtitle", "pub_id": "SM-9", "revision": "Q",
-                          "effective": "1 January 2030", "minimal_chrome": True})
+        doc = self.build(station_map(sheet="letter", title="Test Map", subtitle="A subtitle", pub_id="SM-9",
+                                     revision=rlsm.Revision("Q", "1 January 2030"), minimal_chrome=True))
         texts = [p.text for p in doc.paragraphs if p.text]
         self.assertEqual(texts[0], "HART RAILROAD")
         self.assertIn("Station Map  ·  Test Map", texts)
@@ -307,20 +343,18 @@ class DocxOutput(unittest.TestCase):
         self.assertEqual(doc.sections[0].footer.paragraphs[0].text, "")
 
     def test_letter_page_without_minimal_chrome_gets_a_publication_footer(self):
-        doc = self.build({"title": "Test Map", "pub_id": "SM-9", "revision": "Q",
-                          "effective": "1 January 2030"})
+        doc = self.build(station_map(sheet="letter", title="Test Map", pub_id="SM-9",
+                                     revision=rlsm.Revision("Q", "1 January 2030"), minimal_chrome=False))
         footer = " ".join(p.text for p in doc.sections[0].footer.paragraphs)
         self.assertIn("SM-9", footer)
         self.assertNotIn("A subtitle", [p.text for p in doc.paragraphs])
 
-    def test_missing_key_gives_keyerror_not_a_half_written_file(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            png = tmp / "map.png"
-            Image.new("RGB", (8, 5)).save(png)
-            with self.assertRaises(KeyError):
-                rlsm.rebuild_docx({"docx": tmp / "x.docx", "pub_id": "SM-1"}, png)
-            self.assertFalse((tmp / "x.docx").exists())
+    def test_letter_title_block_without_subtitle(self):
+        doc = self.build(station_map(sheet="letter", title="Test Map"))
+        texts = [p.text for p in doc.paragraphs if p.text]
+        self.assertEqual(texts, ["HART RAILROAD",
+                                 "Pittsburgh & Chartiers Valley Division  ·  Neville Island Operations",
+                                 "Station Map  ·  Test Map"])
 
 
 class MainRun(unittest.TestCase):
@@ -330,7 +364,7 @@ class MainRun(unittest.TestCase):
             tmp = Path(tmp)
             fixed = []
             for m in maps:
-                fixed.append({**m, "png": tmp / "a" / m["png"].name, "docx": tmp / "d" / m["docx"].name})
+                fixed.append(dataclasses.replace(m, png=tmp / "a" / m.png.name, docx=tmp / "d" / m.docx.name))
             with mock.patch.object(rlsm, "MAPS", fixed), \
                     mock.patch.object(rlsm, "DRAWERS", drawers), \
                     mock.patch.object(rlsm, "ASSETS", tmp / "a"), \
@@ -345,7 +379,7 @@ class MainRun(unittest.TestCase):
         return Image.new("RGB", (40, 25), (255, 255, 255))
 
     def test_main_writes_drawn_maps_and_reports_skipped_ones(self):
-        maps = [meta_for("west_yard"), meta_for("shenango", skip=True)]
+        maps = [meta_for("west_yard"), meta_for("shenango", drawn_elsewhere=True)]
         drawers = {"west_yard": self.tiny, "shenango": self.tiny}
         written, report = self.run_main(maps, drawers)
         self.assertEqual(

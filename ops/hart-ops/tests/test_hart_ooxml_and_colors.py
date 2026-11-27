@@ -64,6 +64,14 @@ class Ooxml(unittest.TestCase):
         self.assertEqual([(e.tag.split("}")[1], e.get(qn("w:w"))) for e in mars[0]],
                          [("top", "9"), ("left", "0"), ("bottom", "0"), ("right", "0")])
 
+    def test_set_row_height_leaves_one_exact_height_in_whole_twips(self):
+        row = Document().add_table(rows=1, cols=1).rows[0]
+        hart_ooxml.set_row_height(row, 16)
+        hart_ooxml.set_row_height(row, 17.33)
+        heights = row._tr.trPr.findall(qn("w:trHeight"))
+        self.assertEqual(len(heights), 1)
+        self.assertEqual((heights[0].get(qn("w:val")), heights[0].get(qn("w:hRule"))), ("346", "exact"))
+
     def test_clear_table_borders_sets_six_nil_edges(self):
         t = Document().add_table(rows=1, cols=1)
         hart_ooxml.clear_table_borders(t)

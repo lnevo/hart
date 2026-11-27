@@ -260,8 +260,8 @@ def _draw_east_lead(draw: ImageDraw.ImageDraw, g: _Yard, fonts: _Fonts) -> None:
     _label(draw, (g.x_right - 2, (g.ys[0] + lead_y) / 2), "to Princess", fonts.note, anchor="rm", fill=INK)
 
 
-def draw_industries(meta: dict, hooks: Hooks) -> Image.Image:
-    """The East End sheet: ladder and 111, Main West, the industry tracks, Main East, the East Lead."""
+def draw_industries(title: str, hooks: Hooks) -> Image.Image:
+    """The East End sheet titled ``title``: ladder and 111, Main West, the industry tracks, Main East, the East Lead."""
     img, draw = hooks.canvas(SHEET_W, SHEET_H)
     fonts = _Fonts(
         track=hooks.font(ARIAL_BOLD, 22),
@@ -272,7 +272,7 @@ def draw_industries(meta: dict, hooks: Hooks) -> Image.Image:
     )
     rows = industry_rows()
     g = _yard()
-    _title(draw, g.top[0], meta["title"], hooks)  # centred over switch 110
+    _title(draw, g.top[0], title, hooks)  # centred over switch 110
     _draw_ladder_and_111(draw, g, fonts)
     _draw_main_west_and_sr(draw, g, fonts)
     _draw_industry_tracks(draw, g, fonts, rows)

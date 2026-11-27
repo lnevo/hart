@@ -1,0 +1,37 @@
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Special+Elite&display=swap");
+body{background:#0c2f39}
+.desk{width:1200px;height:630px;display:grid;place-items:center;
+  background:radial-gradient(ellipse at 30% 20%,#164c5a 0,#0c2f39 60%,#081f27 100%)}
+.order{position:relative;width:1010px;padding:30px 46px 28px;transform:rotate(-1.6deg);
+  background:linear-gradient(180deg,#e6efd2,#dbe7c3);color:#26331f;
+  font-family:"Source Serif 4",Georgia,serif;box-shadow:0 22px 50px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.4) inset}
+.order::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(60,80,40,.05) 0 1px,transparent 1px 4px)}
+.hd{display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:2px solid #3d4d33;padding-bottom:10px;position:relative}
+.form{position:absolute;left:0;top:0;font:700 46px/1 "Barlow Condensed",sans-serif;border:3px solid #3d4d33;padding:2px 10px}
+.rr{font:700 44px/1 "Barlow Condensed",sans-serif;letter-spacing:.14em}
+.kind{font-size:22px;letter-spacing:.2em}
+.ty{font-family:"Special Elite","Courier New",monospace;color:#1d2b5c;letter-spacing:0;font-weight:400}
+.kind .ty{font-size:28px;padding:0 8px}
+.ln{display:flex;align-items:baseline;gap:10px;font-size:19px;margin-top:14px}
+.ln .ty{font-size:24px;border-bottom:1.5px solid #4c5d40;padding:0 10px 1px;min-width:60px}
+.ln .wide{flex:1}
+.body{font-size:34px;line-height:52px;margin:24px 0 18px;padding:2px 4px;
+  background:repeating-linear-gradient(180deg,transparent 0 50px,#9fb08a 50px 52px)}
+.copy{font-size:15px;letter-spacing:.12em;text-align:center;border-top:1px solid #4c5d40;padding-top:8px}
+.foot{font-size:16px}.foot .ty{font-size:21px}
+.stamp{position:absolute;right:52px;bottom:18px;transform:rotate(-10deg);color:rgba(178,36,36,.82);
+  border:4px solid rgba(178,36,36,.75);border-radius:8px;padding:4px 18px;text-align:center;
+  font:700 48px/0.95 "Barlow Condensed",sans-serif;letter-spacing:.06em}
+.stamp small{font-size:22px;letter-spacing:.1em}
+</style>
+<div class="desk"><div class="order">
+  <div class="hd"><span class="form">19</span><div class="rr">HART RAILROAD</div><div class="kind">TRAIN ORDER No. <b class="ty">516</b></div></div>
+  <div class="ln"><span>Superintendent's Office</span><span class="ty">Nov 14</span><span>20</span><span class="ty">26</span></div>
+  <div class="ln"><span>To</span><span class="ty wide">C &amp; E Extra East</span><span>At</span><span class="ty wide">Study Guide</span><span>Opr.</span><span class="ty">HT</span></div>
+  <div class="body ty">Engs C and E run extra Study Guide to Exam<br>and wait at Flashcards until learned.</div>
+  <div class="copy">CONDUCTOR AND ENGINEMAN MUST EACH HAVE A COPY OF THIS ORDER</div>
+  <div class="ln foot"><span>Repeated at</span><span class="ty">8 10 pm</span><span>Made</span><span class="ty">Complete</span><span>Time</span><span class="ty">8 15 pm</span><span>Opr.</span><span class="ty">HT</span></div>
+  <div class="stamp">OK<br><small>8 15 PM</small></div>
+</div></div>
