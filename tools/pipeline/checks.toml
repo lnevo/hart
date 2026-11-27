@@ -212,7 +212,8 @@ outputs = [
 # and runs to draw the PNG, hashed for the PNG's stamp (read as bytes, stage 4c)
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
-                "jmri/layouts/hart/data/schematic/block_overrides.csv", "jmri/layouts/hart/scripts/render_le_layout.py"]
+                "jmri/layouts/hart/data/schematic/block_overrides.csv", "jmri/layouts/hart/scripts/render_le_layout.py",
+                "jmri/layouts/hart/scripts/render_le_geometry.py", "jmri/layouts/hart/scripts/render_le_draw.py"]
 
 [[step]]
 name = "layout-docs"
@@ -265,7 +266,8 @@ quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "cats/scripts/render_cats_panel.py", "jmri/layouts/hart/data/schematic/stations.csv",
                 "jmri/layouts/hart/data/switches.csv", "jmri/layouts/hart/data/devices_field.csv",
                 "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/block_overrides.csv",
-                "jmri/layouts/hart/scripts/render_le_layout.py"]
+                "jmri/layouts/hart/scripts/render_le_layout.py",
+                "jmri/layouts/hart/scripts/render_le_geometry.py", "jmri/layouts/hart/scripts/render_le_draw.py"]
 
 [[step]]
 name = "wiring-json"
@@ -1144,7 +1146,9 @@ quiet_inputs = ["www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.p
                 "wiki/status/**", ".cursor/**", ".claude/skills/*/SKILL.md", ".claude/agents/*.md",
                 ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
                 "jmri/layouts/hart/data/schematic/block_overrides.csv",
-                "jmri/layouts/hart/scripts/render_le_layout.py", "cats/panels/HART_CTC.xml",
+                "jmri/layouts/hart/scripts/render_le_layout.py",
+                "jmri/layouts/hart/scripts/render_le_geometry.py", "jmri/layouts/hart/scripts/render_le_draw.py",
+                "cats/panels/HART_CTC.xml",
                 "cats/scripts/render_cats_panel.py", "tools/wiring/write_inventory.py",
                 "jmri/layouts/hart/data/schematic/lcos_nodes.csv", "jmri/layouts/hart/data/wiring.csv",
                 "jmri/layouts/hart/output/signal_head_plan.csv"]

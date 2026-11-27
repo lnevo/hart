@@ -44,6 +44,8 @@ STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"   # its desk areas, 
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
 RENDER = paths.LAYOUT_SCRIPTS / "render_le_layout.py"
+# the renderer's parts, which it imports from beside it (render_le_layout.SOURCES): hashed with it into the PNG's stamp
+RENDER_PARTS = (paths.LAYOUT_SCRIPTS / "render_le_geometry.py", paths.LAYOUT_SCRIPTS / "render_le_draw.py")
 
 PAD = 34
 TOP = 78
@@ -256,13 +258,14 @@ def refresh_schematic() -> None:
 
 
 def render_inputs_sha256(geometry: object) -> str:
-    """What the schematic PNG is drawn from: the panel geometry the renderer reads, and the renderer.
+    """What the schematic PNG is drawn from: the panel geometry the renderer reads, and the renderer with its parts.
 
     Recorded in the PNG (png_stamp) and the JSON so --check finds a PNG that needs re-rendering without drawing it
     (the renderer's fonts differ by machine, so its pixels cannot be compared in CI).
     """
     h = hashlib.sha256(repr(geometry).encode("utf-8"))
-    h.update(RENDER.read_bytes())
+    for source in (RENDER, *RENDER_PARTS):
+        h.update(source.read_bytes())
     return h.hexdigest()
 
 
