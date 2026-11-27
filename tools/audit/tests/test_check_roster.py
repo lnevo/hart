@@ -92,6 +92,22 @@ class Problems(Fixture):
         self.assertEqual(1, rc)
         self.assertIn("2121.xml: <dcclocoaddress> number '2122'", out)
 
+    def test_a_short_address_in_the_roster_is_compared_with_locos_csv(self) -> None:
+        entry = self.roster / "roster/2121.xml"
+        entry.write_text(entry.read_text(encoding="utf-8").replace('longaddress="yes"', 'longaddress="no"'),
+                         encoding="utf-8")
+        rc, out = self.run_check()
+        self.assertEqual(1, rc)
+        self.assertIn("CSX 2121: long_address 'yes', the roster's is 'no'", out)
+
+    def test_a_longaddress_other_than_yes_or_no_fails(self) -> None:
+        entry = self.roster / "roster/2121.xml"
+        entry.write_text(entry.read_text(encoding="utf-8").replace('longaddress="yes"', 'longaddress="maybe"'),
+                         encoding="utf-8")
+        rc, out = self.run_check()
+        self.assertEqual(1, rc)
+        self.assertIn("2121.xml: <dcclocoaddress> number '2121', longaddress 'maybe'", out)
+
     def test_a_missing_entry_file_fails(self) -> None:
         (self.roster / "roster/2121.xml").unlink()
         rc, out = self.run_check()

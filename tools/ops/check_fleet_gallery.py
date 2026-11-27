@@ -52,7 +52,8 @@ def stem(name: str) -> str:
 
 
 def _private(row: dict) -> bool:
-    return contains_private_name(" ".join(str(v) for v in row.values()))
+    found: bool = contains_private_name(" ".join(str(v) for v in row.values()))
+    return found
 
 
 def check(gallery: dict, cars: list[dict], locos: list[dict]) -> list[str]:

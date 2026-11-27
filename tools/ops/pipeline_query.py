@@ -20,11 +20,17 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load {ROOT / 'tools/ops/build_pipeline_map.py'}")
 BUILD = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(BUILD)
+
+
+Node = dict[str, Any]   # one node of the map's JSON: id, kind and path are str; the other fields vary by kind
 
 
 class QueryError(Exception):
@@ -32,10 +38,10 @@ class QueryError(Exception):
 
 
 class Graph:
-    def __init__(self, data: dict, root: Path = ROOT):
+    def __init__(self, data: dict[str, Any], root: Path = ROOT):
         self.root = Path(os.path.abspath(root))
-        self.nodes = {n["id"]: n for n in data["nodes"]}
-        self.by_path = {n["path"].rstrip("/"): n["id"] for n in data["nodes"] if n.get("path")}
+        self.nodes: dict[str, Node] = {n["id"]: n for n in data["nodes"]}
+        self.by_path: dict[str, str] = {n["path"].rstrip("/"): n["id"] for n in data["nodes"] if n.get("path")}
         self.ins: dict[str, list[tuple[str, str]]] = {i: [] for i in self.nodes}
         self.outs: dict[str, list[tuple[str, str]]] = {i: [] for i in self.nodes}
         for e in data["edges"]:
@@ -75,7 +81,7 @@ class Graph:
         hint = "closest: " + ", ".join(near[:8]) if near else "no close match; try `find`"
         raise QueryError(f"no node {name!r} ({hint})")
 
-    def find(self, text: str) -> list[dict]:
+    def find(self, text: str) -> list[Node]:
         t = text.lower()
         if not t:
             raise QueryError("empty search text")
@@ -117,7 +123,7 @@ class Graph:
         return out
 
 
-def load_graph(path: Path) -> dict:
+def load_graph(path: Path) -> dict[str, Any]:
     """Read the graph with a structure check only: a stale path elsewhere in the map must not block a query."""
     data = json.loads(path.read_text())
     if not isinstance(data, dict) or not all(isinstance(data.get(k), list) for k in ("nodes", "edges")):
@@ -135,22 +141,23 @@ def load_graph(path: Path) -> dict:
     return data
 
 
-def ident(n: dict) -> str:
-    return n.get("path") or n["id"]
+def ident(n: Node) -> str:
+    name: str = n.get("path") or n["id"]
+    return name
 
 
-def line(n: dict, label: str = "") -> str:
+def line(n: Node, label: str = "") -> str:
     tag = f" [{label}]" if label else ""
     return f"{ident(n)}{tag} ({n['kind']}, {n.get('status', 'live')})"
 
 
-def cmd_find(g: Graph, a) -> tuple[str, object]:
+def cmd_find(g: Graph, a: argparse.Namespace) -> tuple[str, object]:
     hits = g.find(a.text)
     text = "\n".join(f"{ident(n)} | {n['kind']} | {n.get('status', 'live')} | {n.get('desc', '')}" for n in hits)
     return text or f"no node matches {a.text!r}", [{"node": h["id"], "detail": h} for h in hits]
 
 
-def cmd_node(g: Graph, a) -> tuple[str, object]:
+def cmd_node(g: Graph, a: argparse.Namespace) -> tuple[str, object]:
     nid = g.resolve(a.name)
     n = g.nodes[nid]
     lines = [line(n), f"id: {nid}", f"desc: {n.get('desc', '')}", "inputs (written or fed by):"]
@@ -162,7 +169,7 @@ def cmd_node(g: Graph, a) -> tuple[str, object]:
     return "\n".join(lines), obj
 
 
-def cmd_walk(g: Graph, a) -> tuple[str, object]:
+def cmd_walk(g: Graph, a: argparse.Namespace) -> tuple[str, object]:
     if a.depth < 0:
         raise QueryError("--depth must be 0 or more")
     nid = g.resolve(a.name)

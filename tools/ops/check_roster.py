@@ -30,7 +30,7 @@ import csv
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -52,7 +52,7 @@ class Entry(NamedTuple):
     roster_id: str
     file_name: str
     dcc_address: str
-    long_address: str   # "yes" or "no", from the entry file's <dcclocoaddress longaddress>
+    long_address: Literal["yes", "no"]   # from the entry file's <dcclocoaddress longaddress>
 
 
 def rel(path: Path) -> str:
@@ -117,11 +117,12 @@ def read_roster(folder: Path = ROSTER) -> tuple[list[Entry], list[str]]:
         if eloco.get("dccAddress") != addr:
             problems.append(f"{rel(entry_path)}: dccAddress {eloco.get('dccAddress')!r}, roster.xml {addr!r} ({rid})")
         dcc = eloco.find("locoaddress/dcclocoaddress")
-        if dcc is None or dcc.get("number") != addr or dcc.get("longaddress") not in ("yes", "no"):
+        long_address = None if dcc is None else dcc.get("longaddress")
+        if dcc is None or dcc.get("number") != addr or long_address not in ("yes", "no"):
             got = "none" if dcc is None else f"number {dcc.get('number')!r}, longaddress {dcc.get('longaddress')!r}"
             problems.append(f"{rel(entry_path)}: <dcclocoaddress> {got}, want number {addr!r} and longaddress yes or no")
             continue
-        entries.append(Entry(rid, fname, addr, dcc.get("longaddress")))
+        entries.append(Entry(rid, fname, addr, "yes" if long_address == "yes" else "no"))
     named = {"roster.xml"} | {f"roster/{f}" for f in named_files}
     for path in sorted(p for p in folder.rglob("*") if p.is_file()):
         if path.relative_to(folder).as_posix() not in named:

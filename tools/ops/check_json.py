@@ -34,45 +34,53 @@ import argparse
 import json
 import re
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import hand_lists, layer_files  # noqa: E402  the layout files' paths are theirs (check_data_readers)
 IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+# A schema node: a dict whose "type" says which other keys it holds (the module docstring lists them).
+Schema = dict[str, Any]
+# A cross-field rule: the value (already shape-checked against its node, so of the node's type) -> a problem or None.
+Rule = Callable[[Any], "str | None"]
 
 
 # ---------------------------------------------------------------- schema nodes
 
-def obj(keys=None, required=(), other=None, closed=False, key=None, check=None):
+def obj(keys: dict[str, Schema] | None = None, required: Iterable[str] = (), other: Schema | None = None,
+        closed: bool = False, key: Schema | None = None, check: Rule | None = None) -> Schema:
     return {"type": "object", "keys": keys or {}, "required": tuple(required), "other": other, "closed": closed,
             "key": key, "check": check}
 
 
-def arr(items=None, prefix=(), min=0, max=None, unique=None, check=None):   # noqa: A002  (schema words)
+def arr(items: Schema | None = None, prefix: Iterable[Schema] = (), min: int = 0, max: int | None = None,  # noqa: A002
+        unique: str | None = None, check: Rule | None = None) -> Schema:
     return {"type": "array", "items": items or ANY, "prefix": list(prefix), "min": min, "max": max,
             "unique": unique, "check": check}
 
 
-def text(values=None, pattern=None, file=False, nonempty=False, check=None):
+def text(values: Iterable[str] | None = None, pattern: str | None = None, file: bool = False, nonempty: bool = False,
+         check: Rule | None = None) -> Schema:
     return {"type": "str", "values": tuple(values) if values else None, "pattern": pattern, "file": file,
             "nonempty": nonempty, "check": check}
 
 
-def whole(lo=None, hi=None):
+def whole(lo: int | None = None, hi: int | None = None) -> Schema:
     return {"type": "int", "min": lo, "max": hi}
 
 
-def number(above=None, lo=None):
+def number(above: float | None = None, lo: float | None = None) -> Schema:
     return {"type": "number", "above": above, "min": lo}
 
 
-BOOL = {"type": "bool"}
-ANY = {"type": "any"}
+BOOL: Schema = {"type": "bool"}
+ANY: Schema = {"type": "any"}
 
 
-def const(value):
+def const(value: object) -> Schema:
     return {"type": "const", "value": value}
 
 

@@ -27,6 +27,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 _spec = importlib.util.spec_from_file_location("status_counts", HERE / "status_counts.py")
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load {HERE / 'status_counts.py'}")
 sc = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(sc)
 

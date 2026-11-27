@@ -118,16 +118,16 @@ def read_sidecar(path: Path) -> list[dict[str, str]]:
     dup = sorted({c for c in names if names.count(c) > 1})
     if dup:
         raise DataError(f"{where}: described twice: {', '.join(dup)}")
-    for line, r in enumerate(out, 2):
-        at = f"{where} line {line} ({r['column']})"
-        if r["type"] and r["type"] not in TYPES:
-            raise DataError(f"{at}: type {r['type']!r} is not one of {', '.join(TYPES)}")
-        if (r["type"] == "enum") != bool(r["values"]):
+    for line, row in enumerate(out, 2):
+        at = f"{where} line {line} ({row['column']})"
+        if row["type"] and row["type"] not in TYPES:
+            raise DataError(f"{at}: type {row['type']!r} is not one of {', '.join(TYPES)}")
+        if (row["type"] == "enum") != bool(row["values"]):
             raise DataError(f"{at}: an enum column has values, and only an enum column")
         for rule in ("required", "key"):
-            if r[rule]:
-                parse_condition(r[rule], names, at)
-        for ref in filter(None, r["refs"].split(LIST)):
+            if row[rule]:
+                parse_condition(row[rule], names, at)
+        for ref in filter(None, row["refs"].split(LIST)):
             if ":" not in ref:
                 raise DataError(f"{at}: refs {ref!r} is not path/file.csv:column")
     return out
