@@ -207,8 +207,8 @@ class StagingTracks(unittest.TestCase):
             B.StagingTracks(CHAINS).block_between("TO1", "TO2", "t")
 
     def test_the_35_37_track_is_its_own_part_block_on_the_staging_track(self):
-        # the gap is at Switch 37's points (owner, 2026-11-19): the whole track is Track 35-37, a part of OS Switch
-        # 35a and a JMRI block of its own (owner, 2026-11-20)
+        # the gap is at Switch 37's points: the whole track is Track 35-37, a part of OS Switch
+        # 35a and a JMRI block of its own
         try:                    # the staging tracks need the plugin's solve: skipped without it, as the --check scripts
             B.pd.plugin()
         except B.pd.PluginMissing as exc:
@@ -234,7 +234,7 @@ class Blocks(unittest.TestCase):
         self.assertEqual(out["1-2"], {"name": "OS Switch 1"})
 
     def test_a_jmri_block_with_no_detector_stops(self):
-        """No staging block is bound by name alone any more (the helix tracks have their detectors, 2026-11-20): a
+        """No staging block is bound by name alone any more (the helix tracks have their detectors): a
         block JMRI holds with no sensor stops the build rather than draw a block that never shows occupied."""
         F = facts()
         F.occupancy.pop("Track West")
@@ -360,9 +360,9 @@ class MainAndUpper(unittest.TestCase):
         self.assertTrue(all(occ[b].user_name == B.bdm.occupancy_user(b) for b in dm.blocks))
         self.assertTrue(all(occ[b].jmri_name == B.bdm.block_sensor(b) for b in dm.blocks))
         planned = {r.user_name: r.system_name for r in occ.values() if r.system_name}
-        self.assertEqual(len(planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
+        self.assertEqual(len(planned), 36)        # 227-241 2 on Block 41-4
         self.assertTrue(all(v.startswith("M2S") for v in planned.values()))
-        # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
+        # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector
         self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(planned))
         self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track 107A-109B"})
 
@@ -404,7 +404,7 @@ class MainAndUpper(unittest.TestCase):
 
     def test_the_loop_halves_and_225s_corners_on_the_desk(self):
         """The committed bindings: the 107 Loop is two dark desk blocks, Loop 2 on its virtual detector; double crossover
-        225 is a desk block per corner on its corner's detector, as in the Layout Editor (owner, 2026-11-17), and the
+        225 is a desk block per corner on its corner's detector, as in the Layout Editor, and the
         middle of its X, OS Switch 225, has no detector."""
         got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
         loop = {e["name"]: e for e in got["blocks"].values() if "107 Loop" in e.get("name", "")}
@@ -421,7 +421,7 @@ class MainAndUpper(unittest.TestCase):
         self.assertFalse([k for k in got["_main_upper_not_on_desk"] if k.startswith("OS Switch 225")])
 
     def test_main_and_upper_are_ctc(self):
-        # CTC: CATS holds their signals and releases them (owner, 2026-11-17)
+        # CTC: CATS holds their signals and releases them
         self.assertEqual(B.MAIN_UPPER_DISCIPLINE, "CTC")
 
     def test_label_clashes_stop_the_desk(self):
@@ -431,9 +431,9 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(B.label_clashes(log), log[:2])
 
     def test_desk_preferences(self):
-        """The desks' window (the layout hosts' 1920 x 1080 screen less a 48 px taskbar, owner 2026-11-21, derived
+        """The desks' window (the layout hosts' 1920 x 1080 screen less a 48 px taskbar, derived
         from host_screen as the Layout Editor panel's is), one cell per grid unit, each helix track one block over
-        both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the page's CATS
+        both bands and the tighter rows between bands are the page's CATS
         preferences, which the plugin reads."""
         page = B.pd.page_prefs().read()
         keys = ("cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
@@ -446,7 +446,7 @@ class MainAndUpper(unittest.TestCase):
 
     def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
         """Every desk block of main and upper is bound to its block's virtual sensor, which tables.xml holds under
-        that name; only the middle of 225's X, a desk-only block, stays dark (owner, 2026-11-17)."""
+        that name; only the middle of 225's X, a desk-only block, stays dark."""
         got = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
         dm = B.load_device_map()
         sensors = B.railroad.read_tables(B.paths.TABLES_XML).sensors
@@ -528,7 +528,7 @@ class LevelSwitches(unittest.TestCase):
                          ("B", "Switch 225"))
 
     def test_a_double_crossover_takes_a_block_per_corner_named_by_its_legs(self):
-        # corners keyed by band leg, named by the Layout Editor corner each leg reaches (owner, 2026-11-17)
+        # corners keyed by band leg, named by the Layout Editor corner each leg reaches
         legs = {"A": "C", "B": "D", "C": "A", "D": "B"}
         out = B.level_switch_bindings(level_bands(), level_facts(), 0, {"225": legs})
         self.assertEqual(out["225"]["corners"], {"A": "OS Switch 225c", "B": "OS Switch 225d", "C": "OS Switch 225a",
@@ -831,7 +831,7 @@ class CommittedMainAndUpper(unittest.TestCase):
         numbers = {B.bdm.base(k) for k in level}
         internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.level_devices.TURNOUT_PREFIX)}
         self.assertEqual(numbers, internal)                         # double crossover 225 too
-        self.assertEqual(len(numbers), 39)                         # 121 and 125: one crossover each (2026-11-19)
+        self.assertEqual(len(numbers), 39)                         # 121 and 125: one crossover each
         # closed on leg B, but for the crossover halves the plan joins by their leg B: closed on leg C
         self.assertEqual({k for k, e in level.items() if e["normal"] != "B"}, {"121B", "125B"})
         self.assertEqual({e["normal"] for e in level.values()}, {"B", "C"})
@@ -844,7 +844,7 @@ class CommittedMainAndUpper(unittest.TestCase):
 
     def test_each_helix_track_is_one_block_on_the_desk(self):
         """The plugin joins each helix track drawn on staging and on main or upper logically (SHARED), so a train runs
-        from staging to the main and upper levels on the desk, and the join parts no blocks (owner, 2026-11-20): each
+        from staging to the main and upper levels on the desk, and the join parts no blocks: each
         helix track is one desk block, bound once, to the virtual sensor of its helix block, with its planned
         detector on helix node 41."""
         root = ET.parse(B.OUT).getroot()

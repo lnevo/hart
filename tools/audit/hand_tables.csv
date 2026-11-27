@@ -125,7 +125,6 @@ tools/schematic/device_map_inputs.py,UID,4,keep,"shared in code, so already one 
 tools/schematic/device_map_nodes.py,CAP,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/schematic/mast_rule.py,TAU,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/schematic/panel_items.py,POINTS,9,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
-tools/schematic/panel_items.py,STATUS_BEANS,4,move,4 railroad names (occupancy sensor); first sort: code setting
 tools/schematic/panel_stamps.py,CODE,9,keep,"shared in code, so already one source: check_stamps.py and manifest_jobs.py import it (review fix after the code review)"
 tools/schematic/pi_dialog.py,DIALOG,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 tools/schematic/template_edit.py,SPEEDS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)

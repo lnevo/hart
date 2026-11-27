@@ -5,13 +5,13 @@ import html
 import importlib.util
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from collections.abc import Sequence
+from html.parser import HTMLParser
 from pathlib import Path
 from types import ModuleType
 from typing import TypedDict
@@ -27,7 +27,18 @@ INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices  # noqa: E402
 
-RELAY = (ROOT / "jmri/layouts/hart/scripts/mimic_relay.py").read_text(encoding="utf-8")
+RELAY_SCRIPT = ROOT / "jmri/layouts/hart/scripts/mimic_relay.py"
+
+
+def relay_memory_name() -> str:
+    """The memory the relay watches, from the relay loaded in the JMRI fake."""
+    sys.path.insert(0, str(RELAY_SCRIPT.parent / "tests"))
+    try:
+        import jmri_fake
+    finally:
+        sys.path.pop(0)
+    env = jmri_fake.load_script(RELAY_SCRIPT, jmri_fake.Layout())
+    return env["MEMORY"]
 
 
 def _load(name):
@@ -123,41 +134,6 @@ class Levels(unittest.TestCase):
             self.assertEqual({it["level"] for it in rows}, {"staging"})
 
 
-class Page(unittest.TestCase):
-    text = PAGE.read_text(encoding="utf-8")
-    script = text[text.index("<script>"):]
-
-    def test_uses_jmri_json_and_the_relay_memory(self):
-        self.assertIn("/json/", self.script)
-        self.assertIn('fetch("mimic_layout.json"', self.script)
-        memory = re.search(r'MEMORY = "(\w+)"', self.script).group(1)
-        self.assertEqual(f'MEMORY = "{memory}"', re.search(r'MEMORY = "\w+"', RELAY).group(0))
-
-    def test_only_builds_lcos_feedback_topics(self):
-        topics = set(re.findall(r"`(track/[a-z]+)/", self.script))
-        self.assertEqual(topics, {"track/sensor", "track/turnout"})
-        self.assertNotIn("track/cmd", self.script)
-
-    def test_sets_only_virtual_devices_directly(self):
-        # A JSON turnout post commands an LCOS motor, so LCOS feedback goes through the relay memory.
-        # Only the main and upper levels' virtual devices are set directly, behind the VIRTUAL guard.
-        named = re.findall(r'type: "(\w+)", method: "post"', self.script)
-        self.assertEqual(set(named), {"memory"})
-        self.assertEqual(self.script.count('method: "post"'), len(named) + 1)
-        guarded = self.script[self.script.index("function setVirtual("):]
-        guarded = guarded[:guarded.index("\n    }\n")]
-        self.assertIn("{ type, method: \"post\"", guarded)
-        self.assertIn("if (!prefix || !name.startsWith(prefix)", guarded)
-        self.assertNotIn('method: "put"', self.script)
-
-    def test_virtual_guard_is_the_level_device_prefixes(self):
-        guard = re.search(r"const VIRTUAL = \{ turnout: \"([^\"]+)\", sensor: \"([^\"]+)\" \};", self.script)
-        self.assertEqual(guard.groups(), (level_devices.TURNOUT_PREFIX, level_devices.SENSOR_PREFIX))
-
-    def test_no_mac_mimic_endpoints(self):
-        self.assertNotIn("/api/", self.script)
-
-
 _STATUS_HARNESS = r"""
 const els = { "mqtt-dot": {}, "mqtt-label": {} };
 const $ = (id) => els[id];
@@ -185,26 +161,58 @@ class MacMimicStatus(unittest.TestCase):
                                                    ["dot ", "MQTT pi (waiting)"]])
 
 
+class _PageParts(HTMLParser):
+    """The stylesheet and script links, the style tags and the inline script text of one page."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.stylesheets: list[str] = []
+        self.scripts: list[str] = []
+        self.style_tags = 0
+        self.inline = ""
+        self._in_script = False
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        a = dict(attrs)
+        if tag == "link" and a.get("rel") == "stylesheet":
+            self.stylesheets.append(a.get("href") or "")
+        elif tag == "script":
+            self._in_script = not a.get("src")
+            if a.get("src"):
+                self.scripts.append(a["src"] or "")
+        elif tag == "style":
+            self.style_tags += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "script":
+            self._in_script = False
+
+    def handle_data(self, data: str) -> None:
+        if self._in_script:
+            self.inline += data
+
+
 class SharedView(unittest.TestCase):
     """Both pages draw with the same style and render code; only the transport differs."""
 
-    view = (WEB / "mimic_view.js").read_text(encoding="utf-8")
-
     def test_both_pages_load_the_shared_files(self):
-        jmri = PAGE.read_text(encoding="utf-8")
-        mac = MAC_PAGE.read_text(encoding="utf-8")
-        self.assertIn('href="mimic.css"', jmri)
-        self.assertIn('src="mimic_view.js"', jmri)
-        self.assertIn('href="/mimic.css"', mac)
-        self.assertIn('src="/mimic_view.js"', mac)
-        for text in (jmri, mac):
-            self.assertNotIn("<style>", text)
-            self.assertNotIn("function render(", text)
-            self.assertIn("mountMimic(", text)
+        for page, css, js in ((PAGE, "mimic.css", "mimic_view.js"), (MAC_PAGE, "/mimic.css", "/mimic_view.js")):
+            parts = _PageParts()
+            parts.feed(page.read_text(encoding="utf-8"))
+            with self.subTest(page.name):
+                self.assertIn(css, parts.stylesheets)
+                self.assertIn(js, parts.scripts)
+                self.assertEqual(parts.style_tags, 0)
+                self.assertIn("mountMimic(", parts.inline)
+                # Source text on purpose: render() is the view's, and a page that redefined it is visible in its
+                # script. (The JMRI page is also run in Page.test_the_page_keeps_the_views_render.)
+                self.assertNotIn("function render(", parts.inline)
 
+    @unittest.skipUnless(shutil.which("node"), "node is not installed")
     def test_shared_view_sends_nothing(self):
-        for word in ("fetch(", "WebSocket", "EventSource", "track/", "method:", "send("):
-            self.assertNotIn(word, self.view)
+        # Render._render fails when the view calls fetch, WebSocket, EventSource, XMLHttpRequest or sendBeacon.
+        out = Render("test_one_level_hides_the_tabs")._render({"level": "staging", "layout": _layout(blocks=[_rec(addr="S")])}, mount=True)
+        self.assertEqual(out["used"], [])
 
     def test_mac_server_serves_the_shared_files(self):
         mimic = _load("lcos_mqtt_mimic")
@@ -212,20 +220,15 @@ class SharedView(unittest.TestCase):
         self.assertEqual({name.lstrip("/") for name in mimic.SHARED_FILES}, set(SHARED))
 
 
-# Runs mimic_view.js under node with a small fake DOM. Input (JSON file): `state` to
-# merge, the filter box value `q`, the URL `hash`, the body `headsTitle`, and `mount`
-# to call mountMimic() first. Output: each root's element tree, every innerHTML the
-# view set (mountMimic's fixed markup goes through insertAdjacentHTML instead), and
-# the level render() settled on.
-_RENDER_HARNESS = r"""
+_DOM_PRELUDE = r"""
 const fs = require("fs"), vm = require("vm");
-const [viewPath, inputPath] = process.argv.slice(1);
-const input = JSON.parse(fs.readFileSync(inputPath, "utf8"));
+const argv = process.argv.slice(1);
+const input = JSON.parse(fs.readFileSync(argv[argv.length - 1], "utf8"));
 const markup = [];
 class Text { constructor(t) { this.text = t; } }
 class El {
   constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this.hidden = false; this.value = "";
-    this.dataset = {}; }
+    this.dataset = {}; this.listeners = {}; }
   set className(v) { this.attrs.class = v; }
   get className() { return this.attrs.class || ""; }
   setAttribute(k, v) { this.attrs[k] = String(v); }
@@ -233,7 +236,7 @@ class El {
   replaceChildren(...c) { this.kids = c; }
   set textContent(v) { this.kids = [new Text(String(v))]; }
   set innerHTML(v) { markup.push(v); }
-  addEventListener() {}
+  addEventListener(type, fn) { this.listeners[type] = fn; }
   insertAdjacentHTML() {}
 }
 const tree = (n) => n instanceof Text ? n.text
@@ -241,18 +244,70 @@ const tree = (n) => n instanceof Text ? n.text
 const els = {};
 const body = new El("body");
 body.dataset.headsTitle = input.headsTitle || "";
-const document = { body, getElementById: (id) => (els[id] ||= new El(id)),
-  createElement: (t) => new El(t), createTextNode: (t) => new Text(t) };
+const document = new El("document");
+Object.assign(document, { body, getElementById: (id) => (els[id] ||= new El(id)),
+  createElement: (t) => new El(t), createTextNode: (t) => new Text(t) });
+// the view draws and sends nothing: any of these being called is recorded (and throws)
+const used = [];
+const network = Object.fromEntries(["fetch", "WebSocket", "EventSource", "XMLHttpRequest"].map(
+  (n) => [n, function () { used.push(n); throw new Error(n); }]));
+const navigator = { sendBeacon() { used.push("sendBeacon"); } };
+"""
+
+# Runs mimic_view.js under node with a small fake DOM. Input (JSON file): `state` to
+# merge, the filter box value `q`, the URL `hash`, the body `headsTitle`, and `mount`
+# to call mountMimic() first. Output: each root's element tree, every innerHTML the
+# view set (mountMimic's fixed markup goes through insertAdjacentHTML instead), the
+# level render() settled on, and the network calls the view made (none).
+_RENDER_HARNESS = _DOM_PRELUDE + r"""
 const ctx = vm.createContext({ document, location: { hash: input.hash || "" }, window: new El("window"),
-  history: { replaceState() {} }, console });
-vm.runInContext(fs.readFileSync(viewPath, "utf8"), ctx);
+  history: { replaceState() {} }, console, navigator, ...network });
+vm.runInContext(fs.readFileSync(argv[0], "utf8"), ctx);
 document.getElementById("q").value = input.q || "";
 if (input.mount) vm.runInContext("mountMimic();", ctx);
 vm.runInContext("Object.assign(state, " + JSON.stringify(input.state) + "); render();", ctx);
 const roots = {};
 for (const id of ["tabs", "turnouts", "blocks", "heads", "heads-title"]) roots[id] = tree(document.getElementById(id));
 const level = vm.runInContext("state.level", ctx);
-process.stdout.write(JSON.stringify({ roots, markup, level }));
+process.stdout.write(JSON.stringify({ roots, markup, level, used }));
+"""
+
+# Runs the JMRI page (mimic_view.js, then the page's inline script) against a fake WebSocket and fetch. Input:
+# `layout` (what mimic_layout.json holds) and `steps`, each one of {open}, {message: <JSON message>},
+# {click: {to|occ, st}} or {clear}. Output: the layout URLs fetched, the socket's URL, whether render() is still the
+# view's, and for each step the messages the page sent, the alerts and the console errors.
+_PAGE_HARNESS = _DOM_PRELUDE + r"""
+(async () => {
+  const sockets = [], fetched = [], sent = [], alerts = [], errors = [];
+  class FakeSocket {
+    constructor(url) { this.url = url; this.readyState = 0; sockets.push(this); }
+    send(data) { sent.push(JSON.parse(data)); }
+  }
+  FakeSocket.OPEN = 1;
+  const ctx = vm.createContext({ document, window: new El("window"), history: { replaceState() {} },
+    location: { hash: "", protocol: "http:", host: "pi" }, WebSocket: FakeSocket,
+    fetch: (url) => { fetched.push(url); return Promise.resolve({ ok: true, json: () => input.layout }); },
+    alert: (m) => alerts.push(m), confirm: () => true, setTimeout: () => 0, clearTimeout() {},
+    setInterval: () => 0, clearInterval() {}, console: { error: (...a) => errors.push(a.join(" ")) } });
+  vm.runInContext(fs.readFileSync(argv[0], "utf8"), ctx);
+  const viewRender = vm.runInContext("render", ctx);
+  const html = fs.readFileSync(argv[1], "utf8");
+  vm.runInContext(/<script>([\s\S]*?)<\/script>/.exec(html)[1], ctx);
+  await new Promise((r) => setImmediate(r));
+  const sameRender = vm.runInContext("render", ctx) === viewRender;
+  const ws = sockets[0];
+  const out = [];
+  const target = (c) => ({ closest: (sel) => sel === "[data-to]" && c.to !== undefined ? { dataset: { to: c.to, st: c.st } }
+    : sel === "[data-occ]" && c.occ !== undefined ? { dataset: { occ: c.occ, st: c.st } } : null });
+  for (const step of input.steps) {
+    if (step.open) { ws.readyState = 1; ws.onopen(); }
+    if (step.message) ws.onmessage({ data: JSON.stringify(step.message) });
+    if (step.click) document.listeners.click({ target: target(step.click) });
+    if (step.clear) els["clear-occ"].listeners.click();
+    out.push({ sent: sent.splice(0), alerts: alerts.splice(0), errors: errors.splice(0) });
+  }
+  process.stdout.write(JSON.stringify({ fetched, socket: ws && ws.url, sameRender, steps: out }));
+})();
 """
 
 EVIL = '<img src=x onerror=alert(1)>"\''
@@ -269,6 +324,7 @@ class Rendered(TypedDict):
     roots: dict[str, Node]
     markup: list[str]
     level: str
+    used: list[str]
 
 
 def _html(node: Node | str) -> str:
@@ -323,6 +379,7 @@ class Render(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         out: Rendered = json.loads(done.stdout)
         self.assertEqual(out["markup"], [], "the view sets no innerHTML")
+        self.assertEqual(out["used"], [], "the view reaches for no network")
         return out
 
     def _rows(self, out: Rendered, root: str) -> list[Node]:
@@ -489,10 +546,115 @@ class Install(unittest.TestCase):
         self.assertFalse((web / "mimic").exists())
 
 
+class Page(unittest.TestCase):
+    """The JMRI page run under node with a fake WebSocket: what it fetches, sends and refuses."""
+
+    VIRTUAL_T = f"{level_devices.TURNOUT_PREFIX}5"
+    VIRTUAL_B = f"{level_devices.SENSOR_PREFIX}7"
+    LAYOUT = _layout(
+        [_rec("staging", label="Sw 1", name="M2T1", addr="1", n_addr="11", r_addr="12", virtual=False),
+         _rec("main", label="Sw 5", name=VIRTUAL_T, addr=VIRTUAL_T, virtual=True),
+         _rec("main", label="Sw 6", name="IT:OTHER:6", addr="IT:OTHER:6", virtual=True)],
+        [_rec("staging", label="Blk 1", userName="BS 1", name="M2S21", addr="21", virtual=False),
+         _rec("main", label="Blk 7", userName="BS 7", name=VIRTUAL_B, addr=VIRTUAL_B, virtual=True)])
+    HELLO = [{"open": True}, {"message": {"type": "memory", "data": {"name": "IMHART_MIMIC", "value": "ack 1"}}}]
+
+    def _page(self, steps: list[dict]) -> dict:
+        if not shutil.which("node"):
+            self.skipTest("node is not installed")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "input.json"
+            path.write_text(json.dumps({"layout": self.LAYOUT, "steps": steps}), encoding="utf-8")
+            done = subprocess.run(["node", "-e", _PAGE_HARNESS, str(WEB / "mimic_view.js"), str(PAGE), str(path)],
+                                  capture_output=True, text=True, check=False)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        return json.loads(done.stdout)
+
+    def _posts(self, step: dict) -> list[dict]:
+        return [m for m in step["sent"] if m.get("method") == "post"]
+
+    def test_uses_jmri_json_and_the_relay_memory(self):
+        out = self._page(self.HELLO)
+        self.assertEqual(out["fetched"], ["mimic_layout.json"])
+        self.assertEqual(out["socket"], "ws://pi/json/")
+        memory = relay_memory_name()
+        opened = out["steps"][0]["sent"]
+        self.assertIn({"type": "memory", "data": {"name": memory}}, opened)
+        self.assertEqual(self._posts(out["steps"][0])[0]["data"]["name"], memory)  # the relay ping
+        self.assertEqual(out["steps"][1]["alerts"], [])  # the ack of that memory name made the relay ready
+        out = self._page(self.HELLO + [{"click": {"to": "1", "st": "THROWN"}}])
+        self.assertEqual(self._posts(out["steps"][2])[0]["data"]["name"], memory)
+
+    def test_the_page_keeps_the_views_render(self):
+        self.assertTrue(self._page([])["sameRender"])
+
+    def test_only_builds_lcos_feedback_topics(self):
+        out = self._page(self.HELLO + [{"click": {"to": "1", "st": "THROWN"}}, {"click": {"occ": "21", "st": "ACTIVE"}},
+                                       {"clear": True}])
+        lines = []
+        for step in out["steps"][2:]:
+            for post in self._posts(step):
+                lines += post["data"]["value"].splitlines()[1:]
+        topics = {line.split()[0].rsplit("/", 1)[0] for line in lines}
+        self.assertEqual(topics, {"track/sensor", "track/turnout"})
+        self.assertEqual(out["steps"][2]["sent"][0]["data"]["value"].splitlines()[1:],
+                         ["track/sensor/11 INACTIVE", "track/sensor/12 ACTIVE", "track/turnout/1 THROWN"])
+
+    def test_sets_only_virtual_devices_directly(self):
+        # A JSON turnout post commands an LCOS motor, so LCOS feedback goes through the relay memory.
+        # Only the main and upper levels' virtual devices are set directly, behind the VIRTUAL guard.
+        out = self._page(self.HELLO + [
+            {"click": {"to": "1", "st": "THROWN"}},            # LCOS: through the relay memory
+            {"click": {"to": self.VIRTUAL_T, "st": "THROWN"}},
+            {"click": {"occ": self.VIRTUAL_B, "st": "ACTIVE"}},
+            {"click": {"to": "IT:OTHER:6", "st": "THROWN"}},   # a virtual-looking name outside the guard
+        ])
+        lcos, turnout, block, refused = out["steps"][2:]
+        self.assertEqual([p["type"] for p in self._posts(lcos)], ["memory"])
+        self.assertEqual(self._posts(turnout), [{"type": "turnout", "method": "post",
+                                                 "data": {"name": self.VIRTUAL_T, "state": 4}}])
+        self.assertEqual(self._posts(block), [{"type": "sensor", "method": "post",
+                                               "data": {"name": self.VIRTUAL_B, "state": 2}}])
+        self.assertEqual(refused["sent"], [])
+        self.assertIn("refused to set", refused["alerts"][0])
+        self.assertEqual(len(refused["errors"]), 1)
+        everything = [m for step in out["steps"] for m in step["sent"]]
+        self.assertFalse([m for m in everything if m.get("method") not in (None, "post")])
+
+    def test_nothing_is_set_while_the_socket_is_down_or_the_relay_is_not_ready(self):
+        out = self._page([{"click": {"to": self.VIRTUAL_T, "st": "THROWN"}}, {"click": {"to": "1", "st": "THROWN"}}])
+        self.assertEqual([self._posts(s) for s in out["steps"]], [[], []])
+        self.assertIn("Not connected to JMRI", out["steps"][0]["alerts"][0])
+        self.assertIn("not running in JMRI", out["steps"][1]["alerts"][0])
+        out = self._page([{"open": True}, {"click": {"to": "1", "st": "THROWN"}}])
+        self.assertEqual(self._posts(out["steps"][1]), [])  # the relay has not answered yet
+
+    def test_virtual_guard_is_the_level_device_prefixes(self):
+        # a name with each prefix is set; a name that stops short of the prefix is refused
+        for kind, prefix, click in (("turnout", level_devices.TURNOUT_PREFIX, "to"),
+                                    ("sensor", level_devices.SENSOR_PREFIX, "occ")):
+            near = prefix[:-1] + "X1"
+            rows = [_rec("main", label="x", userName="u", name=n, addr=n, virtual=True) for n in (prefix + "1", near)]
+            with self.subTest(kind):
+                self.LAYOUT = _layout(rows if kind == "turnout" else [], rows if kind == "sensor" else [])
+                out = self._page(self.HELLO + [{"click": {click: prefix + "1", "st": "THROWN"}},
+                                               {"click": {click: near, "st": "THROWN"}}])
+                self.assertEqual([p["type"] for p in self._posts(out["steps"][2])], [kind])
+                self.assertEqual(self._posts(out["steps"][3]), [])
+                self.assertIn("refused to set", out["steps"][3]["alerts"][0])
+
+    def test_no_mac_mimic_endpoints(self):
+        out = self._page(self.HELLO + [{"click": {"to": self.VIRTUAL_T, "st": "THROWN"}}, {"clear": True}])
+        self.assertEqual(out["fetched"], ["mimic_layout.json"])
+        self.assertEqual(out["socket"], "ws://pi/json/")
+
+
 class Deploy(unittest.TestCase):
     sync = "\n".join((ROOT / "tools/hosts/deploy" / n).read_text(encoding="utf-8") for n in ("common.sh", "stage.sh"))
     pi = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
 
+    # Source text on purpose: staging and the Pi install run only in a deploy, so what they build and ship is
+    # visible only in the scripts.
     def test_stage_builds_layout_and_carries_relay(self):
         self.assertIn('build_mimic_web.py" --out "$stage/cats/resources/jmri-web/mimic"', self.sync)
         self.assertIn("jmri/layouts/hart/scripts/mimic_relay.py", self.sync)

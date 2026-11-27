@@ -22,6 +22,7 @@ from typing import ClassVar
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pi_drop import jython_rows  # noqa: E402
+from win_jython import windows_jython  # noqa: E402
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
 STEPS = ROOT / "tools/hosts/deploy"   # the entry point's steps: gate, stage, ship_mac, ship_pi, ship_win; common.sh is shared
 WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
@@ -202,6 +203,19 @@ class StageOnly(unittest.TestCase):
             staged = self.out / "pi" / row.path
             self.assertTrue(staged.is_file(), f"pi package lacks {row.path}")
             self.assertTrue(filecmp.cmp(ROOT / row.path, staged, shallow=False), row.path)
+
+    def test_the_windows_package_holds_its_jython_list_and_reader(self) -> None:
+        """The Windows apply step reads the same cats/scripts/pi/jython_scripts.txt with jython_list.ps1 and stops on
+        a row it installs whose script the package lacks: the staged list is the repo's, the reader is staged, and
+        each row Windows installs is in the package."""
+        pkg = self.out / "win"
+        listing = pkg / "cats/scripts/pi/jython_scripts.txt"
+        self.assertTrue(filecmp.cmp(ROOT / "tools/hosts/pi/jython_scripts.txt", listing, shallow=False))
+        self.assertTrue(filecmp.cmp(WIN_SRC / "jython_list.ps1", pkg / "cats/scripts/windows/jython_list.ps1",
+                                    shallow=False))
+        rows = windows_jython(listing, pkg)
+        self.assertGreater(len(rows), 10, rows)
+        self.assertEqual([r for r in rows if not (pkg / r).is_file()], [])
 
     def test_builds_both_packages(self) -> None:
         for host in ("pi", "win"):
@@ -403,6 +417,25 @@ class JythonListTheStageCannotShip(unittest.TestCase):
             self.assertIn(self.ROW, done.stderr)
             self.assertNotIn("DONE (stage only)", done.stdout)
             self.assertFalse((tmp / "network.log").exists())
+
+
+class MacStepStopsOnAMissingScript(unittest.TestCase):
+    """The Mac step stops, naming the script, when a listed jython file is not in the repo, before this Mac
+    changes (HOME and JMRI_HOME point into the test's folder)."""
+
+    def test_names_the_script_and_installs_nothing(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            repo, env = private_clone(tmp)
+            gone = next(r.path for r in jython_rows() if r.role == "sibling")
+            (repo / gone).unlink()
+            env.update(HOME=str(tmp / "home"), JMRI_HOME=str(tmp / "jmri"))
+            done = subprocess.run(["bash", str(repo / "tools/hosts/deploy/ship_mac.sh")], cwd=repo, env=env,
+                                  capture_output=True, text=True, timeout=300, check=False)
+            self.assertEqual(done.returncode, 1, done.stdout[-2000:] + done.stderr[-2000:])
+            self.assertIn(f"names jython the repo lacks: {gone}", done.stderr)
+            self.assertFalse((tmp / "home/JMRI_UserFiles").exists(), "the Mac install began")
+            self.assertFalse((tmp / "jmri").exists())
 
 
 class StampNamesWhatWasShipped(unittest.TestCase):

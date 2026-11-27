@@ -148,8 +148,10 @@ path, names)`: `main_lines.csv`, each stop's block IDs named from the name store
 `retired_virtual_masts.csv`, `{mast: system name}` of the dropped virtual masts, each ordinal once
 (`mast_plan.read_retired` wraps it, a `MapError`); `read_sheet_rows(path)`: `sheets.csv` as `(line, row)` pairs
 (`railroad_facts.read_rows`, a `FactsError` on a missing column; `build_staging_sets.read_sheets` checks the cells);
-`read_panel_items(path)`: `panel_items.json` parsed (`panel_items.load` checks the items, an `ItemsError`). Their
-paths are `RETIRED_MASTS`, `SHEETS_FILE` and `PANEL_ITEMS`.
+`read_panel_items(path)`: `panel_items.json` parsed (`panel_items.load` checks the items, an `ItemsError`).
+`read_panel_lamps(path)`: `panel_lamps.csv`, one `PanelLamp` per status lamp keyed by system name, each value checked
+(`panel_items.status_rows` writes their device master rows). Their paths are `RETIRED_MASTS`, `SHEETS_FILE`,
+`PANEL_ITEMS` and `PANEL_LAMPS`.
 
 ### `hartlib.hand_tables`
 
