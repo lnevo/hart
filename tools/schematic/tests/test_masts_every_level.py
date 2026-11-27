@@ -6,19 +6,16 @@
   masts by device_map_masts, with the owner's names) for staging and build_device_map.plan_masts (mast_plan.plan, the
   function build() calls) for main and upper.
 
-A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel. The
-one mast process changed exactly these entries from the per-level processes before it, and no
-others:
-  staging 6LA and 8RA: one-low -> one-searchlight (Scale is running track by rule);
-  staging virtual masts: 8LC, 10RA, 10RB, 12R and 14R went (virtual masts only as destinations);
-  main and upper: 24 virtual bumper masts came (10 main, 14 upper).
-Step 5 part 2 changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
-(OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
-the masts facing them keep their facing blocks.
-Naming-layers step 12 (2026-11-25, my call under the owner's rule of 2026-11-25) letters two masts of one number and
-direction in the plan order of the tracks they face (plan_tracks.letter_order), not by drawn row: upper level 204R,
-212L, 218R, 222L, 230L and the virtual 210L, 216L, 244R, 246L traded their A and B (Mast 210LA now faces Track 209
-Spur 1). Staging's 6L and 8R pairs would too; the owner's names in the field file keep them.
+A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel.
+The rules the pins hold (ADR-024):
+  running track is by rule, so staging 6LA and 8RA on Scale are searchlights;
+  virtual masts stand only as destinations (on staging 4LA, 4LB, 10LA, 10LB and 12L);
+  a home mast stands at its switch where the switch's OS block ends there (staging 8RA at Switch 7). Main and
+  upper's links are parts of OS blocks but JMRI blocks of their own, so the masts facing them face the links;
+  two masts of one number and direction are lettered A and B in the plan order of the tracks they face
+  (plan_tracks.letter_order), not by drawn row: Mast 210LA faces Track 209 Spur 1. Staging's 6L and 8R pairs keep
+  their letters as owner names in the field file.
+wiki/STATUS_LOG.md records when each of these changed.
 """
 from __future__ import annotations
 
@@ -56,7 +53,7 @@ STAGING_VISIBLE = (
     ("24L", "one-searchlight", 1, "23", "Track West Ext", "OS Switch 23a", "west"),
     ("24RA", "two-searchlight", 2, "23", "Track Main West", "OS Switch 23a", "east"),
     ("24RB", "one-low", 1, "23", "Track S-R", "OS Switch 23b", "east"),
-    ("32R", "one-low", 1, "31", "Track 29-31", "OS Switch 31", "east"),     # a part, its own JMRI block (2026-11-20)
+    ("32R", "one-low", 1, "31", "Track 29-31", "OS Switch 31", "east"),     # a part, its own JMRI block
     ("34L", "two-searchlight", 2, "33", "Track East Lead", "OS Switch 33", "west"),
     ("34R", "one-searchlight", 1, "33", "Track Main East", "OS Switch 33", "east"),
     ("36RA", "two-searchlight", 2, "35", "Track West Ext", "OS Switch 35b", "east"),

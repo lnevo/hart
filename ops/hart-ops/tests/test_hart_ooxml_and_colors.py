@@ -142,6 +142,29 @@ class PubHelpers(unittest.TestCase):
         self.assertEqual(len(doc.tables[0].rows), 2 + len(island))
 
 
+    def test_missing_map_is_a_publication_asset_error(self):
+        with self.assertRaises(hph.PublicationAssetError):
+            hph.add_station_map_page(Document(), map_path="/nonexistent/nope.png")
+
+    def test_unpinned_color_key_has_a_heading_and_every_swatch(self):
+        doc = Document()
+        hph.add_abridged_color_key(doc, heading="Colors")
+        self.assertEqual(doc.paragraphs[0].text, "COLORS")
+        offline, island = crew_master.color_key(MASTER)
+        table = doc.tables[0]
+        self.assertEqual(len(table.rows), 1 + len(island))
+        fills = [[shd.get(qn("w:fill")) for shd in row.cells[0]._tc.tcPr.findall(qn("w:shd"))][-1]
+                 for row in table.rows[1:1 + len(offline)]]
+        self.assertEqual(fills, [fill for fill, _ in offline])
+        self.assertEqual([row.cells[3].text for row in table.rows[1:]], [dest for _, dest in island])
+
+    def test_more_interchange_than_island_colours_is_refused(self):
+        groups = ([("FF0000", "A"), ("00FF00", "B")], [("0000FF", "C")])
+        with mock.patch.object(crew_master, "color_key", lambda m: groups):
+            with self.assertRaisesRegex(hph.ColorKeyError, "2 interchange colours and 1 island"):
+                hph.add_abridged_color_key(Document())
+
+
 class WorkLines(unittest.TestCase):
     def lines(self, **kw):
         base = dict(commodity="Cement", route_from="", route_to="", route_chain="", flow="IN",
