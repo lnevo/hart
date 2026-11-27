@@ -27,6 +27,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[2]
 PAGE_REL = "library/repository-guide.html"
@@ -132,6 +133,13 @@ class PageError(Exception):
     pass
 
 
+class Facts(TypedDict):
+    """What facts() reads from the checkout for the page: counts of submodules, layout scripts and Operations files."""
+    subs: int
+    scripts: int
+    ops: int
+
+
 def _git(*args: str, root: Path) -> str:
     return subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True, text=True).stdout
 
@@ -157,7 +165,7 @@ def word(n: int) -> str:
     return WORDS[n] if n < len(WORDS) else str(n)
 
 
-def facts(root: Path = ROOT) -> dict:
+def facts(root: Path = ROOT) -> Facts:
     """Read every fact the page shows, stopping on any folder, submodule or module the descriptions do not cover."""
     files = _index(root)
     tracked = {d for d in _dirs(files, "") if not d.startswith(".")}
@@ -193,10 +201,10 @@ def facts(root: Path = ROOT) -> dict:
         raise PageError("hartlib modules differ from repo_guide_page.py: not described %s, gone %s"
                         % (sorted(mods - covered) or "none", sorted(covered - mods) or "none"))
 
-    return {"subs": len(names), "scripts": len(scripts), "ops": len(ops)}
+    return Facts(subs=len(names), scripts=len(scripts), ops=len(ops))
 
 
-def regions(f: dict) -> dict:
+def regions(f: Facts) -> dict[str, str]:
     """The contents of each region, by key."""
     sub_n = f["subs"]
     folder_rows = "\n".join(
@@ -223,11 +231,11 @@ def regions(f: dict) -> dict:
     }
 
 
-def fill(page: str, f: dict) -> str:
+def fill(page: str, f: Facts) -> str:
     vals = regions(f)
-    seen = set()
+    seen: set[str] = set()
 
-    def sub(m):
+    def sub(m: re.Match[str]) -> str:
         key = m.group(1)
         if key not in vals:
             raise PageError("unknown region rg:%s in %s" % (key, PAGE_REL))
@@ -260,20 +268,20 @@ def main(argv: list[str] | None = None) -> int:
         if args.check:
             old = (www / PAGE_REL).read_text(encoding="utf-8")
             if fill(old, facts()) != old:
-                print("www/%s is stale; run python3 www/scripts/repo_guide_page.py" % PAGE_REL)
+                print("www/%s is stale; run python3 www/scripts/repo_guide_page.py" % PAGE_REL, file=sys.stderr)
                 return 1
             print("repository-guide.html is current")
             return 0
         print(("wrote" if write(www) else "unchanged:") + " www/" + PAGE_REL)
         return 0
     except PageError as e:
-        print("repo_guide_page: %s" % html.unescape(str(e)))
+        print("repo_guide_page: %s" % html.unescape(str(e)), file=sys.stderr)
         return 1
     except subprocess.CalledProcessError as e:
-        print("repo_guide_page: git %s failed: %s" % (" ".join(e.cmd[3:]), (e.stderr or "").strip()))
+        print("repo_guide_page: git %s failed: %s" % (" ".join(e.cmd[3:]), (e.stderr or "").strip()), file=sys.stderr)
         return 1
     except OSError as e:
-        print("repo_guide_page: %s" % e)
+        print("repo_guide_page: %s" % e, file=sys.stderr)
         return 1
 
 
