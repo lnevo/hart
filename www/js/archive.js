@@ -2,9 +2,11 @@
 // lightbox with credit. On the local server (serve_portal.py) the owner can move items
 // between buckets and fix captions; edits POST to /api/archive/item and land in
 // data/archive.json. The public build (site.json "public": true) is read-only.
-// The HTML is drawn by plain functions (HARTArchive.lib); mount() keeps the state and the listeners.
+// The HTML is drawn by plain functions (HARTArchive.lib); mount() builds the page state and the functions after it
+// draw it and bind its listeners. The view bar, lightbox and toast are js/photo-viewer.js's, loaded first.
 // Tests: scripts/tests/archive_view_test.js.
 (function () {
+  if (!window.HARTViewer) throw new Error("archive.js needs js/photo-viewer.js loaded before it");
   var API_ITEM = "/api/archive/item";
   var API_PING = "/api/archive/ping";
   var API_TO_LAYOUT = "/api/archive/to-layout";
@@ -47,51 +49,12 @@
     }
   }
 
-  // POST body to an archive API; the item it sends back, or an Error with the server's own message.
-  async function postJson(url, body) {
-    var res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    var payload = await res.json().catch(function () { return {}; });
-    if (!res.ok) throw new Error(payload.error || "HTTP " + res.status);
-    return payload;
-  }
-
-  // —— Grid / List / Gallery, remembered per browser and overridable with ?view= ——
+  // —— Grid / List / Gallery, remembered per browser (js/photo-viewer.js) and overridable with ?view= ——
   var VIEW_KEY = "hart.archive.view";
-  var VIEWS = [
-    { id: "grid", label: "Grid" },
-    { id: "list", label: "List" },
-    { id: "gallery", label: "Gallery" },
-  ];
-  var isView = (id) => VIEWS.some(function (v) { return v.id === id; });
 
   function startView(search) {
-    var view = "grid";
-    try {
-      var saved = localStorage.getItem(VIEW_KEY);
-      if (isView(saved)) view = saved;
-    } catch (e) {
-      view = "grid"; // no storage (a private window): Grid unless the URL names a view
-    }
     var param = new URLSearchParams(search).get("view");
-    return isView(param) ? param : view;
-  }
-
-  function storeView(view) {
-    try {
-      localStorage.setItem(VIEW_KEY, view);
-    } catch (e) {
-      return; // no storage: the view lasts until the page closes
-    }
-  }
-
-  function viewBarHtml(view) {
-    return VIEWS.map(function (v) {
-      return '<button type="button" data-view="' + v.id + '" aria-pressed="' + (v.id === view) + '">' + v.label + "</button>";
-    }).join("");
+    return HARTViewer.isView(param) ? param : HARTViewer.storedView(VIEW_KEY);
   }
 
   // —— Filters ——
@@ -337,84 +300,9 @@
     );
   }
 
-  // The lightbox: a modal dialog like the crew map viewer: focus on Close, Tab kept inside, Esc closes, focus goes
-  // back to whatever opened it. at(i) gives item i of what the page shows now and count() how many there are;
-  // painted(it, meta) binds the desk controls drawn into meta.
-  function makeLightbox(look, at, count, painted) {
-    var lb = document.createElement("div");
-    lb.className = "lightbox archive-lightbox";
-    lb.setAttribute("role", "dialog");
-    lb.setAttribute("aria-modal", "true");
-    lb.setAttribute("aria-labelledby", "archive-lb-title");
-    lb.innerHTML =
-      '<button type="button" class="lightbox-close" aria-label="Close">Close</button>' +
-      '<button type="button" class="lightbox-nav prev" aria-label="Previous">‹</button>' +
-      '<button type="button" class="lightbox-nav next" aria-label="Next">›</button>' +
-      '<div class="lightbox-card"><a class="lb-full" target="_blank" rel="noopener"><img alt=""></a>' +
-      '<div class="meta"></div></div>';
-    document.body.appendChild(lb);
-    var img = lb.querySelector("img");
-    var full = lb.querySelector(".lb-full");
-    var meta = lb.querySelector(".meta");
-    var index = 0;
-    var returnTo = null;
-
-    function paint() {
-      var it = at(index);
-      if (!it) return;
-      var src = resolveSrc(it.src);
-      img.src = src;
-      img.alt = it.title || "";
-      full.href = it.full ? resolveSrc(it.full) : src; // a map's large copy loads only when asked for
-      meta.innerHTML = lightboxMetaHtml(it, look);
-      if (look.canEdit) painted(it, meta);
-    }
-
-    function open(i) {
-      index = i;
-      paint();
-      if (!lb.classList.contains("open")) returnTo = document.activeElement;
-      lb.classList.add("open");
-      lb.querySelector(".lightbox-close").focus();
-    }
-
-    function close() {
-      lb.classList.remove("open");
-      // The opener may have been redrawn (a save re-renders the grid); then focus stays put.
-      if (returnTo && returnTo.focus && document.contains(returnTo)) returnTo.focus();
-      returnTo = null;
-    }
-
-    function step(d) {
-      if (!count()) return;
-      index = wrap(index, d, count());
-      paint();
-    }
-
-    // Show item i again after a save, or close when the save moved it out of view.
-    function show(i) {
-      index = i;
-      if (at(index)) paint();
-      else close();
-    }
-
-    lb.querySelector(".lightbox-close").addEventListener("click", close);
-    lb.addEventListener("click", function (e) {
-      if (e.target === lb) close();
-    });
-    lb.querySelector(".prev").addEventListener("click", function (e) {
-      e.stopPropagation();
-      step(-1);
-    });
-    lb.querySelector(".next").addEventListener("click", function (e) {
-      e.stopPropagation();
-      step(1);
-    });
-    return { el: lb, open: open, close: close, step: step, show: show, isOpen: () => lb.classList.contains("open") };
-  }
-
-  var isField = (t) => t === "INPUT" || t === "TEXTAREA" || t === "SELECT";
-  var wrap = (i, d, n) => (i + d + n) % n;
+  // The lightbox's card (js/photo-viewer.js draws the dialog round it): the photo, a link to its full copy, and the
+  // text beside it.
+  var LIGHTBOX_CARD = '<a class="lb-full" target="_blank" rel="noopener"><img alt=""></a><div class="meta"></div>';
 
   // The page's elements by id; a missing one is an error naming it.
   function pageElements() {
@@ -432,269 +320,280 @@
   }
 
   // —— The page ——
+  // pg is the mounted archive: data, items, buckets, look ({kinds, buckets, canEdit}), els (pageElements), ownHash
+  // (the page keeps the bucket in the URL hash), state (the filters: bucket, kind, tag, q), visible (what the grid
+  // shows now), stageIndex, view, showToast and lightbox. The functions below draw it and bind its listeners.
+
+  var inBucket = (pg) => pg.items.filter(function (it) { return it.bucket === pg.state.bucket; });
+
+  function showBucket(pg, id) {
+    pg.state.bucket = id;
+    pg.state.kind = "all";
+    pg.state.tag = "";
+    pg.stageIndex = 0;
+    if (pg.ownHash) {
+      try {
+        history.replaceState(null, "", "#" + id);
+      } catch (e) {
+        console.warn("archive: the address bar keeps its old hash", e); // a file:// page may refuse it
+      }
+    }
+    renderAll(pg);
+  }
+
+  function renderTabs(pg) {
+    pg.els.tabs.innerHTML = tabsHtml(pg.buckets, pg.items, pg.state.bucket);
+    pg.els.note.textContent = BUCKET_NOTES[pg.state.bucket] || "";
+    pg.els.tabs.querySelectorAll("button").forEach(function (btn) {
+      btn.addEventListener("click", function () { showBucket(pg, btn.getAttribute("data-bucket")); });
+    });
+  }
+
+  function renderKinds(pg) {
+    pg.els.kinds.innerHTML = kindsHtml(pg.look.kinds, inBucket(pg), pg.state.kind);
+    pg.els.kinds.querySelectorAll("button").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        pg.state.kind = btn.getAttribute("data-kind");
+        pg.stageIndex = 0;
+        renderKinds(pg);
+        renderGrid(pg);
+      });
+    });
+  }
+
+  function renderTags(pg) {
+    var menu = tagMenu(inBucket(pg), pg.state.tag);
+    pg.state.tag = menu.tag;
+    pg.els.tag.innerHTML = menu.html;
+  }
+
+  function setStage(pg, i) {
+    pg.stageIndex = i;
+    renderGrid(pg);
+  }
+
+  function stageStep(pg, d) {
+    setStage(pg, HARTViewer.wrapIndex(pg.stageIndex, d, pg.visible.length));
+  }
+
+  // A click (or Enter) on an item opens its lightbox; the Gallery view's stage controls; the desk's move buttons.
+  function bindGrid(pg) {
+    var grid = pg.els.grid;
+    grid.querySelectorAll(".archive-open, .archive-row").forEach(function (el) {
+      el.addEventListener("click", function (e) {
+        if (e.target.closest(".archive-move")) return;
+        pg.lightbox.open(Number(el.getAttribute("data-idx")));
+      });
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && e.target === el) pg.lightbox.open(Number(el.getAttribute("data-idx")));
+      });
+    });
+    if (pg.view === "gallery") {
+      HARTViewer.bindStage(grid, function (d) { stageStep(pg, d); }, function (i) { setStage(pg, i); });
+    }
+    bindMoves(pg, grid);
+  }
+
+  function renderGrid(pg) {
+    pg.visible = filterItems(pg.items, pg.state);
+    pg.els.empty.hidden = pg.visible.length > 0;
+    if (!pg.visible.length) {
+      pg.els.grid.innerHTML = "";
+      return;
+    }
+    if (pg.stageIndex >= pg.visible.length) pg.stageIndex = 0;
+    pg.els.grid.className = "archive-view view-" + pg.view;
+    pg.els.grid.innerHTML = viewHtml(pg.view, pg.visible, pg.stageIndex, pg.look);
+    bindGrid(pg);
+  }
+
+  function renderAll(pg) {
+    renderTabs(pg);
+    renderKinds(pg);
+    renderTags(pg);
+    renderGrid(pg);
+  }
+
+  // The index of item id in the page's copy; an error when the page has no such item.
+  function itemIndex(pg, id) {
+    var idx = pg.items.findIndex(function (it) { return it.id === id; });
+    if (idx === -1) throw new Error("the page has no archive item " + JSON.stringify(id));
+    return idx;
+  }
+
+  // Save changes to item id; the saved item the server sends back replaces the page's copy.
+  async function save(pg, id, changes) {
+    itemIndex(pg, id);
+    var payload = await HARTViewer.postJson(API_ITEM, Object.assign({ id: id }, changes));
+    if (!payload.item || payload.item.id !== id) throw new Error("the review server sent back no item " + JSON.stringify(id));
+    // Looked up again: a move that finished during the wait may have shifted the list or taken the item out.
+    var idx = pg.items.findIndex(function (it) { return it.id === id; });
+    if (idx !== -1) pg.items[idx] = payload.item;
+    return payload.item;
+  }
+
+  // Send item id to Session night (Operations); it leaves the archive.
+  async function moveToLayout(pg, id) {
+    itemIndex(pg, id);
+    await HARTViewer.postJson(API_TO_LAYOUT, { id: id });
+    return pg.items.splice(itemIndex(pg, id), 1)[0];
+  }
+
+  // One move button: act(value of attr) saves the move and gives the message for the toast.
+  function onMove(pg, btn, attr, act) {
+    btn.addEventListener("click", async function (e) {
+      e.stopPropagation();
+      try {
+        pg.showToast(await act(btn.getAttribute(attr)));
+        pg.lightbox.close();
+        renderAll(pg);
+      } catch (err) {
+        pg.showToast("Not saved: " + err.message, true);
+      }
+    });
+  }
+
+  function bindMoves(pg, root) {
+    root.querySelectorAll("[data-to-layout]").forEach(function (btn) {
+      onMove(pg, btn, "data-to-layout", async function (id) {
+        var it = await moveToLayout(pg, id);
+        return "Moved “" + (it.title || "item") + "” to Session night (Operations)";
+      });
+    });
+    root.querySelectorAll("[data-move]").forEach(function (btn) {
+      onMove(pg, btn, "data-move", async function (to) {
+        var it = await save(pg, btn.getAttribute("data-id"), { bucket: to });
+        var label = (pg.buckets.find(function (b) { return b.id === to; }) || {}).label || to;
+        return "Moved “" + it.title + "” to " + label;
+      });
+    });
+  }
+
+  function bindEditForm(pg, it, meta) {
+    var form = meta.querySelector(".archive-edit form");
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var changes = {};
+      new FormData(form).forEach(function (v, k) { changes[k] = v; });
+      try {
+        var saved = await save(pg, it.id, changes);
+        pg.showToast("Saved “" + saved.title + "”");
+        renderAll(pg);
+        pg.lightbox.show(Math.max(0, pg.visible.findIndex(function (x) { return x.id === saved.id; })));
+      } catch (err) {
+        pg.showToast("Not saved: " + err.message, true);
+      }
+    });
+  }
+
+  // The lightbox's card for item it: the photo, its full copy (a map's large copy loads only when asked for), the
+  // text, and on the desk the move buttons and the edit form.
+  function paintLightbox(pg, it, lb) {
+    var src = resolveSrc(it.src);
+    var img = lb.querySelector("img");
+    img.src = src;
+    img.alt = it.title || "";
+    lb.querySelector(".lb-full").href = it.full ? resolveSrc(it.full) : src;
+    var meta = lb.querySelector(".meta");
+    meta.innerHTML = lightboxMetaHtml(it, pg.look);
+    if (pg.look.canEdit) {
+      bindMoves(pg, meta);
+      bindEditForm(pg, it, meta);
+    }
+  }
+
+  // The tag menu and the search box; the arrows step the Gallery view while the lightbox is shut (never while typing
+  // in a field; with the lightbox open they step the lightbox, js/photo-viewer.js).
+  function bindFilters(pg) {
+    pg.els.tag.addEventListener("change", function () {
+      pg.state.tag = pg.els.tag.value;
+      pg.stageIndex = 0;
+      renderGrid(pg);
+    });
+    pg.els.search.addEventListener("input", function () {
+      pg.state.q = pg.els.search.value.trim();
+      pg.stageIndex = 0;
+      renderGrid(pg);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (pg.lightbox.isOpen() || pg.view !== "gallery" || !pg.visible.length) return;
+      if (HARTViewer.isField(e.target && e.target.tagName)) return;
+      if (e.key === "ArrowLeft") stageStep(pg, -1);
+      if (e.key === "ArrowRight") stageStep(pg, 1);
+    });
+  }
+
+  // Deep link: photos/#historical/<item id> (ids are in data/archive.json; the search index links them).
+  // Clears the filters, scrolls to the item, highlights it and opens its lightbox. Returns false when
+  // no item has that id, or it is outside the buckets this visitor sees.
+  function openItem(pg, id) {
+    var item = pg.items.filter(function (it) { return it.id === id; })[0];
+    if (!item || (!pg.look.canEdit && item.bucket !== "curated")) return false;
+    pg.state.bucket = item.bucket;
+    pg.state.kind = "all";
+    pg.state.tag = pg.state.q = "";
+    pg.els.search.value = "";
+    renderAll(pg);
+    return HARTOps.revealItem({
+      index: pg.visible.indexOf(item),
+      galleryView: pg.view === "gallery",
+      setStage: function (i) { setStage(pg, i); },
+      grid: pg.els.grid,
+      openLightbox: pg.lightbox.open,
+    });
+  }
+
   // opts.site: site.json (public is read-only); opts.hash === false leaves the URL hash to the page (Photos uses it
   // for its own tabs).
   async function mount(opts) {
     opts = opts || {};
     var site = opts.site || {};
     var data = await HARTOps.loadJson("data/archive.json");
-    var items = data.items || [];
     var buckets = data.buckets || [];
-    var look = { kinds: data.kinds || [], buckets: buckets, canEdit: !site.public && (await apiAvailable()) };
-    var canEdit = look.canEdit;
+    var canEdit = !site.public && (await apiAvailable());
     var els = pageElements();
+    var ownHash = opts.hash !== false;
+    var hash = ownHash ? (location.hash || "").replace("#", "") : "";
+    var pg = {
+      data: data,
+      items: data.items || [],
+      buckets: buckets,
+      look: { kinds: data.kinds || [], buckets: buckets, canEdit: canEdit },
+      els: els,
+      ownHash: ownHash,
+      state: {
+        bucket: canEdit && buckets.some(function (b) { return b.id === hash; }) ? hash : "curated",
+        kind: "all",
+        tag: "",
+        q: "",
+      },
+      visible: [],
+      stageIndex: 0,
+      view: startView(location.search),
+      showToast: HARTViewer.makeToast(els.toast),
+    };
     // The page name stays in the HTML <h1> ("Photos") so it matches every link to it.
     els.lede.textContent = data.lede || "";
     els.editbar.hidden = !canEdit;
-
-    var ownHash = opts.hash !== false;
-    var hash = ownHash ? (location.hash || "").replace("#", "") : "";
     // Curated / To review / Discard tabs are an engineering-desk tool: only the local
     // review server shows them. Everyone else sees the curated set.
     els.tabs.hidden = els.note.hidden = !canEdit;
-    var state = {
-      bucket: canEdit && buckets.some(function (b) { return b.id === hash; }) ? hash : "curated",
-      kind: "all",
-      tag: "",
-      q: "",
-    };
-    var visible = [];
-    var stageIndex = 0;
-    var view = startView(location.search);
-    var toastTimer = null;
-    var inBucket = () => items.filter(function (it) { return it.bucket === state.bucket; });
-
-    function showToast(msg, bad) {
-      els.toast.textContent = msg;
-      els.toast.classList.toggle("bad", !!bad);
-      els.toast.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () {
-        els.toast.classList.remove("show");
-      }, 2600);
-    }
-
-    function showBucket(id) {
-      state.bucket = id;
-      state.kind = "all";
-      stageIndex = 0;
-      state.tag = "";
-      if (ownHash) {
-        try {
-          history.replaceState(null, "", "#" + state.bucket);
-        } catch (e) {
-          console.warn("archive: the address bar keeps its old hash", e); // a file:// page may refuse it
-        }
-      }
-      renderAll();
-    }
-
-    function renderViews() {
-      els.viewBar.innerHTML = viewBarHtml(view);
-      els.viewBar.querySelectorAll("button").forEach(function (b) {
-        b.addEventListener("click", function () {
-          view = b.getAttribute("data-view");
-          storeView(view);
-          renderViews();
-          renderGrid();
-        });
-      });
-    }
-
-    function renderTabs() {
-      els.tabs.innerHTML = tabsHtml(buckets, items, state.bucket);
-      els.note.textContent = BUCKET_NOTES[state.bucket] || "";
-      els.tabs.querySelectorAll("button").forEach(function (btn) {
-        btn.addEventListener("click", function () { showBucket(btn.getAttribute("data-bucket")); });
-      });
-    }
-
-    function renderKinds() {
-      els.kinds.innerHTML = kindsHtml(look.kinds, inBucket(), state.kind);
-      els.kinds.querySelectorAll("button").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          state.kind = btn.getAttribute("data-kind");
-          stageIndex = 0;
-          renderKinds();
-          renderGrid();
-        });
-      });
-    }
-
-    function renderTags() {
-      var menu = tagMenu(inBucket(), state.tag);
-      state.tag = menu.tag;
-      els.tag.innerHTML = menu.html;
-    }
-
-    function stageStep(d) {
-      stageIndex = wrap(stageIndex, d, visible.length);
-      renderGrid();
-    }
-
-    function bindGrid() {
-      var grid = els.grid;
-      grid.querySelectorAll(".archive-open, .archive-row").forEach(function (el) {
-        el.addEventListener("click", function (e) {
-          if (e.target.closest(".archive-move")) return;
-          lightbox.open(Number(el.getAttribute("data-idx")));
-        });
-        el.addEventListener("keydown", function (e) {
-          if (e.key === "Enter" && e.target === el) lightbox.open(Number(el.getAttribute("data-idx")));
-        });
-      });
-      if (view === "gallery") {
-        grid.querySelector(".fleet-stage-nav.prev").addEventListener("click", function () { stageStep(-1); });
-        grid.querySelector(".fleet-stage-nav.next").addEventListener("click", function () { stageStep(1); });
-        grid.querySelectorAll("[data-stage]").forEach(function (b) {
-          b.addEventListener("click", function () {
-            stageIndex = Number(b.getAttribute("data-stage"));
-            renderGrid();
-          });
-        });
-        var cur = grid.querySelector('.archive-strip [aria-current="true"]');
-        if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest", inline: "center" });
-      }
-      bindMoves(grid);
-    }
-
-    function renderGrid() {
-      visible = filterItems(items, state);
-      els.empty.hidden = visible.length > 0;
-      if (!visible.length) {
-        els.grid.innerHTML = "";
-        return;
-      }
-      if (stageIndex >= visible.length) stageIndex = 0;
-      els.grid.className = "archive-view view-" + view;
-      els.grid.innerHTML = viewHtml(view, visible, stageIndex, look);
-      bindGrid();
-    }
-
-    function renderAll() {
-      renderTabs();
-      renderKinds();
-      renderTags();
-      renderGrid();
-    }
-
-    // Save changes to item id; the saved item replaces the page's copy.
-    async function save(id, changes) {
-      var payload = await postJson(API_ITEM, Object.assign({ id: id }, changes));
-      var idx = items.findIndex(function (it) { return it.id === id; });
-      if (idx !== -1) items[idx] = payload.item;
-      return payload.item;
-    }
-
-    // Send item id to Session night (Operations); it leaves the archive.
-    async function moveToLayout(id) {
-      await postJson(API_TO_LAYOUT, { id: id });
-      var idx = items.findIndex(function (it) { return it.id === id; });
-      return idx !== -1 ? items.splice(idx, 1)[0] : null;
-    }
-
-    // One move button: act(value of attr) saves the move and gives the message for the toast.
-    function onMove(btn, attr, act) {
-      btn.addEventListener("click", async function (e) {
-        e.stopPropagation();
-        try {
-          showToast(await act(btn.getAttribute(attr)));
-          lightbox.close();
-          renderAll();
-        } catch (err) {
-          showToast("Not saved: " + err.message, true);
-        }
-      });
-    }
-
-    function bindMoves(root) {
-      root.querySelectorAll("[data-to-layout]").forEach(function (btn) {
-        onMove(btn, "data-to-layout", async function (id) {
-          var it = await moveToLayout(id);
-          return "Moved “" + ((it && it.title) || "item") + "” to Session night (Operations)";
-        });
-      });
-      root.querySelectorAll("[data-move]").forEach(function (btn) {
-        onMove(btn, "data-move", async function (to) {
-          var it = await save(btn.getAttribute("data-id"), { bucket: to });
-          var label = (buckets.find(function (b) { return b.id === to; }) || {}).label || to;
-          return "Moved “" + it.title + "” to " + label;
-        });
-      });
-    }
-
-    function bindEditForm(it, meta) {
-      var form = meta.querySelector(".archive-edit form");
-      form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        var changes = {};
-        new FormData(form).forEach(function (v, k) { changes[k] = v; });
-        try {
-          var saved = await save(it.id, changes);
-          showToast("Saved “" + saved.title + "”");
-          renderAll();
-          lightbox.show(Math.max(0, visible.findIndex(function (x) { return x.id === saved.id; })));
-        } catch (err) {
-          showToast("Not saved: " + err.message, true);
-        }
-      });
-    }
-
-    var lightbox = makeLightbox(look, function (i) { return visible[i]; }, function () { return visible.length; }, function (it, meta) {
-      bindMoves(meta);
-      bindEditForm(it, meta);
+    pg.lightbox = HARTViewer.makeLightbox({
+      className: "lightbox archive-lightbox",
+      titleId: "archive-lb-title",
+      card: LIGHTBOX_CARD,
+      at: function (i) { return pg.visible[i]; },
+      count: function () { return pg.visible.length; },
+      paint: function (it, lb) { paintLightbox(pg, it, lb); },
     });
+    bindFilters(pg);
+    window.HARTArchive.openItem = function (id) { return openItem(pg, id); };
 
-    // Arrows step the lightbox, or the Gallery view while the lightbox is shut; never while typing in a field.
-    document.addEventListener("keydown", function (e) {
-      var t = e.target && e.target.tagName;
-      if (!lightbox.isOpen()) {
-        if (view === "gallery" && visible.length && !isField(t)) {
-          if (e.key === "ArrowLeft") stageStep(-1);
-          if (e.key === "ArrowRight") stageStep(1);
-        }
-        return;
-      }
-      HARTOps.trapTab(lightbox.el, e);
-      if (isField(t)) return;
-      if (e.key === "Escape") lightbox.close();
-      if (e.key === "ArrowLeft") lightbox.step(-1);
-      if (e.key === "ArrowRight") lightbox.step(1);
+    HARTViewer.mountViewBar(els.viewBar, VIEW_KEY, pg.view, function (v) {
+      pg.view = v;
+      renderGrid(pg);
     });
-
-    els.tag.addEventListener("change", function () {
-      state.tag = els.tag.value;
-      stageIndex = 0;
-      renderGrid();
-    });
-    els.search.addEventListener("input", function () {
-      state.q = els.search.value.trim();
-      stageIndex = 0;
-      renderGrid();
-    });
-
-    // Deep link: photos/#historical/<item id> (ids are in data/archive.json; the search index links them).
-    // Clears the filters, scrolls to the item, highlights it and opens its lightbox. Returns false when
-    // no item has that id, or it is outside the buckets this visitor sees.
-    window.HARTArchive.openItem = function (id) {
-      var item = items.filter(function (it) { return it.id === id; })[0];
-      if (!item || (!canEdit && item.bucket !== "curated")) return false;
-      state.bucket = item.bucket;
-      state.kind = "all";
-      state.tag = state.q = "";
-      els.search.value = "";
-      renderAll();
-      return HARTOps.revealItem({
-        index: visible.indexOf(item),
-        galleryView: view === "gallery",
-        setStage: function (i) { stageIndex = i; renderGrid(); },
-        grid: els.grid,
-        openLightbox: lightbox.open,
-      });
-    };
-
-    renderViews();
-    renderAll();
+    renderAll(pg);
     return data;
   }
 
@@ -702,7 +601,7 @@
     mount: mount,
     lib: {
       resolveSrc: resolveSrc, startView: startView, filterItems: filterItems, tabsHtml: tabsHtml, kindsHtml: kindsHtml,
-      tagMenu: tagMenu, viewHtml: viewHtml, lightboxMetaHtml: lightboxMetaHtml, postJson: postJson,
+      tagMenu: tagMenu, viewHtml: viewHtml, lightboxMetaHtml: lightboxMetaHtml, postJson: HARTViewer.postJson,
     },
   };
 })();

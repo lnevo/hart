@@ -150,6 +150,7 @@ www/exam/run-signals.js,RDELAY,18,keep,"game text or schema: exam and play are s
 www/exam/run-signals.js,ROUTE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/run-yard.js,YLOC,8,keep,"shared in code, so already one source: put on window.ExtraEast for the other exam runs (review fix after the code review)"
 www/exam/run.js,RUNS,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/exam/run.js,SHEET_NOTES,4,keep,"game text: the special instructions on each run's train sheet, the exam's fictional line; build_exam_answers.js reads the 1949 list for the answer key (marked by claude)"
 www/exam/run.js,STATIONS,9,keep,"shared in code, so already one source: put on window.ExtraEast; run-modern.js and run-signals.js read it (the exam's fictional line, not the Chartiers stations) (review fix after the code review)"
 www/exam/signals.js,ASPECTS,18,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/signals.js,PLATES,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)

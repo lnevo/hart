@@ -3,9 +3,10 @@
 "use strict";
 const assert = require("assert");
 const path = require("path");
-const { loadPage, same, WWW } = require("./stub_page.js");
+const { StubEl, loadPage, same, WWW } = require("./stub_page.js");
 
 const ARCHIVE_JS = path.join(WWW, "js", "archive.js");
+const BEFORE = [path.join(WWW, "js", "photo-viewer.js")];
 const IDS = ["archive-tabs", "archive-tab-note", "archive-kinds", "archive-tag", "archive-search", "archive-grid", "archive-empty",
   "archive-toast", "archive-lede", "archive-editbar", "archive-view-bar"];
 const DATA = {
@@ -22,7 +23,7 @@ const ok = async () => ({ ok: true, json: async () => ({}) });
 const NO_STORAGE = { getItem() { throw new Error("denied"); }, setItem() { throw new Error("denied"); } };
 
 async function page(opts, mountOpts) {
-  const p = loadPage(ARCHIVE_JS, Object.assign({ ids: IDS, json: { "data/archive.json": DATA } }, opts));
+  const p = loadPage(ARCHIVE_JS, Object.assign({ before: BEFORE, ids: IDS, json: { "data/archive.json": DATA } }, opts));
   await p.ctx.HARTArchive.mount(mountOpts || { site: { public: !(opts && opts.fetch) } });
   return p;
 }
@@ -60,7 +61,7 @@ async function main() {
 
   // The start view: ?view= wins over the stored one; an unknown name, or storage that throws, is Grid.
   const sv = (search, stored, storage) => {
-    const p = loadPage(ARCHIVE_JS, { ids: IDS, json: {}, stored, localStorage: storage });
+    const p = loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS, json: {}, stored, localStorage: storage });
     return p.ctx.HARTArchive.lib.startView(search);
   };
   assert.strictEqual(sv("?view=gallery", { "hart.archive.view": "list" }), "gallery");
@@ -70,7 +71,7 @@ async function main() {
   assert.strictEqual(sv("?view=list", undefined, NO_STORAGE), "list");
 
   // The API: the server's own error message, or the HTTP status when its answer is not JSON.
-  const api = (res) => loadPage(ARCHIVE_JS, { ids: IDS, json: {}, fetch: async () => res }).ctx.HARTArchive.lib;
+  const api = (res) => loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS, json: {}, fetch: async () => res }).ctx.HARTArchive.lib;
   await assert.rejects(api({ ok: false, status: 400, json: async () => ({ error: "no item x" }) }).postJson("/api/archive/item", { id: "x" }), /^Error: no item x$/);
   await assert.rejects(api({ ok: false, status: 502, json: async () => { throw new SyntaxError("html"); } }).postJson("/api/archive/item", {}), /^Error: HTTP 502$/);
   same(await api({ ok: true, json: async () => ({ item: { id: "p1" } }) }).postJson("/api/archive/item", {}), { item: { id: "p1" } });
@@ -119,8 +120,60 @@ async function main() {
   assert.strictEqual(gal.els["archive-grid"].innerHTML, "");
   assert.strictEqual(gal.els["archive-empty"].hidden, false);
 
+  // A move on the desk: the toast says what was saved, or why not (the server's error, or an answer that is not the
+  // item moved); the page's copy changes only on a good answer.
+  const answers = [{ ok: true, json: async () => ({ item: { id: "p1", bucket: "review", title: "Plant <1>" } }) },
+    { ok: true, json: async () => ({ item: { id: "a1", bucket: "review" } }) },
+    { ok: false, status: 400, json: async () => ({ error: "bad bucket" }) },
+    { ok: true, json: async () => ({ item: Object.assign({}, DATA.items[2], { bucket: "curated" }) }) }];
+  const moves = loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS, json: { "data/archive.json": DATA }, hash: "#discard",
+    fetch: async (url, init) => (init.method === "POST" ? answers.shift() : { ok: true }) });
+  const move = new StubEl("button", "");
+  Object.assign(move.attrs, { "data-move": "curated", "data-id": "d1" });
+  moves.els["archive-grid"].all["[data-move]"] = [move];
+  await moves.ctx.HARTArchive.mount({ site: { public: false } });
+  const toast = moves.els["archive-toast"];
+  const press = async () => { for (const fn of move.listeners.click.slice(0, 1)) await fn({ stopPropagation() {} }); };
+  await press();
+  assert.strictEqual(toast.textContent, 'Not saved: the review server sent back no item "d1"');
+  await press();
+  assert.strictEqual(toast.textContent, 'Not saved: the review server sent back no item "d1"');
+  await press();
+  assert.strictEqual(toast.textContent, "Not saved: bad bucket");
+  assert.ok(toast.classList.contains("bad"));
+  assert.match(moves.els["archive-grid"].innerHTML, /Dup/, "still in Discard");
+  await press();
+  assert.strictEqual(toast.textContent, "Moved “Dup” to Curated");
+  assert.ok(!toast.classList.contains("bad"));
+  assert.strictEqual(moves.els["archive-grid"].innerHTML, "", "Discard is empty now");
+  Object.assign(move.attrs, { "data-id": "gone" });
+  await press();
+  assert.strictEqual(toast.textContent, 'Not saved: the page has no archive item "gone"');
+
+  // A move to the layout that finishes while a save waits: the save lands on its own item, not on the slot it had
+  // (a1 was at 1 when the save started; after p1 leaves, d1 is there).
+  const pending = [];
+  const overlap = loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS, json: { "data/archive.json": DATA }, hash: "#discard",
+    fetch: (url, init) => (init.method === "POST" ? new Promise((resolve) => pending.push(resolve)) : Promise.resolve({ ok: true })) });
+  const saveA1 = new StubEl("button", "");
+  Object.assign(saveA1.attrs, { "data-move": "review", "data-id": "a1" });
+  const leaveP1 = new StubEl("button", "");
+  Object.assign(leaveP1.attrs, { "data-to-layout": "p1" });
+  overlap.els["archive-grid"].all["[data-move]"] = [saveA1];
+  overlap.els["archive-grid"].all["[data-to-layout]"] = [leaveP1];
+  await overlap.ctx.HARTArchive.mount({ site: { public: false } });
+  const saving = saveA1.listeners.click[0]({ stopPropagation() {} });
+  const leaving = leaveP1.listeners.click[0]({ stopPropagation() {} });
+  while (pending.length < 2) await new Promise((r) => setImmediate(r));
+  pending[1]({ ok: true, json: async () => ({ ok: true }) });
+  await leaving;
+  pending[0]({ ok: true, json: async () => ({ item: Object.assign({}, DATA.items[1], { bucket: "review" }) }) });
+  await saving;
+  assert.strictEqual(overlap.els["archive-toast"].textContent, "Moved “Ad” to To review");
+  assert.match(overlap.els["archive-grid"].innerHTML, /alt="Dup"/, "d1 is still in Discard");
+
   // A page without one of its elements is an error naming it.
-  const broken = loadPage(ARCHIVE_JS, { ids: IDS.filter((i) => i !== "archive-toast"), json: { "data/archive.json": DATA } });
+  const broken = loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS.filter((i) => i !== "archive-toast"), json: { "data/archive.json": DATA } });
   await assert.rejects(broken.ctx.HARTArchive.mount({ site: { public: true } }), /the archive page has no #archive-toast/);
 
   console.log("archive_view_test: ok");
