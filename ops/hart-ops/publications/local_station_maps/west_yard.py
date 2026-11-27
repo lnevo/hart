@@ -146,10 +146,10 @@ def _draw_lead_barn_main_east(draw: ImageDraw.ImageDraw, g: _Yard, fonts: _Fonts
     _label(draw, (me_label_x, y_me + 18), "Main East", fonts.track, anchor="mt")
 
 
-def draw_west_yard(meta: dict, hooks: Hooks) -> Image.Image:
-    """The West Yard sheet: Main West, the stubs, the octagon to Plane, West Lead, Barn, Main East."""
+def draw_west_yard(title: str, hooks: Hooks) -> Image.Image:
+    """The West Yard sheet titled ``title``: Main West, the stubs, the octagon to Plane, West Lead, Barn, Main East."""
     img, draw = hooks.canvas(SHEET_W, SHEET_H)
-    _title(draw, SHEET_W // 2, meta["title"], hooks)
+    _title(draw, SHEET_W // 2, title, hooks)
     fonts = _Fonts(
         track=hooks.font(ARIAL_BOLD, 22),
         note=hooks.font(GEORGIA, 18),

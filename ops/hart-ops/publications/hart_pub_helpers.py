@@ -17,8 +17,8 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt, RGBColor
-from docx.table import Table, _Cell, _Row
+from docx.shared import Inches, Pt
+from docx.table import Table, _Cell
 
 PUB = Path(__file__).resolve().parent
 ASSETS = PUB / "assets"
@@ -26,12 +26,13 @@ if str(PUB) not in sys.path:
     sys.path.insert(0, str(PUB))
 
 import crew_master  # noqa: E402
-from hart_ooxml import clear_table_borders, set_cell_margins, set_cell_width  # noqa: E402
+from hart_ooxml import clear_table_borders, set_cell_margins, set_cell_width, set_row_height  # noqa: E402
 from hart_pub_styles import (  # noqa: E402,F401
     ACCENT,
     BODY,
     MUTED,
     RULE,
+    WHITE,
     _set_run_font,
     add_body,
     add_bullet_items,
@@ -47,7 +48,6 @@ from hart_pub_styles import (  # noqa: E402,F401
 )
 
 HEADER_FILL = "0F4761"
-WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
 
 @functools.cache
@@ -60,18 +60,6 @@ def _set_col_width(cell: _Cell, width_in: float) -> None:
     """Width for python-docx layout (cell.width) and the one exact w:tcW Word reads."""
     cell.width = Inches(width_in)
     set_cell_width(cell, int(width_in * 1440))
-
-
-def _row_height(row: _Row, height_pt: float) -> None:
-    """Replace the row's w:trHeight with an exact height in points."""
-    tr_pr = row._tr.get_or_add_trPr()
-    old = tr_pr.find(qn("w:trHeight"))
-    if old is not None:
-        tr_pr.remove(old)
-    el = OxmlElement("w:trHeight")
-    el.set(qn("w:val"), str(int(height_pt * 20)))
-    el.set(qn("w:hRule"), "exact")
-    tr_pr.append(el)
 
 
 def _float_to_page_y(table: Table, y_twips: int) -> None:
@@ -334,7 +322,7 @@ def add_diagram_and_timetable_page(
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(0)
         run = p.add_run(text)
-        _set_run_font(run, size_pt=6, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF), name="Arial")
+        _set_run_font(run, size_pt=6, bold=True, color=WHITE, name="Arial")
         set_cell_shading(cell, HEADER_FILL)
 
     for i, (am, station, pm) in enumerate(schedule, start=1):
@@ -465,11 +453,11 @@ def add_abridged_color_key(
     pad_s, pad_d = (14, 20) if compact else (20, 28)
     for ri, row in enumerate(table.rows):
         if pin_to_bottom and ri == 0:
-            _row_height(row, 16)
+            set_row_height(row, 16)
         elif ri == data_start:
-            _row_height(row, hdr_h)
+            set_row_height(row, hdr_h)
         else:
-            _row_height(row, body_h)
+            set_row_height(row, body_h)
         for ci, cell in enumerate(row.cells):
             pad = pad_s if ci in (0, 2) else pad_d
             if pin_to_bottom and ri == 0:
