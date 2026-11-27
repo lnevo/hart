@@ -6074,6 +6074,15 @@
    "path": "tools/audit/trace_hook/sitecustomize.py"
   },
   {
+   "id": "tools/audit/trace_hook/hook_chain.py",
+   "label": "hook_chain.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Runs the next sitecustomize on sys.path after the trace hook or the stamp-audit hook, which would hide it.",
+   "path": "tools/audit/trace_hook/hook_chain.py"
+  },
+  {
    "id": "tools/audit/stamp_audit/sitecustomize.py",
    "label": "sitecustomize.py",
    "kind": "generator",
@@ -13924,6 +13933,16 @@
    "from": "tools/audit/layout_facts_levels.py",
    "to": "tools/audit/check_layout_facts.py",
    "label": "imported"
+  },
+  {
+   "from": "tools/audit/trace_hook/hook_chain.py",
+   "to": "tools/audit/trace_hook/sitecustomize.py",
+   "label": "loaded by path"
+  },
+  {
+   "from": "tools/audit/trace_hook/hook_chain.py",
+   "to": "tools/audit/stamp_audit/sitecustomize.py",
+   "label": "loaded by path"
   },
   {
    "from": "tools/audit/stamp_audit/sitecustomize.py",
