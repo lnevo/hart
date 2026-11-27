@@ -1,6 +1,6 @@
 """The records staging_device_map.py reads staging's rows into and gives its readers: the plugin's names for the
-staging band (StagingNames), its masts as the plugin and build_signals.py read them, and the type names of the shapes
-it passes on. staging_device_map re-exports them."""
+staging band (StagingNames), its masts as the plugin and build_signals.py read them, the type names of the shapes
+it passes on, and the error its readers raise (StagingMapError). staging_device_map re-exports them."""
 from __future__ import annotations
 
 import sys
@@ -17,6 +17,12 @@ Row = dict[str, str]                # a device-master or masts.csv row as its re
 Joined = Mapping[tuple[int, str], tuple[int, str]]      # the plugin's connector partners: (band, node) -> (band, node)
 MastKind = Literal["turnout", "end bumper", "anchor"]   # the kind of slot a mast stands in (mast_kind)
 TrackRuns = dict[str, dict[int, tuple[int, str]]]       # {piece: {k: (n, trial key)}} of the block rows' track keys
+
+
+class StagingMapError(RuntimeError):
+    """Staging's device-map rows, masts.csv's staging rows or the staging drawing break a rule staging_device_map reads
+    them by; the message names the file and row, or the switch or track."""
+
 
 
 class Idents(TypedDict):
