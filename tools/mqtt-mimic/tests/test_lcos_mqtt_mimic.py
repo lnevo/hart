@@ -120,14 +120,14 @@ class LcosMimicNameMapTest(unittest.TestCase):
         import tempfile
         import xml.etree.ElementTree as ET
         from unittest import mock
-        from hartlib import tables_build as TB
+        from hartlib import jmri_bean, tables_sections
         D = self.m.devices
         added = ET.fromstring("<sensor inverted=\"false\"><systemName>M2S9999</systemName>"
                               "<userName>BS Store Added</userName></sensor>")
         row = {c: "" for c in D.COLUMNS}
         row.update(layer="occupancy", user_name="BS Store Added", assignment="field", system_name="M2S9999",
                    jmri_name="M2S9999", description="Added in PanelPro.")
-        row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, added)], row)
+        row["jmri_bean"] = jmri_bean.bean_json([(tables_sections.MQTT_SENSORS, added)], row)
         with tempfile.TemporaryDirectory() as tmp:
             master = Path(tmp) / self.m.devices.ONE_FILE
             master.write_text(D.master_text([r.cells() for r in D.load()] + [row]), encoding="utf-8")

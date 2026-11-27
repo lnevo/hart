@@ -1,4 +1,6 @@
 """The tables file page and its browser data follow tables.xml, and the check catches drift."""
+import contextlib
+import io
 import json
 import re
 import shutil
@@ -6,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
@@ -156,38 +159,53 @@ class Drift(Copy):
 
     def test_unknown_section_stops_the_build(self):
         self.edit("</layout-config>", "  <newthing />\n</layout-config>")
-        with self.assertRaisesRegex(SystemExit, "newthing"):
+        with self.assertRaisesRegex(btb.BrowserDataError, "newthing"):
             btb.outputs(self.www, self.src)
 
     def test_renamed_example_stops_the_build(self):
         self.edit("<userName>Switch 35</userName>", "<userName>Switch 35X</userName>")
-        with self.assertRaisesRegex(SystemExit, "Switch 35"):
+        with self.assertRaisesRegex(btb.BrowserDataError, "Switch 35"):
             btb.outputs(self.www, self.src)
 
     def test_example_with_one_feedback_sensor_stops_the_build(self):
         # The DCC twin carries the same sensors and comes first; change the turnout itself.
         self.xml = re.sub(r'feedback="TWOSENSOR"([^>]*>\s*<systemName>M2T108<)', r'feedback="ONESENSOR"\1', self.xml)
         self.src.write_text(self.xml, encoding="utf-8")
-        with self.assertRaisesRegex(SystemExit, "two sensors"):
+        with self.assertRaisesRegex(btb.BrowserDataError, "two sensors"):
             btb.outputs(self.www, self.src)
 
     def test_missing_conditionalng_action_gives_a_message(self):
         self.edit("<systemName>IQDA:AUTO:0001</systemName>\n      </Socket>",
                   "<systemName>IQDA:GONE</systemName>\n      </Socket>")
         self.src.write_text(self.xml, encoding="utf-8")
-        with self.assertRaisesRegex(SystemExit, "no connected action"):
+        with self.assertRaisesRegex(btb.BrowserDataError, "no connected action"):
             btb.outputs(self.www, self.src)
 
     def test_unknown_region_stops_the_build(self):
         page = self.page().replace("<!--tf:top-->", "<!--tf:nonsense-->x<!--/tf--><!--tf:top-->", 1)
         (self.www / btb.PAGE_REL).write_text(page, encoding="utf-8")
-        with self.assertRaisesRegex(SystemExit, "tf:nonsense"):
+        with self.assertRaisesRegex(btb.BrowserDataError, "tf:nonsense"):
             btb.outputs(self.www, self.src)
+
+    def test_a_page_error_is_a_browser_data_error_not_an_exit(self):
+        """tables_page raises a plain PageError; page_text gives it as a BrowserDataError, chained."""
+        self.assertFalse(issubclass(tables_page.PageError, SystemExit))
+        self.edit("</layout-config>", "  <newthing />\n</layout-config>")
+        with self.assertRaises(btb.BrowserDataError) as raised:
+            btb.outputs(self.www, self.src)
+        self.assertIsInstance(raised.exception.__cause__, tables_page.PageError)
+
+    def test_main_turns_a_page_error_into_exit_1(self):
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(tables_page, "fill", side_effect=tables_page.PageError("the page disagrees")), \
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            self.assertEqual(1, btb.main(["--check"]))
+        self.assertEqual("the page disagrees\n", err.getvalue())
 
     def test_removed_region_stops_the_build(self):
         page = re.sub(r"<!--tf:ctc-columns-->(.*?)<!--/tf-->", r"\1", self.page(), count=1)
         (self.www / btb.PAGE_REL).write_text(page, encoding="utf-8")
-        with self.assertRaisesRegex(SystemExit, "tf:ctc-columns"):
+        with self.assertRaisesRegex(btb.BrowserDataError, "tf:ctc-columns"):
             btb.outputs(self.www, self.src)
 
 
