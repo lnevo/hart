@@ -95,11 +95,44 @@ class Checkout(unittest.TestCase):
         self.assertNotIn("archive/", out)
         self.assertNotIn("tests/", out)
 
+    def test_a_name_assigned_twice_keeps_its_largest_copy(self):
+        self.write("tools/stops.py", NAMES_PY + NAMES_PY.replace(', "west": 4', ''))
+        self.write("tools/audit/hand_tables.csv", HEADER + "tools/stops.py,STOPS,9,move,stations\n")
+        self.assertEqual(self.run_check("--update")[0], 0)
+        self.assertIn("STOPS,4,", (self.root / "tools/audit/hand_tables.csv").read_text())
+        self.assertEqual(self.run_check()[0], 0)
+
+    def test_words_that_explain_a_key_pick_no_column(self):
+        self.write("docs/data/entities.csv", ENTITIES + "override,station_id by kind (split rows),data/over.csv\n")
+        self.write("data/over.csv", "station_id,kind\nwest_yard,split\nnorth_yard,track\n")
+        self.write("tools/cols.py", 'COLUMNS = ("split", "track", "level", "kind", "id", "name", "role", "node")\n')
+        self.assertEqual(self.run_check()[0], 0)
+
     def test_a_bad_row_stops_with_exit_2(self):
         self.write("tools/audit/hand_tables.csv", HEADER + "tools/x.py,X,4,maybe,why\n")
         code, out = self.run_check()
         self.assertEqual(code, 2)
         self.assertIn("hand_tables.csv:2: status 'maybe' is not one of move, unreviewed, keep", out)
+
+
+class JavaScript(unittest.TestCase):
+    def tables(self, src: str) -> dict[str, tuple[int, tuple[str, ...]]]:
+        return {t.name: (t.entries, t.strings) for t in CHT.js_tables("x.js", src)}
+
+    def test_a_regex_literal_is_one_token(self):
+        got = self.tables('const R = [/[(]/, "a"];\nconst S = ["q", "r"];\nconst D = [a / 2, b];\n')
+        self.assertEqual(got["R"], (2, ("a",)))
+        self.assertEqual(got["S"], (2, ("q", "r")))
+        self.assertEqual(got["D"], (2, ()))
+
+    def test_a_trailing_comma_adds_no_entry(self):
+        self.assertEqual(self.tables('const A = ["a", "b", "c",];\n')["A"], (3, ("a", "b", "c")))
+
+    def test_bare_keys_and_a_wrapper_call_are_seen(self):
+        got = self.tables('const B = Object.freeze({\n  SouthYard: "x", EastEnd: "y",\n});\n'
+                          'const M = new Map([["a", 1], ["b", 2]]);\n')
+        self.assertEqual(got["B"], (2, ("SouthYard", "x", "EastEnd", "y")))
+        self.assertEqual(got["M"], (2, ("a", "b")))
 
 
 class Repo(unittest.TestCase):

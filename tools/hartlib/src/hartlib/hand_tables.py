@@ -77,13 +77,21 @@ def masters(entities: Path = ENTITIES, root: Path = paths.REPO_ROOT) -> list[tup
     return out
 
 
+def key_columns(key: str) -> set[str]:
+    """The columns an entities.csv key cell names: the first word of each `+` part of the text before any `(` or
+    `;` ("switch_a + switch_b by kind (split rows)" names switch_a and switch_b), so words that explain the key
+    pick no column."""
+    head = re.split(r"[(;]", key, maxsplit=1)[0]
+    return {part.split()[0] for part in head.split("+") if part.split()}
+
+
 def railroad_names(entities: Path = ENTITIES, root: Path = paths.REPO_ROOT) -> dict[str, str]:
     """{name or id: "kind (master)"} of every value in a CSV master's key column and NAME_COLUMNS, PLAIN values
     left out. A cell holding several items (`;` between them) gives each."""
     out: dict[str, str] = {}
     for kind, key, path in masters(entities, root):
         cols, rows = _rows(path)
-        keys = [c for c in cols if c in NAME_COLUMNS or re.search(rf"(?<!\w){re.escape(c)}(?!\w)", key)]
+        keys = [c for c in cols if c in NAME_COLUMNS or c in key_columns(key)]
         rel = path.relative_to(root).as_posix()
         for row in rows:
             for col in keys:
@@ -94,10 +102,10 @@ def railroad_names(entities: Path = ENTITIES, root: Path = paths.REPO_ROOT) -> d
     return out
 
 
-def master_files(entities: Path = ENTITIES) -> list[str]:
-    """The repo paths railroad_names reads: entities.csv and the CSV masters."""
-    return [ENTITIES.relative_to(paths.REPO_ROOT).as_posix()] + sorted(
-        p.relative_to(paths.REPO_ROOT).as_posix() for _, _, p in masters(entities))
+def master_files(entities: Path = ENTITIES, root: Path = paths.REPO_ROOT) -> list[str]:
+    """The paths under `root` railroad_names reads: entities.csv and the CSV masters."""
+    return [entities.relative_to(root).as_posix()] + sorted(
+        p.relative_to(root).as_posix() for _, _, p in masters(entities, root))
 
 
 def read_listed(path: Path = LISTED) -> dict[tuple[str, str], Listed]:

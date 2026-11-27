@@ -82,9 +82,9 @@ ops/hart-ops/publications/local_station_maps/south_yard.py,LADDER_SWITCHES,4,unr
 ops/hart-ops/publications/rebuild_local_station_maps.py,MAPS,5,move,"4 railroad names (East End, South Yard, West Yard and 1 more; industry, station); first sort: fact with no master"
 ops/hart-ops/publications/rebuild_scale_operating_instructions.py,PUBLICATION,7,unreviewed,holds sentences: page or card text?; first sort: fact with no master
 ops/station_maps/scripts/render_barn_station_map.py,BADGES,4,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-ops/station_maps/scripts/render_barn_station_map.py,LABELS,9,move,"2 railroad names (Barn, track; block override, station); first sort: fact with no master"
+ops/station_maps/scripts/render_barn_station_map.py,LABELS,9,unreviewed,rows of values the rule cannot place; first sort: fact with no master
 ops/station_maps/scripts/render_barn_station_map.py,TRACKS,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
-ops/station_maps/scripts/render_shenango_station_map.py,LABELS,10,move,"6 railroad names (Princess, Track Helix Inner, Track Helix Outer and 3 more; block override, occupancy sensor, station); first sort: fact with no master"
+ops/station_maps/scripts/render_shenango_station_map.py,LABELS,10,move,"5 railroad names (Princess, Track Helix Inner, Track Helix Outer and 2 more; occupancy sensor, station); first sort: fact with no master"
 ops/station_maps/scripts/render_shenango_station_map.py,LOOP,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
 ops/station_maps/scripts/render_south_yard_station_map.py,BADGES,6,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
 ops/station_maps/scripts/render_south_yard_station_map.py,OLD_BADGES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
@@ -150,13 +150,16 @@ tools/wiring/write_inventory.py,NODE_COLUMNS,32,unreviewed,rows of values the ru
 tools/wiring/write_inventory.py,OU_COLUMNS,8,unreviewed,rows of values the rule cannot place; first sort: code setting
 tools/wiring/write_inventory.py,TURNOUT_COLUMNS,20,unreviewed,holds sentences: page or card text?; first sort: code setting
 www/exam/deck-data.js,SECTIONS,8,unreviewed,holds sentences: page or card text?
+www/exam/deck-data.js,SRC,7,unreviewed,rows of values the rule cannot place
 www/exam/run-1949.js,ROAD_TTO,27,unreviewed,holds sentences: page or card text?
 www/exam/run-1949.js,STN_TTO,32,unreviewed,holds sentences: page or card text?
 www/exam/run-modern.js,BOXES,17,unreviewed,holds sentences: page or card text?
 www/exam/run-modern.js,ROAD_TWC,29,unreviewed,holds sentences: page or card text?
 www/exam/run-modern.js,SAY,16,unreviewed,holds sentences: page or card text?
 www/exam/run-modern.js,TW_SEL,7,move,"2 railroad names (101, 103; switch)"
+www/exam/run-signals.js,PLATE_DELAY,6,unreviewed,numbers by item: per-item tweaks or code constants?
 www/exam/run-signals.js,RDELAY,18,unreviewed,numbers by item: per-item tweaks or code constants?
+www/exam/run-signals.js,ROUTE_DELAY,6,unreviewed,numbers by item: per-item tweaks or code constants?
 www/exam/run-yard.js,YLOC,8,unreviewed,numbers by item: per-item tweaks or code constants?
 www/exam/run.js,RUNS,5,unreviewed,rows of values the rule cannot place
 www/exam/run.js,STATIONS,9,unreviewed,numbers by item: per-item tweaks or code constants?
@@ -166,6 +169,8 @@ www/exam/signals.js,ROUTE,6,unreviewed,holds sentences: page or card text?
 www/js/game-engine.js,DECK_SECTIONS,8,unreviewed,holds sentences: page or card text?
 www/js/game-engine.js,SOURCES,8,unreviewed,holds sentences: page or card text?
 www/play/passenger.js,Qs,19,unreviewed,holds sentences: page or card text?
+www/play/passenger.js,SIG287,4,unreviewed,holds sentences: page or card text?
+www/play/passenger.js,SIG292,4,unreviewed,holds sentences: page or card text?
 www/play/passenger.js,run,16,unreviewed,holds sentences: page or card text?
 www/play/pcy.js,POINTS,7,unreviewed,holds sentences: page or card text?
 www/play/pcy.js,Qs,17,unreviewed,holds sentences: page or card text?
@@ -176,13 +181,13 @@ www/play/pir.js,Qs,26,unreviewed,holds sentences: page or card text?
 www/play/pir.js,box5Key,8,unreviewed,holds sentences: page or card text?
 www/play/pir.js,run,16,move,"2 railroad names (121, 125; occupancy sensor, switch)"
 www/play/play.js,LEN,11,unreviewed,rows of values the rule cannot place
-www/play/play.js,LOC,25,move,"2 railroad names (South Yard, West Yard; station)"
+www/play/play.js,LOC,25,move,"3 railroad names (South Yard, West Yard, stucki; industry, station)"
 www/play/play.js,TAG,8,unreviewed,rows of values the rule cannot place
 www/play/road-engine.js,LEG,13,unreviewed,numbers by item: per-item tweaks or code constants?
 www/play/road-engine.js,Q,5,unreviewed,holds sentences: page or card text?
 www/play/road-engine.js,ST,14,unreviewed,numbers by item: per-item tweaks or code constants?
 www/play/road-engine.js,TT,6,unreviewed,numbers by item: per-item tweaks or code constants?
-www/play/road.js,Qs,12,unreviewed,holds sentences: page or card text?
+www/play/road.js,Qs,11,unreviewed,holds sentences: page or card text?
 www/play/road.js,ROAD,5,unreviewed,holds sentences: page or card text?
 www/play/road.js,STN,8,unreviewed,holds sentences: page or card text?
 www/play/road.js,coal,15,unreviewed,holds sentences: page or card text?
@@ -194,7 +199,7 @@ www/play/warrant.js,TW_SEL,7,move,"2 railroad names (121, 125; occupancy sensor,
 www/play/warrant.js,api,12,unreviewed,holds sentences: page or card text?
 www/scripts/build_cats_layout_index.py,SIG_LOC,16,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
 www/scripts/build_exam_answers.js,ENT,6,unreviewed,rows of values the rule cannot place
-www/scripts/build_exam_answers.js,FRIENDLY,8,unreviewed,holds sentences: page or card text?
+www/scripts/build_exam_answers.js,FRIENDLY,8,unreviewed,rows of values the rule cannot place
 www/scripts/build_helix_page.py,GROUPS,6,unreviewed,holds sentences: page or card text?; first sort: page text
 www/scripts/build_layout_docs.py,LABELS,14,move,"10 railroad names (block:1C-5A#1+1C-5A#2, block:23B-35B, block:33A-35A and 7 more; block); first sort: page text"
 www/scripts/build_layout_docs.py,SOQ_WORDS,11,unreviewed,rows of values the rule cannot place; first sort: page text

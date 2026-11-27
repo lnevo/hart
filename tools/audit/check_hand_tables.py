@@ -79,7 +79,7 @@ def py_tables(path: str, src: str) -> list[Table]:
     """The top-level tables of a Python script's text ([] when Python 3 cannot parse it: Jython is left out)."""
     try:
         tree = ast.parse(src)
-    except SyntaxError:
+    except (SyntaxError, ValueError):     # ValueError: a NUL byte, before Python 3.12
         return []
     out = []
     for node in tree.body:
@@ -103,43 +103,71 @@ def py_tables(path: str, src: str) -> list[Table]:
 
 # ---------------------------------------------------------------- JavaScript
 
-JS_START = re.compile(r"^(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?=[\[{])", re.M)
-JS_TOKEN = re.compile(r"""//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`"""
-                      r"""|\b\d+(?:\.\d+)?\b|[\[\]{}(),]""", re.S)
+# a table: `const|let|var NAME = ` then `[` or `{`, or one wrapper call round it (Object.freeze, new Map, new Set)
+JS_START = re.compile(r"^(?:export\s+)?(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*"
+                      r"(?:Object\.freeze\(|new\s+(?:Map|Set)\()?(?=[\[{])", re.M)
+JS_TOKEN = re.compile(r"""(?P<skip>\s+|//[^\n]*|/\*.*?\*/)"""
+                      r"""|(?P<str>"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)"""
+                      r"""|(?P<key>[A-Za-z_$][\w$]*)(?=\s*:)|(?P<num>\d+(?:\.\d+)?)(?![\w$])"""
+                      r"""|(?P<word>[A-Za-z_$][\w$]*)|(?P<op>[\[\]{}(),:]|=>|.)""", re.S)
+# a regex literal, taken where the token before a `/` cannot end a value (so `/` is not division)
+JS_REGEX = re.compile(r"/(?![*/])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*")
+REGEX_AFTER = {"[", "(", ",", ":", "=", "!", "&", "|", "?", "{", ";", "=>", "return"}
 
 
 def _unquote(tok: str) -> str:
     return re.sub(r"\\(.)", r"\1", tok[1:-1])
 
 
+def js_tokens(src: str, pos: int):
+    """(kind, text) of the tokens of `src` from `pos`: str, key (a bare object key), num, word, op and regex, with
+    whitespace and comments dropped."""
+    prev = "="
+    while pos < len(src):
+        if src[pos] == "/" and prev in REGEX_AFTER:
+            rx = JS_REGEX.match(src, pos)
+            if rx:
+                pos = rx.end()
+                prev = "regex"
+                yield "regex", rx.group()
+                continue
+        m = JS_TOKEN.match(src, pos)
+        if m is None:
+            return
+        pos = m.end()
+        kind = m.lastgroup or "op"
+        if kind == "skip":
+            continue
+        prev = m.group() if kind in ("op", "word") else kind
+        yield kind, m.group()
+
+
 def js_tables(path: str, src: str) -> list[Table]:
-    """The tables of a script's text that start a line as `const|let|var NAME = [` or `{`. A lexical scan:
-    strings, template strings and comments are skipped as whole tokens, and entries are the commas at depth 1."""
+    """The tables of a script's text that start a line as JS_START. A lexical scan: strings, template strings,
+    comments and regex literals are whole tokens, a bare object key counts as a string, and an entry is an item
+    at depth 1 (a trailing comma adds none)."""
     out = []
     for m in JS_START.finditer(src):
-        depth, entries, any_item, strings, numbers = 0, 0, False, [], 0
-        for tok in JS_TOKEN.finditer(src, m.end()):
-            t = tok.group()
-            if t in "[{(":
+        depth, entries, item, strings, numbers = 0, 0, False, [], 0
+        for kind, t in js_tokens(src, m.end()):
+            if kind == "op" and t in "[{(":
                 depth += 1
-                if depth == 2:
-                    any_item = True
-            elif t in "]})":
+                item = item or depth == 2
+            elif kind == "op" and t in "]})":
                 depth -= 1
                 if depth == 0:
                     break
-            elif t == ",":
-                if depth == 1:
-                    entries += 1
-            elif t.startswith(("//", "/*")):
-                continue
-            elif t[0] in "\"'`":
-                strings.append(_unquote(t))
-                any_item = any_item or depth == 1
-            else:
+            elif kind == "op" and t == "," and depth == 1:
+                entries, item = entries + item, False
+            elif kind in ("str", "key"):
+                strings.append(_unquote(t) if kind == "str" else t)
+                item = item or depth == 1
+            elif kind == "num":
                 numbers += 1
-                any_item = any_item or depth == 1
-        entries += 1 if any_item else 0
+                item = item or depth == 1
+            elif depth == 1 and kind in ("word", "regex"):
+                item = True
+        entries += item
         line = src.count("\n", 0, m.start()) + 1
         out.append(Table(path, m.group(1), line, entries, tuple(strings), numbers))
     return out
@@ -153,26 +181,25 @@ def tables_in(path: str, src: str) -> list[Table]:
 # ---------------------------------------------------------------- classes
 
 def top_dirs(root: Path = REPO) -> frozenset[str]:
-    return frozenset(p.name for p in root.iterdir() if p.is_dir() and not p.name.startswith("."))
+    """The top folders of the files git tracks at `root`."""
+    return frozenset(p.split("/", 1)[0] for p in files.tracked_files(root, submodules=False) if "/" in p)
 
 
-TOP_DIRS = top_dirs()
-
-
-def is_repo_path(s: str) -> bool:
-    """A string that starts with one of the repo's top folders and a slash, such as tools/audit/."""
+def is_repo_path(s: str, tops: frozenset[str]) -> bool:
+    """A string that starts with one of the top folders `tops` and a slash, such as tools/audit/."""
     head, sep, _ = s.lstrip("./").partition("/")
-    return bool(sep) and head in TOP_DIRS
+    return bool(sep) and head in tops
 
 
-def classify(table: Table, names: dict[str, str]) -> tuple[str, str]:
-    """(railroad | setting | unclear, why) of a table, against `names` (railroad_names)."""
+def classify(table: Table, names: dict[str, str], tops: frozenset[str] = frozenset()) -> tuple[str, str]:
+    """(railroad | setting | unclear, why) of a table, against `names` (railroad_names) and the checkout's top
+    folders `tops` (top_dirs)."""
     hits = sorted({s for s in table.strings if s in names})
     if len(hits) >= MIN_HITS:
         shown = ", ".join(hits[:3]) + (f" and {len(hits) - 3} more" if len(hits) > 3 else "")
         kinds = sorted({names[h].split(" (")[0] for h in hits})
         return "railroad", f"{len(hits)} railroad names ({shown}; {', '.join(kinds)})"
-    if any(is_repo_path(s) for s in table.strings):
+    if any(is_repo_path(s, tops) for s in table.strings):
         return "unclear", "names repo files: an exception list?"
     if table.strings and not table.numbers and all(ONE_WORD.fullmatch(s) for s in table.strings):
         return "setting", "one-word strings only: no railroad name, number or repo path"
@@ -191,11 +218,12 @@ def found_tables(root: Path = REPO) -> list[Table]:
     return out
 
 
-def problems(tables: list[Table], names: dict[str, str], listed: dict[tuple[str, str], Listed]) -> list[str]:
+def problems(tables: list[Table], names: dict[str, str], listed: dict[tuple[str, str], Listed],
+             tops: frozenset[str] = frozenset()) -> list[str]:
     out = []
     seen = set()
     for t in tables:
-        cls, why = classify(t, names)
+        cls, why = classify(t, names, tops)
         key = (t.file, t.name)
         row = listed.get(key)
         if row is not None:
@@ -213,7 +241,9 @@ def problems(tables: list[Table], names: dict[str, str], listed: dict[tuple[str,
 
 def updated(tables: list[Table], listed: dict[tuple[str, str], Listed]) -> list[Listed]:
     """The rows --update writes: rows of tables still found, entries lowered where the table shrank."""
-    now = {(t.file, t.name): t.entries for t in tables}
+    now: dict[tuple[str, str], int] = {}
+    for t in tables:                     # a name assigned twice in a file: its largest copy
+        now[(t.file, t.name)] = max(now.get((t.file, t.name), 0), t.entries)
     return [Listed(r.file, r.table, min(r.entries, now[k]), r.status, r.reason)
             for k, r in listed.items() if k in now]
 
@@ -227,12 +257,13 @@ def main(argv: list[str] | None = None, root: Path = REPO) -> int:
         names = hand_tables.railroad_names(root / ENTITIES, root)
         listed = hand_tables.read_listed(root / LISTED)
         tables = found_tables(root)
+        tops = top_dirs(root)
     except (HandTablesError, files.GitError) as exc:
         print(f"check_hand_tables: {exc}", file=sys.stderr)
         return 2
     if args.list:
         for t in tables:
-            cls, why = classify(t, names)
+            cls, why = classify(t, names, tops)
             row = listed.get((t.file, t.name))
             print(f"{t.file}:{t.line}\t{t.name}\t{cls}\t{row.status if row else '-'}\t{why}")
         return 0
@@ -241,7 +272,7 @@ def main(argv: list[str] | None = None, root: Path = REPO) -> int:
         hand_tables.write_listed(root / LISTED, rows)
         print(f"check_hand_tables: {len(rows)} rows kept, {len(listed) - len(rows)} dropped")
         return 0
-    found = problems(tables, names, listed)
+    found = problems(tables, names, listed, tops)
     for line in found:
         print(line)
     counts = {s: sum(1 for r in listed.values() if r.status == s) for s in hand_tables.STATUSES}
