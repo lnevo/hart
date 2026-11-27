@@ -17,7 +17,9 @@ ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import coordinator  # noqa: E402
 
-SYNC = ROOT / "tools/hosts/deploy"   # the deploy steps: the lists of scripts are in common.sh, stage.sh and ship_mac.sh
+SYNC = ROOT / "tools/hosts/deploy"   # the deploy steps: stage.sh and common.sh name the scripts they ship
+# the jython the Mac and the Pi install, one "ROLE PATH" row each (common.sh and the Pi apply step read it)
+JYTHON_LIST = ROOT / "tools/hosts/pi/jython_scripts.txt"
 FUTURE = re.compile(r"^\s*from\s+__future__\s+import\s+[^#\n]*\bprint_function\b", re.M)
 
 # Run inside PanelPro by the automation launchers rather than installed by the deploy.
@@ -33,7 +35,7 @@ LAUNCHED = [
 
 def deployed_scripts() -> list[str]:
     """Every .py the layout deploy installs into preference:jython."""
-    text = "\n".join(p.read_text(encoding="utf-8") for p in sorted(SYNC.glob("*.sh")))
+    text = "\n".join(p.read_text(encoding="utf-8") for p in [*sorted(SYNC.glob("*.sh")), JYTHON_LIST])
     found = re.findall(r"((?:jmri|cats)/[\w/.-]+\.py)", text)
     return sorted({path for path in found if (ROOT / path).is_file()})
 
