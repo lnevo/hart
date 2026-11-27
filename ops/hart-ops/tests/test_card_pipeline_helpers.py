@@ -1,5 +1,5 @@
-"""Behaviour of the card pipeline's shared helpers: the card overrides file, the sticker deck writer, the hartlib
-path finder and the STS shipment export the CC/WB labels read."""
+"""Behaviour of the card pipeline's shared helpers: the sticker deck writer, the hartlib path
+finder and the STS shipment export the CC/WB labels read."""
 from __future__ import annotations
 
 import sys
@@ -13,13 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 from docx import Document  # noqa: E402
 
 import card_template_sheet as cts  # noqa: E402
-import generate_all_cards as gac  # noqa: E402
 import generate_cc_waybill_labels as gcl  # noqa: E402
 import hartlib_path  # noqa: E402
 from card_errors import CardPipelineError  # noqa: E402
-
-HEAD = "source_image,image,card_type,road_name,road_number,description\n"
-
 
 class TempDir(unittest.TestCase):
     def setUp(self) -> None:
@@ -32,38 +28,6 @@ class TempDir(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
         return path
-
-
-class CardOverrides(TempDir):
-    def overrides(self, text: str) -> dict[str, gac.CardOverride]:
-        path = self.write("card_overrides.csv", text)
-        with mock.patch.object(gac.car_paths, "HART_OPS_ROOT", self.tmp):
-            return gac.read_card_overrides(path)
-
-    def test_a_good_row_gives_the_card_and_its_image(self):
-        image = self.write("card_pipeline/assets/X1.png", "png")
-        got = self.overrides(HEAD + "IMG_1.png,card_pipeline/assets/X1.png,Flat Car,N&W,1,Flatcar · 52'\n")
-        self.assertEqual(list(got), ["IMG_1.png"])
-        self.assertEqual(got["IMG_1.png"].image, image)
-        self.assertEqual(got["IMG_1.png"].record, {"Type": "Flat Car", "RoadName": "N&W", "RoadNumber": "1",
-                                                   "Description": "Flatcar · 52'"})
-
-    def test_wrong_columns_are_named(self):
-        with self.assertRaisesRegex(CardPipelineError, "columns are"):
-            self.overrides("source_image,image\nIMG_1.png,x.png\n")
-
-    def test_a_photo_listed_twice_is_named_with_its_line(self):
-        self.write("a.png", "png")
-        row = "IMG_1.png,a.png,Flat Car,N&W,1,d\n"
-        with self.assertRaisesRegex(CardPipelineError, r":3: IMG_1.png is listed twice"):
-            self.overrides(HEAD + row + row)
-
-    def test_a_missing_image_is_named(self):
-        with self.assertRaisesRegex(CardPipelineError, r":2: the image .*nope.png for IMG_1.png is missing"):
-            self.overrides(HEAD + "IMG_1.png,nope.png,Flat Car,N&W,1,d\n")
-
-    def test_the_repository_file_reads(self):
-        self.assertIn("IMG_9088.png", gac.read_card_overrides(gac.CARD_OVERRIDES_CSV))
 
 
 class StickerDeck(TempDir):

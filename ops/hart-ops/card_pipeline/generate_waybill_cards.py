@@ -22,26 +22,34 @@ from __future__ import annotations
 
 import csv
 import importlib.util
-import os
-import shutil
 import sys
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from types import ModuleType
+from typing import TYPE_CHECKING, NamedTuple
 
-from docx import Document
+from docx.table import _Cell
+
+from card_errors import CardPipelineError
+
+if TYPE_CHECKING:
+    from waybill_deck import SpotGroup
 
 _HERE = Path(__file__).resolve().parent
 
 
-def _load_sibling(name: str):
+def _load_sibling(name: str) -> ModuleType:
     """Import card_pipeline/<name>.py from this checkout, never a same-named module elsewhere."""
     path = _HERE / f"{name}.py"
     loaded = sys.modules.get(name)
     if loaded is not None:
-        if Path(loaded.__file__).resolve() != path:
+        if loaded.__file__ is None or Path(loaded.__file__).resolve() != path:
             raise ImportError(f"{name} is already imported from {loaded.__file__}, expected {path}")
         return loaded
     spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {name} from {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
     try:
@@ -68,209 +76,195 @@ SPOT_CSV = DATA / "spot_assignments.csv"
 OUTPUT = OUTPUT_DIR / "HART_Spot_Waybills.docx"
 WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
 
-def load_spot_groups() -> list[dict]:
+
+class SpotCsvMissingError(CardPipelineError, FileNotFoundError):
+    """spot_assignments.csv is not where SPOT_CSV says."""
+
+
+# A deck card: a WaybillCardRecord's fields plus the build keys waybill_deck adds (see its docstring).
+DeckCard = dict
+GroupKey = tuple[str, str, str]  # (industry, spots, usage)
+
+
+class WaybillDeck(NamedTuple):
+    """The deck main() prints and writes, and the parts its report counts."""
+
+    groups: list[SpotGroup]
+    waybills: list[DeckCard]  # one design per car type and direction
+    group_order: list[GroupKey]
+    inbound_empty_count: int
+    outbound_empties: list[DeckCard]
+    interchange: list[DeckCard]
+    cards: list[DeckCard]  # every card in print order, before the page fillers
+
+
+def load_spot_groups() -> list[SpotGroup]:
     """Load CSV rows and merge spots with identical industry/usage/car lists."""
     if not SPOT_CSV.exists():
-        raise FileNotFoundError(SPOT_CSV)
+        raise SpotCsvMissingError(f"Missing the spot list {SPOT_CSV}")
 
-    groups: dict[tuple, dict] = {}
+    spots_by_key: dict[tuple[str, str, tuple[str, ...]], list[int]] = {}
     with SPOT_CSV.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            industry = wdata._norm(row.get("Industry"))
-            usage = wdata._norm(row.get("Usage"))
+            industry = wdata.norm(row.get("Industry"))
+            usage = wdata.norm(row.get("Usage"))
             if not industry or not usage:
                 continue
             if usage.lower() in wdata.SKIP_USAGES:
                 continue
 
-            spot = wdeck._parse_spot_num(row.get("Spot #", ""))
-            car_types = wdeck._parse_car_types(row.get("Cars Applicable", ""))
+            spot = wdeck.parse_spot_num(row.get("Spot #", ""))
+            car_types = wdeck.parse_car_types(row.get("Cars Applicable", ""))
             if not spot or not car_types:
                 continue
+            spots_by_key.setdefault((industry, usage, car_types), []).append(spot)
 
-            key = (industry, usage, car_types)
-            if key not in groups:
-                groups[key] = {
-                    "Industry": industry,
-                    "Usage": usage,
-                    "CarTypes": car_types,
-                    "Spots": [],
-                }
-            groups[key]["Spots"].append(spot)
-
-    merged: list[dict] = []
-    for entry in groups.values():
-        entry["Spots"] = wdeck._format_spots(entry["Spots"])
-        merged.append(entry)
-    return merged
+    return [
+        {"Industry": industry, "Usage": usage, "CarTypes": car_types, "Spots": wdeck.format_spots(spots)}
+        for (industry, usage, car_types), spots in spots_by_key.items()
+    ]
 
 
-def generate(deck: list[dict]) -> None:
-    car_paths.require_sticker_sheet()
+def build_deck(groups: list[SpotGroup]) -> WaybillDeck:
+    """Every card for the spot groups, plus the interchange pages, in print order.
 
-    blank_grid = card_template_sheet.blank_sticker_grid(car_paths.STICKER_SHEET)
-    temp_path = OUTPUT.with_suffix(".tmp.docx")
-    shutil.copy2(car_paths.STICKER_SHEET, temp_path)
-    doc = Document(temp_path)
-    card_template_sheet.keep_sticker_grid(doc)
-
-    pages = [deck[i : i + wsheet.CARDS_PER_PAGE] for i in range(0, len(deck), wsheet.CARDS_PER_PAGE)]
-
-    sheet = doc.tables[0]
-    wsheet._fill_page(sheet, pages[0], 0)
-
-    for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = card_template_sheet.append_grid(doc, blank_grid)
-        wsheet._fill_page(sheet, batch, page_idx)
-
-    card_template_sheet.add_document_tail(doc.element.body)
-    doc.save(temp_path)
-    os.replace(temp_path, OUTPUT)
-
-
-def main() -> None:
-    groups = load_spot_groups()
+    The order of the steps fixes which random party each card gets, so it is kept.
+    """
     waybills, group_order = wdeck.build_waybill_records(groups)
-    deck = wdeck.expand_copies(waybills, group_order)
-    inbound_empty_count = sum(
-        1 for c in deck if wdeck._card_kind(c) == "inbound_empty"
-    )
+    copies = wdeck.expand_copies(waybills, group_order)
+    inbound_empty_count = sum(1 for c in copies if wdeck.card_kind(c) == "inbound_empty")
     outbound_empties = wdeck.build_industry_empty_cards(groups)
-    deck = wdeck.sort_deck_by_industry(deck)
+    copies = wdeck.sort_deck_by_industry(copies)
     interchange = wdeck.build_interchange_deck()
-    deck_with_ix = wdeck.sort_deck_by_industry(deck + interchange + outbound_empties)
+    cards = wdeck.sort_deck_by_industry(copies + interchange + outbound_empties)
+    return WaybillDeck(groups, waybills, group_order, inbound_empty_count, outbound_empties, interchange, cards)
 
-    wdeck.export_waybill_csv(deck_with_ix, WAYBILL_CSV)
-    summary = wdeck._summarize_deck(deck_with_ix)
 
-    deck = wsheet._fill_deck_to_page(deck_with_ix.copy())
-    filler_count = len(deck) - len(deck_with_ix)
+def _fill_slot(cell: _Cell, idx: int, record: DeckCard) -> None:
+    g.build_waybill_card(cell, idx=idx, record=record)
 
-    by_direction: dict[tuple, list[dict]] = defaultdict(list)
-    for record in waybills:
-        by_direction[record["DirectionKey"]].append(record)
 
-    pages = (len(deck) + wsheet.CARDS_PER_PAGE - 1) // wsheet.CARDS_PER_PAGE
-    loaded_card_count = sum(1 for c in deck_with_ix if wdeck._card_kind(c) == "loaded")
-    print(f"Wrote {OUTPUT}")
-    print(f"Wrote {WAYBILL_CSV}")
-    print(
-        f"  {len(waybills)} loaded designs → {loaded_card_count} loaded cards · "
-        f"{inbound_empty_count} inbound empties · {len(outbound_empties)} outbound empties · "
-        f"{len(interchange)} interchange · {filler_count} page fillers · "
-        f"{len(deck)} total · {pages} pages"
-    )
-    print(f"  source: {SPOT_CSV.name}")
-    outbound_empty_counts = wdeck._industry_outbound_empty_counts(groups)
+def generate(deck: Sequence[DeckCard]) -> None:
+    """Write the deck to OUTPUT, nine cards to a sticker page."""
+    sticker_sheet = car_paths.require_sticker_sheet()
+    card_template_sheet.write_sticker_deck(deck, _fill_slot, sticker_sheet=sticker_sheet, output=OUTPUT)
+
+
+def route_text(flow: str, load: str, pool: Sequence[Mapping[str, str]]) -> str:
+    """The parties a direction's cards are spread over, as the report names them; blank with no pool."""
+    if not pool:
+        return ""
+    if load == wdata.EMPTY and flow == "IN":
+        label, key = "via routing", "via"
+    elif flow == "OUT":
+        label, key = "customers", "via"
+    else:
+        label, key = "suppliers", "entry"
+    names = [f"{p['name']} ({p[key]})" if p.get(key) else p["name"] for p in pool]
+    return f"{label}: {', '.join(names)}"
+
+
+def copies_note(load: str, designs: int) -> str:
+    """How many cards a direction with ``designs`` designs prints, as the report says it."""
+    if load == wdata.EMPTY or designs == 1:
+        return f"{wdata.CARDS_PER_DIRECTION}×"
+    if designs >= wdata.CARDS_PER_DIRECTION:
+        return "1 each"
+    return f"1 each + {wdata.CARDS_PER_DIRECTION - designs} extra"
+
+
+def group_line(group_key: GroupKey, by_direction: Mapping[tuple[GroupKey, str], list[DeckCard]]) -> str:
+    """One spot group's IN and OUT designs for the report; blank when it has none."""
+    parts: list[str] = []
+    for flow in ("IN", "OUT"):
+        designs = by_direction.get((group_key, flow), [])
+        if not designs:
+            continue
+        load = designs[0]["Commodity"]
+        types = ", ".join(d["CarType"] for d in designs)
+        line = f"{flow} {load} ({types}) {copies_note(load, len(designs))}"
+        route_txt = route_text(flow, load, designs[0].get("PartyPool", []))
+        if route_txt:
+            line += f" · {route_txt}"
+        parts.append(line)
+    return " | ".join(parts)
+
+
+def print_spot_groups(deck: WaybillDeck) -> None:
+    """The outbound empties per industry and one line per spot group."""
+    outbound_empty_counts = wdeck.industry_outbound_empty_counts(deck.groups)
     if outbound_empty_counts:
         empty_summary = ", ".join(
             f"{ind} ({outbound_empty_counts[ind]})"
             for ind in sorted(outbound_empty_counts, key=lambda n: wdata.INDUSTRY_ORDER.get(n, 99))
         )
         print(f"  outbound empties (industry): {empty_summary}")
-    for group_key in group_order:
-        industry, spots, usage = group_key
-        parts: list[str] = []
-        for flow in ("IN", "OUT"):
-            designs = by_direction[(group_key, flow)]
-            if not designs:
-                continue
-            load = designs[0]["Commodity"]
-            types = ", ".join(d["CarType"] for d in designs)
-            pool = designs[0].get("PartyPool", [])
-            route_txt = ""
-            if pool:
-                if load == wdata.EMPTY and flow == "IN":
-                    label = "via routing"
-                    names = [
-                        f"{p['name']} ({p['via']})" if p.get("via") else p["name"]
-                        for p in pool
-                    ]
-                elif flow == "OUT":
-                    label = "customers"
-                    names = [
-                        f"{p['name']} ({p['via']})" if p.get("via") else p["name"]
-                        for p in pool
-                    ]
-                else:
-                    label = "suppliers"
-                    names = [
-                        f"{p['name']} ({p['entry']})" if p.get("entry") else p["name"]
-                        for p in pool
-                    ]
-                route_txt = f"{label}: {', '.join(names)}"
-            n = len(designs)
-            if load == wdata.EMPTY:
-                card_note = f"{wdata.CARDS_PER_DIRECTION}×"
-            elif n == 1:
-                card_note = f"{wdata.CARDS_PER_DIRECTION}×"
-            elif n >= wdata.CARDS_PER_DIRECTION:
-                card_note = "1 each"
-            else:
-                card_note = f"1 each + {wdata.CARDS_PER_DIRECTION - n} extra"
-            line = f"{flow} {load} ({types}) {card_note}"
-            if route_txt:
-                line += f" · {route_txt}"
-            parts.append(line)
-        if parts:
-            print(f"    {industry} spot {spots}: {' | '.join(parts)}")
+    by_direction: dict[tuple[GroupKey, str], list[DeckCard]] = defaultdict(list)
+    for record in deck.waybills:
+        by_direction[record["DirectionKey"]].append(record)
+    for group_key in deck.group_order:
+        industry, spots, _usage = group_key
+        line = group_line(group_key, by_direction)
+        if line:
+            print(f"    {industry} spot {spots}: {line}")
 
-    via_csx = sum(1 for c in interchange if c.get("RouteChain") == "CSX")
-    via_pohc = sum(1 for c in interchange if c.get("RouteChain") == "POHC")
-    ix_pages = (len(interchange) + wsheet.CARDS_PER_PAGE - 1) // wsheet.CARDS_PER_PAGE
-    print(
-        f"  interchange: {via_csx} Via CSX · {via_pohc} Via POHC "
-        f"({ix_pages} pages)"
-    )
 
-    loaded = [
-        c for c in deck_with_ix
-        if c.get("Commodity") != wdata.EMPTY and c.get("RouteChain") in ("CSX", "POHC")
-    ]
-    in_csx = sum(
-        1 for c in loaded
-        if c.get("Flow") == "IN" and c["RouteChain"] == "CSX"
-    )
-    in_pohc = sum(
-        1 for c in loaded
-        if c.get("Flow") == "IN" and c["RouteChain"] == "POHC"
-    )
-    out_csx = sum(
-        1 for c in loaded
-        if c.get("Flow") == "OUT" and c["RouteChain"] == "CSX"
-    )
-    out_pohc = sum(
-        1 for c in loaded
-        if c.get("Flow") == "OUT" and c["RouteChain"] == "POHC"
-    )
+def print_routing(deck: WaybillDeck) -> None:
+    """The interchange cards by road, and the loaded cards' IN and OUT balance between CSX and POHC."""
+    via_csx = sum(1 for c in deck.interchange if c.get("RouteChain") == "CSX")
+    via_pohc = sum(1 for c in deck.interchange if c.get("RouteChain") == "POHC")
+    ix_pages = card_template_sheet.page_count(len(deck.interchange))
+    print(f"  interchange: {via_csx} Via CSX · {via_pohc} Via POHC ({ix_pages} pages)")
+
+    loaded = [c for c in deck.cards
+              if c.get("Commodity") != wdata.EMPTY and c.get("RouteChain") in ("CSX", "POHC")]
+
+    def spot_count(flow: str, road: str) -> int:
+        return sum(1 for c in loaded if c.get("Flow") == flow and c["RouteChain"] == road)
+
+    in_csx, in_pohc = spot_count("IN", "CSX"), spot_count("IN", "POHC")
+    out_csx, out_pohc = spot_count("OUT", "CSX"), spot_count("OUT", "POHC")
     tot_in_csx = in_csx + len(wdata.INTERCHANGE_IN_VIA_CSX) + len(wdata.INTERCHANGE_NS_TO_CSX)
     tot_in_pohc = in_pohc + len(wdata.INTERCHANGE_IN_VIA_POHC)
     tot_out_csx = out_csx + len(wdata.INTERCHANGE_OUT_VIA_CSX)
-    tot_out_pohc = (
-        out_pohc + len(wdata.INTERCHANGE_OUT_VIA_POHC) + len(wdata.INTERCHANGE_CSX_TO_NS)
-    )
+    tot_out_pohc = out_pohc + len(wdata.INTERCHANGE_OUT_VIA_POHC) + len(wdata.INTERCHANGE_CSX_TO_NS)
     print(
         f"  loaded routing balance — IN: CSX {tot_in_csx} · POHC {tot_in_pohc} | "
         f"OUT: CSX {tot_out_csx} · POHC {tot_out_pohc}"
     )
+    print(f"    (spot only — IN: CSX {in_csx} · POHC {in_pohc} | OUT: CSX {out_csx} · POHC {out_pohc})")
+
+
+def print_report(deck: WaybillDeck, printed: int) -> None:
+    """What main() wrote: the counts, the spot groups, the routing and one line per industry."""
+    filler_count = printed - len(deck.cards)
+    loaded_card_count = sum(1 for c in deck.cards if wdeck.card_kind(c) == "loaded")
+    print(f"Wrote {OUTPUT}")
+    print(f"Wrote {WAYBILL_CSV}")
     print(
-        f"    (spot only — IN: CSX {in_csx} · POHC {in_pohc} | "
-        f"OUT: CSX {out_csx} · POHC {out_pohc})"
+        f"  {len(deck.waybills)} loaded designs → {loaded_card_count} loaded cards · "
+        f"{deck.inbound_empty_count} inbound empties · {len(deck.outbound_empties)} outbound empties · "
+        f"{len(deck.interchange)} interchange · {filler_count} page fillers · "
+        f"{printed} total · {card_template_sheet.page_count(printed)} pages"
     )
-
+    print(f"  source: {SPOT_CSV.name}")
+    print_spot_groups(deck)
+    print_routing(deck)
     print("\n  Industry summary:")
-    for row in summary:
-        print(
-            f"    {row['industry']}: {row['cards']} cards · "
-            f"{row['kinds']} · flows {row['flows']} · "
-            f"vias {row['vias']}"
-        )
+    for row in wdeck.summarize_deck(deck.cards):
+        print(f"    {row['industry']}: {row['cards']} cards · {row['kinds']} · flows {row['flows']} · vias {row['vias']}")
 
-    generate(deck)
+
+def main() -> None:
+    deck = build_deck(load_spot_groups())
+    wdeck.export_waybill_csv(deck.cards, WAYBILL_CSV)
+    printed = wsheet.fill_deck_to_page(deck.cards.copy())
+    print_report(deck, len(printed))
+    generate(printed)
 
 
 if __name__ == "__main__":
     try:
         main()
-    except car_paths.CardPipelineError as exc:
+    except CardPipelineError as exc:
         raise SystemExit(str(exc)) from exc

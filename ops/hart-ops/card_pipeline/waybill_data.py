@@ -44,22 +44,22 @@ _PARTY_FIELDS = frozenset(Party.__annotations__)
 _SPEC_FIELDS = frozenset(WaybillSpec.__annotations__)
 
 
-def _norm(s: str | None) -> str:
+def norm(s: str | None) -> str:
     return (s or "").strip()
 
 
 def normalize_party(entry: RawParty) -> Party:
     """One Party from a table entry; a mapping may hold only Party fields."""
     if isinstance(entry, str):
-        return {"name": _norm(entry), "via": "", "entry": "", "commodity": ""}
+        return {"name": norm(entry), "via": "", "entry": "", "commodity": ""}
     unknown = set(entry) - _PARTY_FIELDS
     if unknown:
         raise WaybillDataError(f"party {entry!r} has unknown fields {sorted(unknown)}")
     return {
-        "name": _norm(entry.get("name", "")),
-        "via": _norm(entry.get("via", "")),
-        "entry": _norm(entry.get("entry", "")),
-        "commodity": _norm(entry.get("commodity", "")),
+        "name": norm(entry.get("name", "")),
+        "via": norm(entry.get("via", "")),
+        "entry": norm(entry.get("entry", "")),
+        "commodity": norm(entry.get("commodity", "")),
     }
 
 

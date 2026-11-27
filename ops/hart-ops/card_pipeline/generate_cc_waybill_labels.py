@@ -13,19 +13,19 @@ Data: ``archive/docs/cc_shipments.json`` (refresh from live STS with
 from __future__ import annotations
 
 import argparse
+import functools
 import json
-import os
-import shutil
 import subprocess
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Literal, TypedDict
 
-from docx import Document
-from docx.table import Table
+from docx.table import _Cell
 
 import car_paths
-import card_template_layout
 import card_template_sheet
 import generate_card_template as g
+from card_errors import CardPipelineError
 from card_template_records import CcLabelRecord
 
 BASE = Path(__file__).resolve().parent.parent
@@ -33,28 +33,70 @@ SHIPMENTS_JSON = BASE / "archive" / "docs" / "cc_shipments.json"
 OUTPUT = BASE / "archive" / "docs" / "HART_CC_Waybill_Labels.docx"
 LOGO_MAP = BASE / "operator_logos" / "party_logo_map.json"
 HART_LOGO = BASE / "operator_logos" / "hart.png"
-CARDS_PER_PAGE = 9
+CARDS_PER_PAGE = card_template_sheet.CARDS_PER_PAGE
 
-_PARTY_LOGOS: dict[str, str] | None = None
+EXPORT_PHP = Path(__file__).resolve().parent / "sts_cc_shipments.php"
+STS_WEB_CONTAINER = "sts-docker-web-1"  # the web service of the sts-docker compose project
+CONTAINER_JSON = "/tmp/cc_shipments.json"  # where sts_cc_shipments.php writes inside the container
 
-
-def _load_party_logos() -> dict[str, str]:
-    global _PARTY_LOGOS
-    if _PARTY_LOGOS is not None:
-        return _PARTY_LOGOS
-    if LOGO_MAP.exists():
-        data = json.loads(LOGO_MAP.read_text(encoding="utf-8"))
-        _PARTY_LOGOS = dict(data.get("by_party") or {})
-    else:
-        _PARTY_LOGOS = {}
-    return _PARTY_LOGOS
+BillKind = Literal["empty", "freight"]
 
 
-def _logo_for_party(party: str) -> str:
-    """Return absolute path to a party logo, falling back to HART."""
-    party = (party or "").strip()
-    logos = _load_party_logos()
-    rel = logos.get(party, "")
+class Shipment(TypedDict):
+    """One STS shipment as sts_cc_shipments.php exports it: its codes and both ends (load_* and unload_*).
+
+    A null field reads as blank.
+    """
+
+    code: str
+    consignment: str
+    car_code: str
+    description: str
+    special: str
+    load_loc: str
+    load_sta: str
+    load_trk: str
+    load_spot: str
+    load_rpt: str
+    load_color: str
+    unload_loc: str
+    unload_sta: str
+    unload_trk: str
+    unload_spot: str
+    unload_rpt: str
+    unload_color: str
+
+
+SHIPMENT_FIELDS = tuple(Shipment.__annotations__)
+
+# A blank freight label that fills the last sticker page.
+FILLER: CcLabelRecord = {
+    "BillKind": "freight",
+    "ShipmentCode": "",
+    "ToLocation": "",
+    "Station": "",
+    "Track": "",
+    "Spot": "",
+    "CarCode": "",
+    "Consignment": "",
+    "FromLocation": "",
+    "FromStation": "",
+    "Color": "lightgrey",
+}
+
+
+@functools.cache
+def party_logos() -> dict[str, str]:
+    """party_logo_map.json's by_party table (party name to a path under ops/hart-ops), read once; empty with no file."""
+    if not LOGO_MAP.exists():
+        return {}
+    data = json.loads(LOGO_MAP.read_text(encoding="utf-8"))
+    return dict(data.get("by_party") or {})
+
+
+def logo_for_party(party: str) -> str:
+    """The party's logo file, else the HART logo, else the card logo; blank when none of them exists."""
+    rel = party_logos().get(party.strip(), "")
     if rel:
         path = BASE / rel
         if path.exists():
@@ -66,7 +108,7 @@ def _logo_for_party(party: str) -> str:
     return ""
 
 
-def _normalize_staging(track: str, spot: str, *, bill_kind: str) -> tuple[str, str, str]:
+def normalize_staging(track: str, spot: str, *, bill_kind: str) -> tuple[str, str, str]:
     """Keep STS staging IN/OUT aligned with empty vs freight flow.
 
     Empty bill → car goes to the *loading* spot (STAGING IN offline).
@@ -91,14 +133,11 @@ def _normalize_staging(track: str, spot: str, *, bill_kind: str) -> tuple[str, s
     return track, spot, flow
 
 
-EXPORT_PHP = Path(__file__).resolve().parent / "sts_cc_shipments.php"
-
-
 def export_php(path: Path = EXPORT_PHP) -> str:
     """The shipment export as php -r takes it: the file less its <?php line and the // header under it, from the blank line on."""
     lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
     if not lines or lines[0].strip() != "<?php":
-        raise car_paths.CardPipelineError(f"{path} does not start with <?php")
+        raise CardPipelineError(f"{path} does not start with <?php")
     body = lines[1:]
     while body and body[0].startswith("//"):
         body.pop(0)
@@ -108,23 +147,99 @@ def export_php(path: Path = EXPORT_PHP) -> str:
 def refresh_shipments_from_sts(dest: Path = SHIPMENTS_JSON) -> int:
     """Pull current shipments from the STS web container into JSON."""
     php = export_php()
-    count = subprocess.check_output(
-        ["docker", "exec", "sts-docker-web-1", "php", "-r", php],
-        text=True,
-    ).strip()
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.check_call(
-        ["docker", "cp", "sts-docker-web-1:/tmp/cc_shipments.json", str(dest)]
-    )
-    return int(count)
+    try:
+        count = subprocess.check_output(
+            ["docker", "exec", STS_WEB_CONTAINER, "php", "-r", php],
+            text=True,
+        ).strip()
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.check_call(["docker", "cp", f"{STS_WEB_CONTAINER}:{CONTAINER_JSON}", str(dest)])
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise CardPipelineError(f"could not export the shipments from the {STS_WEB_CONTAINER} container: {exc}") from exc
+    try:
+        return int(count)
+    except ValueError as exc:
+        raise CardPipelineError(f"the shipment export printed {count!r}, not a count") from exc
 
 
-def _station(rpt: str, station: str) -> str:
-    rpt = (rpt or "").strip()
-    return rpt if rpt else (station or "").strip()
+def read_shipments(path: Path) -> list[Shipment]:
+    """The shipments JSON: a list of objects, each with every field a label reads (SHIPMENT_FIELDS)."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise CardPipelineError(f"cannot read the shipments {path}: {exc}") from exc
+    if not isinstance(data, list):
+        raise CardPipelineError(f"{path}: expected a list of shipments, found {type(data).__name__}")
+    for i, shipment in enumerate(data):
+        if not isinstance(shipment, dict):
+            raise CardPipelineError(f"{path}: shipment {i} is {type(shipment).__name__}, not an object")
+        missing = [f for f in SHIPMENT_FIELDS if f not in shipment]
+        if missing:
+            raise CardPipelineError(f"{path}: shipment {i} ({shipment.get('code')}) has no {', '.join(missing)}")
+    return data
 
 
-def labels_from_shipments(shipments: list[dict]) -> list[CcLabelRecord]:
+def _text(shipment: Mapping[str, object], field: str) -> str:
+    """A shipment field stripped; a null reads as blank."""
+    value = shipment[field]
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise CardPipelineError(f"shipment {shipment.get('code')}: {field} is {value!r}, not text")
+    return value.strip()
+
+
+def _station(shipment: Mapping[str, object], end: Literal["load", "unload"]) -> str:
+    """The party an end of the shipment names: its reporting station, else its routing station."""
+    return _text(shipment, f"{end}_rpt") or _text(shipment, f"{end}_sta")
+
+
+def empty_label(s: Shipment) -> CcLabelRecord:
+    """The empty bill (STS mtybill): the empty car goes to the loading location."""
+    party = _station(s, "load")
+    track, spot, flow = normalize_staging(s["load_trk"], s["load_spot"], bill_kind="empty")
+    return {
+        "BillKind": "empty",
+        "ShipmentCode": _text(s, "code"),
+        "ToLocation": _text(s, "load_loc"),
+        "Station": party,
+        "Track": track,
+        "Spot": spot,
+        "Flow": flow,
+        "CarCode": _text(s, "car_code"),
+        "Consignment": _text(s, "consignment"),
+        "Color": _text(s, "load_color"),
+        "Description": _text(s, "description"),
+        "LogoParty": party,
+        "LogoPath": logo_for_party(party),
+    }
+
+
+def freight_label(s: Shipment) -> CcLabelRecord:
+    """The freight bill (STS waybill): the load goes from the loading to the unloading location."""
+    party = _station(s, "unload")
+    track, spot, flow = normalize_staging(s["unload_trk"], s["unload_spot"], bill_kind="freight")
+    return {
+        "BillKind": "freight",
+        "ShipmentCode": _text(s, "code"),
+        "ToLocation": _text(s, "unload_loc"),
+        "Station": party,
+        "Track": track,
+        "Spot": spot,
+        "Flow": flow,
+        "CarCode": _text(s, "car_code"),
+        "Consignment": _text(s, "consignment"),
+        "FromLocation": _text(s, "load_loc"),
+        "FromStation": _station(s, "load"),
+        "Color": _text(s, "unload_color"),
+        "Description": _text(s, "description"),
+        "Special": _text(s, "special"),
+        "LogoParty": party,
+        "LogoPath": logo_for_party(party),
+    }
+
+
+def labels_from_shipments(shipments: Sequence[Shipment]) -> list[CcLabelRecord]:
     """Two labels per shipment: empty (mtybill) then freight (waybill).
 
     STS is the source of truth for locations/commodities/car codes. Staging
@@ -133,120 +248,35 @@ def labels_from_shipments(shipments: list[dict]) -> list[CcLabelRecord]:
     """
     labels: list[CcLabelRecord] = []
     for s in shipments:
-        code = (s.get("code") or "").strip()
-        consignment = (s.get("consignment") or "").strip()
-        car_code = (s.get("car_code") or "").strip()
-
-        load_party = _station(s.get("load_rpt", ""), s.get("load_sta", ""))
-        unload_party = _station(s.get("unload_rpt", ""), s.get("unload_sta", ""))
-
-        # Empty bill → empty car goes TO the loading location (STS mtybill).
-        e_track, e_spot, e_flow = _normalize_staging(
-            s.get("load_trk", ""), s.get("load_spot", ""), bill_kind="empty"
-        )
-        labels.append(
-            {
-                "BillKind": "empty",
-                "ShipmentCode": code,
-                "ToLocation": (s.get("load_loc") or "").strip(),
-                "Station": load_party,
-                "Track": e_track,
-                "Spot": e_spot,
-                "Flow": e_flow,
-                "CarCode": car_code,
-                "Consignment": consignment,
-                "Color": (s.get("load_color") or "").strip(),
-                "Description": (s.get("description") or "").strip(),
-                "LogoParty": load_party,
-                "LogoPath": _logo_for_party(load_party),
-            }
-        )
-
-        # Freight bill → load goes TO the unloading location (STS waybill).
-        f_track, f_spot, f_flow = _normalize_staging(
-            s.get("unload_trk", ""), s.get("unload_spot", ""), bill_kind="freight"
-        )
-        labels.append(
-            {
-                "BillKind": "freight",
-                "ShipmentCode": code,
-                "ToLocation": (s.get("unload_loc") or "").strip(),
-                "Station": unload_party,
-                "Track": f_track,
-                "Spot": f_spot,
-                "Flow": f_flow,
-                "CarCode": car_code,
-                "Consignment": consignment,
-                "FromLocation": (s.get("load_loc") or "").strip(),
-                "FromStation": load_party,
-                "Color": (s.get("unload_color") or "").strip(),
-                "Description": (s.get("description") or "").strip(),
-                "Special": (s.get("special") or "").strip(),
-                "LogoParty": unload_party,
-                "LogoPath": _logo_for_party(unload_party),
-            }
-        )
+        labels.append(empty_label(s))
+        labels.append(freight_label(s))
     return labels
 
 
-def _pad_to_page(deck: list[CcLabelRecord]) -> list[CcLabelRecord]:
+def pad_to_page(deck: list[CcLabelRecord]) -> list[CcLabelRecord]:
+    """The deck with blank FILLER labels added until the last page is full."""
     need = (CARDS_PER_PAGE - len(deck) % CARDS_PER_PAGE) % CARDS_PER_PAGE
-    if not need:
-        return deck
-    out = deck[:]
-    for _ in range(need):
-        out.append(
-            {
-                "BillKind": "freight",
-                "ShipmentCode": "",
-                "ToLocation": "",
-                "Station": "",
-                "Track": "",
-                "Spot": "",
-                "CarCode": "",
-                "Consignment": "",
-                "FromLocation": "",
-                "FromStation": "",
-                "Color": "lightgrey",
-            }
-        )
-    return out
+    return deck + [FILLER.copy() for _ in range(need)]
 
 
-def _fill_page(sheet: Table, batch: list[CcLabelRecord], page_idx: int) -> None:
-    for i, record in enumerate(batch):
-        r, c = card_template_layout.CARD_SLOTS[i]
-        g.build_cc_waybill_label(
-            sheet.rows[r].cells[c],
-            idx=page_idx * CARDS_PER_PAGE + i,
-            record=record,
-        )
+def _fill_slot(cell: _Cell, idx: int, record: CcLabelRecord) -> None:
+    g.build_cc_waybill_label(cell, idx=idx, record=record)
 
 
 def generate(labels: list[CcLabelRecord], output: Path = OUTPUT) -> None:
-    car_paths.require_sticker_sheet()
-
-    deck = _pad_to_page(labels)
-    blank_grid = card_template_sheet.blank_sticker_grid(car_paths.STICKER_SHEET)
-    temp_path = output.with_suffix(".tmp.docx")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(car_paths.STICKER_SHEET, temp_path)
-    doc = Document(temp_path)
-    card_template_sheet.keep_sticker_grid(doc)
-
-    pages = [deck[i : i + CARDS_PER_PAGE] for i in range(0, len(deck), CARDS_PER_PAGE)]
-    sheet = doc.tables[0]
-    _fill_page(sheet, pages[0], 0)
-    for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = card_template_sheet.append_grid(doc, blank_grid)
-        _fill_page(sheet, batch, page_idx)
-
-    card_template_sheet.add_document_tail(doc.element.body)
-    doc.save(temp_path)
-    os.replace(temp_path, output)
+    """Write the labels to ``output``, nine to a sticker page, the last page filled with blanks."""
+    sticker_sheet = car_paths.require_sticker_sheet()
+    card_template_sheet.write_sticker_deck(pad_to_page(labels), _fill_slot, sticker_sheet=sticker_sheet,
+                                           output=output)
 
 
-def main() -> None:
+def count_kind(labels: Sequence[CcLabelRecord], kind: BillKind) -> int:
+    """How many of the labels are ``kind`` bills."""
+    return sum(1 for label in labels if label["BillKind"] == kind)
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """The command line: --refresh, --json and --output."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--refresh",
@@ -265,22 +295,23 @@ def main() -> None:
         default=OUTPUT,
         help=f"Output docx (default: {OUTPUT})",
     )
-    args = parser.parse_args()
+    return parser.parse_args(argv)
 
+
+def main(argv: Sequence[str] | None = None) -> None:
+    args = parse_args(argv)
     if args.refresh or not args.json.exists():
         n = refresh_shipments_from_sts(args.json)
         print(f"Refreshed {n} shipments → {args.json}")
 
-    shipments = json.loads(args.json.read_text(encoding="utf-8"))
+    shipments = read_shipments(args.json)
     labels = labels_from_shipments(shipments)
     generate(labels, args.output)
 
-    empties = sum(1 for L in labels if L["BillKind"] == "empty")
-    freights = sum(1 for L in labels if L["BillKind"] == "freight")
-    pages = (len(_pad_to_page(labels)) + CARDS_PER_PAGE - 1) // CARDS_PER_PAGE
+    pages = card_template_sheet.page_count(len(labels))
     print(f"Wrote {args.output}")
     print(
-        f"  {len(shipments)} shipments → {empties} empty + {freights} freight "
+        f"  {len(shipments)} shipments → {count_kind(labels, 'empty')} empty + {count_kind(labels, 'freight')} freight "
         f"labels · {pages} sticker pages (9/page)"
     )
 
@@ -288,5 +319,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except car_paths.CardPipelineError as exc:
+    except CardPipelineError as exc:
         raise SystemExit(str(exc)) from exc
