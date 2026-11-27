@@ -1,8 +1,12 @@
-"""The Pi keeps one tables.xml, in JMRI_UserFiles."""
+"""The Pi keeps one tables.xml, in JMRI_UserFiles, and its profile's saved panel windows take that file's sizes."""
 from __future__ import annotations
 
+import sys
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pi_drop import PiHost, applied, profile_scripts, start_up  # noqa: E402
 
 SCRIPT = Path(__file__).resolve().parents[3] / "tools/hosts/pi/apply_hart_package_local.sh"
 
@@ -38,6 +42,28 @@ class PiTablesTest(unittest.TestCase):
         self.assertLess(after.index("$LASTEXITCODE"), after.index("Start Up retargeted"),
                         "a failed retarget must not report success")
 
+    def test_windows_scripts_find_jmri_by_command_line_from_one_shared_file(self) -> None:
+        """No PowerShell on the Mac: the scripts are read as text. A bare java process (the STS or another tool) must
+        not block the deploy, so both steps ask jmri_processes.ps1, which holds kill_cats.ps1's patterns."""
+        win = SCRIPT.parent.parent / "windows"
+        apply = (win / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        kill = (win / "kill_cats.ps1").read_text(encoding="utf-8")
+        shared = (win / "jmri_processes.ps1").read_text(encoding="utf-8")
+        self.assertNotIn("Get-Process java", apply)
+        self.assertEqual(apply.count("Get-JmriProcesses"), 4)    # the Operations step and the window-size step
+        self.assertIn(". (Join-Path $hart 'cats\\scripts\\windows\\jmri_processes.ps1')", apply)
+        self.assertIn(". (Join-Path $PSScriptRoot 'jmri_processes.ps1')", kill)
+        self.assertNotIn("$rx", kill)
+        self.assertIn("Get-CimInstance Win32_Process", shared)
+        self.assertIn("cats\\.apps\\.Crandic", shared)
+        self.assertIn("Format-JmriProcesses", apply)    # the skip messages name what was found
+        self.assertIn("'jmri_processes.ps1'", (win / "create_cats_desktop.ps1").read_text(encoding="utf-8"))
+
+    def test_windows_window_size_step_takes_an_empty_result_as_an_empty_array(self) -> None:
+        source = (SCRIPT.parent.parent / "windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
+        self.assertIn("$uis = @(@(foreach ($root in $uiRoots) {", source)
+        self.assertIn("}) | Select-Object -Unique)", source)
+
     def test_windows_apply_python_order_and_missing_python(self) -> None:
         """py -3, then python, then python3; Store stubs skipped; no Python warns and skips."""
         source = (SCRIPT.parent.parent / "windows/apply_hart_package_local.ps1").read_text(encoding="utf-8")
@@ -56,6 +82,82 @@ class PiTablesTest(unittest.TestCase):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("/tmp/hart-deploy.*)", source)
         self.assertIn("""trap 'rm -rf "$HART"' EXIT""", source)
+
+
+TABLES = """<?xml version="1.0" encoding="UTF-8"?>
+<layout-config>
+  <LayoutEditor class="x" name="HART Railroad" windowwidth="1920" windowheight="{main}"/>
+  <LayoutEditor class="x" name="Main Level" windowwidth="1920" windowheight="385"/>
+</layout-config>
+"""
+WINDOWS = """<?xml version="1.0" encoding="UTF-8"?>
+<auxiliary-configuration>
+    <windowDetails xmlns="http://jmri.org/xml/schema/auxiliary-configuration/window-details-4-3-5.xsd">
+        <window xmlns="" class="jmri.jmrit.display.layoutEditor.LayoutEditor:HART Railroad" height="{saved}" locX="0.0" locY="26.0" width="1920.0"/>
+    </windowDetails>
+</auxiliary-configuration>
+"""
+UI = ".jmri/TCS_MQTT.jmri/profile/0badf00d/user-interface.xml"
+PROFILE = start_up("preference:jython/jmri_cmd_watcher.py")     # the Start Up list the apply step edits first
+
+
+class PiPanelWindowSizes(unittest.TestCase):
+    """After it installs tables.xml, the apply step sets the profile's saved panel window sizes to the installed
+    tables' (panel_window_sizes.py from the package, over the hartlib modules the package carries)."""
+
+    def apply(self, saved: str = "1018.0", ui: str = UI, **kw):
+        package = {**profile_scripts(), "tables.xml": TABLES.format(main="1032"), "cats/deploy_stamp.txt": "x\n"}
+        installed = {"JMRI_UserFiles/tables.xml": TABLES.format(main="900")}     # the last deploy's tables
+        if ui:
+            installed[ui] = WINDOWS.format(saved=saved)
+        return applied(package, installed=installed, profile=PROFILE, **kw)
+
+    @staticmethod
+    def backups(pi: PiHost) -> list[Path]:
+        return sorted(pi.home.glob(".jmri/*/profile/*/user-interface.xml.hart-*.bak"))
+
+    def test_saved_sizes_take_the_tables_just_installed_and_the_old_file_is_kept(self) -> None:
+        with self.apply() as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertIn('LayoutEditor:HART Railroad" height="1032.0"', (pi.home / UI).read_text(encoding="utf-8"))
+            self.assertIn("HART Railroad: 1920.0x1018.0 -> 1920.0x1032.0", pi.out)
+            self.assertIn("Main Level: no saved window (JMRI opens it at the tables' size)", pi.out)
+            [backup] = self.backups(pi)
+            self.assertEqual(backup.read_text(encoding="utf-8"), WINDOWS.format(saved="1018.0"))
+
+    def test_nothing_to_change_writes_nothing_and_keeps_no_copy(self) -> None:
+        with self.apply(saved="1032.0") as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertEqual((pi.home / UI).read_text(encoding="utf-8"), WINDOWS.format(saved="1032.0"))
+            self.assertEqual(self.backups(pi), [])
+            self.assertIn("every saved panel window already has the tables' size", pi.out)
+
+    def test_a_running_jmri_leaves_the_file_alone(self) -> None:
+        with self.apply(jmri_running=True) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertEqual((pi.home / UI).read_text(encoding="utf-8"), WINDOWS.format(saved="1018.0"))
+            self.assertIn("Panel window sizes NOT set: JMRI runs on the profile TCS_MQTT", pi.out)
+            self.assertIn("pgrep -f [o]rg.jmri.profile=TCS_MQTT", pi.calls)
+
+    def test_a_profile_with_no_saved_windows_is_one_line(self) -> None:
+        with self.apply(ui="") as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertIn("Panel window sizes: no user-interface.xml in ~/.jmri/TCS_MQTT.jmri", pi.out)
+
+    def test_the_profile_is_the_one_the_deploy_names(self) -> None:
+        other = ".jmri/Rehearsal.jmri/profile/0badf00d/user-interface.xml"
+        with self.apply(ui=other, env={"HART_PI_PROFILE": "Rehearsal.0badf00d"}) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertIn('height="1032.0"', (pi.home / other).read_text(encoding="utf-8"))
+            self.assertIn("pgrep -f [o]rg.jmri.profile=Rehearsal.0badf00d", pi.calls)
+
+    def test_a_file_it_cannot_read_warns_and_the_deploy_goes_on(self) -> None:
+        package = {**profile_scripts(), "tables.xml": TABLES.format(main="1032"), "cats/deploy_stamp.txt": "x\n"}
+        with applied(package, installed={UI: "<other/>"}, profile=PROFILE) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertIn("no <windowDetails>", pi.out)
+            self.assertIn("WARN: panel window sizes not set in", pi.out)
+            self.assertTrue((pi.user_files / "cats/deploy_stamp.txt").is_file(), pi.out)
 
 
 if __name__ == "__main__":

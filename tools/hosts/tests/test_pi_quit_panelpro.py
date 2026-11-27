@@ -97,10 +97,10 @@ class PiQuitPanelProTest(unittest.TestCase):
             self.assertNotIn(banned, text, banned)
 
     def test_every_pi_panelpro_script_sends_the_profile_load_env_names(self) -> None:
-        """pi_quit, pi_start and pi_panel_window_sizes take the profile from HART_PI_PROFILE (load_env.sh);
+        """pi_quit and pi_start take the profile from HART_PI_PROFILE (load_env.sh);
         a stub ssh records what each sends and fails, so nothing reaches a host."""
         for env, want in (({}, DEFAULT_PROFILE), ({"HART_PI_PROFILE": "Rehearsal.0badf00d"}, "Rehearsal.0badf00d")):
-            for name in ("pi_quit_panelpro.sh", "pi_start_panelpro.sh", "pi_panel_window_sizes.sh"):
+            for name in ("pi_quit_panelpro.sh", "pi_start_panelpro.sh"):
                 with self.subTest(script=name, env=env), tempfile.TemporaryDirectory() as tmp:
                     calls = ssh_calls(Path(tmp), name, env)
                     self.assertTrue(calls, name)

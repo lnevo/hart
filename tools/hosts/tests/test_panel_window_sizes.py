@@ -1,5 +1,5 @@
 """panel_window_sizes.py: a profile's saved panel windows take tables.xml's size; position, zoom, other windows and
-the rest of the file stay as JMRI wrote them."""
+the rest of the file stay as JMRI wrote them. hartlib.jmri_profile's own tests cover the edit."""
 import contextlib
 import io
 import sys
@@ -40,9 +40,10 @@ class PanelWindowSizes(unittest.TestCase):
         return t, u
 
     def run_main(self, *argv):
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             code = pws.main(list(argv))
+        self.err = err.getvalue()
         return code, out.getvalue().splitlines()
 
     def test_each_saved_panel_window_takes_the_tables_size_and_nothing_else_changes(self):
@@ -74,21 +75,43 @@ class PanelWindowSizes(unittest.TestCase):
         self.assertIn("P&CV Yard: 1920.0x408.0 -> 1920.0x385.0", lines)
         self.assertIn('LayoutEditor:P&amp;CV Yard" height="385.0"', u.read_text())
 
-    def test_a_file_that_is_not_a_user_interface_file_stops(self):
-        t, u = self.files(ui="<other/>")
-        with self.assertRaisesRegex(SystemExit, "no <windowDetails>"):
-            self.run_main(str(u), "--tables", str(t))
+    def test_backup_keeps_the_file_as_it_was_only_when_it_writes(self):
+        t, u = self.files()
+        code, lines = self.run_main(str(u), "--tables", str(t), "--backup")
+        self.assertEqual(code, 0)
+        [copy] = sorted(u.parent.glob("user-interface.xml.hart-*.bak"))
+        self.assertEqual(copy.read_text(), UI)
+        self.assertIn(f"wrote {u}; its previous copy is {copy}", lines)
+        self.run_main(str(u), "--tables", str(t), "--backup")          # nothing left to change: no second copy
+        self.assertEqual(len(list(u.parent.glob("*.bak"))), 1)
 
-    def test_a_panel_without_a_window_size_stops(self):
+    def test_a_file_that_is_not_a_user_interface_file_exits_2(self):
+        t, u = self.files(ui="<other/>")
+        self.assertEqual(self.run_main(str(u), "--tables", str(t))[0], 2)
+        self.assertIn("panel_window_sizes:", self.err)
+        self.assertIn("no <windowDetails>", self.err)
+        self.assertEqual(u.read_text(), "<other/>")
+
+    def test_a_panel_without_a_window_size_exits_2(self):
         t, u = self.files()
         t.write_text('<layout-config><LayoutEditor name="Bare"/></layout-config>')
-        with self.assertRaisesRegex(SystemExit, "Bare has no window size"):
-            self.run_main(str(u), "--tables", str(t))
+        self.assertEqual(self.run_main(str(u), "--tables", str(t))[0], 2)
+        self.assertIn("Bare has no window size", self.err)
 
-    def test_the_real_tables_give_every_panel_a_size(self):
-        sizes = pws.panel_sizes(pws.paths.REPO_TABLES_XML)
-        self.assertIn("HART Railroad", sizes)
-        self.assertTrue(all(w and h for w, h in sizes.values()))
+    def test_without_tables_it_reads_the_checkouts(self):
+        t, u = self.files()
+        code, lines = self.run_main(str(u), "--check")
+        self.assertIn(code, (0, 1))
+        self.assertTrue(any(line.startswith("HART Railroad: ") for line in lines) or
+                        "every saved panel window already has the tables' size" in lines, lines)
+
+    def test_a_non_numeric_size_exits_2(self):
+        t, u = self.files()
+        t.write_text('<layout-config><LayoutEditor name="P" windowwidth="wide" windowheight="400"/></layout-config>')
+        before = u.read_text()
+        self.assertEqual(self.run_main(str(u), "--tables", str(t))[0], 2)
+        self.assertIn("not a size", self.err)
+        self.assertEqual(u.read_text(), before)
 
 
 if __name__ == "__main__":

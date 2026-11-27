@@ -1,139 +1,26 @@
 #!/usr/bin/env python3
-"""Insert or remove a JMRI profile Start Up script perform tag.
+"""Insert or remove a JMRI profile Start Up script perform tag (hartlib.jmri_profile does the edit).
 
-Preserves the attribute order of the neighbouring PerformScript tag.
+Preserves the attribute order of the neighbouring PerformScript tag. The deploy ships this script with the part of
+hartlib it needs (tools/hosts/deploy/stage.sh); the host apply scripts and ship_mac.sh run it.
 """
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.jmri_profile import (  # noqa: E402
+    StartupPatchError,
+    insert_after,
+    load_tables_from,
+    remove_script,
+    retarget_to_preference_jython,
+)
 
-class StartupPatchError(ValueError):
-    """profile.xml does not hold the Start Up entry the edit needs, or holds it in a form the edit cannot change."""
-
-
-def _perform_for(sample: str, script_path: str) -> str:
-    if "xmlns=" in sample:
-        return (
-            '        <perform xmlns="" class="jmri.util.startup.configurexml.PerformScriptModelXml" '
-            f'enabled="yes" name="{script_path}" type="ScriptFile"/>'
-        )
-    return (
-        f'        <perform name="{script_path}" type="ScriptFile" enabled="yes" '
-        'class="jmri.util.startup.configurexml.PerformScriptModelXml"/>'
-    )
-
-
-def _script_basename(path: str) -> str:
-    return Path(path).name
-
-
-def insert_after(profile: Path, script_path: str, after: str) -> str:
-    txt = profile.read_text(encoding="utf-8")
-    needle = _script_basename(script_path)
-    if needle in txt:
-        return "already"
-    idx = txt.find(after)
-    if idx < 0:
-        raise StartupPatchError(f"{profile}: no Start Up entry containing {after!r}")
-    end = txt.find("/>", idx)
-    if end < 0:
-        raise StartupPatchError(f"{profile}: malformed perform tag at {after!r}")
-    end += 2
-    sample = txt[txt.rfind("<perform", 0, idx) : end]
-    insert = "\n" + _perform_for(sample, script_path)
-    profile.write_text(txt[:end] + insert + txt[end:], encoding="utf-8")
-    return "inserted"
-
-
-def remove_script(profile: Path, script_path: str) -> str:
-    txt = profile.read_text(encoding="utf-8")
-    needle = _script_basename(script_path)
-    if needle not in txt:
-        return "absent"
-    new, n = re.subn(
-        rf"\n?[ \t]*<perform\b[^>]*{re.escape(needle)}[^>]*/>",
-        "",
-        txt,
-        count=1,
-    )
-    if n != 1:
-        raise StartupPatchError(f"{profile}: could not remove {needle}")
-    profile.write_text(new, encoding="utf-8")
-    return "removed"
-
-
-def retarget_to_preference_jython(profile: Path, scripts: list[str]) -> list[str]:
-    """Rewrite PerformScript name= to preference:jython/<basename>.
-
-    Leaves ScriptButton / XmlFile / Action tags alone. Idempotent when the
-    name is already preference:jython/.
-    Also renames known retired basenames (e.g. sync_yard_ladder_buttons →
-    panel_status) before retargeting.
-    """
-    txt = profile.read_text(encoding="utf-8")
-    orig = txt
-    notes: list[str] = []
-    wanted = {_script_basename(s) for s in scripts}
-
-    # Retired → current startup script basenames (must run after package rename).
-    renames = {
-        "sync_yard_ladder_buttons.py": "panel_status.py",
-        "sync_turnout_buttons.py": "panel_status.py",
-        "sync_layout_button.py": "panel_status.py",
-        "mqtt_signalhead_publisher.py": "signal_coordinator.py",
-    }
-    for old, new in renames.items():
-        if old in txt and new in wanted:
-            txt2, n = re.subn(
-                rf'(name="[^"]*){re.escape(old)}(")',
-                rf"\1{new}\2",
-                txt,
-            )
-            if n:
-                notes.append(f"{old} -> {new} ({n} Start Up entr{'y' if n == 1 else 'ies'})")
-                txt = txt2
-
-    def repl(match: re.Match[str]) -> str:
-        tag = match.group(0)
-        if "PerformScriptModelXml" not in tag:
-            return tag
-        name_m = re.search(r'\bname="([^"]*)"', tag)
-        if name_m is None:
-            return tag
-        old = name_m.group(1)
-        base = _script_basename(old)
-        if base not in wanted:
-            return tag
-        target = f"preference:jython/{base}"
-        if old == target:
-            return tag
-        notes.append(f"{old} -> {target}")
-        return tag[: name_m.start()] + f'name="{target}"' + tag[name_m.end() :]
-
-    txt = re.sub(r"<perform\b[^>]*/>", repl, txt)
-    if txt != orig:
-        profile.write_text(txt, encoding="utf-8")
-    return notes
-
-
-def load_tables_from(profile: Path, path: str) -> str:
-    """Point the Start Up tables load at path (for example preference:tables.xml)."""
-    text = profile.read_text(encoding="utf-8")
-    new, count = re.subn(
-        r'(<perform\b[^>]*PerformFileModelXml[^>]*\bname=")[^"]*tables\.xml(")',
-        lambda m: m.group(1) + path + m.group(2),
-        text,
-    )
-    if count != 1:
-        raise StartupPatchError(f"expected one tables load in {profile}, found {count}")
-    if new == text:
-        return "already"
-    profile.write_text(new, encoding="utf-8")
-    return "changed"
+__all__ = ["StartupPatchError", "insert_after", "load_tables_from", "remove_script", "retarget_to_preference_jython"]
 
 
 def main() -> int:

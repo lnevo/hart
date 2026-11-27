@@ -100,6 +100,7 @@ HARTLIB_OTHER = {
     "store_split": "the split of a pulled PanelPro Store back into the template and the device master",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
+    "jmri_profile": "the edits to a JMRI profile: startup actions, window sizes and preferences",
     "level_devices": "the main and upper levels' device names",
     "level_masts": "their control-point masts",
     "map_revision": "the station maps' revision",
