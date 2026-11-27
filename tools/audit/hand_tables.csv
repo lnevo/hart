@@ -1,217 +1,217 @@
 file,table,entries,status,reason
-.claude/hooks/check_after_edit.py,UNIT_JMRI_ARGV,8,unreviewed,names repo files: an exception list?; first sort: code setting
-cats/scripts/cats_inspect.py,OPP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-cats/scripts/digicon_trace.py,STEP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-jmri/layouts/hart/scripts/build_hart_signal_heads.py,PLAN_FIELDS,10,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+.claude/hooks/check_after_edit.py,UNIT_JMRI_ARGV,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+cats/scripts/cats_inspect.py,OPP,4,keep,"grid geometry: edge words and offsets, vocabulary not data (Fable, pattern 1) (marked by claude (Fable's review))"
+cats/scripts/digicon_trace.py,STEP,4,keep,"grid geometry: edge words and offsets, vocabulary not data (Fable, pattern 1) (marked by claude (Fable's review))"
+jmri/layouts/hart/scripts/build_hart_signal_heads.py,PLAN_FIELDS,10,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 jmri/layouts/hart/scripts/check_bean_comments.py,BLOCK_COMMENTS,58,move,45 railroad names (occupancy sensor); first sort: copy of a master
-jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SUFFIX,13,unreviewed,rows of values the rule cannot place; first sort: fact with no master
-jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SUFFIX_SHORT,13,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SUFFIX,13,move,rows of values the rule cannot place; the owner marked it move; one file for both
+jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SUFFIX_SHORT,13,move,rows of values the rule cannot place; the owner marked it move; one file for both
 jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SWITCH,40,move,20 railroad names (occupancy sensor); first sort: copy of a master
-jmri/layouts/hart/scripts/check_bean_comments.py,LOGIXNG_USERNAMES,6,unreviewed,holds sentences: page or card text?; first sort: copy of a master
-jmri/layouts/hart/scripts/check_bean_comments.py,OCC_SENSOR,43,unreviewed,holds sentences: page or card text?; first sort: copy of a master
+jmri/layouts/hart/scripts/check_bean_comments.py,LOGIXNG_USERNAMES,6,move,holds sentences: page or card text?; the owner marked it move
+jmri/layouts/hart/scripts/check_bean_comments.py,OCC_SENSOR,43,move,holds sentences: page or card text?; the owner marked it move
 jmri/layouts/hart/scripts/check_bean_comments.py,SPECIAL_SENSOR_USERNAMES,9,move,2 railroad names (occupancy sensor); first sort: copy of a master
 jmri/layouts/hart/scripts/check_bean_comments.py,TURNOUT_COMMENTS,20,move,20 railroad names (occupancy sensor); first sort: copy of a master
 jmri/layouts/hart/scripts/check_bean_comments.py,_PLANT_NUMBERS,20,move,"30 railroad names (occupancy sensor, switch); first sort: copy of a master"
-jmri/layouts/hart/scripts/check_bean_comments.py,_PLANT_PHRASES,9,unreviewed,rows of values the rule cannot place; first sort: fact with no master
-jmri/layouts/hart/scripts/ctc_default_reverse_levers.py,LOCAL_LOCKS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,_PLANT_PHRASES,9,move,rows of values the rule cannot place; the owner marked it move
+jmri/layouts/hart/scripts/ctc_default_reverse_levers.py,LOCAL_LOCKS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 jmri/layouts/hart/scripts/ctc_logic_smoke.py,SIDI_MASTS,23,move,21 railroad names (occupancy sensor); first sort: copy of a master
-jmri/layouts/hart/scripts/diagnose_turnout_states.py,FB_MODE,7,unreviewed,holds sentences: page or card text?; first sort: code setting
-jmri/layouts/hart/scripts/diagnose_turnout_states.py,STATE,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-jmri/layouts/hart/scripts/discover_nx.py,NX_SENSORS,23,unreviewed,rows of values the rule cannot place; first sort: copy of a master
-jmri/layouts/hart/scripts/ensure_dispatcher_roster_profiles.py,PROFILE_STEPS,10,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+jmri/layouts/hart/scripts/diagnose_turnout_states.py,FB_MODE,7,keep,"JMRI's feedback mode constants; overlap with the tables page is enum names only (Fable, pattern 3) (marked by claude (Fable's review))"
+jmri/layouts/hart/scripts/diagnose_turnout_states.py,STATE,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+jmri/layouts/hart/scripts/discover_nx.py,NX_SENSORS,23,move,rows of values the rule cannot place; the owner marked it move
+jmri/layouts/hart/scripts/ensure_dispatcher_roster_profiles.py,PROFILE_STEPS,10,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 jmri/layouts/hart/scripts/gen_ctc_track_plan.py,CENTER_OCC,5,move,5 railroad names (occupancy sensor); first sort: copy of a master
 jmri/layouts/hart/scripts/gen_ctc_track_plan.py,LABEL_AT,6,move,6 railroad names (occupancy sensor); first sort: copy of a master
-jmri/layouts/hart/scripts/gen_ctc_track_plan.py,STRIP,16,unreviewed,rows of values the rule cannot place; first sort: copy of a master
+jmri/layouts/hart/scripts/gen_ctc_track_plan.py,STRIP,16,move,rows of values the rule cannot place; the owner marked it move
 jmri/layouts/hart/scripts/nx_contract.py,ISNX_SYSTEM,23,move,21 railroad names (occupancy sensor); first sort: copy of a master
 jmri/layouts/hart/scripts/panelpro_smoke_test.py,STATIONS,12,move,12 railroad names (occupancy sensor); first sort: copy of a master
-jmri/layouts/hart/scripts/plan_routes.py,_FROM_EAST_LEAD,6,unreviewed,rows of values the rule cannot place; first sort: copy of a master
+jmri/layouts/hart/scripts/plan_routes.py,_FROM_EAST_LEAD,6,move,rows of values the rule cannot place; the owner marked it move
 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,RETIRED_STATION_OCCUPANCY,10,move,20 railroad names (occupancy sensor); first sort: copy of a master
 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,STATIONS,12,move,12 railroad names (occupancy sensor); first sort: copy of a master
 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,STATION_DISPLAY_NAMES,12,move,"14 railroad names (occupancy sensor, station); first sort: copy of a master"
 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,STATION_OCCUPANCY,12,move,24 railroad names (occupancy sensor); first sort: copy of a master
-jmri/layouts/hart/scripts/render_le_layout.py,LEGEND_ROW,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: page text
-jmri/layouts/hart/scripts/render_le_layout.py,VIEWS,6,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
-jmri/layouts/hart/scripts/speedmatch/correct.py,EXIT_CODES,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py,DEMO_BIAS,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
-jmri/layouts/hart/scripts/speedmatch/dashboard/server.py,TYPES,5,unreviewed,rows of values the rule cannot place; first sort: code setting
-jmri/layouts/hart/scripts/speedmatch/jython/jobkit.py,NAMES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-jmri/layouts/hart/scripts/speedmatch/liverule.py,DIST_STEPS,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
-jmri/layouts/hart/scripts/speedmatch/make_job.py,DEFAULT_STEPS,15,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
-jmri/layouts/hart/scripts/speedmatch/pom_guard.py,NAMED_REFUSALS,6,unreviewed,holds sentences: page or card text?; first sort: code setting
-jmri/layouts/hart/scripts/uss_switch_only_columns.py,EVEN_SUFFIXES,9,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+jmri/layouts/hart/scripts/render_le_layout.py,LEGEND_ROW,5,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+jmri/layouts/hart/scripts/render_le_layout.py,VIEWS,6,move,holds sentences: page or card text?; the owner marked it move
+jmri/layouts/hart/scripts/speedmatch/correct.py,EXIT_CODES,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py,DEMO_BIAS,4,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+jmri/layouts/hart/scripts/speedmatch/dashboard/server.py,TYPES,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+jmri/layouts/hart/scripts/speedmatch/jython/jobkit.py,NAMES,4,keep,"shared in code, so already one source: move_to.py and stop_test.py import it (review fix after the code review)"
+jmri/layouts/hart/scripts/speedmatch/liverule.py,DIST_STEPS,8,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+jmri/layouts/hart/scripts/speedmatch/make_job.py,DEFAULT_STEPS,15,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+jmri/layouts/hart/scripts/speedmatch/pom_guard.py,NAMED_REFUSALS,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+jmri/layouts/hart/scripts/uss_switch_only_columns.py,EVEN_SUFFIXES,9,keep,"JMRI's own CTC sensor suffix names, in a parked USS script (Fable, pattern 2) (marked by claude (Fable's review))"
 jmri/layouts/hart/scripts/uss_switch_only_columns.py,NEW_COLUMNS,8,move,8 railroad names (occupancy sensor); first sort: fact with no master
 jmri/layouts/hart/scripts/uss_switch_only_columns.py,OS_SENSOR,8,move,16 railroad names (occupancy sensor); first sort: copy of a master
-ops/hart-ops/card_pipeline/build_merged_car_roster.py,CAR_ATTR_ORDER,28,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-ops/hart-ops/card_pipeline/build_merged_car_roster.py,JMRI_COLORS,12,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-ops/hart-ops/card_pipeline/build_merged_car_roster.py,LENGTH_WEIGHT,13,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-ops/hart-ops/card_pipeline/car_repo.py,QUESTIONS,11,unreviewed,holds sentences: page or card text?
-ops/hart-ops/card_pipeline/card_template_cc_label.py,_STS_NAME_TO_MASTER_ID,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
-ops/hart-ops/card_pipeline/card_template_layout.py,CARD_SLOTS,9,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+ops/hart-ops/card_pipeline/build_merged_car_roster.py,CAR_ATTR_ORDER,28,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/build_merged_car_roster.py,JMRI_COLORS,12,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/build_merged_car_roster.py,LENGTH_WEIGHT,13,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/car_repo.py,QUESTIONS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/card_template_cc_label.py,_STS_NAME_TO_MASTER_ID,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/card_template_layout.py,CARD_SLOTS,9,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 ops/hart-ops/card_pipeline/engine_lookup.py,ENGINE_ROAD_ALIASES,7,move,"3 railroad names (car, loco); first sort: fact with no master"
-ops/hart-ops/card_pipeline/engine_lookup.py,MODEL_MANUFACTURER,33,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+ops/hart-ops/card_pipeline/engine_lookup.py,MODEL_MANUFACTURER,33,move,rows of values the rule cannot place; the owner marked it move
 ops/hart-ops/card_pipeline/engine_lookup.py,ROAD_DISPLAY,25,move,"21 railroad names (car, loco); first sort: fact with no master"
-ops/hart-ops/card_pipeline/finalize_car_images.py,SAMPLE_STEMS,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: per-item tweak"
-ops/hart-ops/card_pipeline/finalize_car_images.py,TIE_PAN_ADJUSTMENTS,10,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
-ops/hart-ops/card_pipeline/finalize_car_images.py,WIDTH_TIE_EXTRA,7,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
-ops/hart-ops/card_pipeline/generate_operator_sheet.py,USAGE_LABELS,12,unreviewed,rows of values the rule cannot place; first sort: copy of a master
-ops/hart-ops/card_pipeline/generate_operator_sheet.py,_SPUR_MASTER_ID,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
-ops/hart-ops/card_pipeline/generate_operator_sheet.py,_SPUR_TEXT,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
-ops/hart-ops/card_pipeline/intake_stages.py,EDIT_FIELDS,12,unreviewed,rows of values the rule cannot place; first sort: code setting
-ops/hart-ops/card_pipeline/locos.py,QUESTIONS,12,unreviewed,holds sentences: page or card text?; first sort: page text
+ops/hart-ops/card_pipeline/finalize_car_images.py,SAMPLE_STEMS,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/finalize_car_images.py,TIE_PAN_ADJUSTMENTS,10,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+ops/hart-ops/card_pipeline/finalize_car_images.py,WIDTH_TIE_EXTRA,7,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,USAGE_LABELS,12,move,rows of values the rule cannot place; the owner marked it move
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,_SPUR_MASTER_ID,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,_SPUR_TEXT,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/intake_stages.py,EDIT_FIELDS,12,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/hart-ops/card_pipeline/locos.py,QUESTIONS,12,move,holds sentences: page or card text?; the owner marked it move
 ops/hart-ops/card_pipeline/operator_sheet_data.py,INDUSTRY_LOGOS,6,move,"6 railroad names (industry, spot); first sort: copy of a master"
 ops/hart-ops/card_pipeline/operator_sheet_data.py,INDUSTRY_SUMMARIES,6,move,"6 railroad names (industry, spot); first sort: copy of a master"
 ops/hart-ops/card_pipeline/operator_sheet_data.py,SHEET_INDUSTRY_ORDER,6,move,"6 railroad names (industry, spot); first sort: copy of a master"
-ops/hart-ops/card_pipeline/operator_sheet_data.py,YARD_PAGES,4,unreviewed,holds sentences: page or card text?; first sort: copy of a master
-ops/hart-ops/card_pipeline/process_car_images.py,INVALID_MARKS,21,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/hart-ops/card_pipeline/operator_sheet_data.py,YARD_PAGES,4,move,holds sentences: page or card text?; the owner marked it move
+ops/hart-ops/card_pipeline/process_car_images.py,INVALID_MARKS,21,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 ops/hart-ops/card_pipeline/process_car_images.py,ROAD_ALIASES,49,move,19 railroad names (car); first sort: fact with no master
 ops/hart-ops/card_pipeline/train_cards.py,TRAINS,6,move,"8 railroad names (car, loco, train); first sort: copy of a master"
 ops/hart-ops/card_pipeline/waybill_data.py,INDUSTRY_ORDER,5,move,"5 railroad names (industry, spot); first sort: copy of a master"
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_CSX,6,unreviewed,holds sentences: page or card text?; first sort: fact with no master
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_POHC,7,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_CSX,6,move,holds sentences: page or card text?; the owner marked it move
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_POHC,7,move,holds sentences: page or card text?; the owner marked it move
 ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_CSX,7,move,2 railroad names (loco); first sort: fact with no master
-ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_POHC,5,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_POHC,5,move,holds sentences: page or card text?; the owner marked it move
 ops/hart-ops/card_pipeline/waybill_data.py,OUTBOUND_EMPTY_RETURN,5,move,"7 railroad names (industry, loco, spot); first sort: fact with no master"
-ops/hart-ops/card_pipeline/waybill_data.py,_PROCESS_CHEMICAL_DETAILS,9,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,_PROCESS_CHEMICAL_DETAILS,9,move,rows of values the rule cannot place; the owner marked it move
 ops/hart-ops/card_pipeline/waybill_data.py,_SPOT_WAYBILL_RAW,11,move,"7 railroad names (industry, loco, spot); first sort: fact with no master"
-ops/hart-ops/publications/local_station_maps/east_end.py,LADDER_SWITCHES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/hart-ops/publications/local_station_maps/east_end.py,LADDER_SWITCHES,4,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 ops/hart-ops/publications/local_station_maps/east_end.py,TRACK_INDUSTRIES,4,move,4 railroad names (occupancy sensor); first sort: copy of a master
-ops/hart-ops/publications/local_station_maps/kit.py,SWNUM,16,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
-ops/hart-ops/publications/local_station_maps/south_yard.py,LADDER_SWITCHES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/hart-ops/publications/local_station_maps/kit.py,SWNUM,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+ops/hart-ops/publications/local_station_maps/south_yard.py,LADDER_SWITCHES,4,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 ops/hart-ops/publications/rebuild_local_station_maps.py,MAPS,5,move,"4 railroad names (industry, station); first sort: fact with no master"
-ops/hart-ops/publications/rebuild_scale_operating_instructions.py,PUBLICATION,7,unreviewed,holds sentences: page or card text?; first sort: fact with no master
-ops/station_maps/scripts/render_barn_station_map.py,BADGES,4,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-ops/station_maps/scripts/render_barn_station_map.py,LABELS,9,unreviewed,rows of values the rule cannot place; first sort: fact with no master
-ops/station_maps/scripts/render_barn_station_map.py,TRACKS,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/hart-ops/publications/rebuild_scale_operating_instructions.py,PUBLICATION,7,move,holds sentences: page or card text?; the owner marked it move
+ops/station_maps/scripts/render_barn_station_map.py,BADGES,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/station_maps/scripts/render_barn_station_map.py,LABELS,9,move,rows of values the rule cannot place; the owner marked it move
+ops/station_maps/scripts/render_barn_station_map.py,TRACKS,8,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 ops/station_maps/scripts/render_shenango_station_map.py,LABELS,10,move,"5 railroad names (occupancy sensor, station); first sort: fact with no master"
-ops/station_maps/scripts/render_shenango_station_map.py,LOOP,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
-ops/station_maps/scripts/render_south_yard_station_map.py,BADGES,6,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-ops/station_maps/scripts/render_south_yard_station_map.py,OLD_BADGES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+ops/station_maps/scripts/render_shenango_station_map.py,LOOP,6,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+ops/station_maps/scripts/render_south_yard_station_map.py,BADGES,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+ops/station_maps/scripts/render_south_yard_station_map.py,OLD_BADGES,4,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 ops/station_maps/scripts/render_south_yard_station_map.py,TRACK_NAMES,5,move,5 railroad names (occupancy sensor); first sort: copy of a master
-tools/audit/check_ai_speak.py,PATTERNS,19,unreviewed,holds sentences: page or card text?; first sort: code setting
-tools/audit/check_data_readers.py,ALLOWED,22,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/audit/check_name_copies.py,ALLOW,11,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/audit/check_name_copies.py,SKIP_PREFIXES,16,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/audit/check_stamps.py,AUDIT_SAMPLE,8,unreviewed,rows of values the rule cannot place; first sort: check exception list
-tools/audit/check_stamps.py,BY_KIND,14,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/audit/check_stamps.py,EXTRA,36,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/audit/check_stamps.py,REPO_FILES,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: check exception list"
-tools/audit/portal_inputs.py,SITE_TOOLS,15,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/ci/docs_unit_tests.py,KIND_DIRS,4,unreviewed,names repo files: an exception list?; first sort: code setting
-tools/ci/docs_unit_tests.py,LEFT_OUT,27,unreviewed,holds sentences: page or card text?; first sort: check exception list
-tools/ci/stamp_gate.py,MACHINERY,18,unreviewed,names repo files: an exception list?; first sort: check exception list
-tools/ctc_history/film_cats.py,FRAMES,13,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
-tools/ctc_history/film_ctc.py,EXPLICIT_CROPS,5,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
-tools/ctc_history/film_ctc.py,FRAMES,16,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
-tools/ctc_history/film_le.py,FRAMES,6,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
-tools/hartlib/src/hartlib/railroad_facts.py,WRITERS,4,unreviewed,names repo files: an exception list?; first sort: code setting
-tools/hartlib/src/hartlib/tables_build.py,LAYER_BEANS,7,unreviewed,holds sentences: page or card text?; first sort: code setting
-tools/hartlib/src/hartlib/track_names.py,LABEL_TRACK_KEYS,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-tools/hartlib/src/hartlib/wiring.py,CAP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-tools/hartlib/src/hartlib/wiring.py,LCOS,7,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
-tools/hosts/panelpro_profile.py,_ESCAPES,4,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/audit/check_ai_speak.py,PATTERNS,19,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/check_data_readers.py,ALLOWED,22,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/check_name_copies.py,ALLOW,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/check_name_copies.py,SKIP_PREFIXES,16,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/check_stamps.py,AUDIT_SAMPLE,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/check_stamps.py,BY_KIND,14,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
+tools/audit/check_stamps.py,EXTRA,36,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
+tools/audit/check_stamps.py,REPO_FILES,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/portal_inputs.py,SITE_TOOLS,15,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
+tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
+tools/ci/stamp_gate.py,MACHINERY,18,keep,"shared in code, so already one source: check_stamps.py and traced.py import it (review fix after the code review)"
+tools/ctc_history/film_cats.py,FRAMES,13,move,holds sentences: page or card text?; the owner marked it move
+tools/ctc_history/film_ctc.py,EXPLICIT_CROPS,5,move,holds sentences: page or card text?; the owner marked it move
+tools/ctc_history/film_ctc.py,FRAMES,16,move,holds sentences: page or card text?; the owner marked it move
+tools/ctc_history/film_le.py,FRAMES,6,move,holds sentences: page or card text?; the owner marked it move
+tools/hartlib/src/hartlib/railroad_facts.py,WRITERS,4,keep,a code setting (marked by owner)
+tools/hartlib/src/hartlib/tables_build.py,LAYER_BEANS,7,keep,a code setting (marked by owner)
+tools/hartlib/src/hartlib/track_names.py,LABEL_TRACK_KEYS,6,keep,a code setting (marked by owner)
+tools/hartlib/src/hartlib/wiring.py,CAP,4,keep,a code setting (marked by owner)
+tools/hartlib/src/hartlib/wiring.py,LCOS,7,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+tools/hosts/panelpro_profile.py,_ESCAPES,4,keep,a code setting (marked by owner)
 tools/mqtt-mimic/lcos_mqtt_mimic.py,PLANT_ORDER,9,move,7 railroad names (station); first sort: copy of a master
-tools/mqtt-mimic/lcos_mqtt_mimic.py,SWITCH_TIPS,5,unreviewed,holds sentences: page or card text?; first sort: copy of a master
+tools/mqtt-mimic/lcos_mqtt_mimic.py,SWITCH_TIPS,5,move,holds sentences: page or card text?; the owner marked it move
 tools/mqtt-mimic/qa/run_native_sml_qa.py,OCC,17,move,"4 railroad names (occupancy sensor, switch); first sort: copy of a master"
 tools/mqtt-mimic/qa/run_native_sml_qa.py,SCENARIO,13,move,"16 railroad names (occupancy sensor, switch); first sort: fact with no master"
 tools/mqtt-mimic/qa/run_native_sml_qa.py,TO,9,move,"5 railroad names (occupancy sensor, switch); first sort: copy of a master"
-tools/mqtt/clear_mqtt_cmd_sensor_retain.py,JUNK,5,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: check exception list"
-tools/ops/agent_docs_map.py,DOCS,5,unreviewed,names repo files: an exception list?; first sort: page text
-tools/ops/agent_docs_map.py,FOLDERS,5,unreviewed,names repo files: an exception list?; first sort: page text
-tools/ops/agent_docs_map.py,GLOBS,5,unreviewed,rows of values the rule cannot place; first sort: code setting
-tools/ops/build_docs_index.py,ASSETS,12,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
-tools/ops/build_pipeline_map.py,KINDS,7,unreviewed,holds sentences: page or card text?; first sort: code setting
+tools/mqtt/clear_mqtt_cmd_sensor_retain.py,JUNK,5,keep,"topic filters and matchers for the cleanup tool, not railroad data (marked by owner)"
+tools/ops/agent_docs_map.py,DOCS,5,move,names repo files: an exception list?; the owner marked it move
+tools/ops/agent_docs_map.py,FOLDERS,5,move,names repo files: an exception list?; the owner marked it move
+tools/ops/agent_docs_map.py,GLOBS,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/ops/build_docs_index.py,ASSETS,12,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/ops/build_pipeline_map.py,KINDS,7,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ops/check_json.py,PLAN_OVERRIDES,4,move,2 railroad names (main line); first sort: code setting
-tools/ops/check_json.py,PLAN_SECTION_KEYS,9,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/ops/check_json.py,PLAN_SECTION_KEYS,9,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ops/check_json.py,PREFERENCES,4,move,2 railroad names (main line); first sort: code setting
-tools/ops/pipeline_map_coverage.py,FAMILIES,5,unreviewed,names repo files: an exception list?; first sort: code setting
-tools/ops/status_counts.py,SECTIONS,5,unreviewed,holds sentences: page or card text?; first sort: page text
-tools/pipeline/timings.py,SEED_COLD_S,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
-tools/promo/promo_shots.py,BUILD_QUICK,7,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
-tools/promo/promo_shots.py,PAGES,19,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: per-item tweak"
-tools/promo/promo_shots.py,SITE_SECTIONS,4,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
-tools/promo/soundtrack.py,ARP,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
-tools/promo/soundtrack.py,PADS,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
-tools/schematic/build_device_map.py,LAYER_ORDER,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-tools/schematic/build_tables.py,DISCOVERY_BLIND_ATTRS,53,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: check exception list"
-tools/schematic/device_map_inputs.py,UID,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-tools/schematic/device_map_nodes.py,CAP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-tools/schematic/mast_rule.py,TAU,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
-tools/schematic/panel_items.py,POINTS,9,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/ops/pipeline_map_coverage.py,FAMILIES,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/ops/status_counts.py,SECTIONS,5,move,holds sentences: page or card text?; the owner marked it move
+tools/pipeline/timings.py,SEED_COLD_S,5,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+tools/promo/promo_shots.py,BUILD_QUICK,7,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+tools/promo/promo_shots.py,PAGES,19,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/promo/promo_shots.py,SITE_SECTIONS,4,move,holds sentences: page or card text?; the owner marked it move
+tools/promo/soundtrack.py,ARP,8,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+tools/promo/soundtrack.py,PADS,4,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+tools/schematic/build_device_map.py,LAYER_ORDER,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/schematic/build_tables.py,DISCOVERY_BLIND_ATTRS,53,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/schematic/device_map_inputs.py,UID,4,keep,"shared in code, so already one source: device_map_nodes.py imports it (review fix after the code review)"
+tools/schematic/device_map_nodes.py,CAP,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/schematic/mast_rule.py,TAU,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/schematic/panel_items.py,POINTS,9,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/schematic/panel_items.py,STATUS_BEANS,4,move,4 railroad names (occupancy sensor); first sort: code setting
-tools/schematic/panel_stamps.py,CODE,9,unreviewed,names repo files: an exception list?; first sort: code setting
-tools/schematic/pi_dialog.py,DIALOG,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
-tools/schematic/template_edit.py,SPEEDS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
-tools/wiring/build_lcos_signal_manager_plan.py,LEGEND,33,unreviewed,holds sentences: page or card text?; first sort: fact with no master
-tools/wiring/build_lcos_signal_manager_plan.py,SIGNAL_HEADERS,23,unreviewed,holds sentences: page or card text?; first sort: code setting
-tools/wiring/write_inventory.py,BLOCK_COLUMNS,9,unreviewed,rows of values the rule cannot place; first sort: code setting
-tools/wiring/write_inventory.py,NODE_COLUMNS,32,unreviewed,rows of values the rule cannot place; first sort: code setting
-tools/wiring/write_inventory.py,OU_COLUMNS,8,unreviewed,rows of values the rule cannot place; first sort: code setting
-tools/wiring/write_inventory.py,TURNOUT_COLUMNS,20,unreviewed,holds sentences: page or card text?; first sort: code setting
-www/exam/deck-data.js,SECTIONS,8,unreviewed,holds sentences: page or card text?
-www/exam/deck-data.js,SRC,7,unreviewed,rows of values the rule cannot place
-www/exam/run-1949.js,ROAD_TTO,27,unreviewed,holds sentences: page or card text?
-www/exam/run-1949.js,STN_TTO,32,unreviewed,holds sentences: page or card text?
-www/exam/run-modern.js,BOXES,17,unreviewed,holds sentences: page or card text?
-www/exam/run-modern.js,ROAD_TWC,29,unreviewed,holds sentences: page or card text?
-www/exam/run-modern.js,SAY,16,unreviewed,holds sentences: page or card text?
+tools/schematic/panel_stamps.py,CODE,9,keep,"shared in code, so already one source: check_stamps.py and manifest_jobs.py import it (review fix after the code review)"
+tools/schematic/pi_dialog.py,DIALOG,6,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+tools/schematic/template_edit.py,SPEEDS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/wiring/build_lcos_signal_manager_plan.py,LEGEND,33,move,holds sentences: page or card text?; the owner marked it move
+tools/wiring/build_lcos_signal_manager_plan.py,SIGNAL_HEADERS,23,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/wiring/write_inventory.py,BLOCK_COLUMNS,9,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/wiring/write_inventory.py,NODE_COLUMNS,32,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/wiring/write_inventory.py,OU_COLUMNS,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/wiring/write_inventory.py,TURNOUT_COLUMNS,20,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/exam/deck-data.js,SECTIONS,8,keep,"8 rulebook sections; the copy is guarded by test_exam_answers (Fable, pattern 5) (marked by claude (Fable's review))"
+www/exam/deck-data.js,SRC,7,move,"deck.js reads it and it repeats game-engine.js SOURCES' keys (SC, GC, TT, YL, TW, SG, SM) with other labels: merge into SOURCES (review fix after the code review)"
+www/exam/run-1949.js,ROAD_TTO,27,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/exam/run-1949.js,STN_TTO,32,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/exam/run-modern.js,BOXES,17,move,"same 17 track warrant boxes as warrant.js BOXES: one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review))"
+www/exam/run-modern.js,ROAD_TWC,29,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/exam/run-modern.js,SAY,17,move,"spoken lines of the same form as warrant.js SAY, had drifted (no Box 4 line until this change): one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review)); raised 16 to 17 for the missing Box 4 line, matching the form's 17 boxes"
 www/exam/run-modern.js,TW_SEL,7,move,2 railroad names (switch)
-www/exam/run-signals.js,PLATE_DELAY,6,unreviewed,numbers by item: per-item tweaks or code constants?
-www/exam/run-signals.js,RDELAY,18,unreviewed,numbers by item: per-item tweaks or code constants?
-www/exam/run-signals.js,ROUTE_DELAY,6,unreviewed,numbers by item: per-item tweaks or code constants?
-www/exam/run-yard.js,YLOC,8,unreviewed,numbers by item: per-item tweaks or code constants?
-www/exam/run.js,RUNS,5,unreviewed,rows of values the rule cannot place
-www/exam/run.js,STATIONS,9,unreviewed,numbers by item: per-item tweaks or code constants?
-www/exam/signals.js,ASPECTS,18,unreviewed,holds sentences: page or card text?
-www/exam/signals.js,PLATES,6,unreviewed,holds sentences: page or card text?
-www/exam/signals.js,ROUTE,6,unreviewed,holds sentences: page or card text?
-www/js/game-engine.js,DECK_SECTIONS,8,unreviewed,holds sentences: page or card text?
-www/js/game-engine.js,SOURCES,8,unreviewed,holds sentences: page or card text?
-www/play/passenger.js,Qs,19,unreviewed,holds sentences: page or card text?
-www/play/passenger.js,SIG287,4,unreviewed,holds sentences: page or card text?
-www/play/passenger.js,SIG292,4,unreviewed,holds sentences: page or card text?
-www/play/passenger.js,run,16,unreviewed,holds sentences: page or card text?
-www/play/pcy.js,POINTS,7,unreviewed,holds sentences: page or card text?
-www/play/pcy.js,Qs,17,unreviewed,holds sentences: page or card text?
-www/play/pcy.js,SIGS,5,unreviewed,numbers by item: per-item tweaks or code constants?
-www/play/pcy.js,run,15,unreviewed,holds sentences: page or card text?
-www/play/pir.js,POINTS,8,unreviewed,numbers by item: per-item tweaks or code constants?
-www/play/pir.js,Qs,26,unreviewed,holds sentences: page or card text?
-www/play/pir.js,box5Key,8,unreviewed,holds sentences: page or card text?
+www/exam/run-signals.js,PLATE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/exam/run-signals.js,RDELAY,18,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/exam/run-signals.js,ROUTE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/exam/run-yard.js,YLOC,8,keep,"shared in code, so already one source: put on window.ExtraEast for the other exam runs (review fix after the code review)"
+www/exam/run.js,RUNS,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/exam/run.js,STATIONS,9,keep,"shared in code, so already one source: put on window.ExtraEast; run-modern.js and run-signals.js read it (the exam's fictional line, not the Chartiers stations) (review fix after the code review)"
+www/exam/signals.js,ASPECTS,18,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/exam/signals.js,PLATES,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/exam/signals.js,ROUTE,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/js/game-engine.js,DECK_SECTIONS,8,keep,"8 rulebook sections; the copy is guarded by test_exam_answers (Fable, pattern 5) (marked by claude (Fable's review))"
+www/js/game-engine.js,SOURCES,8,keep,"shared in code, so already one source: exported in the engine's api; play.js and run.js label sources through it. deck-data.js SRC repeats its keys and moves into it (review fix after the code review)"
+www/play/passenger.js,Qs,19,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/passenger.js,SIG287,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/play/passenger.js,SIG292,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/play/passenger.js,run,16,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/pcy.js,POINTS,7,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/play/pcy.js,Qs,17,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/pcy.js,SIGS,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/play/pcy.js,run,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/pir.js,POINTS,8,move,"merge into one shared www/js file of Chartiers stations (owner: shared JS, not a CSV) with road-engine.js ST and warrant.js TW_SEL's station list (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/pir.js,Qs,26,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/pir.js,box5Key,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/play/pir.js,run,16,move,"2 railroad names (occupancy sensor, switch)"
-www/play/play.js,LEN,11,unreviewed,rows of values the rule cannot place
+www/play/play.js,LEN,11,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/play.js,LOC,25,move,"3 railroad names (industry, station)"
-www/play/play.js,TAG,8,unreviewed,rows of values the rule cannot place
-www/play/road-engine.js,LEG,13,unreviewed,numbers by item: per-item tweaks or code constants?
-www/play/road-engine.js,Q,5,unreviewed,holds sentences: page or card text?
-www/play/road-engine.js,ST,14,unreviewed,numbers by item: per-item tweaks or code constants?
-www/play/road-engine.js,TT,6,unreviewed,numbers by item: per-item tweaks or code constants?
-www/play/road.js,Qs,11,unreviewed,holds sentences: page or card text?
-www/play/road.js,ROAD,5,unreviewed,holds sentences: page or card text?
-www/play/road.js,STN,8,unreviewed,holds sentences: page or card text?
-www/play/road.js,coal,15,unreviewed,holds sentences: page or card text?
+www/play/play.js,TAG,8,keep,"short names on the engine's 8 section keys (Fable, pattern 5) (marked by claude (Fable's review))"
+www/play/road-engine.js,LEG,13,keep,"shared in code, so already one source: handed to the play games through newTT() on window.RoadEngine (review fix after the code review)"
+www/play/road-engine.js,Q,5,keep,"shared in code, so already one source: on window.RoadEngine; road.js and passenger.js build their questions from it (review fix after the code review)"
+www/play/road-engine.js,ST,14,move,"merge into one shared www/js file of Chartiers stations (owner: shared JS, not a CSV) with pir.js POINTS and warrant.js TW_SEL's station list (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/road-engine.js,TT,6,keep,"shared in code, so already one source: on window.RoadEngine and through newTT() for the play games (review fix after the code review)"
+www/play/road.js,Qs,11,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/road.js,ROAD,5,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/road.js,STN,8,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/road.js,coal,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/runs.js,NevilleRuns,7,move,"3 railroad names (industry, station)"
-www/play/runs.js,Q,8,unreviewed,holds sentences: page or card text?
-www/play/warrant.js,BOXES,17,unreviewed,holds sentences: page or card text?
-www/play/warrant.js,SAY,17,unreviewed,holds sentences: page or card text?
+www/play/runs.js,Q,8,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/warrant.js,BOXES,17,move,"same 17 track warrant boxes as run-modern.js BOXES: one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review))"
+www/play/warrant.js,SAY,17,move,"spoken lines shared with run-modern.js SAY: one shared www/js file (owner: shared JS, not a CSV) (Fable, pattern 7) (marked by claude (Fable's review))"
 www/play/warrant.js,TW_SEL,7,move,"2 railroad names (occupancy sensor, switch)"
-www/play/warrant.js,api,12,unreviewed,holds sentences: page or card text?
-www/scripts/build_cats_layout_index.py,SIG_LOC,16,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
-www/scripts/build_exam_answers.js,ENT,6,unreviewed,rows of values the rule cannot place
-www/scripts/build_exam_answers.js,FRIENDLY,8,unreviewed,rows of values the rule cannot place
-www/scripts/build_helix_page.py,GROUPS,6,unreviewed,holds sentences: page or card text?; first sort: page text
+www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warrant game's exported functions and tables, read by its tests (review fix after the code review)"
+www/scripts/build_cats_layout_index.py,SIG_LOC,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+www/scripts/build_exam_answers.js,ENT,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/build_exam_answers.js,FRIENDLY,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/build_helix_page.py,GROUPS,6,move,holds sentences: page or card text?; the owner marked it move
 www/scripts/build_layout_docs.py,LABELS,14,move,10 railroad names (block); first sort: page text
-www/scripts/build_layout_docs.py,SOQ_WORDS,11,unreviewed,rows of values the rule cannot place; first sort: page text
-www/scripts/build_tables_browser.py,FEEDBACK,7,unreviewed,rows of values the rule cannot place; first sort: page text
-www/scripts/build_tables_browser.py,TABLES,14,unreviewed,rows of values the rule cannot place; first sort: page text
-www/scripts/build_wiring_json.py,UNSAFE,9,unreviewed,rows of values the rule cannot place; first sort: code setting
-www/scripts/make_share_cards.py,CARDS,32,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
-www/scripts/provenance.py,_BLOCKS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
-www/scripts/provenance.py,_SCHEMA,4,unreviewed,rows of values the rule cannot place; first sort: code setting
-www/scripts/repo_guide_page.py,FOLDERS,10,unreviewed,holds sentences: page or card text?; first sort: page text
-www/scripts/repo_guide_page.py,HARTLIB_OTHER,31,unreviewed,"holds sentences: page or card text?; first sort: page text; raised 29 to 30 for hand_tables, the module this check adds; 31 for jmri_profile, a hartlib module the page must describe"
-www/scripts/repo_guide_page.py,LAYOUT_TREE,8,unreviewed,holds sentences: page or card text?; first sort: page text
-www/scripts/repo_guide_page.py,SUBMODULES,6,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/build_layout_docs.py,SOQ_WORDS,11,move,rows of values the rule cannot place; the owner marked it move
+www/scripts/build_tables_browser.py,FEEDBACK,7,move,rows of values the rule cannot place; the owner marked it move
+www/scripts/build_tables_browser.py,TABLES,14,move,rows of values the rule cannot place; the owner marked it move
+www/scripts/build_wiring_json.py,UNSAFE,9,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/make_share_cards.py,CARDS,32,keep,"shared in code, so already one source: share_card_recipes imports it (review fix after the code review)"
+www/scripts/provenance.py,_BLOCKS,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/provenance.py,_SCHEMA,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+www/scripts/repo_guide_page.py,FOLDERS,10,move,holds sentences: page or card text?; the owner marked it move
+www/scripts/repo_guide_page.py,HARTLIB_OTHER,31,move,holds sentences: page or card text?; the owner marked it move
+www/scripts/repo_guide_page.py,LAYOUT_TREE,8,move,holds sentences: page or card text?; the owner marked it move
+www/scripts/repo_guide_page.py,SUBMODULES,6,move,holds sentences: page or card text?; the owner marked it move
 www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,6 railroad names (occupancy sensor); first sort: per-item tweak
-www/scripts/tables_page.py,GROUPS,23,unreviewed,holds sentences: page or card text?; first sort: page text
-www/scripts/tables_page.py,GROUP_HEADS,4,unreviewed,rows of values the rule cannot place; first sort: page text
-www/scripts/tables_page.py,PANELS,6,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/tables_page.py,GROUPS,23,move,holds sentences: page or card text?; the owner marked it move
+www/scripts/tables_page.py,GROUP_HEADS,4,move,rows of values the rule cannot place; the owner marked it move
+www/scripts/tables_page.py,PANELS,6,move,holds sentences: page or card text?; the owner marked it move
