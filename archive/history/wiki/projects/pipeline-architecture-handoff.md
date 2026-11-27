@@ -22,11 +22,11 @@ The 2026-11-24 architecture review of the panel pipeline (`make panels`, `check.
 | 3 | #1067: owner chose the automatic run on the Mac; stale is exit 4, a lock in /tmp allows one discovery at a time, and a refused discovery restores `tables.xml` |
 | 4 | #1069: `preferences_generated.json` |
 | 5 | #1070: owner chose to trust CI; `tools/hosts/deploy/ci_pass.py` decides, and any doubt runs G4 |
-| 6 | profiled, cuts proposed in [`efficiency-plan.md`](../../docs/pipeline-map/efficiency-plan.md) ("Cold Layout Editor build profiled"); they are plugin changes, not built yet |
+| 6 | profiled, cuts proposed in [`efficiency-plan.md`](../../../../docs/pipeline-map/efficiency-plan.md) ("Cold Layout Editor build profiled"); they are plugin changes, not built yet |
 
 ## How to run this
 
-- Read `tools/schematic/build_panels.sh` (its header lists every step and why it runs where it does) and [`../pipelines/schematic-panels.md`](../pipelines/schematic-panels.md) first.
+- Read `tools/schematic/build_panels.sh` (its header lists every step and why it runs where it does) and [`../pipelines/schematic-panels.md`](../../../../wiki/pipelines/schematic-panels.md) first.
 - Work in `make wt TOPIC=<topic>` worktrees. Items 1, 2 and 4 are code: `/code-review medium` before merge. Every layout output must come out byte-identical (`make panels CHECK=1` and the approved fingerprints pass with no new approval).
 - Items 1, 2 and 4 touch different files and can run as parallel worktree agents (`schematic-builder` for 2 and 4). Item 3 needs the Mac's PanelPro and stays in the main session. Ask the owner items 3 and 5 together, multiple choice, before building either.
 - Pipeline map: each PR that adds, moves or removes a step updates `docs/pipeline-map/pipeline_map.json` (`tools/ops/pipeline_map_coverage.py` in `check.sh` fails otherwise).
