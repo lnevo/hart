@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
@@ -23,10 +24,11 @@ import generate_single_card as gsc  # noqa: E402
 from card_errors import CardPipelineError  # noqa: E402
 
 
-def shipment(**fields: str) -> dict[str, str]:
+def shipment(**fields: str) -> gcl.Shipment:
+    """A Shipment row: every field blank except FIELDS."""
     row = {name: "" for name in gcl.SHIPMENT_FIELDS}
     row.update(fields)
-    return row
+    return cast("gcl.Shipment", row)  # the keys are SHIPMENT_FIELDS, the TypedDict's own
 
 
 def stand_in_sheet(path: Path) -> Path:
@@ -54,7 +56,7 @@ class ReadShipments(TempDir):
         self.assertEqual(gcl.read_shipments(self.write(rows)), rows)
 
     def test_a_missing_field_is_named_with_the_shipment(self) -> None:
-        row = shipment(code="S9")
+        row = dict(shipment(code="S9"))  # as the JSON may hold it: a plain object, one field short
         del row["unload_trk"]
         with self.assertRaisesRegex(CardPipelineError, r"shipment 0 \(S9\) has no unload_trk"):
             gcl.read_shipments(self.write([row]))
@@ -92,7 +94,7 @@ class Labels(unittest.TestCase):
 
     def test_a_null_field_reads_as_blank(self) -> None:
         s = shipment(code="S1")
-        s["special"] = None  # type: ignore[assignment]
+        s["special"] = None  # type: ignore[typeddict-item]  # what the STS JSON holds for an empty column
         with mock.patch.object(gcl, "logo_for_party", lambda party: ""):
             self.assertEqual(gcl.labels_from_shipments([s])[1]["Special"], "")
 
