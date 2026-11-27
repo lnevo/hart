@@ -1,0 +1,214 @@
+file,table,entries,status,reason
+.claude/hooks/check_after_edit.py,UNIT_JMRI_ARGV,8,unreviewed,names repo files: an exception list?; first sort: code setting
+cats/scripts/cats_inspect.py,OPP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+cats/scripts/digicon_trace.py,STEP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+jmri/layouts/hart/parked/apply_nx_layer.py,CTC_MASTS,23,move,"21 railroad names (Mast 24L, Mast 24RA, Mast 24RB and 18 more; occupancy sensor); first sort: fact with no master"
+jmri/layouts/hart/parked/polish_hart_layout_editor.py,OS_OCCUPANCY_ICONS,19,move,"19 railroad names (BS Switch 1, BS Switch 11, BS Switch 13 and 16 more; occupancy sensor); first sort: fact with no master"
+jmri/layouts/hart/scripts/build_hart_signal_heads.py,PLAN_FIELDS,10,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,BLOCK_COMMENTS,58,move,"45 railroad names (OS Switch 1, OS Switch 11, OS Switch 13 and 42 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SUFFIX,13,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SUFFIX_SHORT,13,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+jmri/layouts/hart/scripts/check_bean_comments.py,CTC_SWITCH,40,move,"20 railroad names (Switch 1, Switch 11, Switch 13 and 17 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,LOGIXNG_USERNAMES,6,unreviewed,holds sentences: page or card text?; first sort: copy of a master
+jmri/layouts/hart/scripts/check_bean_comments.py,OCC_SENSOR,43,unreviewed,holds sentences: page or card text?; first sort: copy of a master
+jmri/layouts/hart/scripts/check_bean_comments.py,SPECIAL_SENSOR_USERNAMES,9,move,"2 railroad names (unused Block 2-2, unused Block 3-8; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,TURNOUT_COMMENTS,20,move,"20 railroad names (Switch 1, Switch 11, Switch 13 and 17 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,_PLANT_NUMBERS,20,move,"30 railroad names (101, 103, 105 and 27 more; occupancy sensor, switch); first sort: copy of a master"
+jmri/layouts/hart/scripts/check_bean_comments.py,_PLANT_PHRASES,9,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+jmri/layouts/hart/scripts/ctc_default_reverse_levers.py,LOCAL_LOCKS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+jmri/layouts/hart/scripts/ctc_logic_smoke.py,SIDI_MASTS,23,move,"21 railroad names (Mast 24L, Mast 24RA, Mast 24RB and 18 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/diagnose_turnout_states.py,FB_MODE,7,unreviewed,holds sentences: page or card text?; first sort: code setting
+jmri/layouts/hart/scripts/diagnose_turnout_states.py,STATE,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+jmri/layouts/hart/scripts/discover_nx.py,NX_SENSORS,23,unreviewed,rows of values the rule cannot place; first sort: copy of a master
+jmri/layouts/hart/scripts/ensure_dispatcher_roster_profiles.py,PROFILE_STEPS,10,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+jmri/layouts/hart/scripts/gen_ctc_track_plan.py,CENTER_OCC,5,move,"5 railroad names (Track Brick-Plane, Track Main West, Track S-R and 2 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/gen_ctc_track_plan.py,LABEL_AT,6,move,"6 railroad names (Track Barn, Track EH-1, Track EH-2 and 3 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/gen_ctc_track_plan.py,STRIP,16,unreviewed,rows of values the rule cannot place; first sort: copy of a master
+jmri/layouts/hart/scripts/nx_contract.py,ISNX_SYSTEM,23,move,"21 railroad names (Mast 24L, Mast 24RA, Mast 24RB and 18 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/panelpro_smoke_test.py,STATIONS,12,move,"12 railroad names (Track Barn, Track EH-1, Track EH-2 and 9 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/plan_routes.py,_FROM_EAST_LEAD,6,unreviewed,rows of values the rule cannot place; first sort: copy of a master
+jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,RETIRED_STATION_OCCUPANCY,10,move,"20 railroad names (BS Brick-Plane, BS East Ext, BS Main East and 17 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,STATIONS,12,move,"12 railroad names (Track Barn, Track EH-1, Track EH-2 and 9 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,STATION_DISPLAY_NAMES,12,move,"14 railroad names (Barn, East End, Track Barn and 11 more; occupancy sensor, station); first sort: copy of a master"
+jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py,STATION_OCCUPANCY,12,move,"24 railroad names (BS Barn, BS EH-1, BS EH-2 and 21 more; occupancy sensor); first sort: copy of a master"
+jmri/layouts/hart/scripts/render_le_layout.py,LEGEND_ROW,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: page text
+jmri/layouts/hart/scripts/render_le_layout.py,VIEWS,6,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
+jmri/layouts/hart/scripts/speedmatch/correct.py,EXIT_CODES,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+jmri/layouts/hart/scripts/speedmatch/dashboard/dashsources.py,DEMO_BIAS,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+jmri/layouts/hart/scripts/speedmatch/dashboard/server.py,TYPES,5,unreviewed,rows of values the rule cannot place; first sort: code setting
+jmri/layouts/hart/scripts/speedmatch/jython/jobkit.py,NAMES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+jmri/layouts/hart/scripts/speedmatch/liverule.py,DIST_STEPS,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+jmri/layouts/hart/scripts/speedmatch/make_job.py,DEFAULT_STEPS,15,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+jmri/layouts/hart/scripts/speedmatch/pom_guard.py,NAMED_REFUSALS,6,unreviewed,holds sentences: page or card text?; first sort: code setting
+jmri/layouts/hart/scripts/uss_switch_only_columns.py,EVEN_SUFFIXES,9,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+jmri/layouts/hart/scripts/uss_switch_only_columns.py,NEW_COLUMNS,8,move,"8 railroad names (Switch 11, Switch 17, Switch 19 and 5 more; occupancy sensor); first sort: fact with no master"
+jmri/layouts/hart/scripts/uss_switch_only_columns.py,OS_SENSOR,8,move,"16 railroad names (BS Switch 11, BS Switch 17, BS Switch 19 and 13 more; occupancy sensor); first sort: copy of a master"
+ops/hart-ops/card_pipeline/build_merged_car_roster.py,CAR_ATTR_ORDER,28,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/hart-ops/card_pipeline/build_merged_car_roster.py,JMRI_COLORS,12,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/hart-ops/card_pipeline/build_merged_car_roster.py,LENGTH_WEIGHT,13,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/hart-ops/card_pipeline/car_repo.py,QUESTIONS,11,unreviewed,holds sentences: page or card text?
+ops/hart-ops/card_pipeline/card_template_cc_label.py,_STS_NAME_TO_MASTER_ID,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+ops/hart-ops/card_pipeline/card_template_layout.py,CARD_SLOTS,9,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+ops/hart-ops/card_pipeline/engine_lookup.py,ENGINE_ROAD_ALIASES,7,move,"3 railroad names (B&O, C&O, CSX; car, loco); first sort: fact with no master"
+ops/hart-ops/card_pipeline/engine_lookup.py,MODEL_MANUFACTURER,33,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+ops/hart-ops/card_pipeline/engine_lookup.py,ROAD_DISPLAY,25,move,"21 railroad names (ATSF, B&O, C&O and 18 more; car, loco); first sort: fact with no master"
+ops/hart-ops/card_pipeline/finalize_car_images.py,SAMPLE_STEMS,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: per-item tweak"
+ops/hart-ops/card_pipeline/finalize_car_images.py,TIE_PAN_ADJUSTMENTS,10,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+ops/hart-ops/card_pipeline/finalize_car_images.py,WIDTH_TIE_EXTRA,7,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,INDUSTRY_LOGOS,6,move,"6 railroad names (A Stucki Co, Aristech Plastics, Calgon Carbon and 3 more; industry, spot); first sort: copy of a master"
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,INDUSTRY_SUMMARIES,6,move,"6 railroad names (A Stucki Co, Aristech Plastics, Calgon Carbon and 3 more; industry, spot); first sort: copy of a master"
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,SHEET_INDUSTRY_ORDER,6,move,"6 railroad names (A Stucki Co, Aristech Plastics, Calgon Carbon and 3 more; industry, spot); first sort: copy of a master"
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,USAGE_LABELS,12,unreviewed,rows of values the rule cannot place; first sort: copy of a master
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,YARD_PAGES,4,unreviewed,holds sentences: page or card text?; first sort: copy of a master
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,_SPUR_MASTER_ID,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+ops/hart-ops/card_pipeline/generate_operator_sheet.py,_SPUR_TEXT,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: copy of a master"
+ops/hart-ops/card_pipeline/intake_stages.py,EDIT_FIELDS,12,unreviewed,rows of values the rule cannot place; first sort: code setting
+ops/hart-ops/card_pipeline/locos.py,QUESTIONS,12,unreviewed,holds sentences: page or card text?; first sort: page text
+ops/hart-ops/card_pipeline/process_car_images.py,INVALID_MARKS,21,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/hart-ops/card_pipeline/process_car_images.py,ROAD_ALIASES,49,move,"19 railroad names (ATSF, B&O, C&O and 16 more; car); first sort: fact with no master"
+ops/hart-ops/card_pipeline/train_cards.py,TRAINS,6,move,"8 railroad names (CK1, CSX, D749 and 5 more; car, loco, train); first sort: copy of a master"
+ops/hart-ops/card_pipeline/waybill_data.py,INDUSTRY_ORDER,5,move,"5 railroad names (A Stucki Co, Aristech Plastics, Calgon Carbon and 2 more; industry, spot); first sort: copy of a master"
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_CSX,6,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_IN_VIA_POHC,7,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_CSX,7,move,"2 railroad names (CSX, POHC; loco); first sort: fact with no master"
+ops/hart-ops/card_pipeline/waybill_data.py,INTERCHANGE_OUT_VIA_POHC,5,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,OUTBOUND_EMPTY_RETURN,5,move,"7 railroad names (A Stucki Co, Aristech Plastics, CSX and 4 more; industry, loco, spot); first sort: fact with no master"
+ops/hart-ops/card_pipeline/waybill_data.py,_PROCESS_CHEMICAL_DETAILS,9,unreviewed,rows of values the rule cannot place; first sort: fact with no master
+ops/hart-ops/card_pipeline/waybill_data.py,_SPOT_WAYBILL_RAW,11,move,"7 railroad names (A Stucki Co, Aristech Plastics, CSX and 4 more; industry, loco, spot); first sort: fact with no master"
+ops/hart-ops/publications/local_station_maps/east_end.py,LADDER_SWITCHES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/hart-ops/publications/local_station_maps/east_end.py,TRACK_INDUSTRIES,4,move,"4 railroad names (Track S-1, Track S-2, Track S-3 and 1 more; occupancy sensor); first sort: copy of a master"
+ops/hart-ops/publications/local_station_maps/kit.py,SWNUM,16,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/hart-ops/publications/local_station_maps/south_yard.py,LADDER_SWITCHES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/hart-ops/publications/rebuild_local_station_maps.py,MAPS,5,move,"4 railroad names (East End, South Yard, West Yard and 1 more; industry, station); first sort: fact with no master"
+ops/hart-ops/publications/rebuild_scale_operating_instructions.py,PUBLICATION,7,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+ops/station_maps/scripts/render_barn_station_map.py,BADGES,4,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/station_maps/scripts/render_barn_station_map.py,LABELS,9,move,"2 railroad names (Barn, track; block override, station); first sort: fact with no master"
+ops/station_maps/scripts/render_barn_station_map.py,TRACKS,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/station_maps/scripts/render_shenango_station_map.py,LABELS,10,move,"6 railroad names (Princess, Track Helix Inner, Track Helix Outer and 3 more; block override, occupancy sensor, station); first sort: fact with no master"
+ops/station_maps/scripts/render_shenango_station_map.py,LOOP,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: copy of a master
+ops/station_maps/scripts/render_south_yard_station_map.py,BADGES,6,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+ops/station_maps/scripts/render_south_yard_station_map.py,OLD_BADGES,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+ops/station_maps/scripts/render_south_yard_station_map.py,TRACK_NAMES,5,move,"5 railroad names (Track S-1, Track S-2, Track S-3 and 2 more; occupancy sensor); first sort: copy of a master"
+tools/audit/check_ai_speak.py,PATTERNS,19,unreviewed,holds sentences: page or card text?; first sort: code setting
+tools/audit/check_data_readers.py,ALLOWED,22,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/audit/check_name_copies.py,ALLOW,11,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/audit/check_name_copies.py,SKIP_PREFIXES,16,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/audit/check_stamps.py,AUDIT_SAMPLE,8,unreviewed,rows of values the rule cannot place; first sort: check exception list
+tools/audit/check_stamps.py,BY_KIND,14,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/audit/check_stamps.py,EXTRA,36,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/audit/check_stamps.py,REPO_FILES,8,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: check exception list"
+tools/audit/portal_inputs.py,SITE_TOOLS,15,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/ci/docs_unit_tests.py,KIND_DIRS,4,unreviewed,names repo files: an exception list?; first sort: code setting
+tools/ci/docs_unit_tests.py,LEFT_OUT,27,unreviewed,holds sentences: page or card text?; first sort: check exception list
+tools/ci/stamp_gate.py,MACHINERY,18,unreviewed,names repo files: an exception list?; first sort: check exception list
+tools/ctc_history/film_cats.py,FRAMES,13,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
+tools/ctc_history/film_ctc.py,EXPLICIT_CROPS,5,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
+tools/ctc_history/film_ctc.py,FRAMES,16,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
+tools/ctc_history/film_le.py,FRAMES,6,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
+tools/hartlib/src/hartlib/railroad_facts.py,WRITERS,4,unreviewed,names repo files: an exception list?; first sort: code setting
+tools/hartlib/src/hartlib/tables_build.py,LAYER_BEANS,7,unreviewed,holds sentences: page or card text?; first sort: code setting
+tools/hartlib/src/hartlib/track_names.py,LABEL_TRACK_KEYS,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/hartlib/src/hartlib/wiring.py,CAP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/hartlib/src/hartlib/wiring.py,LCOS,7,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+tools/hosts/panelpro_profile.py,_ESCAPES,4,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/mqtt-mimic/lcos_mqtt_mimic.py,PLANT_ORDER,9,move,"7 railroad names (Barn, Brick, East End and 4 more; station); first sort: copy of a master"
+tools/mqtt-mimic/lcos_mqtt_mimic.py,SWITCH_TIPS,5,unreviewed,holds sentences: page or card text?; first sort: copy of a master
+tools/mqtt-mimic/qa/run_native_sml_qa.py,OCC,17,move,"4 railroad names (101, 103, 105 and 1 more; occupancy sensor, switch); first sort: copy of a master"
+tools/mqtt-mimic/qa/run_native_sml_qa.py,SCENARIO,13,move,"16 railroad names (115, 117, Mast 24L and 13 more; occupancy sensor, switch); first sort: fact with no master"
+tools/mqtt-mimic/qa/run_native_sml_qa.py,TO,9,move,"5 railroad names (109, 111, 113 and 2 more; occupancy sensor, switch); first sort: copy of a master"
+tools/mqtt/clear_mqtt_cmd_sensor_retain.py,JUNK,5,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: check exception list"
+tools/ops/agent_docs_map.py,DOCS,5,unreviewed,names repo files: an exception list?; first sort: page text
+tools/ops/agent_docs_map.py,FOLDERS,5,unreviewed,names repo files: an exception list?; first sort: page text
+tools/ops/agent_docs_map.py,GLOBS,5,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/ops/build_docs_index.py,ASSETS,12,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
+tools/ops/build_pipeline_map.py,KINDS,7,unreviewed,holds sentences: page or card text?; first sort: code setting
+tools/ops/check_json.py,PLAN_OVERRIDES,4,move,"2 railroad names (main_upper, staging; main line); first sort: code setting"
+tools/ops/check_json.py,PLAN_SECTION_KEYS,9,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/ops/check_json.py,PREFERENCES,4,move,"2 railroad names (main_upper, staging; main line); first sort: code setting"
+tools/ops/pipeline_map_coverage.py,FAMILIES,5,unreviewed,names repo files: an exception list?; first sort: code setting
+tools/ops/status_counts.py,SECTIONS,5,unreviewed,holds sentences: page or card text?; first sort: page text
+tools/pipeline/timings.py,SEED_COLD_S,5,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+tools/promo/promo_shots.py,BUILD_QUICK,7,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+tools/promo/promo_shots.py,PAGES,19,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: per-item tweak"
+tools/promo/promo_shots.py,SITE_SECTIONS,4,unreviewed,holds sentences: page or card text?; first sort: per-item tweak
+tools/promo/soundtrack.py,ARP,8,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+tools/promo/soundtrack.py,PADS,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+tools/schematic/build_device_map.py,LAYER_ORDER,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/schematic/build_tables.py,DISCOVERY_BLIND_ATTRS,53,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: check exception list"
+tools/schematic/device_map_inputs.py,UID,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/schematic/device_map_nodes.py,CAP,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/schematic/mast_rule.py,TAU,4,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/schematic/panel_items.py,POINTS,9,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: code setting
+tools/schematic/panel_items.py,STATUS_BEANS,4,move,"4 railroad names (Bridge HBLOOP, SML Mode, Track Power and 1 more; occupancy sensor); first sort: code setting"
+tools/schematic/panel_stamps.py,CODE,9,unreviewed,names repo files: an exception list?; first sort: code setting
+tools/schematic/pi_dialog.py,DIALOG,6,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: per-item tweak
+tools/schematic/template_edit.py,SPEEDS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: fact with no master"
+tools/wiring/build_lcos_signal_manager_plan.py,LEGEND,33,unreviewed,holds sentences: page or card text?; first sort: fact with no master
+tools/wiring/build_lcos_signal_manager_plan.py,SIGNAL_HEADERS,23,unreviewed,holds sentences: page or card text?; first sort: code setting
+tools/wiring/write_inventory.py,BLOCK_COLUMNS,9,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/wiring/write_inventory.py,NODE_COLUMNS,32,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/wiring/write_inventory.py,OU_COLUMNS,8,unreviewed,rows of values the rule cannot place; first sort: code setting
+tools/wiring/write_inventory.py,TURNOUT_COLUMNS,20,unreviewed,holds sentences: page or card text?; first sort: code setting
+www/exam/deck-data.js,SECTIONS,8,unreviewed,holds sentences: page or card text?
+www/exam/run-1949.js,ROAD_TTO,27,unreviewed,holds sentences: page or card text?
+www/exam/run-1949.js,STN_TTO,32,unreviewed,holds sentences: page or card text?
+www/exam/run-modern.js,BOXES,17,unreviewed,holds sentences: page or card text?
+www/exam/run-modern.js,ROAD_TWC,29,unreviewed,holds sentences: page or card text?
+www/exam/run-modern.js,SAY,16,unreviewed,holds sentences: page or card text?
+www/exam/run-modern.js,TW_SEL,7,move,"2 railroad names (101, 103; switch)"
+www/exam/run-signals.js,RDELAY,18,unreviewed,numbers by item: per-item tweaks or code constants?
+www/exam/run-yard.js,YLOC,8,unreviewed,numbers by item: per-item tweaks or code constants?
+www/exam/run.js,RUNS,5,unreviewed,rows of values the rule cannot place
+www/exam/run.js,STATIONS,9,unreviewed,numbers by item: per-item tweaks or code constants?
+www/exam/signals.js,ASPECTS,18,unreviewed,holds sentences: page or card text?
+www/exam/signals.js,PLATES,6,unreviewed,holds sentences: page or card text?
+www/exam/signals.js,ROUTE,6,unreviewed,holds sentences: page or card text?
+www/js/game-engine.js,DECK_SECTIONS,8,unreviewed,holds sentences: page or card text?
+www/js/game-engine.js,SOURCES,8,unreviewed,holds sentences: page or card text?
+www/play/passenger.js,Qs,19,unreviewed,holds sentences: page or card text?
+www/play/passenger.js,run,16,unreviewed,holds sentences: page or card text?
+www/play/pcy.js,POINTS,7,unreviewed,holds sentences: page or card text?
+www/play/pcy.js,Qs,17,unreviewed,holds sentences: page or card text?
+www/play/pcy.js,SIGS,5,unreviewed,numbers by item: per-item tweaks or code constants?
+www/play/pcy.js,run,15,unreviewed,holds sentences: page or card text?
+www/play/pir.js,POINTS,8,unreviewed,numbers by item: per-item tweaks or code constants?
+www/play/pir.js,Qs,26,unreviewed,holds sentences: page or card text?
+www/play/pir.js,box5Key,8,unreviewed,holds sentences: page or card text?
+www/play/pir.js,run,16,move,"2 railroad names (121, 125; occupancy sensor, switch)"
+www/play/play.js,LEN,11,unreviewed,rows of values the rule cannot place
+www/play/play.js,LOC,25,move,"2 railroad names (South Yard, West Yard; station)"
+www/play/play.js,TAG,8,unreviewed,rows of values the rule cannot place
+www/play/road-engine.js,LEG,13,unreviewed,numbers by item: per-item tweaks or code constants?
+www/play/road-engine.js,Q,5,unreviewed,holds sentences: page or card text?
+www/play/road-engine.js,ST,14,unreviewed,numbers by item: per-item tweaks or code constants?
+www/play/road-engine.js,TT,6,unreviewed,numbers by item: per-item tweaks or code constants?
+www/play/road.js,Qs,12,unreviewed,holds sentences: page or card text?
+www/play/road.js,ROAD,5,unreviewed,holds sentences: page or card text?
+www/play/road.js,STN,8,unreviewed,holds sentences: page or card text?
+www/play/road.js,coal,15,unreviewed,holds sentences: page or card text?
+www/play/runs.js,NevilleRuns,7,move,"3 railroad names (South Yard, West Yard, stucki; industry, station)"
+www/play/runs.js,Q,8,unreviewed,holds sentences: page or card text?
+www/play/warrant.js,BOXES,17,unreviewed,holds sentences: page or card text?
+www/play/warrant.js,SAY,17,unreviewed,holds sentences: page or card text?
+www/play/warrant.js,TW_SEL,7,move,"2 railroad names (121, 125; occupancy sensor, switch)"
+www/play/warrant.js,api,12,unreviewed,holds sentences: page or card text?
+www/scripts/build_cats_layout_index.py,SIG_LOC,16,unreviewed,numbers by item: per-item tweaks or code constants?; first sort: fact with no master
+www/scripts/build_exam_answers.js,ENT,6,unreviewed,rows of values the rule cannot place
+www/scripts/build_exam_answers.js,FRIENDLY,8,unreviewed,holds sentences: page or card text?
+www/scripts/build_helix_page.py,GROUPS,6,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/build_layout_docs.py,LABELS,14,move,"10 railroad names (block:1C-5A#1+1C-5A#2, block:23B-35B, block:33A-35A and 7 more; block); first sort: page text"
+www/scripts/build_layout_docs.py,SOQ_WORDS,11,unreviewed,rows of values the rule cannot place; first sort: page text
+www/scripts/build_tables_browser.py,FEEDBACK,7,unreviewed,rows of values the rule cannot place; first sort: page text
+www/scripts/build_tables_browser.py,TABLES,14,unreviewed,rows of values the rule cannot place; first sort: page text
+www/scripts/build_wiring_json.py,UNSAFE,9,unreviewed,rows of values the rule cannot place; first sort: code setting
+www/scripts/make_share_cards.py,CARDS,32,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
+www/scripts/provenance.py,_BLOCKS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
+www/scripts/provenance.py,_SCHEMA,4,unreviewed,rows of values the rule cannot place; first sort: code setting
+www/scripts/repo_guide_page.py,FOLDERS,10,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/repo_guide_page.py,HARTLIB_OTHER,29,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/repo_guide_page.py,LAYOUT_TREE,8,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/repo_guide_page.py,SUBMODULES,6,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,"6 railroad names (Mast 2L, Mast 4RA, OS Switch 1 and 3 more; occupancy sensor); first sort: per-item tweak"
+www/scripts/tables_page.py,GROUPS,23,unreviewed,holds sentences: page or card text?; first sort: page text
+www/scripts/tables_page.py,GROUP_HEADS,4,unreviewed,rows of values the rule cannot place; first sort: page text
+www/scripts/tables_page.py,PANELS,6,unreviewed,holds sentences: page or card text?; first sort: page text
