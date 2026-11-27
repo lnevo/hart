@@ -77,9 +77,9 @@ tools/audit/check_name_copies.py,ALLOW,11,keep,its values are used only by this 
 tools/audit/check_name_copies.py,SKIP_PREFIXES,16,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_stamps.py,AUDIT_SAMPLE,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_stamps.py,BY_KIND,14,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/audit/check_stamps.py,ENTITY_MASTERS,15,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2)"
+tools/audit/check_stamps.py,ENTITY_MASTERS,18,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 18 for the three waybill rule files, new masters a test checks the list against"
 tools/audit/check_stamps.py,EXTRA,46,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/audit/check_stamps.py,SIDECAR_MASTERS,13,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2)"
+tools/audit/check_stamps.py,SIDECAR_MASTERS,16,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 16 for the three waybill rule files, new masters a test checks the list against"
 tools/audit/portal_inputs.py,SITE_TOOLS,14,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
