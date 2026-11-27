@@ -80,7 +80,7 @@ main_not_red() {
   if [[ "$rc" -eq 4 ]]; then echo "$line" >&2; return 1; fi
   [[ -z "$line" ]] || echo "$line"
   if [[ "$rc" -ne 0 || -z "$line" ]]; then
-    echo "main red check: ci_pass.py --main-red exited $rc without its verdict (its error is above); not blocking"
+    echo "main red check: ci_pass.py --main-red exited $rc without its verdict (see any error above); not blocking"
   fi
 }
 if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$CHECK_ONLY" -eq 0 && "$STAGE_ONLY" -eq 0 && -z "${HART_REDEPLOY_FROM:-}" ]]; then

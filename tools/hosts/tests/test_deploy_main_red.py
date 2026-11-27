@@ -171,7 +171,7 @@ exec "{self.tmp / 'bin2/python3'}" "$@"
                 self.crash_check(rc, stdout)
                 done = self.deploy("--pi", "--win")
                 self.assertIn("Traceback (stand-in): ImportError", done.stderr)
-                self.assertIn(f"main red check: ci_pass.py --main-red exited {rc} without its verdict (its error is "
+                self.assertIn(f"main red check: ci_pass.py --main-red exited {rc} without its verdict (see any error "
                               f"above); {NOT_BLOCKING}", done.stdout)
                 self.assertNotIn("main is red", done.stderr)
                 self.assertIn("ran G4: ", done.stdout)

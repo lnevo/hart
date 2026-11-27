@@ -52,6 +52,7 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
@@ -199,6 +200,12 @@ def _str_or_none(obj: Json, key: str, what: str) -> str | None:
     return value
 
 
+def _url_or_none(obj: Json, key: str) -> str | None:
+    """A link field: only a string counts, anything else is no link (the caller then builds one), never an error."""
+    value = obj.get(key)
+    return value if isinstance(value, str) else None
+
+
 def _list(obj: Json, key: str, what: str) -> list[object]:
     value = obj.get(key)
     if not isinstance(value, list):
@@ -233,7 +240,7 @@ class WorkflowRun:
         what = "a check.yml run"
         return cls(run_number=_int(obj, "run_number", what), status=_str(obj, "status", what),
                    id=_int(obj, "id", what), conclusion=_str_or_none(obj, "conclusion", what),
-                   html_url=_str_or_none(obj, "html_url", what))
+                   html_url=_url_or_none(obj, "html_url"))
 
 
 @dataclass(frozen=True)
@@ -273,8 +280,8 @@ class CacheEntry:
 
 
 def newest_run(slug: str, sha: str, gh: Gh) -> WorkflowRun:
-    """The newest push run of check.yml on main for `sha`; NoPass when GitHub has none. Only the runs that match are
-    read as records: another branch's or event's entries may hold fields of other shapes."""
+    """The newest push run of check.yml on main for `sha`; NoPass when GitHub has none. Only the newest matching run is
+    read as a record: an older run's other fields never decide, so they cannot turn a red main into "unreadable"."""
     what = "the check.yml runs"
     data = _json(gh(["api", "-X", "GET", f"repos/{slug}/actions/workflows/check.yml/runs", "-f", f"head_sha={sha}",
                      "-f", "event=push", "-f", "branch=main", "-f", "per_page=100"], GH_TIMEOUT), what)
@@ -282,12 +289,12 @@ def newest_run(slug: str, sha: str, gh: Gh) -> WorkflowRun:
     total = _int(data, "total_count", what)
     if total > len(listed):
         raise Unreadable(f"{total} check.yml runs for {sha[:12]}, more than one page")
-    mine = [WorkflowRun.parse(run) for run in _objects(listed, what)
+    mine = [run for run in _objects(listed, what)
             if (run.get("head_sha"), run.get("event"), run.get("head_branch"), run.get("path")) == (sha, "push", "main",
                                                                                                    WORKFLOW)]
     if not mine:
         raise NoPass(f"CI has no push run of {WORKFLOW} on main for it (not merged yet, or another commit)")
-    return max(mine, key=lambda r: r.run_number)
+    return WorkflowRun.parse(max(mine, key=lambda r: _int(r, "run_number", "a check.yml run")))
 
 
 def find_run(slug: str, sha: str, gh: Gh) -> int:
@@ -510,9 +517,13 @@ def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> i
         return g4_verdict(a.commit, root, gh)
     # --main-red: from here on every way out prints the gate's line, and only a red main exits MAIN_RED
     try:
-        a = parser().parse_args(args)
+        with redirect_stdout(sys.stderr):  # --help text goes to stderr: the gate reads stdout as the verdict
+            a = parser().parse_args(args)
     except BadCall as e:
         print(f"main red check: a bad call ({e}); {NOT_BLOCKING}")
+        return 0
+    except SystemExit:  # --help: argparse printed it and asked to exit
+        print(f"main red check: help only, no check; {NOT_BLOCKING}")
         return 0
     except Exception as e:  # a bug before the check's own handler: say so, and the deploy goes on
         print(f"main red check: failed before the check: {type(e).__name__}: {e}; {NOT_BLOCKING}")

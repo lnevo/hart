@@ -395,6 +395,27 @@ class MainRedTest(GhRepoCase):
         self.assertEqual(4, rc)
         self.assertIn(f"({self.URL})", out)
 
+    def test_odd_fields_on_an_older_run_or_a_link_still_stop_a_red_main(self) -> None:
+        """Only the newest run is read as a record, and a link that is not a string is no link: neither turns a red
+        main into an unreadable reply that lets the deploy go on."""
+        self.gh.runs = {"total_count": 2, "workflow_runs": [
+            self.gh.run(id="x", run_number=6, status=7, conclusion=[], html_url=5),
+            self.gh.run(conclusion="failure", html_url={"href": self.URL})]}
+        rc, out = self.red()
+        self.assertEqual(4, rc, out)
+        self.assertIn(f"ended failure ({self.URL})", out)
+
+    def test_help_with_main_red_keeps_stdout_to_the_gates_line(self) -> None:
+        for flag in ("-h", "--help"):
+            with self.subTest(flag=flag):
+                out, err = io.StringIO(), io.StringIO()
+                with redirect_stdout(out), redirect_stderr(err):
+                    rc = ci_pass.main(["--main-red", flag], root=self.repo, gh=self.gh)
+                self.assertEqual(0, rc)
+                self.assertEqual(f"main red check: help only, no check; {self.NOT_BLOCKING}\n", out.getvalue())
+                self.assertIn("usage: ci_pass.py", err.getvalue())
+                self.assertEqual([], self.gh.calls)
+
     def test_a_green_run_passes(self) -> None:
         self.newest(html_url=self.URL)
         self.assertEqual((0, f"main red check: main's push run for {self.sha[:12]} passed ({self.URL})\n"), self.red())
