@@ -16,13 +16,13 @@ MAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MAP)
 NODE = shutil.which("node") or ""
 # mainLine under node; a.stops lists the boxes where the line stops, a.up and a.down the boxes drawn on each side
-SCRIPT = """const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]);
+SCRIPT = """const m = require(process.argv[1]); const a = JSON.parse(require("fs").readFileSync(0, "utf8"));
 const stops = new Set(a.stops), set = v => (v ? new Set(v) : null);
 process.stdout.write(JSON.stringify(m.mainLine(a.edges, a.focus, { stops: id => stops.has(id), up: set(a.up), down: set(a.down) })));"""
 # each preset's drawn sides and line on the real map: the sides walked as the page walks them, not on through a box
 # where a hover's chain stops (hoverStop, liveHubs), and the line stopping there too
-REAL = """const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]);
-const data = require(process.argv[3]), byId = {}, hubs = m.liveHubs(data);
+REAL = """const m = require(process.argv[1]); const a = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const data = require(process.argv[2]), byId = {}, hubs = m.liveHubs(data);
 data.nodes.forEach(n => (byId[n.id] = n));
 const stops = id => m.hoverStop(byId[id], hubs);
 const reach = (edges, focus, key, other, steps) => {
@@ -51,7 +51,8 @@ def links(*pairs: str, side: tuple[str, ...] = ()) -> list[dict]:
 
 
 def run(script: str, arg: object, *extra: str) -> list:
-    return json.loads(subprocess.run([NODE, "-e", script, str(MAP.HELPERS_JS), json.dumps(arg), *extra],
+    # the argument goes on stdin: the real map's links are past the 128 KB Linux allows one argument
+    return json.loads(subprocess.run([NODE, "-e", script, str(MAP.HELPERS_JS), *extra], input=json.dumps(arg),
                                      capture_output=True, text=True, check=True).stdout)
 
 
@@ -121,14 +122,14 @@ class MainLineTest(unittest.TestCase):
 
 
 # presetLine, presetAlso and withLine under node: a.presets, a.focus; a.drawn and a.all as {nodes, edges}
-NAMED = """const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]);
+NAMED = """const m = require(process.argv[1]); const a = JSON.parse(require("fs").readFileSync(0, "utf8"));
 const line = m.presetLine(a.presets, a.focus), also = m.presetAlso(a.presets, a.focus);
 process.stdout.write(JSON.stringify({ line, also, drawn: line && m.withLine(a.drawn.nodes, a.drawn.edges, a.all, line, also) }));"""
 
 
 def named(presets: list[dict], focus: str, drawn: dict, every: dict) -> dict:
-    return json.loads(subprocess.run([NODE, "-e", NAMED, str(MAP.HELPERS_JS),
-                                      json.dumps({"presets": presets, "focus": focus, "drawn": drawn, "all": every})],
+    arg = {"presets": presets, "focus": focus, "drawn": drawn, "all": every}
+    return json.loads(subprocess.run([NODE, "-e", NAMED, str(MAP.HELPERS_JS)], input=json.dumps(arg),
                                      capture_output=True, text=True, check=True).stdout)
 
 
@@ -230,7 +231,7 @@ class NamedLineDrawTest(unittest.TestCase):
         self.assertEqual([(e["from"], e["to"]) for e in got["drawn"]["edges"]], [("b", "f"), ("x", "f")])
 
     def test_no_line_named_falls_back(self) -> None:
-        empty = {"nodes": [], "edges": []}
+        empty: dict[str, list[dict]] = {"nodes": [], "edges": []}
         self.assertIsNone(named([{"focus": "f", "up": 1}], "f", empty, empty)["line"])
         self.assertIsNone(named([{"focus": "g", "line": ["g"]}], "f", empty, empty)["line"])
 
