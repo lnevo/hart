@@ -28,7 +28,7 @@ from typing import Any, NamedTuple, NotRequired, Protocol, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
-import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
+import plan_bands  # noqa: E402
 from hartlib import devices, drawing_keys, level_devices, level_masts, paths  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
 
@@ -346,7 +346,7 @@ def dark_bindings(bands: Bands, cats: ModuleType, P: DeskPanel, F: Facts, bound_
     seen: set[str] = set()
     missing: dict[str, str] = {}
     joined: set[BlockKey] = set()
-    helix = mr.read_helix_tracks()
+    helix = plan_bands.read_helix_tracks()
     part_of = dict(part_blocks(F.device).values())                  # {part: its OS block}
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
@@ -359,7 +359,7 @@ def dark_bindings(bands: Bands, cats: ModuleType, P: DeskPanel, F: Facts, bound_
             if staged != {name}:
                 raise CatsPanelError(f"desk block {panel_name} holds track of staging ({', '.join(sorted(map(str, staged)))}"
                                  f") and of main or upper ({name}); only a helix block of "
-                                 f"{mr.HELIX_SOURCE.name} may, and both device maps must name it")
+                                 f"{plan_bands.HELIX_SOURCE.name} may, and both device maps must name it")
         elif any(k[0] in ("corner", "xmid") for k in keys):
             # a double crossover's corner or the middle of its X: the plugin named it from the corners binding
             # (level_switch_bindings), which is the device map's name

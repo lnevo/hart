@@ -57,6 +57,9 @@
 PP_LIVE_PROFILE_ID="My_JMRI_Railroad.3ef75bfd"
 PP_PATCH="$ROOT/cats/scripts/patch_jmri_startup.py"
 PP_PROFILE_PY="$ROOT/tools/hosts/panelpro_profile.py"
+# jmri_cmd_names_profile: whether a command line names PROFILE_ID as a whole word (My_JMRI_Railroad, not
+# My_JMRI_Railroad_test), the same test the Pi scripts use.
+source "$ROOT/tools/hosts/pi/jmri_profile_match.sh"
 PP_PIDS=""
 PP_PIDS_FILE=""
 PP_WAITER=""
@@ -167,7 +170,7 @@ _pp_wait_exec() {
   local cmd deadline=$((SECONDS + ${HART_PANELPRO_EXEC_WAIT:-10}))
   while _pp_alive "$PP_JPID"; do
     cmd="$(ps -o command= -p "$PP_JPID" 2>/dev/null)" || cmd=""      # gone meanwhile: the loop ends
-    [[ "$cmd" == *StartJMRI* || "$cmd" == *"org.jmri.profile=$PROFILE_ID"* ]] && return 0
+    if [[ "$cmd" == *StartJMRI* ]] || jmri_cmd_names_profile "$cmd" "$PROFILE_ID"; then return 0; fi
     if (( SECONDS >= deadline )); then
       echo "The PanelPro launcher (pid $PP_JPID) still does not show as StartJMRI: ${cmd:-no command line}" >&2
       return 0
@@ -247,7 +250,7 @@ _pp_ours() {
   if [[ "$1" == "$PP_JPID" ]]; then
     [[ "$cmd" == *StartJMRI* ]]
   else
-    [[ "$cmd" == *"org.jmri.profile=$PROFILE_ID"* ]]
+    jmri_cmd_names_profile "$cmd" "$PROFILE_ID"
   fi
 }
 

@@ -14,7 +14,7 @@ import device_map_records as rec  # noqa: E402
 import mast_plan  # noqa: E402
 from device_map_nodes import NoBoardRoom  # noqa: E402
 from hartlib import device_ids  # noqa: E402
-from mast_rule import MapError  # noqa: E402
+from map_error import MapError  # noqa: E402
 
 GROUP = rec.Group(2, "North", "CP 201")
 
@@ -146,6 +146,42 @@ class VirtualMemory(unittest.TestCase):
         virtual = [{"id": "mast:block:y:east", "name": "208R"}]
         with self.assertRaisesRegex(MapError, "Mast 208R: the virtual mast of id mast:block:x:east had that name"):
             lm.virtual_memory(virtual, {"mast:block:x:east": ("Mast 208R", self.OLD)})
+
+    def test_master_virtual_names_are_records(self):
+        old = rec.OldVirtual("Mast 208R", self.OLD)
+        self.assertEqual((old.user, old.system), ("Mast 208R", self.OLD))
+        self.assertEqual(lm.virtual_memory([], {"mast:block:x:east": old}), {2: {"Mast 208R": self.OLD}})
+
+
+class OwnerName(unittest.TestCase):
+    """owner_name: every level's rule for the owner's mast name (device_map_masts.owner_names uses it too)."""
+
+    def test_the_owners_name_wins_only_when_it_differs(self):
+        self.assertEqual(lm.owner_name("mast:1:A:east", "Mast 2R", "Mast 300R"), "Mast 300R")
+        self.assertIsNone(lm.owner_name("mast:1:A:east", "Mast 2R", "Mast 2R"))
+        self.assertIsNone(lm.owner_name("mast:1:A:east", "Mast 2R", ""))
+
+    def test_a_name_out_of_the_grammar_stops_naming_the_id(self):
+        with self.assertRaisesRegex(MapError, r"mast mast:1:A:east named 'Signal 2', not Mast <number>"):
+            lm.owner_name("mast:1:A:east", "Mast 2R", "Signal 2")
+
+    def test_staging_collects_the_same_message(self):
+        import device_map_masts as dmm
+        placed = [{"mast": "Mast 2R"}]
+        with self.assertRaisesRegex(dmm.RuleError, r"mast mast:1:A:east named 'Signal 2', not Mast <number>"):
+            dmm.owner_names(placed, ["mast:1:A:east"], {"mast:1:A:east": {"user_name": "Signal 2"}})
+        dmm.owner_names(placed, ["mast:1:A:east"], {"mast:1:A:east": {"user_name": "Mast 300R"}})
+        self.assertEqual(placed, [{"generated": "Mast 2R", "mast": "Mast 300R"}])
+
+
+class HeadUsers(unittest.TestCase):
+    def test_one_and_two_heads(self):
+        self.assertEqual(lm.head_users("Mast 4RA", 1), ["Head 4RA"])
+        self.assertEqual(lm.head_users("Mast 202L", 2), ["Head 202L Top", "Head 202L Bottom"])
+
+    def test_another_head_count_stops(self):
+        with self.assertRaisesRegex(MapError, "Mast 2L: 3 heads; a mast has 1 or 2"):
+            lm.head_users("Mast 2L", 3)
 
 
 class HeadWiring(unittest.TestCase):

@@ -16,6 +16,7 @@ from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import mast_rule  # noqa: E402  OVERRIDES_NAME, LOOP_HALF, MapError
+import block_override_rows  # noqa: E402
 from device_map_inputs import PINS, UID, loop_placeholder  # noqa: E402
 from device_map_nodes import DetectorInput  # noqa: E402
 from device_map_records import DeviceMapRow, Group, Layer, MapBuild, MasterCells, cells  # noqa: E402
@@ -23,7 +24,8 @@ from device_map_rows import Wired, device_row, switch_device_rows  # noqa: E402
 from device_map_schematic import line_role  # noqa: E402
 from device_map_staging import helix_ends, line_cp, part_row  # noqa: E402
 from hartlib import device_ids, devices, level_devices, railroad  # noqa: E402
-from mast_rule import MapError, Track  # noqa: E402
+from map_error import MapError  # noqa: E402
+from plan_tracks import Track  # noqa: E402
 
 VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
 occupancy_user = level_devices.occupancy_user
@@ -230,7 +232,7 @@ def track_note(t: Track, half: int | None, split: bool) -> str:
     cm = round(t["cm"] / 2, 1) if half else t["cm"]
     note = f"{cm} cm" + ("" if t["main"] else f" {OFF_MAIN}")
     if half and split:
-        return note + f", half {half} of the split track ({mast_rule.OVERRIDES_NAME})"
+        return note + f", half {half} of the split track ({block_override_rows.OVERRIDES_NAME})"
     if half:
         return note + f", half of the balloon loop from leg {'BC'[half - 1]}"
     return note

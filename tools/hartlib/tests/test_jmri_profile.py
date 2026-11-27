@@ -181,6 +181,48 @@ class StartUpEntries(Files):
         self.assertEqual(jmri_profile.insert_after(profile, "mimic_relay.py", "jmri_cmd_watcher.py"), "already")
         self.assertEqual(profile.read_text(encoding="utf-8"), START_UP)
 
+    def test_insert_goes_after_the_entry_with_that_name_not_one_whose_name_contains_it(self) -> None:
+        # "sts_car_sync.py" is inside old_sts_car_sync.py's name and in the comment; neither is that entry
+        profile = self.write("profile.xml", START_UP)
+        with self.assertRaisesRegex(jmri_profile.StartupPatchError, "no Start Up entry named 'sts_car_sync.py'"):
+            jmri_profile.insert_after(profile, "new.py", "sts_car_sync.py")
+        self.assertEqual(profile.read_text(encoding="utf-8"), START_UP)
+        self.assertEqual(jmri_profile.insert_after(profile, "new.py", "old_sts_car_sync.py"), "inserted")
+        lines = profile.read_text(encoding="utf-8").splitlines()
+        self.assertIn("old_sts_car_sync.py", lines[2])
+        self.assertIn('name="new.py"', lines[3])
+
+    def test_insert_after_takes_the_whole_name_too(self) -> None:
+        profile = self.write("profile.xml", START_UP)
+        self.assertEqual(jmri_profile.insert_after(profile, "new.py", "preference:jython/mimic_relay.py"), "inserted")
+        self.assertIn('name="new.py"', profile.read_text(encoding="utf-8").splitlines()[4])
+
+    def test_insert_after_an_entry_named_twice_is_refused(self) -> None:
+        doubled = START_UP.replace("</startup>", '    <perform name="C:\\jython\\mimic_relay.py" type="ScriptFile" '
+                                   'class="jmri.util.startup.configurexml.PerformScriptModelXml"/>\n</startup>')
+        profile = self.write("profile.xml", doubled)
+        with self.assertRaisesRegex(jmri_profile.StartupPatchError, "2 Start Up entries named 'mimic_relay.py'"):
+            jmri_profile.insert_after(profile, "new.py", "mimic_relay.py")
+        self.assertEqual(profile.read_text(encoding="utf-8"), doubled)
+
+    def test_every_profile_edit_replaces_the_file_through_a_temporary_file(self) -> None:
+        tables = START_UP.replace("</startup>", '    <perform class="jmri.util.startup.configurexml.PerformFileModelXml" '
+                                  'name="old/tables.xml" type="XmlFile" enabled="yes"/>\n</startup>')
+        edits = (lambda p: jmri_profile.insert_after(p, "new.py", "mimic_relay.py"),
+                 lambda p: jmri_profile.remove_script(p, "mimic_relay.py"),
+                 lambda p: jmri_profile.retarget_to_preference_jython(p, ["C:/x/run.py"]),
+                 lambda p: jmri_profile.load_tables_from(p, "preference:tables.xml"))
+        for n, edit in enumerate(edits):
+            text = tables.replace("</startup>", '    <perform name="C:/x/run.py" type="ScriptFile" '
+                                  'class="jmri.util.startup.configurexml.PerformScriptModelXml"/>\n</startup>')
+            profile = self.write(f"profile{n}.xml", text)
+            with self.subTest(edit=n), mock.patch("os.replace", side_effect=OSError("disk full")), \
+                    self.assertRaisesRegex(jmri_profile.StartupPatchError, "cannot write .*disk full") as cm:
+                edit(profile)
+            self.assertIsInstance(cm.exception.__cause__, OSError)
+            self.assertEqual(profile.read_text(encoding="utf-8"), text)
+            self.assertEqual(sorted(p.name for p in self.dir.iterdir() if p.name.startswith(".")), [])
+
     def test_remove_leaves_an_entry_whose_name_only_contains_the_script(self) -> None:
         profile = self.write("profile.xml", START_UP)
         self.assertEqual(jmri_profile.remove_script(profile, "sts_car_sync.py"), "absent")

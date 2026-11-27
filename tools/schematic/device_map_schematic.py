@@ -19,8 +19,11 @@ import block_layer  # noqa: E402  the one block process for every level
 import device_map_inputs as inputs  # noqa: E402  read_pins, which this gives its tracks
 import le_common  # noqa: E402  band_key: the plugin's key for a band, which rotate_bands lists
 import mast_plan  # noqa: E402  the one mast process for every level
-import mast_rule  # noqa: E402  read_block_splits, HELIX_SOURCE
-from mast_rule import MapError, band_levels, end_label, read_helix_tracks  # noqa: E402
+import block_override_rows  # noqa: E402  read_block_splits
+import mast_rule  # noqa: E402  running_tracks
+from map_error import MapError  # noqa: E402
+from plan_bands import band_levels, read_helix_tracks  # noqa: E402
+from plan_tracks import end_label  # noqa: E402
 from hartlib import layer_files, railroad  # noqa: E402
 
 base = railroad.switch_number
@@ -100,10 +103,10 @@ def helix_tracks() -> dict:
 
 def split_tracks(path: Path | None = None, found: list | None = None) -> set[str]:
     """The main and upper track names block_overrides.csv splits into two blocks at their turnback (the owner's choice,
-    not a rule: mast_rule.read_block_splits): each row's end switches resolved to the generated name in `found` (tracks
+    not a rule: block_override_rows.read_block_splits): each row's end switches resolved to the generated name in `found` (tracks
     with names; default: the solved schematic's) at build time, so a renumbered switch moves its row with it."""
     bdm = builder()
-    return mast_rule.read_block_splits(path or block_overrides(), named_tracks() if found is None else found, bdm.LEVELS)
+    return block_override_rows.read_block_splits(path or block_overrides(), named_tracks() if found is None else found, bdm.LEVELS)
 
 
 def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None, owner=None) -> list[dict]:
@@ -169,8 +172,7 @@ def home_and_posts(bands, joined, found, levels: dict, cp_of: dict, corner_block
     """(mast_plan.home_masts of `levels`, mast_plan.home_posts of them): the home masts stand where the track rule puts
     them, before any block is known, and the block layer reads where they stand (a link a mast faces from its own
     switch joins the OS block at its other end). One step for every level."""
-    import mast_rule as mr
-    home = mast_plan.home_masts(bands, joined, found, cp_of, mr.running_tracks(bands, found, cp_of), levels=levels,
+    home = mast_plan.home_masts(bands, joined, found, cp_of, mast_rule.running_tracks(bands, found, cp_of), levels=levels,
                                 corner_blocks=corner_blocks, split=split)
     return home, mast_plan.home_posts(home)
 
@@ -208,7 +210,7 @@ def check_helix_ends(bands, joined, found, helix) -> None:
 
 
 def line_role(t: dict, half: int | None) -> str:
-    """The role (hartlib.devices.ROLES) of a line block of track entry `t`, from its ends (mast_rule.end_ref: sw,
+    """The role (hartlib.devices.ROLES) of a line block of track entry `t`, from its ends (plan_tracks.end_ref: sw,
     helix, bumper), never its name: helix for a track up the helix, loop_half for a half of a balloon loop, spur for a
     switch at one end and a buffer stop at the other, track for a switch at each end (a split track's halves are track
     blocks, as the whole track would be). MapError, naming the track, on any other pair of ends."""

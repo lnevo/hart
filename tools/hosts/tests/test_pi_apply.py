@@ -100,6 +100,7 @@ WINDOWS = """<?xml version="1.0" encoding="UTF-8"?>
 UI = ".jmri/TCS_MQTT.jmri/profile/0badf00d/user-interface.xml"
 # A PanelPro JVM as ps shows it on the Pi (PanelPro -p <profile>).
 JAVA = "java -Djava.awt.headless=false -Dorg.jmri.profile={profile} -cp .:jmri.jar apps.PanelPro.PanelPro"
+CTC = "/home/pi/JMRI_UserFiles/cats/panels/HART_CTC.xml"
 PROFILE = start_up("preference:jython/jmri_cmd_watcher.py")     # the Start Up list the apply step edits first
 
 
@@ -160,7 +161,32 @@ class PiPanelWindowSizes(unittest.TestCase):
         with self.apply(env={"HART_PI_PROFILE": "TCS MQTT|x"}) as pi:
             self.assertEqual(pi.code, 0, pi.out)
             self.assertIn("Panel window sizes NOT set: HART_PI_PROFILE='TCS MQTT|x' is not a JMRI profile id.", pi.out)
-            self.assertFalse(any(call.startswith("pgrep") for call in pi.calls), pi.calls)
+            self.assertFalse(any(call.startswith(("pgrep", "ps")) for call in pi.calls), pi.calls)
+
+    def test_a_running_cats_leaves_the_file_alone_by_either_profile_word(self) -> None:
+        """CATS starts as cats.csh --profile=<id>; cats.csh hands java -Dorg.jmri.profile=<id>. Each counts alone."""
+        wrapper = f"/bin/bash ./cats.csh -Dcats.folder=/home/pi/JMRI_UserFiles/cats/panels --profile={{}} {CTC}"
+        cats_java = f"java -Dorg.jmri.profile={{}} -cp .:jmri.jar:cats.jar cats.apps.Crandic {CTC}"
+        for line in (wrapper.format("TCS_MQTT.3f32a166"), cats_java.format("TCS_MQTT.3f32a166")):
+            with self.subTest(line=line), self.apply(processes=[line]) as pi:
+                self.assertEqual(pi.code, 0, pi.out)
+                self.assertIn("Panel window sizes NOT set: JMRI runs on the profile TCS_MQTT", pi.out)
+                self.assertEqual((pi.home / UI).read_text(encoding="utf-8"), WINDOWS.format(saved="1018.0"))
+        with self.apply(processes=[wrapper.format("TCS_MQTT_test"), "vim notes--profile=TCS_MQTT"]) as pi:
+            self.assertNotIn("NOT set", pi.out)
+
+    def test_a_jmri_app_that_names_no_profile_counts_as_on_it(self) -> None:
+        """PanelPro started with no -p opens the profile JMRI picks; on the Pi that is the one profile."""
+        with self.apply(processes=["java -Djava.awt.headless=false -cp .:jmri.jar apps.PanelPro.PanelPro"]) as pi:
+            self.assertIn("Panel window sizes NOT set: JMRI runs on the profile TCS_MQTT", pi.out)
+        with self.apply(processes=["java -jar sts.jar", "python3 apps.PanelPro.PanelPro.py"]) as pi:
+            self.assertNotIn("NOT set", pi.out)
+
+    def test_a_process_list_it_cannot_read_sets_nothing(self) -> None:
+        with self.apply(env={"PI_DROP_PS_FAILS": "1"}) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertIn("Panel window sizes NOT set: cannot tell whether JMRI runs on the profile TCS_MQTT", pi.out)
+            self.assertEqual((pi.home / UI).read_text(encoding="utf-8"), WINDOWS.format(saved="1018.0"))
 
     def test_a_profile_with_no_saved_windows_is_one_line(self) -> None:
         with self.apply(ui="") as pi:

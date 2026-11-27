@@ -35,7 +35,7 @@ from typing import NamedTuple, TypedDict
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402
 import device_map_masts as dmm  # noqa: E402  staging's masts by the rule
-import mast_rule  # noqa: E402
+from map_error import MapError  # noqa: E402
 import publish_draft as pd  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import devices, level_masts, places, railroad  # noqa: E402
@@ -330,7 +330,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
     try:
         want, gen, vgen = build(check=args.check or args.show)
-    except (sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:
+    except (sdm.StagingMapError, sdm.lc.BuildError, MapError, railroad.FactsError) as exc:
         # a RuleError is a MapError, a DevicesError a FactsError
         print(f"{WRITER}: {exc}", file=sys.stderr)
         return 2

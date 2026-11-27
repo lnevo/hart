@@ -4745,6 +4745,15 @@
    "path": "tools/hosts/pi/panelpro_restart_due.sh"
   },
   {
+   "id": "tools/hosts/pi/jmri_profile_match.sh",
+   "label": "jmri_profile_match.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The one test of which processes run a JMRI app, and which run one on a JMRI profile (either profile word, whole id), for the Pi scripts and the Mac PanelPro runs.",
+   "path": "tools/hosts/pi/jmri_profile_match.sh"
+  },
+  {
    "id": "tools/hosts/pi/tables_base.sh",
    "label": "tables_base.sh",
    "kind": "generator",
@@ -5368,8 +5377,53 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "The home-signal rule: tracks of a band between their ends, their names, and where a mast goes; shared by the builders.",
+   "desc": "The home-signal rule: where a home mast goes and its letters, and which tracks are running track; shared by the builders.",
    "path": "tools/schematic/mast_rule.py"
+  },
+  {
+   "id": "tools/schematic/map_error.py",
+   "label": "map_error.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: MapError, the one error of the schematic's band, track, block-override and mast rules.",
+   "path": "tools/schematic/map_error.py"
+  },
+  {
+   "id": "tools/schematic/plan_bands.py",
+   "label": "plan_bands.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: a solved schematic's bands, their levels and helix tracks, from the plan overrides.",
+   "path": "tools/schematic/plan_bands.py"
+  },
+  {
+   "id": "tools/schematic/plan_tracks.py",
+   "label": "plan_tracks.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: the tracks of a band between their ends, their names and the keys hand lists find them by.",
+   "path": "tools/schematic/plan_tracks.py"
+  },
+  {
+   "id": "tools/schematic/block_override_rows.py",
+   "label": "block_override_rows.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: block_overrides.csv for the schematic builders: OS block names, the track a row names, the owner's block splits.",
+   "path": "tools/schematic/block_override_rows.py"
+  },
+  {
+   "id": "tools/schematic/mast_routes.py",
+   "label": "mast_routes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module: the routes from a switch leg: whether one reaches another signal, the facing points met.",
+   "path": "tools/schematic/mast_routes.py"
   },
   {
    "id": "tools/schematic/mast_plan.py",
@@ -13043,36 +13097,6 @@
    "label": "imports"
   },
   {
-   "from": "tools/schematic/mast_rule.py",
-   "to": "tools/schematic/build_device_map.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/mast_rule.py",
-   "to": "tools/schematic/build_masts.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/mast_rule.py",
-   "to": "tools/schematic/build_signals.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/mast_rule.py",
-   "to": "tools/schematic/cats_panel.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/mast_rule.py",
-   "to": "tools/schematic/check_device_master.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/mast_rule.py",
-   "to": "tools/schematic/mast_plan.py",
-   "label": "imports"
-  },
-  {
    "from": "tools/schematic/mast_plan.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
@@ -14103,6 +14127,31 @@
    "label": "roster hash"
   },
   {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi/panelpro_restart_due.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi_start_panelpro.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi_quit_panelpro.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "profile match"
+  },
+  {
    "from": "tools/hosts/pi/roster_sha.sh",
    "to": "tools/hosts/pi/install_roster.sh",
    "label": "roster hash"
@@ -14348,6 +14397,306 @@
    "from": "tools/mqtt-mimic/mimic_http.py",
    "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
    "label": "make_handler"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/block_layer.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/build_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/cats_panel_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_inputs.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_level_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_nodes.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_plant.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_rows.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_schematic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_staging.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/le_common.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/mast_rule.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/block_layer.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/cats_panel.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/cats_panel_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/device_map_records.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/device_map_schematic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/device_map_staging.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/le_common.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/mast_rule.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_bands.py",
+   "to": "tools/schematic/staging_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/block_layer.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/device_map_inputs.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/device_map_plant.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/device_map_records.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/device_map_schematic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/mast_rule.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/staging_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/schematic/staging_records.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/plan_tracks.py",
+   "to": "tools/wiring/freeze_wiring.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/block_layer.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/device_map_inputs.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/device_map_plant.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/device_map_schematic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/device_map_staging.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/block_override_rows.py",
+   "to": "tools/schematic/mast_rule.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_routes.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_routes.py",
+   "to": "tools/schematic/mast_rule.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/block_layer.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/build_signals.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/device_map_level_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/device_map_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/device_map_plant.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/device_map_records.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/device_map_schematic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/mast_rule.py",
+   "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

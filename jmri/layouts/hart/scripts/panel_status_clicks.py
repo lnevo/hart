@@ -14,35 +14,32 @@ _click_busy = False
 
 
 def _sensor_sys(icon):
-    try:
-        s = icon.getSensor()
-        if s is None:
-            return None
-        return s.getSystemName()
-    except Exception:
+    """The system name of the SensorIcon's sensor, or None when it shows none."""
+    s = icon.getSensor()
+    if s is None:
         return None
+    return s.getSystemName()
 
 
-def _head_sys(icon):
-    try:
-        h = icon.getSignalHead()
-        if h is None:
-            return None
-        return h.getSystemName()
-    except Exception:
+def head_sys(icon):
+    """The system name of the SignalHeadIcon's head, or None when it shows none."""
+    h = icon.getSignalHead()
+    if h is None:
         return None
+    return h.getSystemName()
 
 
 def _disable_icon_control(icon):
+    """Stop the icon acting on its own click (the panel listener runs the lamp's action); a failure is printed."""
     try:
         icon.setControlling(False)
-    except Exception:
-        pass
-    try:
-        if hasattr(icon, "setClickMode"):
+    except Exception as e:
+        print("panel_status: cannot turn off the click control of %s: %s" % (icon, e))
+    if hasattr(icon, "setClickMode"):
+        try:
             icon.setClickMode(0)
-    except Exception:
-        pass
+        except Exception as e:
+            print("panel_status: cannot clear the click mode of %s: %s" % (icon, e))
 
 
 def _run_lamp_action(action):
@@ -75,8 +72,8 @@ def _lamp_at(lamps, scale, x, y):
             ix, iy = icon.getX(), icon.getY()
             if ix <= px < ix + icon.getWidth() and iy <= py < iy + icon.getHeight():
                 hits.append((icon.getDisplayLevel(), action))
-        except Exception:
-            continue
+        except Exception as e:
+            print("panel_status: cannot read the bounds of lamp icon %s, skipped: %s" % (icon, e))
     if not hits:
         return None
     # the editor acts on the topmost item (highest display level), so overlapping lamps resolve the same way
@@ -130,8 +127,9 @@ def arm_status_lamp_clicks(sensor_lamps, head_lamps, drop_ours):
         print("panel_status: display imports failed: %s" % e)
         return False
 
-    em = jmri.InstanceManager.getDefault(EditorManager)
+    em = jmri.InstanceManager.getNullableDefault(EditorManager)
     if em is None:
+        print("panel_status: no EditorManager yet, status lamp clicks not armed")
         return False
 
     found = {}
@@ -140,7 +138,8 @@ def arm_status_lamp_clicks(sensor_lamps, head_lamps, drop_ours):
     for ed in list(em.getAll()):
         try:
             contents = list(ed.getContents())
-        except Exception:
+        except Exception as e:
+            print("panel_status: cannot read the contents of %s for lamp clicks: %s" % (ed, e))
             continue
         lamps = []
         for icon in contents:
@@ -148,7 +147,7 @@ def arm_status_lamp_clicks(sensor_lamps, head_lamps, drop_ours):
                 if isinstance(icon, SensorIcon):
                     wired = sensor_lamps.get(_sensor_sys(icon))
                 elif isinstance(icon, SignalHeadIcon):
-                    wired = head_lamps.get(_head_sys(icon))
+                    wired = head_lamps.get(head_sys(icon))
                 else:
                     wired = None
                 if wired is not None:
@@ -196,8 +195,9 @@ def _raise_block_labels():
     except Exception as e:
         print("panel_status: BlockContentsIcon import failed: %s" % e)
         return 0
-    em = jmri.InstanceManager.getDefault(EditorManager)
+    em = jmri.InstanceManager.getNullableDefault(EditorManager)
     if em is None:
+        print("panel_status: no EditorManager yet, BlockContentsIcon labels not raised")
         return 0
     titles = set(["HART Railroad", "HART", "My Layout"])
     n = 0
@@ -206,7 +206,8 @@ def _raise_block_labels():
             if (ed.getTitle() or "") not in titles:
                 continue
             contents = list(ed.getContents())
-        except Exception:
+        except Exception as e:
+            print("panel_status: cannot read the contents of %s to raise BlockContentsIcon labels: %s" % (ed, e))
             continue
         for icon in contents:
             try:
@@ -222,8 +223,8 @@ def _raise_block_labels():
                 frame = ed.getTargetFrame()
                 if frame is not None:
                     frame.repaint()
-            except Exception:
-                pass
+            except Exception as e:
+                print("panel_status: cannot repaint %s after raising its labels: %s" % (ed, e))
     if n:
         print(
             "panel_status: raised %d BlockContentsIcon(s) to level %d"

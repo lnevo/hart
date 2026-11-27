@@ -18,7 +18,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import le_common  # noqa: E402
 import le_names  # noqa: E402
-import mast_rule as mr  # noqa: E402
+from map_error import MapError  # noqa: E402
+import plan_bands  # noqa: E402
 from le_common import BuildError  # noqa: E402
 
 
@@ -57,18 +58,18 @@ BANDS = [("Cellar deck", {}, {}), ("Lower deck", {}, {}), ("Top deck, 4 in", {},
 
 
 class BandPlaces(unittest.TestCase):
-    """mast_rule.band_places: each band entry's level and height (its `below`); a one-band sheet has no height."""
+    """plan_bands.band_places: each band entry's level and height (its `below`); a one-band sheet has no height."""
 
     def test_level_and_height_from_the_entries(self):
-        self.assertEqual(mr.band_places(overrides()["main_upper"]),
+        self.assertEqual(plan_bands.band_places(overrides()["main_upper"]),
                          {"Lower deck": (2, 5), "Top deck, 4 in": (3, 99)})
-        self.assertEqual(mr.band_places(overrides()["staging"]), {"Cellar deck": (1, None)})
+        self.assertEqual(plan_bands.band_places(overrides()["staging"]), {"Cellar deck": (1, None)})
 
     def test_band_levels_is_band_places_without_the_height(self):
-        self.assertEqual(mr.band_levels(overrides()["main_upper"]), {"Lower deck": 2, "Top deck, 4 in": 3})
+        self.assertEqual(plan_bands.band_levels(overrides()["main_upper"]), {"Lower deck": 2, "Top deck, 4 in": 3})
 
     def test_one_level_at_two_heights_is_two_places(self):
-        got = mr.band_places({"levels": {"bands": [{"name": "Lower deck", "level": 3, "below": 5},
+        got = plan_bands.band_places({"levels": {"bands": [{"name": "Lower deck", "level": 3, "below": 5},
                                                    {"name": "Peninsula", "level": 3, "below": 99}]}})
         self.assertEqual(got, {"Lower deck": (3, 5), "Peninsula": (3, 99)})
 
@@ -77,13 +78,13 @@ class BandPlaces(unittest.TestCase):
             entries = [dict(name=n, level=2, **({"below": h} if h is not None else {}))
                        for n, h in zip(("Lower deck", "Peninsula"), heights)]
             with self.subTest(heights=heights), self.assertRaisesRegex(
-                    mr.MapError, r"'Lower deck' and 'Peninsula' are both at level 2, (height 5|no height)"):
-                mr.band_places({"levels": {"bands": entries}})
+                    MapError, r"'Lower deck' and 'Peninsula' are both at level 2, (height 5|no height)"):
+                plan_bands.band_places({"levels": {"bands": entries}})
 
     def test_a_height_that_is_not_a_number_stops(self):
         for bad in ("5", True, 0, -1):
-            with self.subTest(below=bad), self.assertRaisesRegex(mr.MapError, "'Lower deck' has height"):
-                mr.band_places({"levels": {"bands": [{"name": "Lower deck", "level": 2, "below": bad}]}})
+            with self.subTest(below=bad), self.assertRaisesRegex(MapError, "'Lower deck' has height"):
+                plan_bands.band_places({"levels": {"bands": [{"name": "Lower deck", "level": 2, "below": bad}]}})
 
 
 class FindBand(unittest.TestCase):

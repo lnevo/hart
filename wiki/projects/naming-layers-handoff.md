@@ -73,8 +73,8 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 ## Step 3 findings (2026-11-24)
 
 - **The first check failed, then was fixed with the owner (2026-11-24).** Every track name came from the plan except
-  the numbers of parallel tracks (two tracks between the same switches): `mast_rule.track_names` ordered them by drawn
-  row. They are now ordered by their ends' plan labels and legs (`mast_rule.plan_order`, the order of their block IDs),
+  the numbers of parallel tracks (two tracks between the same switches): `plan_tracks.track_names` ordered them by drawn
+  row. They are now ordered by their ends' plan labels and legs (`plan_tracks.plan_order`, the order of their block IDs),
   and so is `block_overrides.csv`'s `parallel` (no row uses it). Five main and upper pairs traded their 1 and 2
   (Track 103-105, 209, 215, 243 and 245 Spur); staging has no such pair and is unchanged. The owner approved the
   Layout Editor panel and both CATS desks with the new names (2026-11-24); main and upper names are not fixed yet.
@@ -228,7 +228,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 - **The readers.** `hartlib.hand_lists` is the one reader of `block_overrides.csv` (`read_block_overrides`,
   `os_block_name`), `main_lines.csv` (`read_main_lines`, `resolve_stop`) and the parked USS board (`read_mast_cells`,
   `read_uss_cells`, `read_uss_plants`), each stopping with `HandListError` (a `ValueError`) naming the file and line.
-  `mast_rule.read_block_overrides`, `build_main_route.read_lines` and `layout_facts.load_*` are thin wrappers that keep
+  `block_override_rows.read_block_overrides`, `build_main_route.read_lines` and `layout_facts.load_*` are thin wrappers that keep
   their callers' errors (`MapError`, `RouteError`). `railroad.Sources` gained `stations`.
 - **The scripts.** `layout_facts.py` opens no file: switches, stations and interlockings through `hartlib.railroad`,
   the board through `hand_lists`. `write_inventory.py` reads `lcos_nodes.csv` with `railroad.read_lcos_nodes` (which
@@ -451,7 +451,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
   level as an anchor mast that must protect an OS block (`ANCHOR_LEVELS` gone); every builder names heads with
   `level_masts.head_name` (`HEAD_PREFIXES`).
 - **Letters, my call (owner's rule of 2026-11-25):** A and B follow the plan order of the tracks the masts face
-  (`mast_rule.letter_order`, then a loop's half and the leg); virtual masts by the switch leg their track leaves.
+  (`plan_tracks.letter_order`, then a loop's half and the leg); virtual masts by the switch leg their track leaves.
   No plan rule keeps every staging letter: this one would swap 6LA/6LB and 8RA/8RB (the 5-7 pair's plan order is
   the reverse of its rows), so those four keep their names as owner names in `devices_field.csv` (heads follow).
 - **Changed masts (upper only; old name, new name, what it faces):** 204RA to 204RB (Track 203-207), 204RB to 204RA

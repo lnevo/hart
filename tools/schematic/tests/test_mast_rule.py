@@ -12,11 +12,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import publish_draft  # noqa: E402,F401  puts tools/hartlib/src on the path for mast_rule's hartlib import
 import mast_rule as mr  # noqa: E402
+from map_error import MapError  # noqa: E402
+import plan_bands  # noqa: E402
+import plan_tracks  # noqa: E402
 
 
-def track(name: str, ends, legs, *, cm: float = 200.0, loop: bool = False, main: bool = False) -> mr.Track:
-    """A track entry as mast_rule.tracks gives it, on band 0."""
-    return mr.Track(level=2, ends=ends, legs=legs, band=0, plan_ends=("1A", "3A"), cm=cm, loop=loop, main=main,
+def track(name: str, ends, legs, *, cm: float = 200.0, loop: bool = False, main: bool = False) -> plan_tracks.Track:
+    """A track entry as plan_tracks.tracks gives it, on band 0."""
+    return plan_tracks.Track(level=2, ends=ends, legs=legs, band=0, plan_ends=("1A", "3A"), cm=cm, loop=loop, main=main,
                     row=0, strands=[f"s-{name}"], trial=[f"Track {name}"], name=name)
 
 
@@ -43,7 +46,7 @@ class HomeMast(unittest.TestCase):
 
 
 class LegMast(unittest.TestCase):
-    def mast(self, t: mr.Track, leg: str = "A", rule: mr.MastInputs = RULE, node=SWITCH):
+    def mast(self, t: plan_tracks.Track, leg: str = "A", rule: mr.MastInputs = RULE, node=SWITCH):
         far = t["ends"][1]
         return mr.leg_mast(spot(leg), node, (t, far), rule)
 
@@ -52,7 +55,7 @@ class LegMast(unittest.TestCase):
         m, order = self.mast(t)
         self.assertEqual((m["cp"], m["heads"], m["kind"], m["track"], m["running"]),
                          ("CP 101", 2, "two-searchlight", "Track 101-105", True))
-        self.assertEqual(order, mr.letter_order(t, 0, "A"))
+        self.assertEqual(order, plan_tracks.letter_order(t, 0, "A"))
 
     def test_a_short_track_inside_one_control_point_or_to_a_bumper_gets_none(self):
         inside = track("Track 101-103", (("sw", "101"), ("sw", "101")), [("n101", "B"), ("n103", "B")], cm=40.0)
@@ -72,7 +75,7 @@ class LegMast(unittest.TestCase):
         loop = track("Track 101 Loop", (("sw", "101"), ("sw", "101")), [("n101", "B"), ("n101", "C")], loop=True)
         m, _order = self.mast(loop, "C")
         self.assertEqual((m["track"], m["half"]), ("Track 101 Loop 2", 2))
-        with self.assertRaisesRegex(mr.MapError, "leaves from leg A; a loop's halves leave from legs B and C"):
+        with self.assertRaisesRegex(MapError, "leaves from leg A; a loop's halves leave from legs B and C"):
             self.mast(loop, "A")
 
     def test_a_split_track_names_the_half_at_this_end(self):
@@ -103,7 +106,7 @@ class Letters(unittest.TestCase):
 
     def test_three_masts_of_one_number_and_way_stop(self):
         ms = [self.home("n", p) for p in "ABC"]
-        with self.assertRaisesRegex(mr.MapError, "switch 101: 3 masts for direction L"):
+        with self.assertRaisesRegex(MapError, "switch 101: 3 masts for direction L"):
             mr.letter_masts(ms, {(0, "n", p): () for p in "ABC"})
 
     def test_two_masts_on_one_leg_stop(self):
@@ -128,14 +131,53 @@ class Signalled(unittest.TestCase):
 
 class HelixTracks(unittest.TestCase):
     def test_a_bad_helix_file_is_a_map_error(self):
-        with self.assertRaises(mr.MapError):
-            mr.read_helix_tracks(Path("/nonexistent/plan_overrides.json"))
+        with self.assertRaises(MapError):
+            plan_bands.read_helix_tracks(Path("/nonexistent/plan_overrides.json"))
 
     def test_the_helix_map_must_match_the_helix_tracks(self):
-        helix = {"H-1": mr.HelixEntry(block="Track H-1", staging_switch="9", level_switch="131A", shown="Helix")}
-        with self.assertRaisesRegex(mr.MapError, "the helix tracks are"):
-            mr.helix_blocks({"helix": {"131": "H-2"}}, helix)
-        self.assertEqual(mr.helix_blocks({"helix": {"131": "H-1"}}, helix), {"H1": "Track H-1"})
+        helix = {"H-1": plan_bands.HelixEntry(block="Track H-1", staging_switch="9", level_switch="131A", shown="Helix")}
+        with self.assertRaisesRegex(MapError, "the helix tracks are"):
+            plan_bands.helix_blocks({"helix": {"131": "H-2"}}, helix)
+        self.assertEqual(plan_bands.helix_blocks({"helix": {"131": "H-1"}}, helix), {"H1": "Track H-1"})
+
+    def test_helix_tags_need_the_relabel_edit(self):
+        band = {"nodes": {"S": {"label": "131A"}}}
+        over = {"levels": {"bands": [{"name": "Upper", "level": 3, "below": 5}]}, "helix": {"T131": "H-1"}}
+        self.assertEqual(plan_bands.helix_tags([("Upper", band, {})], {**over, "edits": [
+            {"op": "relabel", "map": {"T131": "131A"}}]}), {3: "H1"})
+        with self.assertRaisesRegex(MapError, "no relabel edit"):
+            plan_bands.helix_tags([("Upper", band, {})], {**over, "edits": []})
+
+
+class PlanTracks(unittest.TestCase):
+    """plan_tracks: the keys a track is found by."""
+
+    def test_track_key_and_edge_key(self):
+        self.assertEqual(plan_tracks.track_key(track("Track 1-3", (("sw", "3"), ("sw", "1")), [("A", "B"), ("C", "A")])),
+                         ("1", "3"))
+        self.assertEqual(plan_tracks.track_key(track("Track 1 Spur", (("sw", "1"), ("bumper", None)),
+                                                     [("A", "B"), ("E", "A")])), ("1", ""))
+        self.assertIsNone(plan_tracks.track_key(track("Track H", (("sw", "1"), ("helix", "H1")),
+                                                      [("A", "B"), ("H", "A")])))
+        self.assertEqual(plan_tracks.edge_key("e12x"), "e12")
+        self.assertEqual(plan_tracks.edge_key("e12"), "e12")
+
+
+class BlockOverrideRows(unittest.TestCase):
+    """block_override_rows.resolve_track: a row's end switches and parallel name one track, or the reason."""
+
+    def test_a_row_names_one_track_or_says_why_not(self):
+        import block_override_rows as bor
+        found = [track("Track 1-3 1", (("sw", "1"), ("sw", "3")), [("A", "B"), ("C", "A")]),
+                 track("Track 1-3 2", (("sw", "1"), ("sw", "3")), [("A", "C"), ("C", "B")])]
+        row = {"switch_a": "1", "switch_b": "3", "parallel": "2"}
+        self.assertIs(bor.resolve_track(row, found), found[1])
+        row = {"switch_a": "1", "switch_b": "3", "parallel": ""}
+        self.assertIsNone(bor.resolve_track(row, found))
+        self.assertIn("give parallel", row["problem"])
+        row = {"switch_a": "5", "switch_b": "7", "parallel": ""}
+        self.assertIsNone(bor.resolve_track(row, found))
+        self.assertIn("no track runs Switch 5 to Switch 7", row["problem"])
 
 
 if __name__ == "__main__":

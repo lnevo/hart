@@ -617,7 +617,7 @@
     ]
    }
   },
-  "_control_points": "Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by tools/schematic/build_device_map.py from interlockings.csv; edit that file, not this key.",
+  "_control_points": "Placeholder control points 'CP <lowest switch>', written by tools/schematic/build_device_map.py from interlockings.csv; edit that file, not this key.",
   "stations": {
    "CP 107": {
     "switches": [
