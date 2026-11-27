@@ -1,64 +1,86 @@
 #!/usr/bin/env python3
 """Generate filled HART car cards for every row in image_metadata.csv.
 
-Reads cropped images from CarImagesCardFill/ (then CarImagesFinal/, then CarImages/), sticker-sheet layout
-(9 cards per page), and writes a single review document.
+Reads cropped images from CarImagesCardFillPrint/, CarImagesCardFill/ and CarImagesFinal/ (then the row's
+cropped_image), sticker-sheet layout (9 cards per page), and writes a single review document. A photo listed in
+data/card_overrides.csv prints the card that file gives instead.
 """
 
 from __future__ import annotations
 
 import csv
-import shutil
-import sys
+import functools
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import NamedTuple, TypedDict
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import operations  # noqa: E402
+import car_paths  # first: puts hartlib and publications/ on sys.path
+from hartlib import operations
 
-from docx import Document
-from docx.table import Table
+from docx.table import _Cell
 
-import car_paths
-import card_template_layout
 import card_template_sheet
 import generate_card_template as g
+from card_description import build_freight_description, normalize_car_type, format_type_label as format_type
+from card_errors import CardPipelineError
+from card_template_records import CardRecord
 from engine_lookup import (
     ROAD_DISPLAY,
+    EngineKey,
+    EngineRecord,
     build_locomotive_description,
     is_locomotive_row,
     load_engine_roster,
     match_engine,
 )
-from card_description import build_freight_description, normalize_car_type, format_type_label as format_type
 
 BASE = car_paths.ROOT
 DATA = car_paths.DATA
 OUTPUT_DIR = car_paths.OUTPUT_DIR
-ASSETS = car_paths.ASSETS
 METADATA_CSV = DATA / "image_metadata.csv"
+CARD_OVERRIDES_CSV = DATA / "card_overrides.csv"
 ROSTER_XML = DATA / "OperationsCarRoster.xml"
 OUTPUT = OUTPUT_DIR / "HART_All_Car_Cards.docx"
-CARDS_PER_PAGE = len(card_template_layout.CARD_SLOTS)
+CARDS_PER_PAGE = card_template_sheet.CARDS_PER_PAGE
+
+FINAL_DIR = car_paths.FINAL_DIR  # the folder finalize_car_images.py writes
+CARD_FILL_DIR = BASE / "CarImagesCardFill"
+CARD_FILL_PRINT_DIR = BASE / "CarImagesCardFillPrint"
 
 # Omit from print sheet — unidentified / decorative cars kept in manifest for review only.
 EXCLUDE_FROM_DOC: frozenset[str] = frozenset({"IMG_9152.png"})
 
-# Known-good override for the manually verified flatcar photo.
-IMG_9088_OVERRIDE = {
-    "roster_id": "NW32800",
-    "image": ASSETS / "NW32800.png",
-    "record": {
-        "Type": "Flat Car",
-        "RoadName": "N&W",
-        "RoadNumber": "32800",
-        "Description": "Flatcar \u00b7 52'",
-    },
-}
+OVERRIDE_COLUMNS = ("source_image", "image", "card_type", "road_name", "road_number", "description")
 
 
-def load_roster() -> dict[str, dict]:
-    cars: dict[str, dict] = {}
+class RosterCar(TypedDict):
+    """One car of OperationsCarRoster.xml, as the card reads it."""
+
+    roster_id: str
+    roster_road: str
+    road_number: str
+    car_type: str
+    roster_length_ft: str
+
+
+class CardOverride(NamedTuple):
+    """A card data/card_overrides.csv gives for one photo, in place of the one its metadata row would give."""
+
+    record: CardRecord
+    image: Path
+
+
+class CardEntry(NamedTuple):
+    """One card of the sheet: its fields, its picture (None prints the placeholder) and the row it came from."""
+
+    record: CardRecord
+    image: Path | None
+    row: Mapping[str, str]
+
+
+def load_roster() -> dict[str, RosterCar]:
+    """The car roster by JMRI id."""
+    cars: dict[str, RosterCar] = {}
     for el in operations.cars(ROSTER_XML):
         cars[el.get("id", "")] = {
             "roster_id": el.get("id", ""),
@@ -70,18 +92,48 @@ def load_roster() -> dict[str, dict]:
     return cars
 
 
-def format_description(row: dict, car: dict | None, engine_by_key: dict | None = None) -> str:
+def read_card_overrides(path: Path) -> dict[str, CardOverride]:
+    """data/card_overrides.csv by photo file name; each image is relative to ops/hart-ops and must exist."""
+    with path.open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        if tuple(reader.fieldnames or ()) != OVERRIDE_COLUMNS:
+            raise CardPipelineError(f"{path}: columns are {reader.fieldnames}, expected {list(OVERRIDE_COLUMNS)}")
+        overrides: dict[str, CardOverride] = {}
+        for line, row in enumerate(reader, start=2):
+            photo = row["source_image"].strip()
+            if photo in overrides:
+                raise CardPipelineError(f"{path}:{line}: {photo} is listed twice")
+            image = car_paths.HART_OPS_ROOT / row["image"].strip()
+            if not image.is_file():
+                raise CardPipelineError(f"{path}:{line}: the image {image} for {photo} is missing")
+            record: CardRecord = {
+                "Type": row["card_type"],
+                "RoadName": row["road_name"],
+                "RoadNumber": row["road_number"],
+                "Description": row["description"],
+            }
+            overrides[photo] = CardOverride(record, image)
+    return overrides
+
+
+@functools.cache
+def card_overrides() -> dict[str, CardOverride]:
+    """The overrides file, read once per run."""
+    return read_card_overrides(CARD_OVERRIDES_CSV)
+
+
+def format_description(row: Mapping[str, str], car: RosterCar | None,
+                       engine_by_key: Mapping[EngineKey, EngineRecord]) -> str:
+    """A locomotive's maker · model · length when the row is one and it can be read, else the freight description."""
     if is_locomotive_row(row):
-        if engine_by_key is None:
-            _, engine_by_key = load_engine_roster()
-        engine = match_engine(row, engine_by_key)
-        desc = build_locomotive_description(engine, row)
+        desc = build_locomotive_description(match_engine(row, engine_by_key), row)
         if desc:
             return desc
-    return build_freight_description(row, car)
+    return build_freight_description(dict(row), dict(car) if car else None)
 
 
-def display_road(row: dict, engine_by_key: dict) -> str:
+def display_road(row: Mapping[str, str], engine_by_key: Mapping[EngineKey, EngineRecord]) -> str:
+    """The road the card prints: a rostered car's display mark, else the row's marks, else its engine's road."""
     roster_id = row.get("roster_id", "").strip()
     if roster_id:
         road = row.get("roster_road", "").strip()
@@ -94,12 +146,14 @@ def display_road(row: dict, engine_by_key: dict) -> str:
     engine = match_engine(row, engine_by_key)
     if engine:
         road = engine.get("roster_road", "")
-        return ROAD_DISPLAY.get(road, road) or marks or "?"
+        return ROAD_DISPLAY.get(road, road) or "?"
 
     return "?"
 
 
-def display_road_number(row: dict, car: dict | None, engine_by_key: dict) -> str:
+def display_road_number(row: Mapping[str, str], car: RosterCar | None,
+                        engine_by_key: Mapping[EngineKey, EngineRecord]) -> str:
+    """The number the card prints: the roster car's, else the matched engine's, else the row's, else ?."""
     if car and car.get("road_number"):
         return car["road_number"]
 
@@ -107,24 +161,11 @@ def display_road_number(row: dict, car: dict | None, engine_by_key: dict) -> str
     if engine and engine.get("road_number"):
         return engine["road_number"]
 
-    if row.get("roster_id", "").strip():
-        number = row.get("road_number", "").strip()
-        return number if number else "?"
-
-    number = row.get("road_number", "").strip()
-    return number if number else "?"
+    return row.get("road_number", "").strip() or "?"
 
 
-FINAL_DIR = car_paths.FINAL_DIR  # the folder finalize_car_images.py writes
-CARD_FILL_DIR = BASE / "CarImagesCardFill"
-CARD_FILL_PRINT_DIR = BASE / "CarImagesCardFillPrint"
-
-
-def resolve_image(row: dict) -> Path | None:
-    if "IMG_9088" in row.get("source_image", ""):
-        override = IMG_9088_OVERRIDE["image"]
-        if override.exists():
-            return override
+def resolve_image(row: Mapping[str, str]) -> Path | None:
+    """The first card picture found for the row's photo: print fill, card fill, final, then its cropped_image."""
     stem = Path(row.get("source_image", "")).stem
     if stem:
         for folder in (CARD_FILL_PRINT_DIR, CARD_FILL_DIR, FINAL_DIR):
@@ -139,13 +180,16 @@ def resolve_image(row: dict) -> Path | None:
     return None
 
 
-def row_to_card(row: dict, roster: dict[str, dict], engine_by_key: dict) -> tuple[dict, Path | None]:
-    if "IMG_9088" in row.get("source_image", ""):
-        return IMG_9088_OVERRIDE["record"].copy(), IMG_9088_OVERRIDE["image"]
+def row_to_card(row: Mapping[str, str], roster: Mapping[str, RosterCar],
+                engine_by_key: Mapping[EngineKey, EngineRecord]) -> tuple[CardRecord, Path | None]:
+    """The card fields and picture for one repository row (or a loco row in its shape)."""
+    override = card_overrides().get(row.get("source_image", "").strip())
+    if override is not None:
+        return override.record.copy(), override.image
 
     car = roster.get(row.get("roster_id", ""))
-    ctype = normalize_car_type(row.get("car_type") or (car or {}).get("car_type", ""))
-    record = {
+    ctype = normalize_car_type(row.get("car_type") or (car["car_type"] if car else ""))
+    record: CardRecord = {
         "Type": format_type(ctype),
         "RoadName": display_road(row, engine_by_key),
         "RoadNumber": display_road_number(row, car, engine_by_key),
@@ -154,10 +198,13 @@ def row_to_card(row: dict, roster: dict[str, dict], engine_by_key: dict) -> tupl
     return record, resolve_image(row)
 
 
-def load_cards() -> list[tuple[dict, Path | None, dict]]:
+def load_cards() -> list[CardEntry]:
+    """A card for every photographed row of image_metadata.csv, less EXCLUDE_FROM_DOC."""
+    if not METADATA_CSV.is_file():
+        raise CardPipelineError(f"Missing the car repository {METADATA_CSV}")
     roster = load_roster()
     _, engine_by_key = load_engine_roster()
-    cards: list[tuple[dict, Path | None, dict]] = []
+    cards: list[CardEntry] = []
     with METADATA_CSV.open(newline="") as f:
         for row in csv.DictReader(f):
             if row.get("source_image", "") in EXCLUDE_FROM_DOC:
@@ -165,46 +212,19 @@ def load_cards() -> list[tuple[dict, Path | None, dict]]:
             if not row.get("source_image", "").strip():
                 continue  # No photo yet; cars.py queues these cards.
             record, image = row_to_card(row, roster, engine_by_key)
-            cards.append((record, image, row))
+            cards.append(CardEntry(record, image, row))
     return cards
 
 
-def _fill_page(sheet: Table, batch: list[tuple[dict, Path | None, dict]], page_idx: int) -> None:
-    for i, (record, image, _row) in enumerate(batch):
-        r, c = card_template_layout.CARD_SLOTS[i]
-        g.build_card(
-            sheet.rows[r].cells[c],
-            advance_record=False,
-            idx=page_idx * CARDS_PER_PAGE + i,
-            record=record,
-            image_path=image,
-        )
+def _fill_slot(cell: _Cell, idx: int, card: CardEntry) -> None:
+    record, image, _row = card
+    g.build_card(cell, advance_record=False, idx=idx, record=record, image_path=image)
 
 
-def generate(cards: list[tuple[dict, Path | None, dict]]) -> None:
-    car_paths.require_sticker_sheet()
-    if not METADATA_CSV.exists():
-        raise FileNotFoundError(METADATA_CSV)
-
-    blank_grid = card_template_sheet.blank_sticker_grid(car_paths.STICKER_SHEET)
-    shutil.copy2(car_paths.STICKER_SHEET, OUTPUT)
-    doc = Document(OUTPUT)
-    card_template_sheet.keep_sticker_grid(doc)
-
-    pages = [
-        cards[i : i + CARDS_PER_PAGE]
-        for i in range(0, len(cards), CARDS_PER_PAGE)
-    ]
-
-    sheet = doc.tables[0]
-    _fill_page(sheet, pages[0], 0)
-
-    for page_idx, batch in enumerate(pages[1:], start=1):
-        sheet = card_template_sheet.append_grid(doc, blank_grid)
-        _fill_page(sheet, batch, page_idx)
-
-    card_template_sheet.add_document_tail(doc.element.body)
-    doc.save(OUTPUT)
+def generate(cards: Sequence[CardEntry]) -> None:
+    """Write the cards to OUTPUT, nine to a sticker page."""
+    sticker_sheet = car_paths.require_sticker_sheet()
+    card_template_sheet.write_sticker_deck(cards, _fill_slot, sticker_sheet=sticker_sheet, output=OUTPUT)
 
 
 def main() -> None:
@@ -213,15 +233,14 @@ def main() -> None:
 
     with_image = sum(1 for _, img, _ in cards if img)
     matched = sum(1 for _, _, row in cards if row.get("roster_id"))
-    pages = (len(cards) + CARDS_PER_PAGE - 1) // CARDS_PER_PAGE
 
     print(f"Wrote {OUTPUT}")
-    print(f"  {len(cards)} cards · {pages} pages · {with_image} with photos")
+    print(f"  {len(cards)} cards · {card_template_sheet.page_count(len(cards))} pages · {with_image} with photos")
     print(f"  {matched} roster matches (review remaining in the doc)")
 
 
 if __name__ == "__main__":
     try:
         main()
-    except car_paths.CardPipelineError as exc:
+    except CardPipelineError as exc:
         raise SystemExit(str(exc)) from exc

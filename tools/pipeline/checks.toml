@@ -700,6 +700,7 @@ inputs = [
   { path = "ops/hart-ops/data/HART_Spot_Waybills.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/locos.csv", label = "rules", side = "check" },
   { path = "ops/hart-ops/data/trains.csv", label = "rules", side = "check" },
+  { path = "ops/hart-ops/data/card_overrides.csv", label = "rules", side = "check" },
   { path = "www/scripts/archive_catalogue.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/block_numbering.csv", label = "rules", side = "check" },

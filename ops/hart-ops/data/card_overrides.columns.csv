@@ -1,0 +1,7 @@
+column,description,type,required,key,refs,values
+source_image,"The photo file name in image_metadata.csv's source_image (IMG_9088.png), its key: a metadata row with this photo prints the card below instead of the one its columns would give.",str,yes,yes,,
+image,"The card's picture, relative to ops/hart-ops (card_pipeline/assets/NW32800.png).",str,yes,,,
+card_type,"The car type the card prints in its header (Flat Car).",str,yes,,,
+road_name,"The road name the card prints (N&W).",str,yes,,,
+road_number,"The road number the card prints (32800).",str,yes,,,
+description,"The card's description line (Flatcar · 52').",str,yes,,,

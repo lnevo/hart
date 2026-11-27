@@ -28,6 +28,7 @@ from docx.oxml.ns import qn  # noqa: E402
 import card_template_docx as ctd  # noqa: E402
 import card_template_layout as ctl  # noqa: E402
 import card_template_sheet as cts  # noqa: E402
+import card_template_cc_label as ctcc  # noqa: E402
 import card_template_waybill as ctw  # noqa: E402
 import generate_card_template as gct  # noqa: E402
 from golden_support import check_golden, docx_summary  # noqa: E402
@@ -184,7 +185,7 @@ class TextHelpers(unittest.TestCase):
         self.assertEqual(str(run.font.color.rgb), "010203")
 
     def test_sts_colour_names_are_hex(self):
-        for name, hex_ in ctw.sts_color_hex().items():
+        for name, hex_ in ctcc.sts_color_hex().items():
             self.assertRegex(hex_, r"^[0-9A-F]{6}$", name)
 
 
@@ -409,8 +410,7 @@ class SheetAssembly(unittest.TestCase):
 class MainEntryPoint(unittest.TestCase):
     def run_main(self, tmp: Path, sheet: Path):
         out = tmp / "out" / "template.docx"
-        with mock.patch.object(gct, "STICKER_SHEET", sheet), \
-                mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
+        with mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
                 mock.patch.object(gct, "OUTPUT_DIR", out.parent), \
                 mock.patch.object(gct, "OUTPUT", out), \
                 mock.patch("builtins.print"), no_images():
@@ -439,8 +439,7 @@ class MainEntryPoint(unittest.TestCase):
     def test_main_stops_with_a_clear_message_when_the_sheet_is_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
             missing = Path(tmp) / "nope.docx"
-            with mock.patch.object(gct, "STICKER_SHEET", missing), \
-                    mock.patch("car_paths.STICKER_SHEET", missing):
+            with mock.patch("car_paths.STICKER_SHEET", missing):
                 with self.assertRaises(gct.car_paths.CardPipelineError) as cm:
                     gct.require_sticker_sheet()
         self.assertIn("Missing the sticker sheet template", str(cm.exception))

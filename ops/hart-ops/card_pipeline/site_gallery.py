@@ -11,6 +11,7 @@ Deploy afterwards with www/scripts/deploy_hartrailroad.sh.
 """
 from __future__ import annotations
 
+from card_template_records import CardRecord
 from private_name import contains_private_name
 
 import json
@@ -39,7 +40,7 @@ def fleet_id(title: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
 
 
-def entry_for(record: dict, source_image: str, known: dict[str, str]) -> dict:
+def entry_for(record: CardRecord, source_image: str, known: dict[str, str]) -> dict:
     kind = record["Type"]
     road, number = record["RoadName"], record["RoadNumber"]
     desc = record.get("Description", "")
@@ -59,7 +60,7 @@ def entry_for(record: dict, source_image: str, known: dict[str, str]) -> dict:
     }
 
 
-def missing_entries(candidates: list[tuple[dict, str]], data: dict) -> list[dict]:
+def missing_entries(candidates: list[tuple[CardRecord, str]], data: dict) -> list[dict]:
     """Entries for photographed cars the gallery lacks. Never the private name."""
     have = {Path(i["src"]).stem for i in data["items"]}
     known = {}

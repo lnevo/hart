@@ -19,8 +19,12 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from card_errors import CardPipelineError
+
+if TYPE_CHECKING:
+    from engine_lookup import EngineRecord
 
 HART_OPS = Path(__file__).resolve().parents[1]
 HART_ROOT = HART_OPS.parents[1]
@@ -213,7 +217,7 @@ def roster_entry(row: dict) -> dict:
     }
 
 
-def card_row(row: dict) -> tuple[dict, dict]:
+def card_row(row: dict) -> tuple[dict[str, str], EngineRecord]:
     """A repository row and engine record in the shape generate_all_cards.row_to_card reads.
 
     The engine record comes from locos.csv itself, so a card can be built before publish
@@ -232,7 +236,7 @@ def card_row(row: dict) -> tuple[dict, dict]:
         "roster_length_ft": row.get("length_ft", ""),
         "notes": row.get("model", ""),
     }
-    engine = {
+    engine: EngineRecord = {
         "engine_roster_id": ops_id(row["road_name"], row["road_number"]),
         "roster_road": row["road_name"],
         "road_number": row["road_number"],
