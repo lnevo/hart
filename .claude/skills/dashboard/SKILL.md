@@ -16,7 +16,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
 ## Set up (once per wave)
 
 1. Create it from the Dashboard artifact type: Artifact `quickstart` with intent `other`, then publish with its `type_url`.
-2. One `ArtifactData` batch: `dash/meta`, three datasets with `source: {kind: "store", path: …}` (`lanes` at `data/<wave>/lanes`, `events` at `data/<wave>/events`, `samples` at `data/<wave>/samples`), and `files/index.html` with its `{text}` from [`index.html`](index.html).
+2. One `ArtifactData` batch (the page has a clock with the last data refresh and a Refresh button): `dash/meta`, three datasets with `source: {kind: "store", path: …}` (`lanes` at `data/<wave>/lanes`, `events` at `data/<wave>/events`, `samples` at `data/<wave>/samples`), and `files/index.html` with its `{text}` from [`index.html`](index.html).
 3. Put the link on the project page under the `Coordinator:` line and give it to the owner once.
 4. Start the sampler (below).
 

@@ -63,6 +63,9 @@
 .w2 .theme button { font:inherit; font-size:var(--cds-font-size-caption); border:0; background:transparent; color:var(--color-fg-muted); padding:2px 10px; border-radius:999px; cursor:pointer; }
 .w2 .theme button[aria-pressed="true"] { background:var(--color-panel); color:var(--color-fg); }
 .w2 .theme button:focus-visible { outline:2px solid var(--color-fg); outline-offset:1px; }
+.w2 .clock { display:flex; flex-wrap:wrap; align-items:center; gap:var(--cds-gap-md); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); margin-top:var(--cds-pad-sm); }
+.w2 .clock b { color:var(--color-fg); font-weight:var(--cds-font-weight-medium); font-variant-numeric:tabular-nums; }
+.w2 .clock .refresh[disabled] { opacity:.6; cursor:progress; }
 </style>
 <div class="w2 theme-auto">
   <header id="top" class="proj">
@@ -75,6 +78,11 @@
         <span>Coordinator: hart-bb (merge queue and deploys); lanes run by a background wave 2 coordinator</span>
         <span>Started 14:15 on 2026-11-26</span>
         <a href="https://github.com/lnevo/hart/blob/main/wiki/projects/code-quality-wave.md">Wave page</a>
+      </div>
+      <div class="clock" id="clock">
+        <span>Now <b data-draw="clock-now">—</b></span>
+        <span>Data refreshed <b data-draw="clock-refreshed">—</b></span>
+        <button type="button" class="chip refresh" aria-label="Refresh the dashboard data">Refresh</button>
       </div>
     </div>
     <div class="theme" role="group" aria-label="Theme">
@@ -267,4 +275,24 @@ dash.draw('agents', (el)=> lineChart(el,
   apply(pick);
   document.querySelectorAll('.w2 .theme button').forEach((b)=> b.addEventListener('click', ()=>{ apply(b.dataset.theme); try { localStorage.setItem('w2-theme', b.dataset.theme); } catch(e) {} }));
 })();
+</script>
+<script>
+const CLOCK_SOURCES = ['lanes', 'events', 'samples'];
+const hhmmss = (d) => d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false});
+dash.draw('clock-now', {
+  mount(el) { const tick = () => { el.textContent = hhmmss(new Date()); }; tick(); return setInterval(tick, 1000); },
+  update() {},
+  unmount(el, timer) { clearInterval(timer); },
+});
+let lastRefreshed = null;
+dash.draw('clock-refreshed', (el) => {
+  const all = CLOCK_SOURCES.map((id) => dash.data(id));
+  const busy = all.some((d) => d.status === 'loading' || d.refreshing);
+  if (!busy && all.every((d) => d.status === 'ok')) lastRefreshed = new Date();
+  el.textContent = busy ? 'refreshing…' : (lastRefreshed ? hhmmss(lastRefreshed) : '—');
+  document.querySelectorAll('.w2 .clock .refresh').forEach((b) => { b.disabled = busy; });
+});
+document.querySelectorAll('.w2 .clock .refresh').forEach((b) => b.addEventListener('click', () => {
+  CLOCK_SOURCES.forEach((id) => dash.refresh(id));
+}));
 </script>
