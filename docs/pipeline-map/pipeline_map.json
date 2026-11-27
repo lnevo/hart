@@ -39,49 +39,61 @@
  ],
  "presets": [
   {
-   "label": "Where does tables.xml come from?",
+   "label": "Schematic",
+   "focus": "docs/ops/schematic-system-draft.svg",
+   "up": 3,
+   "down": 1
+  },
+  {
+   "label": "Layout Editor",
+   "focus": "tools/schematic/build_layout_le.py",
+   "up": 1,
+   "down": 2
+  },
+  {
+   "label": "tables.xml",
    "focus": "jmri/layouts/hart/output/tables.xml",
    "up": 2,
    "down": 1
   },
   {
-   "label": "How is the CTC desk panel made?",
+   "label": "CTC desk",
    "focus": "cats/panels/HART_CTC.xml",
    "up": 2,
    "down": 1
   },
   {
-   "label": "What builds the device master, and what reads it?",
+   "label": "Device master",
    "focus": "jmri/layouts/hart/data/devices_generated.csv",
    "up": 1,
    "down": 1
   },
   {
-   "label": "What writes and reads the wiring list?",
+   "label": "Wiring",
    "focus": "jmri/layouts/hart/data/wiring.csv",
    "up": 1,
    "down": 1
   },
   {
-   "label": "What writes and reads the Operations Pro files?",
+   "label": "Operations Pro",
    "focus": "jmri/layouts/hart/operations",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Where do the printed car cards come from?",
+   "label": "Car cards",
    "focus": "ops/car-cards/print",
    "up": 2,
    "down": 0
   },
   {
-   "label": "What goes into the website build?",
+   "label": "Website build",
    "focus": "ext:site-dist",
    "up": 1,
    "down": 1
   },
   {
-   "label": "Where do the agent instructions lead?",
+   "label": "Agent docs",
    "focus": "AGENTS.md",
    "up": 0,
    "down": 2
