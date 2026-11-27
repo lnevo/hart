@@ -448,7 +448,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         except sdm.lc.BuildError as exc:
             skip_or_fail(exc, "the block pins")
         cls.band = band
-        cls.names = sdm.load(band, with_masts=False)
+        cls.names = sdm.load(band, sdm.LoadOptions(with_masts=False))
 
     def test_staging_layer(self):
         _t, os_ph, refs = sdm.placeholders(self.band)
@@ -477,7 +477,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         """(level, user name, trial name) of every block row (parts too) the builder writes for `bands`."""
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
         _cp, rows, parts = bdm.build(bands, joined, runs, bdm.MapInputs.of(rr), corners)
-        staging = bdm.staging_rows(bands, joined, runs)
+        staging = bdm.staging_rows(bands, joined, runs).rows
         return sorted((str(r["level"]), r["user_name"], r["trial_name"]) for r in rows + parts + staging
                       if r["layer"] == "block")
 

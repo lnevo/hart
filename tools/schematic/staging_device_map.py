@@ -75,7 +75,7 @@ import re
 import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, NamedTuple, TypeVar
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
@@ -550,23 +550,41 @@ def le_idents(turnout_ph: Mapping[str, str], bad: list[str]) -> dict[str, str]:
     return idents
 
 
-def load(band: Band, device_map: Path = DEVICE_MAP, *, masts_path: Path = MASTS, stations_path: Path = STATIONS,
-         turnout_idents: bool = True, with_masts: bool = True,
-         interlockings_path: Path = INTERLOCKINGS, master_rows: Sequence[Mapping[str, str]] | None = None,
-         with_normal: bool = True) -> StagingNames:
-    """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
-    switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
-    (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
-    the device master keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing
+class LoadOptions(NamedTuple):
+    """What load() reads and what it gives. The files: the device master (`device_map`), masts.csv, stations.csv and
+    interlockings.csv. `master_rows`: the master's rows as a builder writes them, read in place of `device_map`.
+    `turnout_idents`, `with_masts` and `with_normal`: whether load() gives each turnout's Layout Editor ident, the
+    masts and switches.csv's closed legs."""
+    device_map: Path = DEVICE_MAP
+    masts_path: Path = MASTS
+    stations_path: Path = STATIONS
+    interlockings_path: Path = INTERLOCKINGS
+    master_rows: Sequence[Mapping[str, str]] | None = None
+    turnout_idents: bool = True
+    with_masts: bool = True
+    with_normal: bool = True
+
+
+DEFAULT_LOAD = LoadOptions()        # the repo's files; idents, masts and closed legs all given
+
+
+def load(band: Band, options: LoadOptions = DEFAULT_LOAD) -> StagingNames:
+    """The plugin's names for the staging band from the three files alone (`options`, a LoadOptions): turnouts, os,
+    blocks, normal (from switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from
+    switches.csv (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules
+    every row of the device master keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing
     does not use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed.
     A part (part_lines) is a JMRI block of its own on every level: its pieces are its own block, and
     staging_parts gives {part: the block it is part of} (os_layer reads the blocks as the masts do). `master_rows`: the
     master's rows as a builder writes them (build_device_map.py's staging masts, from the block rows it makes in the
     same run), read in place of the file at `device_map` (which then only names it in messages). with_normal False
     leaves out `normal` (switches.csv's closed legs, by block name: the masts do not read it, and in a build the
-    hands step writes those names only after the device map)."""
+    hands step writes those names only after the device map). TypeError when `options` is not a LoadOptions."""
+    if not isinstance(options, LoadOptions):
+        raise TypeError(f"load: options must be a LoadOptions, not {type(options).__name__}")
+    device_map, master_rows = options.device_map, options.master_rows
     lines = _staging_lines(device_map, master_rows)
-    bad, cp_names = _row_problems(lines, device_map, stations_path, interlockings_path)
+    bad, cp_names = _row_problems(lines, device_map, options.stations_path, options.interlockings_path)
     if bad:
         raise StagingMapError("; ".join(bad))
     turnout_ph, os_ph, strands = placeholders(band)
@@ -575,12 +593,12 @@ def load(band: Band, device_map: Path = DEVICE_MAP, *, masts_path: Path = MASTS,
     except (drawing_keys.DrawingKeyError, railroad.FactsError) as exc:
         raise StagingMapError(f"{paths.rel(device_map)}: {exc}") from exc
     names = _drawn_names(keys, turnout_ph, os_ph, strands, paths.rel(device_map))
-    if with_normal:             # switches.csv names a leg by its first OS block
+    if options.with_normal:     # switches.csv names a leg by its first OS block
         names["normal"] = normal_legs(band, os_layer(names, keys.parts()))   # a part's pieces are its own JMRI block
-    if turnout_idents:
+    if options.turnout_idents:
         names["idents"] = Idents(turnouts=le_idents(turnout_ph, bad), boundaries=[], ends={}, segments={})
-    if with_masts:              # masts.csv's staging rows, for the readers of the drawn masts
-        names["masts"] = load_masts(masts_path, cp_names, [r for _n, r in lines], device_map)
+    if options.with_masts:      # masts.csv's staging rows, for the readers of the drawn masts
+        names["masts"] = load_masts(options.masts_path, cp_names, [r for _n, r in lines], device_map)
     if bad:
         raise StagingMapError("; ".join(bad))
     return names
