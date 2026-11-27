@@ -61,7 +61,8 @@ fi
 push_rsync "$STAGE" "${PI_HOST}:${PI_DROP}/"
 if [[ "$DRY_RUN" -eq 0 ]]; then
   # JMRI_USERFILES: the apply installs where the panel paths and the stamp say (HART_PI_USERFILES).
-  ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
+  # HART_PI_PROFILE: the profile whose saved panel window sizes it sets (load_env.sh).
+  ssh_pi "HART=${PI_DROP} JMRI_USERFILES='${PI_USERFILES}' HART_PI_PROFILE='${HART_PI_PROFILE}' HART_OVERWRITE_OPS=${HART_OVERWRITE_OPS} bash ${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh"
 fi
 echo "Pi deploy done."
 PI_STEP=0

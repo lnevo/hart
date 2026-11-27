@@ -27,8 +27,8 @@ MARGIN. The margin gives the level room above and below that the full panel, pac
 The move is in whole px; a band that would still not fit the window stops the build (BandPanelError). The band
 panel's window is as tall as the panel and the frame Layout Editor draws round it (`chrome`), and keeps the full panel's
 width (open at the size the level needs, at the common window width). A host that has opened a
-panel keeps its own window size in its profile's user-interface.xml, over this one: after a size change or a new panel,
-tools/hosts/panel_window_sizes.py (pi_panel_window_sizes.sh on the Pi) sets it by hand.
+panel keeps its own window size in its profile's user-interface.xml, over this one: every Pi and Windows deploy sets
+the saved sizes to the installed tables' (tools/hosts/panel_window_sizes.py, hartlib.jmri_profile).
 """
 from __future__ import annotations
 
