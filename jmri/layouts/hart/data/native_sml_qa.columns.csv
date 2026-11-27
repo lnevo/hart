@@ -1,0 +1,10 @@
+column,description,type,required,key,refs,values
+tag,"The step's tag (qa00_rest): qa, two digits and words joined by _. The steps run in the order of their two digits, which no two steps share. With n, the row's key.",str,yes,yes,,
+n,"The row's place in its step, from 1: a step's rows run in this order. With tag, the row's key.",int,yes,yes,,
+part,"about: the step's description, in text. before: a state driven before the masts are read. expect: a mast and the aspect it must show. after: a state driven after the check.",enum,yes,,,about;before;expect;after
+device,"The device a before or after row drives: a staging device ID of the device master. A turnout state drives a turnout row, with its fb:<n>:N and fb:<n>:R sensors when the master has them; an occupancy state drives an occupancy row (hartlib.sml_qa).",str,part=before;after,,jmri/layouts/hart/data/devices.csv:id,
+state,"The retained state a before or after row drives: CLOSED or THROWN for a turnout, ACTIVE or INACTIVE for an occupancy sensor.",enum,part=before;after,,,CLOSED;THROWN;ACTIVE;INACTIVE
+feedback,"none on every before and after row of a turnout drives it without the feedback sensors the device master gives it: a named exception, held to the master by hartlib.sml_qa. Switch 7 has it: the QA drove it as DIRECT before fb:7:N and fb:7:R were in the master, and tables.xml has it TWOSENSOR (an owner question). Empty: as the master has it.",enum,,,,none
+mast,"The mast an expect row checks, by its name in masts.csv.",str,part=expect,,jmri/layouts/hart/data/schematic/masts.csv:mast,
+want,"What an expect row's mast must show: stop (Stop, Held, Dark, Unlit or none), nonstop (any other aspect) or an exact aspect name (Diverging Clear).",str,part=expect,,,
+text,"The about row's description, printed in the QA notes. On another row, a note for people.",str,part=about,,,

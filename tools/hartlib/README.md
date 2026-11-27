@@ -454,6 +454,21 @@ order, logo and width), `read_industry_notes(path)` the history paragraphs of `i
 `read_spot_usages(path)` the label for each spot usage of `spot_usages.csv`. `operator_sheet_data.py`,
 `generate_operator_sheet.py` and `waybill_data.py` build their tables from them.
 
+It also reads the train master `trains.csv`: `read_trains(path)` gives `{train_symbol: Train}` in file order (`name`,
+`road`, `card_number`, `on_desks`), stopping with `OpsDataError` on an empty or repeated symbol, a bad `on_desks`, a
+train on the desks with no `road_name` and a `card_number` given twice. `train_cards.py` takes each card's road and
+number from it.
+
+### `hartlib.sml_qa`
+
+The native SML QA's steps, `jmri/layouts/hart/data/native_sml_qa.csv` (sidecar beside it): `read(path)` gives the
+`Step`s in run order (tag, description, `(mast, want)` checks, `Change`s before and after), and `drives(steps, rows)`
+the staging devices they drive, by device ID from the device master: each one's user name, LCOS MQTT address and, for
+a turnout, its feedback sensors' addresses from its `fb:<n>:N` and `fb:<n>:R` rows. A row's `feedback` none drives a
+turnout without the sensors the master gives it, on every row of that turnout or none. `QAError` names the file and
+line, or the device. `tools/mqtt-mimic/qa/run_native_sml_qa.py` reads it; `--list` prints the steps and publishes
+nothing.
+
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;

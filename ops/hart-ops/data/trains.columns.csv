@@ -1,6 +1,8 @@
 column,description,type,required,key,refs,values
 train_symbol,"The train's symbol (R23A, D749), its key: assigned once and never reused. crew.json's crew jobs give it as code, and the CATS train list as TRAIN_SYMBOL.",str,yes,yes,,
 train_name,"The name CATS shows on the desk train list (Route 23 AM, OCS-1). Required on the trains on the desks.",str,on_desks=yes,,,
+road_name,"The railroad that runs the train, as its train card shows it (CSX, POHC, PRC, HART): not always the lead engine's road (D749 runs behind CR 1993). hartlib.operations.read_trains reads it. Required on the trains on the desks. HART is no road of roads.csv, so the column refers to nothing (an owner question).",str,on_desks=yes,,,
+card_number,"The number the train's card shows in the train card deck (ops/hart-ops/card_pipeline/train_cards.py): Route 23 on the one streetcar card, which is R23A's. Blank: the train has no card of its own.",str,,,,
 engine,"The road number of the lead engine CATS shows (4501). tools/ops/check_locos.py checks it against the loco master. Required on the trains on the desks.",str,on_desks=yes,,,
 font,"The CATS font of the train's label: East or West for the direction, FONT_TRAIN for neither. Required on the trains on the desks.",enum,on_desks=yes,,,East;West;FONT_TRAIN
 runs_job,"Whether a crew job runs the train in CATS (true or false, as CATS writes it). Required on the trains on the desks.",enum,on_desks=yes,,,true;false
