@@ -11,7 +11,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path[:0] = [str(HERE.parent / "src")]
 from hartlib import operations as roads  # noqa: E402
-from hartlib.operations import RoadsError  # noqa: E402
+from hartlib.operations import OpsDataError  # noqa: E402
 
 HEADER = "road,marks,car_spellings,engine_spellings,notes\n"
 
@@ -39,16 +39,16 @@ class Roads(unittest.TestCase):
                            (",B&O,,,\n", ":2: road is empty"),
                            ("BO,,B&O,,\nCO,,B&O,,\n", ":3: car_spellings 'B&O' is already road BO's"),
                            ("ATSF,,Santa Fe,,\n", ":2: car_spellings 'Santa Fe' must be in capitals ('SANTA FE')")):
-            with self.assertRaises(RoadsError) as cm:
+            with self.assertRaises(OpsDataError) as cm:
                 roads.read_roads(self.write("roads.csv", HEADER + body))
             self.assertIn(said, str(cm.exception))
-        with self.assertRaises(RoadsError):
+        with self.assertRaises(OpsDataError):
             roads.read_roads(self.write("roads.csv", "road,marks\nBO,B&O\n"))   # a required column is missing
 
     def test_models_keep_file_order(self):
         models = roads.read_loco_models(self.write("m.csv", "model,mfg\nGP38,EMD\nU30B,GE\nGP20,EMD\n"))
         self.assertEqual(list(models.items()), [("GP38", "EMD"), ("U30B", "GE"), ("GP20", "EMD")])
-        with self.assertRaises(RoadsError):
+        with self.assertRaises(OpsDataError):
             roads.read_loco_models(self.write("m.csv", "model,mfg\nGP38,\n"))
 
     def test_the_repo_files_read(self):
