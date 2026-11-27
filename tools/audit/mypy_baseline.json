@@ -3,7 +3,6 @@
  "cats/scripts/cats_inspect.py": 11,
  "cats/scripts/cats_turnout_io.py": 1,
  "cats/scripts/digicon_trace.py": 7,
- "cats/scripts/render_cats_panel.py": 9,
  "cats/scripts/tests/desks.py": 1,
  "cats/scripts/tests/test_generated_desk_from_scratch.py": 5,
  "cats/scripts/tests/test_live_desk_levels.py": 6,
