@@ -219,6 +219,21 @@ class ExamAnswers(unittest.TestCase):
             self.assertLess(data_at, scripts.index(f.name), f"run.html loads run-data.js after {f.name}")
         self.assertLess(scripts.index("../js/game-engine.js"), data_at)
 
+    def test_a_question_outside_the_run_files_stops_the_build(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            for f in ("run.js", "run-data.js", "run-title.js", "run-tto.js"):
+                (Path(tmp) / f).write_text("// no questions\n")
+            check = f"require({json.dumps(str(SCRIPT))}).checkRunFiles({json.dumps(tmp)})"
+            node(check)
+            (Path(tmp) / "run.js").write_text('ask({sec:"def"});\n')
+            with self.assertRaisesRegex(AssertionError, "run.js asks a question"):
+                node(check)
+            (Path(tmp) / "run.js").write_text("// no questions\n")
+            (Path(tmp) / "run-new.js").write_text("// a new run\n")
+            with self.assertRaisesRegex(AssertionError, "run-new.js: a run file the answer key does not know"):
+                node(check)
+
     def test_broken_data_stops_the_build(self):
         with self.assertRaisesRegex(AssertionError, "run-data.js: STATIONS is not a list.*; TWC_PLAN has no box5Lead"):
             node(f"const m=require({json.dumps(str(SCRIPT))});"
