@@ -49,6 +49,7 @@ class Files:
     def __init__(self, existing: tuple[str, ...] = ()) -> None:
         self.names: set[str] = set(existing)
         self.text: dict[str, io.StringIO] = {}
+        self.logs: set[str] = set()  # the job's LOGF, set by run_job; every other name left is a marker
 
     def open(self, name: str, mode: str = "r") -> io.StringIO:
         if "w" in mode or "a" in mode:
@@ -65,8 +66,8 @@ class Files:
         self.names.discard(name)
 
     def markers(self) -> set[str]:
-        """The names that are not logs: the run-marker files."""
-        return self.names - set(self.text)
+        """The names still present that are not the job's log: the run-marker files, its own included."""
+        return self.names - self.logs
 
     def written(self, name: str) -> str:
         return self.text[name].getvalue() if name in self.text else ""
@@ -259,4 +260,5 @@ def run_job(text: str, world: World) -> Result:
     scope = dict(vars(builtins), __import__=fake_import, open=world.files.open)
     ns: dict[str, Any] = {"__builtins__": scope}
     exec(compile(text, "job", "exec"), ns)  # noqa: S102  the Jython job text, run in its own fresh namespace
+    world.files.logs.add(ns["LOGF"])
     return Result(ns, world.files.written(ns["LOGF"]).splitlines(), world)

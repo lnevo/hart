@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lengths_fixture import write_lengths  # noqa: E402
 from speedmatch_jython_fake import FakeProfile, FakeRosterEntry, World, run_job  # noqa: E402
-from test_speedmatch import SM, ROOT, analyze, make_job  # noqa: E402
+from test_speedmatch import FORBIDDEN_EVERYWHERE, SM, ROOT, analyze, make_job, mover  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib.paths import REPO_TABLES_XML  # noqa: E402
@@ -245,11 +245,14 @@ class ProfileJob(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "share a throttle key"):
             make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py")])
 
-    def run_profile(self, *extra, points=None, entry=True, fail_on_update=False, marker=False):
-        """The generated job, run against a fake roster that offers nothing but the roster entry."""
+    def run_profile(self, *extra, points=None, entry=True, fail_on_update=False, marker=False, leak=False):
+        """The generated job, run against a fake roster that offers nothing but the roster entry. leak: os.remove
+        does nothing, as a job that forgot its marker would leave it."""
         d = self.payload()
         make_job.main(["profile", "--payload", str(d / "p.json"), "--out", str(d / "j.py"), *extra])
         world = World()
+        if leak:
+            world.files.remove = lambda name: None  # type: ignore[method-assign]
         world.files.names |= {"/tmp/speedrun.active"} if marker else set()
         if entry:
             profile = None if points is None else FakeProfile(points, world.calls)
@@ -282,6 +285,17 @@ class ProfileJob(unittest.TestCase):
         res = self.run_profile("--apply", entry=False)
         self.assertIn("STOP roster entry not found: CSX 2121", say(res.log))
         self.assertEqual(res.world.calls, [])
+
+    def test_a_marker_the_job_leaves_behind_is_seen(self):
+        res = self.run_profile(points={500: (200.0, 210.0)}, leak=True)
+        self.assertEqual(res.world.files.markers(), {"/tmp/speedrun.active"})
+
+    def test_the_job_names_no_forbidden_call(self):
+        # a policy scan kept as text on purpose: a forbidden call on a branch no test runs must still fail
+        src = (SM / "jython" / "write_profile.py").read_text()
+        for bad in FORBIDDEN_EVERYWHERE + ["Throttle", "setSpeedSetting", "readCV", "writeCV", "Programmer",
+                                           "emergency", "OpsMode"]:
+            self.assertNotIn(bad, src, bad)
 
     def test_another_runner_holds_the_marker_and_keeps_it(self):
         res = self.run_profile("--apply", points={}, marker=True)
@@ -422,6 +436,14 @@ class StopTestJob(unittest.TestCase):
         with self.assertRaises(SystemExit):
             make_job.main(base + ["--trigger", "BS Switch 7"])  # off the loop (Switch 7b is on it)
         make_job.main(base + ["--trigger", "BS Switch 33"])
+
+
+class StopTestPolicy(unittest.TestCase):
+    def test_the_mover_names_no_forbidden_call(self):
+        # a policy scan kept as text on purpose: a forbidden call on a branch no test runs must still fail
+        kit = mover("stop_test.py")
+        for bad in FORBIDDEN_EVERYWHERE + ["readCV", "writeCV", "Programmer", "emergency", "OpsMode"]:
+            self.assertNotIn(bad, kit, bad)
 
 
 class Jobkit(unittest.TestCase):
