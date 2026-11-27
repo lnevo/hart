@@ -9,7 +9,7 @@ Digicon SELECTEDREPORT follows track/turnout/{addr}. This updates broker
 retain from sensors only — it does not command turnout motors.
 
 Skips Switch 13/7/11/9 (DCC 116–119 — yard / engine-house, not FB-driven Digicon SoR).
-Exits 1 when JMRI cannot be reached or any publish fails.
+Exits 1 when JMRI or the broker cannot be read, or any publish fails.
 
     python3 tools/mqtt/sync_mqtt_turnouts_from_fb.py
     python3 tools/mqtt/sync_mqtt_turnouts_from_fb.py --dry-run
@@ -18,7 +18,6 @@ Exits 1 when JMRI cannot be reached or any publish fails.
 from __future__ import annotations
 
 import argparse
-import subprocess
 import sys
 import urllib.error
 from collections.abc import Callable, Mapping, Sequence
@@ -29,7 +28,8 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib.hosts import jmri_json_url, mqtt_broker  # noqa: E402
 
-import turnout_feedback as tf  # noqa: E402  (sibling module; the script's folder is on sys.path)
+import mosquitto_cli  # noqa: E402  (sibling modules; the script's folder is on sys.path)
+import turnout_feedback as tf  # noqa: E402
 
 JMRI_JSON = jmri_json_url()
 MQTT_HOST = mqtt_broker()
@@ -43,21 +43,13 @@ class SyncCounts(NamedTuple):
 
 
 def _mqtt_pub(addr: int, msg: str) -> bool:
-    """Retain msg on turnout addr; True when mosquitto_pub exits 0."""
-    proc = subprocess.run(
-        [
-            "mosquitto_pub",
-            "-h",
-            MQTT_HOST,
-            "-t",
-            f"track/turnout/{addr}",
-            "-m",
-            msg,
-            "-r",
-        ],
-        check=False,
-    )
-    return proc.returncode == 0
+    """Retain msg on turnout addr; False, with the reason on stderr, when mosquitto_pub fails."""
+    try:
+        mosquitto_cli.set_retained(MQTT_HOST, f"track/turnout/{addr}", msg)
+    except mosquitto_cli.MosquittoError as exc:
+        print(f"publish track/turnout/{addr}: {exc}", file=sys.stderr)
+        return False
+    return True
 
 
 def sync(
@@ -88,7 +80,13 @@ def sync(
         if fb is None:
             n_skip += 1
             continue
-        prev = retain(addr)
+        try:
+            prev = retain(addr)
+        except mosquitto_cli.MosquittoError as e:
+            # counted, and nothing published for it: the broker may be gone part way through the run
+            print(f"FAIL {name:10} {uname:16} FB→{fb}: MQTT retain unreadable: {e}", file=sys.stderr)
+            n_fail += 1
+            continue
         if prev == fb:
             print(f"ok  {name:10} {uname:16} FB→{fb} MQTT={prev}")
             n_ok += 1
