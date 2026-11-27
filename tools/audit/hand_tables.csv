@@ -65,19 +65,19 @@ ops/hart-ops/card_pipeline/waybill_data.py,OUTBOUND_EMPTY_RETURN,5,move,"7 railr
 ops/hart-ops/card_pipeline/waybill_data.py,_PROCESS_CHEMICAL_DETAILS,9,move,rows of values the rule cannot place; the owner marked it move; held: the owner decides which file is the waybill master
 ops/hart-ops/card_pipeline/waybill_data.py,_SPOT_WAYBILL_RAW,11,move,"7 railroad names (industry, loco, spot); first sort: fact with no master; held: the owner decides which file is the waybill master"
 ops/hart-ops/publications/local_station_maps/east_end.py,LADDER_SWITCHES,4,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-ops/hart-ops/publications/local_station_maps/east_end.py,TRACK_INDUSTRIES,4,move,4 railroad names (occupancy sensor); first sort: copy of a master
+ops/hart-ops/publications/local_station_maps/east_end.py,TRACK_INDUSTRIES,4,keep,"the East End ladder's tracks, colours and load lines for this one map; its track names are checked against the masters by test_station_map_names (owner, wave 4)"
 ops/hart-ops/publications/local_station_maps/kit.py,SWNUM,16,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/hart-ops/publications/local_station_maps/south_yard.py,LADDER_SWITCHES,4,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-ops/hart-ops/publications/rebuild_local_station_maps.py,MAPS,5,move,"4 railroad names (industry, station); first sort: fact with no master"
+ops/hart-ops/publications/rebuild_local_station_maps.py,MAPS,5,keep,"the station map publications' ids, revisions and files, used by this one script (owner, wave 4)"
 ops/hart-ops/publications/rebuild_scale_operating_instructions.py,PUBLICATION,7,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/station_maps/scripts/render_barn_station_map.py,BADGES,4,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 ops/station_maps/scripts/render_barn_station_map.py,LABELS,9,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/station_maps/scripts/render_barn_station_map.py,TRACKS,8,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-ops/station_maps/scripts/render_shenango_station_map.py,LABELS,10,move,"5 railroad names (occupancy sensor, station); first sort: fact with no master"
+ops/station_maps/scripts/render_shenango_station_map.py,LABELS,10,keep,"the Shenango map's labels beside the positions they are drawn at; its track names are checked against the masters by test_station_map_names (owner, wave 4)"
 ops/station_maps/scripts/render_shenango_station_map.py,LOOP,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 ops/station_maps/scripts/render_south_yard_station_map.py,BADGES,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 ops/station_maps/scripts/render_south_yard_station_map.py,OLD_BADGES,4,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-ops/station_maps/scripts/render_south_yard_station_map.py,TRACK_NAMES,5,move,5 railroad names (occupancy sensor); first sort: copy of a master
+ops/station_maps/scripts/render_south_yard_station_map.py,TRACK_NAMES,5,keep,"the South Yard map's track names beside their rows; checked against the masters by test_station_map_names (owner, wave 4)"
 tools/audit/check_ai_speak.py,PATTERNS,19,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_data_readers.py,ALLOWED,22,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/audit/check_name_copies.py,ALLOW,11,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
