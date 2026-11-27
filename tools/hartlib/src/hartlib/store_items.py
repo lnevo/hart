@@ -7,15 +7,14 @@ import hashlib
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable, Mapping
 
-from . import devices, level_devices, parked, tables
-from . import tables_build as tb
+from . import devices, level_devices, parked, tables, tables_normal, tables_sections
 from .errors import HartlibError
 from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, ItemKey, LogicKey, PanelKey,
                          SecKey, SectionKey, SettingKey, canon)
 
 PANEL = "LayoutEditor"
 LOGIC = "signalmastlogic"
-KNOWN_SECTIONS = frozenset(tb.SECTIONS)
+KNOWN_SECTIONS = frozenset(tables_sections.SECTIONS)
 VERSION = ("jmriversion", None)
 VERSION_PARTS = ("major", "minor", "test")
 # Top-level tags that never go into the template: the panels and the file history.
@@ -46,7 +45,7 @@ class SplitError(HartlibError, ValueError):
 
 
 def normalised(data: bytes, what: str) -> ET.Element:
-    """Tables bytes parsed and normalised (tables_build.normalise_store); SplitError naming `what` when they do not
+    """Tables bytes parsed and normalised (tables_normal.normalise_store); SplitError naming `what` when they do not
     parse."""
     try:
         doc = tables.loads(data)
@@ -54,7 +53,7 @@ def normalised(data: bytes, what: str) -> ET.Element:
         raise SplitError(f"{what}: not a tables file ({exc})") from exc
     if doc.root.tag != "layout-config":
         raise SplitError(f"{what}: the root is <{doc.root.tag}>, not <layout-config>")
-    tb.normalise_store(doc.root)
+    tables_normal.normalise_store(doc.root)
     return doc.root
 
 
@@ -78,13 +77,13 @@ def repeated_settings(*roots: ET.Element | None) -> frozenset[tuple]:
         if root is None:
             continue
         for sec in tables.elements(root):
-            if sec.tag == PANEL or tb.section_key(sec) not in KNOWN_SECTIONS:
+            if sec.tag == PANEL or tables_sections.section_key(sec) not in KNOWN_SECTIONS:
                 continue
             here: dict[str, list[ET.Element]] = {}
             for el in _settings(sec):
                 here.setdefault(el.tag, []).append(el)
             for tag, els in here.items():
-                copies.setdefault((tb.section_key(sec), tag), []).append(els)
+                copies.setdefault((tables_sections.section_key(sec), tag), []).append(els)
     out = set()
     for (sk, tag), groups in copies.items():
         if max(len(g) for g in groups) < 2:
@@ -116,7 +115,7 @@ def _setting_keys(sec: ET.Element, sk: SecKey, repeated: frozenset[tuple]) -> li
 
 def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset()) -> dict[ItemKey, ET.Element]:
     """{item key: element} of normalised tables (the module docstring's items). Keys:
-    ("panel", name), ("section", tag, class) for a whole section outside tables_build.SECTIONS,
+    ("panel", name), ("section", tag, class) for a whole section outside tables_sections.SECTIONS,
     ("attrs", section) for a known section's own attributes (an element with no children),
     ("logic", source mast), ("bean", section, tag, block pass, system name), and a setting's key (_setting_keys;
     `by_content` from repeated_settings over every file compared, so all of them key a tag the same way).
@@ -132,7 +131,7 @@ def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset(
         if sec.tag == PANEL:
             put(PanelKey("panel", sec.get("name") or ""), sec)
             continue
-        sk = tb.section_key(sec)
+        sk = tables_sections.section_key(sec)
         if sk not in KNOWN_SECTIONS:
             put(SectionKey("section", *sk), sec)
             continue
@@ -142,7 +141,7 @@ def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset(
             if el.tag == LOGIC:
                 put(LogicKey("logic", el.get("source") or tables.text(el, "sourceSignalMast")), el)
             elif name:
-                put(BeanKey("bean", sk, el.tag, tb.sort_group(el), name), el)
+                put(BeanKey("bean", sk, el.tag, tables_sections.sort_group(el), name), el)
         for key, el in _setting_keys(sec, sk, by_content):
             put(key, el)
     return out
@@ -155,7 +154,7 @@ def index_section(sec: ET.Element, sk: SecKey, by_content: frozenset[tuple] = fr
     for el in tables.elements(sec):
         name = tables.system_name(el)
         if name:
-            out[BeanKey("bean", sk, el.tag, tb.sort_group(el), name)] = el
+            out[BeanKey("bean", sk, el.tag, tables_sections.sort_group(el), name)] = el
     out.update(_setting_keys(sec, sk, by_content))
     return out
 
@@ -279,8 +278,8 @@ def rows_of(rindex: Mapping[tuple[str, str], list[int]], key: BeanKey, el: ET.El
 
 def claimed_by(key: ItemKey, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
     """What claims a new item of the Store, so it cannot go into the template; None when nothing does. A bean in a
-    section the device master gives (tables_build.MASTER_SECTIONS), Signal Mast Logic, a panel, a parked feature's section
-    or name, the build's names, the main and upper naming rule or a device-master row's name."""
+    section the device master gives (tables_sections.MASTER_SECTIONS), Signal Mast Logic, a panel, a parked
+    feature's section or name, the build's names, the main and upper naming rule or a device-master row's name."""
     if isinstance(key, LogicKey):
         return "the build"
     if isinstance(key, PanelKey):
@@ -288,7 +287,7 @@ def claimed_by(key: ItemKey, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
     if isinstance(key, SectionKey):
         if key.tag in NEVER_TEMPLATE or key.tag.lower().endswith("editor"):
             return "the schematic (a panel is never in the template)"
-        if key.tag in {t for t, _ in tb.SECTIONS}:
+        if key.tag in {t for t, _ in tables_sections.SECTIONS}:
             return "the device master and the build (a section of a known kind with another connection)"
         for feature, tags in parked.WHOLE.items():
             if key.tag in tags:
@@ -296,7 +295,7 @@ def claimed_by(key: ItemKey, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
         return None
     if not isinstance(key, BeanKey):
         return None
-    if key.section in tb.MASTER_SECTIONS:
+    if key.section in tables_sections.MASTER_SECTIONS:
         return f"the device master (a device needs a row in {devices.FIELD_FILE} with its level, cp and role)"
     return claimed_name(key, el, rows)
 

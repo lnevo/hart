@@ -32,6 +32,27 @@ class Facts(unittest.TestCase):
         self.assertIsNone(B.mast_type("IF$xyz:basic:one-low"))
         self.assertIsNone(B.mast_type(None))
 
+    def test_facts_take_keywords_only(self):
+        """A Facts is built by field name: fourteen fields in a row would take a swapped pair silently."""
+        with self.assertRaises(TypeError):
+            B.Facts({}, {}, {}, {}, B.StagingTracks([]), {}, set())     # type: ignore[misc]
+        f = B.Facts(switches={}, turnout_io={}, occupancy={}, discipline={}, layout=B.StagingTracks([]),
+                    templates={}, masts=set())
+        self.assertEqual((f.sensors, f.level_masts, f.half_letters), ({}, [], {}))
+
+    def test_a_facts_error_reaches_the_caller_as_a_desk_error(self):
+        """load_facts turns the railroad's FactsError into a CatsPanelError naming the script, chained."""
+        from hartlib import railroad
+
+        class Broken:
+            @property
+            def tables(self):
+                raise railroad.FactsError("tables.xml: two turnouts named Switch 1")
+
+        with self.assertRaisesRegex(B.CatsPanelError, "^build_cats_panel.py: tables.xml: two turnouts") as got:
+            B.load_facts(Broken())          # type: ignore[arg-type]
+        self.assertIsInstance(got.exception.__cause__, railroad.FactsError)
+
     def test_device_map_errors_name_the_script(self):
         with self.assertRaisesRegex(B.CatsPanelError, "^build_cats_panel.py: "):
             B.load_device_map(ROOT / "no/such/device_map.csv")
@@ -103,6 +124,33 @@ class Levels(unittest.TestCase):
         self.assertEqual(B.planned_sensor("OS Switch 101", f)["occupied"]["DECADDR"], "3300")
         self.assertIsNone(B.planned_sensor("OS Switch 103", f))
 
+    def test_a_dark_block_takes_its_sensor_and_planned_detector(self):
+        """dark_bindings' sensor step: the virtual sensor bound and the planned detector as _planned_*; a device map
+        block with no occupancy row stops; a block the device map has no row for (the middle of an X) binds none."""
+        import cats_panel as CP
+        f = facts(device=device())
+        got = CP._dark_sensors("OS Switch 101", "OS Switch 101", f)
+        self.assertEqual(sorted(got), ["_planned_occupied", "_planned_unoccupied", "occupied", "unoccupied"])
+        self.assertEqual(got["_planned_occupied"]["DECADDR"], "3300")
+        self.assertEqual(sorted(CP._dark_sensors("OS Switch 103", "OS Switch 103", f)), ["occupied", "unoccupied"])
+        self.assertEqual(CP._dark_sensors("Part 101", "OS Switch 101", f)["occupied"]["USER_NAME"], "BS Switch 101")
+        with self.assertRaisesRegex(B.CatsPanelError, "^Track 101-103: no occupancy row in "):
+            CP._dark_sensors("Track 101-103", "Track 101-103", f)
+        self.assertEqual(CP._dark_sensors("OS Switch 225", "OS Switch 225", f), {})
+
+    def test_level_masts_replace_the_sheets_once_and_never_twice(self):
+        """level_signals' last step: the sheet's masts.csv signals are dropped from a band's options and the desk's
+        put in, sorted; a mast the band draws already from another source stops the build."""
+        import cats_panel as CP
+        src = CP.level_masts.PATH.name
+        opts = {"signals": [{"mast": "9L", "source": src}, {"mast": "1R", "source": "signals.json"}]}
+        bands = [("Staging level", {}, {}), ("Main level", {}, opts)]
+        sig = lambda m: {"mast": m, "source": src}     # noqa: E731
+        CP._put_signals(bands, {1: [sig("5L"), sig("2L")]})
+        self.assertEqual([s["mast"] for s in opts["signals"]], ["1R", "2L", "5L"])
+        with self.assertRaisesRegex(B.CatsPanelError, "^Main level: masts 1R are drawn there already"):
+            CP._put_signals(bands, {1: [sig("1R")]})
+
 
 class Dress(unittest.TestCase):
     def test_plate_box_uses_plate_font_sizes_first(self):
@@ -135,9 +183,53 @@ class Dress(unittest.TestCase):
         self.assertEqual(B.label_clashes(log), ["no room for label X", "label A crosses B"])
 
 
+class FrozenPlate(unittest.TestCase):
+    """dress's plate and restack steps: a plate cell holds its name alone and keeps inside the window; a cell held
+    for a station plate must have its SECTION by the time the track plan is restacked."""
+
+    def setUp(self):
+        from test_build_cats_panel_bindings import fit, plugin_cats
+        self.cats, self.fit = plugin_cats(), fit()
+
+    def plate(self, x, name="CTC DIGICON", extra=False):
+        import xml.etree.ElementTree as ET
+        sec = ET.Element("SECTION", X=str(x), Y="0")
+        ET.SubElement(sec, "SEC_NAME", LOC_NAME="LOWCENT", NAME=name, FONT_NAME="FONT_LABEL")
+        if extra:
+            ET.SubElement(sec, "SEC_EDGE")
+        return sec
+
+    def test_a_plate_goes_in_with_the_abs_words_on_the_abs_desk(self):
+        import cats_panel_dress as D
+        where, boxes = {}, []
+        sec = self.plate(1)
+        D._place_plate(self.cats, sec, "ABS", self.fit, where, boxes)
+        self.assertIs(where[(1, 0)], sec)
+        self.assertEqual(sec.find("SEC_NAME").get("NAME"), "ABS DIGICON")
+        self.assertEqual([b.cell for b in boxes], [(1, 0)])
+
+    def test_a_plate_with_more_than_its_name_or_past_the_window_stops(self):
+        import cats_panel_dress as D
+        with self.assertRaisesRegex(B.CatsPanelError, r"plate cell \(1, 0\) holds one SEC_NAME and nothing else"):
+            D._place_plate(self.cats, self.plate(1, extra=True), "CTC", self.fit, {}, [])
+        with self.assertRaisesRegex(B.CatsPanelError, f"runs past column {self.fit[0]}"):
+            D._place_plate(self.cats, self.plate(self.fit[0], "A LONG PLATE"), "CTC", self.fit, {}, [])
+
+    def test_restack_puts_sections_row_by_row_and_stops_on_an_empty_cell(self):
+        import xml.etree.ElementTree as ET
+        import cats_panel_dress as D
+        tp = ET.Element("TRACKPLAN")
+        a, b = self.plate(3), self.plate(1)
+        b.set("Y", "1")
+        D._restack(tp, {(1, 1): b, (3, 0): a})
+        self.assertEqual(list(tp), [a, b])
+        with self.assertRaisesRegex(B.CatsPanelError, r"desk cell \(2, 0\) holds a station plate with no SECTION"):
+            D._restack(tp, {(2, 0): None})
+
+
 class ControlPointPlates(unittest.TestCase):
-    """The control point plates (owner, 2026-11-21): stations.csv's desk_plate stations, each its name in capitals
-    in FONT_CP, in the free cell nearest its switches' plants, on both desks; the desk never grows."""
+    """The control point plates: stations.csv's desk_plate stations, each its name in capitals in FONT_CP, in the
+    free cell nearest its switches' plants, on both desks; the desk never grows."""
 
     def setUp(self):
         from test_build_cats_panel_bindings import fit, plugin_cats
