@@ -328,7 +328,7 @@ class TheCommand(unittest.TestCase):
 
     def test_an_unreadable_device_master_exits_2_naming_the_file_without_a_traceback(self):
         with tempfile.TemporaryDirectory() as d:
-            missing = Path(d) / "devices_generated.csv"
+            missing = Path(d) / "no_such_master.csv"
             real_load = fw.devices.load
             with mock.patch.object(fw.devices, "load", lambda files=None: real_load(missing)), \
                     mock.patch.object(fw.bdm, "read_helix_tracks", return_value={}), \
