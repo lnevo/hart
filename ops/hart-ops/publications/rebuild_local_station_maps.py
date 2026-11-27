@@ -29,7 +29,7 @@ from docx.document import Document as DocxDocument
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Inches, Pt
 from docx.text.paragraph import Paragraph
-from PIL import Image, ImageDraw
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT.parents[1] / "docs/ops"
