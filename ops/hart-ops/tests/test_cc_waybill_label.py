@@ -1,4 +1,4 @@
-"""card_pipeline/card_template_waybill.py: the CC/WB shipment label's rows and text choices."""
+"""card_pipeline/card_template_cc_label.py: the CC/WB shipment label's rows and text choices."""
 import sys
 import unittest
 from pathlib import Path
@@ -9,13 +9,14 @@ sys.path.insert(0, str(HERE / "card_pipeline"))
 from docx import Document  # noqa: E402
 from docx.oxml.ns import qn  # noqa: E402
 
-import card_template_waybill as ctw  # noqa: E402
+import card_template_cc_label as ctw  # noqa: E402
+from card_template_records import CcLabelRecord  # noqa: E402
 
 NO = Path("/nonexistent/x.png")
 IMAGES = ctw.CardImages(logo=NO, road_name=NO, road_num=NO, desc=NO)
 
 
-def label(record: dict):
+def label(record: CcLabelRecord):
     doc = Document()
     cell = doc.add_table(rows=1, cols=1).rows[0].cells[0]
     ctw.build_cc_waybill_label(cell, idx=0, record=record, images=IMAGES)
