@@ -2746,6 +2746,15 @@
    "path": "www/scripts/archive_catalogue.csv"
   },
   {
+   "id": "www/scripts/layout_docs_labels.csv",
+   "label": "layout_docs_labels.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "website",
+   "desc": "Layout documentation page labels (ADR-039): one row per detected section, keyed by device id, with the label the page shows; build_layout_docs.py reads it. Column rules in layout_docs_labels.columns.csv.",
+   "path": "www/scripts/layout_docs_labels.csv"
+  },
+  {
    "id": "www/data/articles.json",
    "label": "articles.json",
    "kind": "structured",
@@ -10896,6 +10905,12 @@
    "gen": "manifest"
   },
   {
+   "from": "www/scripts/layout_docs_labels.csv",
+   "to": "www/scripts/build_layout_docs.py",
+   "label": "drawing and photo labels",
+   "gen": "manifest"
+  },
+  {
    "from": "www/assets/behind/layout-docs/drawings",
    "to": "www/behind",
    "label": "shown on"
@@ -11680,6 +11695,13 @@
   },
   {
    "from": "ops/hart-ops/data/spot_usages.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "www/scripts/layout_docs_labels.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",

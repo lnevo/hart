@@ -402,7 +402,15 @@
     "roster/index.html": {
       "image": "assets/share/roster-index.jpg",
       "alt": "The Brick control point on the panel beside its device viewer rows: two switches, two signal masts and two occupancy detectors with their hardware addresses.",
-      "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09, Brick) with six Brick rows from www/data/layout-index.json"
+      "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09, Brick) with six Brick rows from www/data/layout-index.json",
+      "rows": [
+        {"kind": "turnout", "name": "Switch 1"},
+        {"kind": "turnout", "name": "Switch 3"},
+        {"kind": "signal", "name": "Mast 2L"},
+        {"kind": "signal", "name": "Mast 4RA"},
+        {"kind": "occupancy", "name": "OS Switch 1"},
+        {"kind": "occupancy", "name": "OS Switch 3"}
+      ]
     },
     "build/roadbed.html": {
       "image": "assets/share/build-roadbed.jpg",

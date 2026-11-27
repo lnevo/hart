@@ -47,14 +47,63 @@ class LayoutDocs(unittest.TestCase):
         ld.check_drawings()
 
     def test_every_section_has_a_label(self):
-        master = ld.master_rows()
+        master, labels = ld.master_rows(), ld.read_labels()
         for s in ld.detected_sections(master=master):
-            ld.label(s, master)
+            ld.label(s, master, labels)
 
     def test_every_label_is_a_live_block(self):
         # a label for a block the plan no longer has would hide a renumbered switch
         master = ld.master_rows()
-        self.assertFalse([bid for bid in ld.LABELS if (ld.LEVEL, bid) not in master])
+        self.assertFalse([bid for bid in ld.read_labels() if (ld.LEVEL, bid) not in master])
+
+
+class Labels(unittest.TestCase):
+    """layout_docs_labels.csv: its reader and the checks on its block IDs."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.path = Path(tmp.name) / ld.LABELS_CSV.name
+
+    def write(self, text: str) -> Path:
+        self.path.write_text(text, encoding="utf-8")
+        return self.path
+
+    def test_reads_labels_by_block_id_in_file_order(self):
+        got = ld.read_labels(self.write('id,label\nblock:5C-7B,Passing siding\nblock:1A-23A,"Main line (west), RS-1"\n'))
+        self.assertEqual(list(got.items()), [("block:5C-7B", "Passing siding"),
+                                             ("block:1A-23A", "Main line (west), RS-1")])
+
+    def test_a_missing_file_stops_naming_it(self):
+        with self.assertRaisesRegex(ld.LayoutDocsError, "cannot read the section labels"):
+            ld.read_labels(self.path)
+
+    def test_a_wrong_header_stops(self):
+        with self.assertRaisesRegex(ld.LayoutDocsError, "header id,label"):
+            ld.read_labels(self.write("block,label\nblock:5C-7B,Passing siding\n"))
+        with self.assertRaisesRegex(ld.LayoutDocsError, "header id,label"):
+            ld.read_labels(self.write(""))
+
+    def test_an_empty_cell_or_short_row_stops_with_its_line(self):
+        for body in ("block:5C-7B,\n", ",Passing siding\n", "block:5C-7B\n", "block:5C-7B,Passing siding,x\n"):
+            with self.subTest(body=body), self.assertRaisesRegex(ld.LayoutDocsError, "line 2: give a block ID"):
+                ld.read_labels(self.write("id,label\n" + body))
+
+    def test_an_id_given_twice_stops(self):
+        with self.assertRaisesRegex(ld.LayoutDocsError, "line 3: block:5C-7B has a label already"):
+            ld.read_labels(self.write("id,label\nblock:5C-7B,Passing siding\nblock:5C-7B,Siding\n"))
+
+    def test_an_unknown_block_id_stops_the_build(self):
+        text = ld.LABELS_CSV.read_text(encoding="utf-8") + "block:98A-99A,Gone track\n"
+        with self.assertRaisesRegex(ld.LayoutDocsError, r"labels block:98A-99A, no detected section"):
+            ld.outputs(labels=self.write(text))
+
+    def test_a_section_without_a_label_stops_the_build(self):
+        lines = ld.LABELS_CSV.read_text(encoding="utf-8").splitlines(keepends=True)
+        dropped = [ln for ln in lines if not ln.startswith(ld.SIDING + ",")]
+        self.assertEqual(len(dropped), len(lines) - 1)
+        with self.assertRaisesRegex(ld.LayoutDocsError, f"no label for section {ld.SIDING}"):
+            ld.outputs(labels=self.write("".join(dropped)))
 
     def test_parts_fold_into_their_detector(self):
         def length(bid, sensor, plan, measured=None):

@@ -1,0 +1,21 @@
+id,label
+block:15B-23B,Yard track Y1
+block:17C-29C,Yard track Y2
+block:19C-27C,Yard track Y3
+block:21C-25C,Yard track Y4
+block:21B-25B,Yard track Y5
+block:11B-end,Engine storage E1
+block:9B-end,Engine storage E2
+block:9C-end,Engine storage E3
+block:1A-23A,"Main line (west), RS-1"
+block:23B-35B,Double-track section
+block:33A-35A,Double-track section
+block:1C-5A#1+1C-5A#2,Main line (east)
+block:5B-7A,Main line beside the passing siding
+block:7B-33C,Main line (east)
+block:37C-39C#2,Return loop RS-2
+block:37C-39C#1,Return loop RS-2
+block:5C-7B,Passing siding
+block:7A-13C,Yard lead
+block:3B-end,Holding track
+block:3C-end,Holding track
