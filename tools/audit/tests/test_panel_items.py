@@ -171,6 +171,36 @@ class StatusRows(unittest.TestCase):
         with self.assertRaisesRegex(pi.ItemsError, r"sensoricon '[^']+' is in items 'status' and 'copy'"):
             pi.status_rows(data)
 
+    def test_the_rows_are_the_ones_the_code_table_gave(self):
+        # (layer, user name, system name, assignment, JMRI comment, description) as the table in panel_items.py
+        # gave them before they moved to panel_lamps.csv
+        want = [
+            ("sensor", "Bridge HBLOOP", "M2S1567", "field", "LCOS lamp; ACTIVE=link up",
+             "Panel lamp sensor Bridge HBLOOP: lit when the link is up."),
+            ("sensor", "SML Mode", "IS:SML_MODE", "virtual", "Signals lamp; ACTIVE=SML on",
+             "Panel lamp sensor SML Mode: lit when signal mast logic is on."),
+            ("sensor", "Track Power", "IS:TRACK_POWER", "virtual", "Track Power lamp; ACTIVE=on",
+             "Panel lamp sensor Track Power: lit when track power is on."),
+            ("head", "Turnout FB status", "IH9990", "field", "Turnouts lamp: green feedback; red direct",
+             "Panel lamp head: green shows turnout feedback, red shows a direct turnout."),
+        ]
+        rows = pi.status_rows(self.committed())
+        self.assertEqual([(r["layer"], r["user_name"], r["system_name"], r["assignment"], r["jmri_comment"],
+                           r["description"]) for r in rows], want)
+        self.assertEqual([r["jmri_name"] for r in rows], [w[2] for w in want])
+        self.assertEqual([r["id"] for r in rows], [f"panel:status:{w[2]}" for w in want])
+
+    def test_a_lamp_the_items_file_does_not_show_stops(self):
+        tmp = Path(tempfile.mkdtemp()) / pi.LAMPS.name
+        tmp.write_text(pi.LAMPS.read_text(encoding="utf-8") + "IS:OTHER,sensor,Other,virtual,sensor,c,d\n",
+                       encoding="utf-8")
+        with self.assertRaisesRegex(pi.ItemsError, "status bean 'Other' .* has no sensoricon naming 'Other'"):
+            pi.status_rows(self.committed(), tmp)
+
+    def test_a_bad_lamps_file_stops(self):
+        with self.assertRaisesRegex(pi.hand_lists.HandListError, "cannot read none.csv"):
+            pi.status_rows(self.committed(), Path(tempfile.mkdtemp()) / "none.csv")
+
     def test_the_committed_master_holds_them(self):
         self.assertEqual(pi.main(["--check"]), 0)
 
