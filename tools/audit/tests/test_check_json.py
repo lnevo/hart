@@ -62,6 +62,33 @@ class ShapeSteps(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "schema node type 'blob'"):
             J.problems(1, {"type": "blob"})
 
+    def test_every_repo_schema_node_has_the_keys_of_its_typed_node(self) -> None:
+        typed = {"object": J.ObjectNode, "array": J.ArrayNode, "str": J.StrNode, "int": J.IntNode,
+                 "number": J.NumberNode, "bool": J.BoolNode, "any": J.AnyNode, "const": J.ConstNode}
+
+        def walk(node, at: str):
+            yield node, at
+            if node["type"] == "object":
+                for k, sub in node["keys"].items():
+                    yield from walk(sub, f"{at}.{k}")
+                for name in ("other", "key"):
+                    if node[name] is not None:
+                        yield from walk(node[name], f"{at}<{name}>")
+            elif node["type"] == "array":
+                yield from walk(node["items"], f"{at}[]")
+                for i, sub in enumerate(node["prefix"]):
+                    yield from walk(sub, f"{at}[{i}]")
+
+        seen = 0
+        for rel, schema in J.SCHEMAS.items():
+            for node, at in walk(schema, rel):
+                td = typed[node["type"]]
+                with self.subTest(at):
+                    self.assertLessEqual(td.__required_keys__, set(node))
+                    self.assertLessEqual(set(node), td.__required_keys__ | td.__optional_keys__)
+                seen += 1
+        self.assertGreater(seen, 50)
+
 
 class Broken(unittest.TestCase):
     """A copy of a repo file with one edit, written under a temporary root, checked with the file's schema."""

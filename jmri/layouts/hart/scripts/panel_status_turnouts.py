@@ -12,7 +12,7 @@ from java.awt.event import ActionListener
 from java.lang import Runnable
 from javax.swing import SwingUtilities, Timer
 
-from panel_status_clicks import _head_sys
+from panel_status_clicks import head_sys
 
 TWOSENSOR = jmri.Turnout.TWOSENSOR
 DIRECT = jmri.Turnout.DIRECT
@@ -128,23 +128,22 @@ def _ensure_turnout_fb_head():
         return None
 
 
+def _head_call(what, call):
+    """Run one call on the Turnouts lamp head; a failure is printed once and the next call still runs."""
+    try:
+        call()
+    except Exception as e:
+        _log_once("panel_status: Turnouts lamp %s failed: %s" % (what, e))
+
+
 def _set_head_appearance(head, appearance):
     """Apply appearance on the EDT; clear held so icon is not '?'."""
 
     class _Set(Runnable):
         def run(self):
-            try:
-                try:
-                    head.setHeld(False)
-                except Exception as e:
-                    _log_once("panel_status: Turnouts lamp setHeld(False) failed: %s" % e)
-                try:
-                    head.setLit(True)
-                except Exception as e:
-                    _log_once("panel_status: Turnouts lamp setLit(True) failed: %s" % e)
-                head.setAppearance(appearance)
-            except Exception as e:
-                print("panel_status: setAppearance failed: %s" % e)
+            _head_call("setHeld(False)", lambda: head.setHeld(False))
+            _head_call("setLit(True)", lambda: head.setLit(True))
+            _head_call("setAppearance(%s)" % appearance, lambda: head.setAppearance(appearance))
 
     try:
         if SwingUtilities.isEventDispatchThread():
@@ -179,8 +178,9 @@ def _rebind_turnout_fb_icons(head):
     except Exception as e:
         _log_once("panel_status: Turnouts icon rebind: display imports failed: %s" % e)
         return
-    em = jmri.InstanceManager.getDefault(EditorManager)
+    em = jmri.InstanceManager.getNullableDefault(EditorManager)
     if em is None:
+        _log_once("panel_status: Turnouts icon rebind: no EditorManager yet")
         return
     rebound = False
     for ed in list(em.getAll()):
@@ -192,7 +192,12 @@ def _rebind_turnout_fb_icons(head):
         for icon in contents:
             if not isinstance(icon, SignalHeadIcon):
                 continue
-            if _head_sys(icon) == TURNOUT_FB_HEAD:
+            try:
+                shown = head_sys(icon)
+            except Exception as e:
+                _log_once("panel_status: Turnouts icon rebind: cannot read the head of %s: %s" % (icon, e))
+                continue
+            if shown == TURNOUT_FB_HEAD:
                 rebound = True
                 continue
             try:
@@ -250,13 +255,10 @@ def _paint_turnout_fb_lamp():
                 count,
             )
 
-    try:
-        _set_head_appearance(head, appearance)
-        if appearance != _last_fb_appearance:
-            _last_fb_appearance = appearance
-            print("panel_status: Turnouts lamp %s" % label)
-    except Exception as e:
-        print("panel_status: Turnouts lamp set failed: %s" % e)
+    _set_head_appearance(head, appearance)      # each head call's failure is printed there
+    if appearance != _last_fb_appearance:
+        _last_fb_appearance = appearance
+        print("panel_status: Turnouts lamp %s" % label)
 
 
 def _show_amber_head():

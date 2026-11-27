@@ -1,6 +1,7 @@
 """The panel background and HART's USS sensor icons reach every host's profile at the path tables.xml names; a parked
 Dispatcher System's traininfo is mirrored only from a package that holds it. That no apply step deletes or names a
-retired script is checked in test_apply_no_retired_names.py; whether the repo still holds their old copies is not
+retired script is checked in test_apply_no_retired_names.py. The repo keeps apply_dispatcher_roster_profiles.py and
+the deploy's script list leaves it out (KeptScripts); whether the repo still holds the other retired copies is not
 checked.
 
 The Pi's apply step runs here on a made-up drop (pi_drop). The staged package is checked in test_deploy_stage.py
@@ -11,6 +12,7 @@ check needs.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -87,6 +89,28 @@ class ProfileResources(unittest.TestCase):
                 self.assertNotIn("Program Files", line)
         install = WIN[WIN.index("$ussSrc ="):WIN.index("$ctcSrc =")]
         self.assertNotIn("Program Files", install)
+
+
+def shipped_jython() -> list[str]:
+    """The Jython scripts stage.sh copies into the package: HART_JYTHON_SCRIPTS as common.sh's load_parked sets it."""
+    done = subprocess.run(
+        ["bash", "-c", 'source tools/hosts/deploy/common.sh && load_parked && printf "%s\\n" "${HART_JYTHON_SCRIPTS[@]}"'],
+        cwd=ROOT, capture_output=True, text=True, timeout=60, check=False)
+    if done.returncode != 0:
+        raise AssertionError(f"load_parked failed ({done.returncode}): {done.stderr.strip()}")
+    return done.stdout.splitlines()
+
+
+class KeptScripts(unittest.TestCase):
+    """A retired Jython script stays in the repo and out of the package: the deploy's script list leaves it out."""
+
+    KEPT = "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py"
+
+    def test_the_repo_keeps_it_and_the_package_leaves_it_out(self) -> None:
+        self.assertTrue((ROOT / self.KEPT).is_file())
+        shipped = shipped_jython()
+        self.assertIn("jmri/layouts/hart/scripts/panel_status.py", shipped)
+        self.assertNotIn(self.KEPT, shipped)
 
 
 class ParkedFeatures(unittest.TestCase):
