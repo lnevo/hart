@@ -405,8 +405,6 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
-
-
 def _steps_job(a: argparse.Namespace, tag: str, stamp: str) -> str:
     """The steps job text, after the mode's defaults and limits are applied to a."""
     dist = a.mode == "distance"

@@ -208,9 +208,13 @@ class TheInputsAreChecked(unittest.TestCase):
             self.assertEqual(site.read_text(), PAGE.read_text())
             self.assertIn('src="data:image/png;base64,iVBORw=="', art.read_text())
             self.assertNotIn("@PANEL@", art.read_text())
+            site.unlink()
+            art.unlink()
             with self.assertRaises(SystemExit) as cm:
                 LP.main(["--site", str(site), "--artifact", str(art), "--panel", str(Path(tmp) / "none.png")])
             self.assertIn("cannot read the panel picture", str(cm.exception))
+            self.assertEqual(site.read_text(), PAGE.read_text())   # the site article is written all the same
+            self.assertFalse(art.exists())
 
     def test_a_plan_version_that_is_not_one_stops(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

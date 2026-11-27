@@ -541,7 +541,6 @@ a{color:var(--track)}
 """
 
 
-
 def render(levels: Path) -> tuple[str, str]:
     """(site html, artifact html without a panel picture) for the drawings in `levels`."""
     meta = read_meta(levels)
@@ -574,7 +573,6 @@ def main(argv: list[str] | None = None) -> None:
         ap.error("--panel goes into the artifact copy only; give --artifact too")
     try:
         site, art = render(Path(a.levels))
-        extra = panel_section(Path(a.panel)) if a.panel and not a.check else ""
     except LevelsPageError as exc:
         raise SystemExit(str(exc)) from exc
     if a.check:
@@ -584,6 +582,11 @@ def main(argv: list[str] | None = None) -> None:
         return
     Path(a.site).write_text(site)
     if a.artifact:
+        # the panel picture goes into the artifact copy only, so a missing one leaves the site article written
+        try:
+            extra = panel_section(Path(a.panel)) if a.panel else ""
+        except LevelsPageError as exc:
+            raise SystemExit(str(exc)) from exc
         Path(a.artifact).write_text(art.replace("@PANEL@", extra))
 
 
