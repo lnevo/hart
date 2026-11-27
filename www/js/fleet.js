@@ -1,13 +1,10 @@
 // Rolling stock: album tabs, a road / car type / number filter bar, and three views
 // (Grid = the masonry cards, List = a sortable-looking table, Gallery = one big image
 // with a thumbnail strip). Data: data/fleet-gallery.json items carry road, number, type.
+// The view bar, view memory, Gallery stage controls and lightbox come from js/photo-viewer.js (load it first).
 (function () {
+  if (!window.HARTViewer) throw new Error("fleet.js needs js/photo-viewer.js loaded before it");
   var VIEW_KEY = "hart.fleet.view";
-  var VIEWS = [
-    { id: "grid", label: "Grid" },
-    { id: "list", label: "List" },
-    { id: "gallery", label: "Gallery" },
-  ];
 
   var esc = HARTOps.esc;
 
@@ -55,16 +52,12 @@
       var countEl = document.getElementById("filter-count");
       var out = document.getElementById("fleet-view");
 
-      var view = "grid";
-      try {
-        var saved = localStorage.getItem(VIEW_KEY);
-        if (VIEWS.some(function (v) { return v.id === saved; })) view = saved;
-      } catch (e) {}
+      var view = HARTViewer.storedView(VIEW_KEY);
 
       var state = { album: "all", road: "", type: "", q: "" };
       // ?view=list&road=B%26O&type=Hopper&q=4674 opens a shareable filtered view.
       var params = new URLSearchParams(location.search);
-      if (VIEWS.some(function (v) { return v.id === params.get("view"); })) view = params.get("view");
+      if (HARTViewer.isView(params.get("view"))) view = params.get("view");
       state.road = params.get("road") || "";
       state.type = params.get("type") || "";
       state.q = params.get("q") || "";
@@ -133,18 +126,9 @@
       }
 
       function renderViews() {
-        viewBar.innerHTML = VIEWS.map(function (v) {
-          return '<button type="button" data-view="' + v.id + '" aria-pressed="' + (v.id === view) + '">' + v.label + "</button>";
-        }).join("");
-        viewBar.querySelectorAll("button").forEach(function (b) {
-          b.addEventListener("click", function () {
-            view = b.getAttribute("data-view");
-            try {
-              localStorage.setItem(VIEW_KEY, view);
-            } catch (e) {}
-            renderViews();
-            renderItems();
-          });
+        HARTViewer.mountViewBar(viewBar, VIEW_KEY, view, function (v) {
+          view = v;
+          renderItems();
         });
       }
 
@@ -199,7 +183,7 @@
           visible
             .map(function (x, i) {
               return (
-                '<button type="button" role="listitem" data-idx="' + i + '"' + (i === galleryIndex ? ' aria-current="true"' : "") +
+                '<button type="button" role="listitem" data-stage="' + i + '"' + (i === galleryIndex ? ' aria-current="true"' : "") +
                 ' title="' + esc(x.title) + '">' + thumbImg(x, x.title) + "</button>"
               );
             })
@@ -208,9 +192,14 @@
         );
       }
 
-      function step(d) {
-        galleryIndex = (galleryIndex + d + visible.length) % visible.length;
+      function setStage(i) {
+        galleryIndex = i;
         renderItems();
+      }
+
+      function step(d) {
+        var next = HARTViewer.wrapIndex(galleryIndex, d, visible.length);
+        if (next !== null) setStage(next);
       }
 
       function renderItems() {
@@ -228,21 +217,12 @@
         else out.innerHTML = gridHtml();
 
         if (view === "gallery") {
-          out.querySelector(".prev").addEventListener("click", function () { step(-1); });
-          out.querySelector(".next").addEventListener("click", function () { step(1); });
-          out.querySelectorAll(".fleet-strip button").forEach(function (b) {
-            b.addEventListener("click", function () {
-              galleryIndex = Number(b.getAttribute("data-idx"));
-              renderItems();
-            });
-          });
-          var cur = out.querySelector('.fleet-strip [aria-current="true"]');
-          if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: "nearest", inline: "center" });
+          HARTViewer.bindStage(out, step, setStage);
         } else {
           out.querySelectorAll("[data-idx]").forEach(function (el) {
-            el.addEventListener("click", function () { openLightbox(Number(el.getAttribute("data-idx"))); });
+            el.addEventListener("click", function () { lightbox.open(Number(el.getAttribute("data-idx"))); });
             el.addEventListener("keydown", function (e) {
-              if (e.key === "Enter") openLightbox(Number(el.getAttribute("data-idx")));
+              if (e.key === "Enter") lightbox.open(Number(el.getAttribute("data-idx")));
             });
           });
         }
@@ -277,53 +257,26 @@
       });
 
       // —— Lightbox (grid and list) ——
-      var lb = document.createElement("div");
-      lb.className = "lightbox";
-      lb.innerHTML =
-        '<button type="button" class="lightbox-close" aria-label="Close">Close</button>' +
-        '<button type="button" class="lightbox-nav prev" aria-label="Previous">‹</button>' +
-        '<button type="button" class="lightbox-nav next" aria-label="Next">›</button>' +
-        '<div class="lightbox-card"><img alt=""><div class="meta"><h2></h2><p></p><div class="credit"></div></div></div>';
-      document.body.appendChild(lb);
-      var lbIndex = 0;
+      var lightbox = HARTViewer.makeLightbox({
+        className: "lightbox",
+        titleId: "fleet-lightbox-title",
+        card: '<img alt=""><div class="meta"><h2 id="fleet-lightbox-title"></h2><p></p><div class="credit"></div></div>',
+        at: function (i) { return visible[i]; },
+        count: function () { return visible.length; },
+        paint: function (it, lb) {
+          var img = lb.querySelector("img");
+          img.src = resolveSrc(it.src);
+          img.alt = it.title || "";
+          lb.querySelector("h2").textContent = it.title || "";
+          lb.querySelector("p").textContent = it.caption || "";
+          lb.querySelector(".credit").textContent = it.credit || "";
+        },
+      });
 
-      function paint() {
-        var it = visible[lbIndex];
-        if (!it) return;
-        lb.querySelector("img").src = resolveSrc(it.src);
-        lb.querySelector("img").alt = it.title || "";
-        lb.querySelector("h2").textContent = it.title || "";
-        lb.querySelector("p").textContent = it.caption || "";
-        lb.querySelector(".credit").textContent = it.credit || "";
-      }
-      function openLightbox(i) {
-        lbIndex = i;
-        paint();
-        lb.classList.add("open");
-      }
-      function closeLightbox() {
-        lb.classList.remove("open");
-      }
-      lb.querySelector(".lightbox-close").addEventListener("click", closeLightbox);
-      lb.addEventListener("click", function (e) { if (e.target === lb) closeLightbox(); });
-      lb.querySelector(".prev").addEventListener("click", function (e) {
-        e.stopPropagation();
-        lbIndex = (lbIndex - 1 + visible.length) % visible.length;
-        paint();
-      });
-      lb.querySelector(".next").addEventListener("click", function (e) {
-        e.stopPropagation();
-        lbIndex = (lbIndex + 1) % visible.length;
-        paint();
-      });
+      // Arrow keys step the Gallery stage while the lightbox is shut (the shared lightbox handles its own).
       document.addEventListener("keydown", function (e) {
-        if (lb.classList.contains("open")) {
-          if (e.key === "Escape") closeLightbox();
-          if (e.key === "ArrowLeft") { lbIndex = (lbIndex - 1 + visible.length) % visible.length; paint(); }
-          if (e.key === "ArrowRight") { lbIndex = (lbIndex + 1) % visible.length; paint(); }
-          return;
-        }
-        if (view === "gallery" && visible.length && document.activeElement !== numInput) {
+        if (lightbox.isOpen()) return;
+        if (view === "gallery" && visible.length && !HARTViewer.isField(e.target && e.target.tagName)) {
           if (e.key === "ArrowLeft") step(-1);
           if (e.key === "ArrowRight") step(1);
         }
@@ -342,9 +295,9 @@
         return HARTOps.revealItem({
           index: visible.indexOf(item),
           galleryView: view === "gallery",
-          setStage: function (i) { galleryIndex = i; renderItems(); },
+          setStage: setStage,
           grid: out,
-          openLightbox: openLightbox,
+          openLightbox: lightbox.open,
         });
       };
 

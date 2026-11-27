@@ -183,6 +183,37 @@ class TheInputsAreChecked(unittest.TestCase):
             with self.assertRaisesRegex(LP.LevelsPageError, "the upper level has no ramp_m"):
                 LP.read_meta(Path(tmp))
 
+    def _meta_with(self, edit: object) -> Path:
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        meta = json.loads((LEVELS / "levels_meta.json").read_text())
+        edit(meta)  # type: ignore[operator]
+        (tmp / "levels_meta.json").write_text(json.dumps(meta))
+        return tmp
+
+    def test_a_meta_value_of_the_wrong_type_names_the_file_and_the_key(self) -> None:
+        cases = [
+            (lambda m: m.update(plan=5.3), "plan is float, expected str"),
+            (lambda m: m.update(cut_cm="12"), "cut_cm is str, expected int or float"),
+            (lambda m: m["levels"]["main"].update(switches="22"), "main level 'switches' is str, expected int"),
+            (lambda m: m["levels"]["main"].update(bbox=[1, "x"]), "main level 'bbox'\\[1\\] is str"),
+            (lambda m: m["levels"]["main"].update(bbox=[0, 0]), "main level 'bbox' has 2 values, expected 4"),
+            (lambda m: m["levels"]["upper"].update(height_cm=True), "upper level 'height_cm' is bool"),
+            (lambda m: m.update(helix={}), "helix is dict, expected list"),
+            (lambda m: m["helix"][0].update(cm="far"), "helix\\[0\\] 'cm' is str"),
+            (lambda m: m["ramps"].__setitem__(0, "x"), "ramps\\[0\\] is str, expected dict"),
+        ]
+        for edit, message in cases:
+            with self.subTest(message):
+                tmp = self._meta_with(edit)
+                with self.assertRaisesRegex(LP.LevelsPageError, r"levels_meta\.json: " + message):
+                    LP.read_meta(tmp)
+
+    def test_a_helix_row_without_a_key_names_the_key(self) -> None:
+        tmp = self._meta_with(lambda m: m["helix"][0].pop("below_cut_cm"))
+        with self.assertRaisesRegex(LP.LevelsPageError, r"helix\[0\] has no 'below_cut_cm'"):
+            LP.read_meta(tmp)
+
     def test_a_missing_drawing_stops(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             shutil.copytree(LEVELS, tmp, dirs_exist_ok=True)
