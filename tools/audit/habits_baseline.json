@@ -211,10 +211,6 @@
  "www/scripts/archive_catalogue.py": {
   "dated-note": 1
  },
- "www/scripts/build_layout_docs.py": {
-  "dated-note": 3,
-  "lost-cause": 1
- },
  "www/scripts/jmri_additions_page.py": {
   "lost-cause": 2
  },
