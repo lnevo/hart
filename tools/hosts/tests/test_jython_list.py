@@ -94,6 +94,13 @@ class Reader(unittest.TestCase):
     def test_refuses_a_path_listed_twice(self) -> None:
         self.refused("startup a/x.py\npi a/x.py\n", r":2: a/x.py is listed twice")
 
+    def test_refuses_two_rows_of_one_file_name(self) -> None:
+        self.refused("startup a/x.py\npart b/x.py\n", r":2: another row installs a file named x.py")
+        self.refused("startup x.py\npart b/x.py\n", r":2: another row installs a file named x.py")
+        self.refused("startup a/x.py\npart x.py\n", r":2: another row installs a file named x.py")
+        self.assertEqual(self.rows("startup a/x.py\npart a/xx.py\npart b/ax.py\n"),
+                         (("startup", "a/x.py"), ("part", "a/xx.py"), ("part", "b/ax.py")))
+
     def test_refuses_an_empty_or_missing_list(self) -> None:
         self.refused("# only comments\n", "names no script")
         with self.assertRaisesRegex(ValueError, "jython list missing"):

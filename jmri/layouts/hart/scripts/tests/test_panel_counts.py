@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # test_panelpro_smoke_steps, beside it
 import audit_panel_contracts as apc  # noqa: E402
 from audit_panel_graph import COUNTS, PANEL_COUNTS, PanelCounts, StoredCounts, load_panel_counts  # noqa: E402
 from hartlib.errors import FactsError  # noqa: E402

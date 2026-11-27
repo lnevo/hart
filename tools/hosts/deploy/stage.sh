@@ -101,6 +101,19 @@ stage_package() {
   done
   cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "${JYTHON_SIBLING_MODULES[@]}" "$stage/jmri/scripts/"
   cp -f "${JYTHON_PANEL_STATUS_PARTS[@]}" "$stage/jmri/layouts/hart/scripts/"
+  # The Pi apply step installs every row of jython_scripts.txt from the package and stops on one it lacks: a row
+  # the copies above leave out (a new row, a parked or missing script) stops here, before any host changes.
+  local jython_rows row_role row_rel jython_missing=()
+  jython_rows="$(jython_list "$ROOT/tools/hosts/pi/jython_scripts.txt")" || exit 1
+  while read -r row_role row_rel; do
+    [[ -f "$stage/$row_rel" ]] || jython_missing+=("$row_role $row_rel")
+  done <<<"$jython_rows"
+  if [[ ${#jython_missing[@]} -gt 0 ]]; then
+    echo "stage: the package lacks jython that tools/hosts/pi/jython_scripts.txt lists (a parked, missing or" \
+      "unstaged script; HART_JYTHON_SCRIPTS in tools/hosts/deploy/common.sh ships the startup and pi rows):" \
+      "${jython_missing[*]}" >&2
+    exit 1
+  fi
 
   # A parked feature's folder is left out of the package; the host apply scripts install only what the package
   # holds, so the copies already on a host stay as they are.

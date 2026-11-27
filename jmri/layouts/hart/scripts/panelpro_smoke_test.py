@@ -62,7 +62,6 @@ def expected_counts(path, parked):
                     panels["generated"]["transits"] if graph else 0, _whole(top["traininfo"], path + " traininfo"))
 
 
-# Matches reconcile_dispatcher_stations.STATIONS (Jython 2 cannot import it).
 # The parked features (hartlib.parked.PARKED; run_panelpro_smoke_test.sh passes them, Jython cannot import hartlib).
 # While the Dispatcher System is parked the tables hold no section, transit or Dispatcher sensor and the traininfo
 # files are not read; while the USS CTC machine or the Dispatcher System is parked its window must not open; while

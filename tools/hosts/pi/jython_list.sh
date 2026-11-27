@@ -4,7 +4,8 @@
 
 # jython_list LIST: print each "ROLE PATH" line of LIST, in file order, without its comments and blank lines.
 # Returns 1, naming the file and line on stderr, when LIST is missing or empty, or a line is not a known ROLE
-# (startup, pi, sibling, part) and one relative .py PATH with no "." or ".." segment, or a PATH is listed twice.
+# (startup, pi, sibling, part) and one relative .py PATH with no "." or ".." segment, or a PATH is listed twice,
+# or two PATHs end in the same file name.
 jython_list() {
   local list="$1" line role path extra n=0 rows=""
   if [[ ! -f "$list" ]]; then
@@ -25,6 +26,12 @@ jython_list() {
     fi
     if [[ $'\n'"$rows" == *" $path"$'\n'* ]]; then
       echo "$list:$n: $path is listed twice" >&2
+      return 1
+    fi
+    # the hosts install every row into one flat jython folder, where a second file of the same name would
+    # replace the first
+    if [[ "$rows" == *"/${path##*/}"$'\n'* || $'\n'"$rows" == *" ${path##*/}"$'\n'* ]]; then
+      echo "$list:$n: another row installs a file named ${path##*/} (the hosts install into one folder): $line" >&2
       return 1
     fi
     rows+="$role $path"$'\n'

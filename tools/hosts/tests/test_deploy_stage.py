@@ -385,6 +385,26 @@ def private_clone(tmp: Path) -> tuple[Path, dict[str, str]]:
     return repo, env
 
 
+class JythonListTheStageCannotShip(unittest.TestCase):
+    """A jython_scripts.txt row the package would lack (here a script only a parked feature uses, which the stage
+    leaves out) stops the stage, naming the row, before any host changes: the Pi apply step would stop on it."""
+
+    ROW = "startup jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py"
+
+    def test_the_stage_stops_naming_the_row(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            repo, env = private_clone(tmp)
+            listing = repo / "tools/hosts/pi/jython_scripts.txt"
+            listing.write_text(listing.read_text(encoding="utf-8") + self.ROW + "\n", encoding="utf-8")
+            done = run(repo / "tools/hosts/sync_hart_package.sh", tmp / "stage", env, cwd=repo)
+            self.assertNotEqual(done.returncode, 0, done.stdout[-2000:])
+            self.assertIn("stage: the package lacks jython that tools/hosts/pi/jython_scripts.txt lists", done.stderr)
+            self.assertIn(self.ROW, done.stderr)
+            self.assertNotIn("DONE (stage only)", done.stdout)
+            self.assertFalse((tmp / "network.log").exists())
+
+
 class StampNamesWhatWasShipped(unittest.TestCase):
     """The stamp, staged from a private clone of HEAD: other checks write into the live tree while this runs, so
     its dirty flag is read from a tree nothing else touches. The checkout's own tools/hosts is copied in, so
