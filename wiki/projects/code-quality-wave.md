@@ -1,7 +1,7 @@
 # Code-quality wave (2026-11-26)
 
-Status: active (wave 4, from 2026-11-27 00:00)
-Coordinator: hart-e0, since 2026-11-26 23:56 (holds the merge queue and the deploys; took over from hart-bb)
+Status: active (wave 5, from 2026-11-27 03:01)
+Coordinator: wave 5 coordinator (a background agent of hart-e0), since 2026-11-27 03:01 (holds the merge queue and the deploys; took over from hart-e0)
 Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the background coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
@@ -153,17 +153,65 @@ Report card after wave 3 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE): th
 
 | Lane | Scope | PR |
 |------|-------|----|
-| 4-T1 | Website table moves (session lnevo-5f), then the Python table moves by area, one PR each | |
-| 4-L1 | `build_signals`, `build_masts`, `mast_rule`, `device_map_masts`: one mast-name source, typed `MastEntry` | |
-| 4-L2 | `build_cats_panel` `level_signals` guard, typed `read_pins` and `frozen_wires`, one `skip_or_fail` helper, `staging_device_map`, `build_hands`, `panels.toml` text, hartlib `store_split` | |
-| 4-L3 | Jython `panel_status_turnouts`, `build_hart_signal_heads`, `audit_panel_contracts`; tools/mqtt `clear_mqtt_cmd_sensor_retain`, `sync_mqtt_turnouts_from_fb` | |
-| 4-L4 | `launch_cats.sh` (both), `fetch_cats_3.2.sh`, `panel_snapshot.py`; the three unverified host notes, checked then fixed | |
-| 4-L5 | `changed_kind.py` records and the `.claude/skills` Markdown rule, `light_checks.sh` mode, `check.yml` warm-up gate, `repo_guide_page.py` arguments | |
-| 4-L6 | `rebuild_station_map` and `_full`, `sheet_kit`, `sharpen_card_fill_images`, `crop_car_image`, `test_cars_sync` and `test_package_contents` | |
+| 4-T1 | Website table moves (session lnevo-5f) | #1284 merged |
+| 4-T2 | Road tables (lnevo-5f) | #1289 merged |
+| 4-T3 | Industry tables (lnevo-5f) | #1294 merged |
+| 4-T4 | Station map tables (lnevo-5f) | still open at the end of the wave |
+| 4-L1 | `build_signals`, `build_masts`, `mast_rule`, `device_map_masts`: one mast-name source, typed `MastEntry` | #1293 merged |
+| 4-L2 | `build_cats_panel` `level_signals` guard, typed `read_pins` and `frozen_wires`, one `skip_or_fail` helper, `staging_device_map`, `build_hands`, `panels.toml` text | #1297 merged |
+| 4-L3 | Jython `panel_status_turnouts`, `build_hart_signal_heads`, `audit_panel_contracts`; tools/mqtt `clear_mqtt_cmd_sensor_retain`, `sync_mqtt_turnouts_from_fb` | #1292 merged |
+| 4-L4 | `launch_cats.sh` (both), `fetch_cats_3.2.sh`, `panel_snapshot.py`; the three unverified host notes, checked then fixed | #1286 merged |
+| 4-L5 | `changed_kind.py` records, the `.claude/skills` Markdown rule with a narrowed `check_stamps.REPO_FILES` (owner), `light_checks.sh` mode, `check.yml` warm-up gate, `repo_guide_page.py` arguments | #1285 merged |
+| 4-L6 | `rebuild_station_map` and `_full`, `sheet_kit`, `sharpen_card_fill_images`, `crop_car_image`, `test_cars_sync` and `test_package_contents` | #1288 merged |
+| 4-L7 | Site JS: `run-modern.js`, `crew.js`, `page_figures.py` | #1290 merged |
+| 4-L7b | `mimic_view.js` DOM rows | #1287 merged |
+| 4-L8a | hartlib `store_split` | #1291 merged |
+| 4-L8b | `tools/ops` to mypy strict | #1298 merged |
+| 4-L9 | Owner tags and dates out of the `build_device_map` output strings (only note text changed in the outputs) | #1299 merged |
+| 4-L10 | Narrower unit and portal declarations | #1295 merged |
 
-Later in the wave:
-- 4-L7: www JS (`run-modern.js`, `crew.js`, `mimic_view.js`), `page_figures.py`, `build_wiring_json.py`, after 4-T1.
-- 4-L8: the device-row callers that read by key, and `tools/ops` to mypy strict.
-- 4-L9: the owner tags in the `build_device_map` output strings.
-- 4-L10: narrower unit and portal declarations, so more data edits are light.
-- 4-RC: the report card.
+Other PRs: wave page #1283, sampler `find -L` #1296. Shipped: #1286 to the Pi and Windows; #1287 and #1292 together; #1299; #1284 and #1290 to the site.
+
+### Result
+
+Report card after wave 4 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE, "After wave 4"): the line-weighted average went from 3.183 to 3.204 (B), over 517 source files and 125,145 lines. Two files are at C or below: `crop_span.py` (C+) and the parked `gen_ctc_track_plan.py` (C-). A-range files went from 157 to 160, and reviewers have read 497 source files. B+ (3.3) is 0.10 away.
+
+The wave 3 card was wrong. Its merge script applied an older sweep grade over the newer wave 2 reading for every file wave 3 did not change. Corrected, wave 3 is 3.183 with 2 C files, not 3.158 with 17. Several wave 4 lanes worked on files that were already B or better (for example `rebuild_station_map.py`, A- since wave 2).
+
+| | Start | Wave 1 | Wave 2 | Wave 3 (corrected) | Wave 4 |
+|---|---|---|---|---|---|
+| Average | 2.86 | 3.03 | 3.12 | 3.183 | 3.204 |
+| C and D files | 64 | 33 | 16 | 2 | 2 |
+| A-range files | 8 | 18 | 133 | 157 | 160 |
+
+### Left after wave 4
+
+- Device rows: about 489 uses of `DeviceRow`'s mapping view in 67 files. Wave 5 removes the view: readers take `DeviceRow` fields, and the writer and check side keeps text rows through a new `DeviceRow.cells()` (option A, chosen by the coordinator; the owner may override). `row["level"]` is text where `.level` is an int, and `row.get("comment")` is None where `.comment` is built.
+- `test_name_copies` scans every tracked file, which keeps the unit guards at everything, so no data edit in ops/, docs/ or www/ can be light. Several tests also read masters they do not declare (`test_check_data`, `test_check_hand_tables`, `test_check_locos`, roster and fleet gallery, `test_check_json`, `test_speedmatch_speed_table`).
+- `crop_span.py` (C+): `_core_body_span` keeps its thresholds inline.
+- Size limits close: `mast_rule.py` 786 of 800, `build_wiring_json.py` 785, `lcos_mqtt_mimic.py` 782.
+- Host scripts: no shared whole-word profile match for `pi_start_panelpro`, `pi_quit_panelpro` and `panelpro_session`; `panelpro_restart_due.sh` keeps its own JVM pattern; CATS starts with `--profile`, so the apply step cannot see it before it edits `user-interface.xml`; the Windows retired-entry regex and `insert_after` match substrings; `profile.xml` is not written atomically.
+- Small: `check_json` schema nodes as `dict[str, Any]`; `crew_schema` does not require `spotsheet.desk` or per-map tracks; a fixture still carries an owner tag; `test_package_contents` lost the `apply_dispatcher_roster_profiles.py` check; `store_split` calls the private `devices._rank` and keys items by bare tuples; `repo_guide_page.py` keeps bare dicts.
+- Unverified: the site pages `behind/tables-file.html` and `library/repository-guide.html` may be stale; each PanelPro quit for a deploy logs a WiThrottle "readLine failure limit exceeded" line; the mimic page has not been loaded in a real browser since #1287; `mosquitto_cli` timeout handling has not run against a live broker.
+
+## Wave 5 (2026-11-27)
+
+The wave 5 coordinator (a background agent of hart-e0) planned these lanes from the wave 4 card and the list above. The owner is away for most of it: anything that needs the owner waits on the dashboard's "Waits on owner" row and here, and no lane stops for it.
+
+| Lane | Scope | PR |
+|------|-------|----|
+| 5-L1 | Device rows, part 1: `DeviceRow.cells()` for the writer and check side, hartlib readers on fields | |
+| 5-L1b | Device rows, part 2: callers in tools/schematic, www/scripts, tools/audit, jmri and the mimic | |
+| 5-L1c | Device rows, part 3: tests, then the mapping view removed | |
+| 5-L2 | `test_name_copies` rename test on a fixture copy; the undeclared master reads declared, so data edits can be light | |
+| 5-L3 | Card pipeline: `crop_span.py` (C+) and `process_car_images.py` | |
+| 5-L4 | tools/schematic: `mast_rule.py` split under its limit, `block_layer.py` | |
+| 5-L5 | Host scripts: one whole-word profile-match helper and the other notes above | |
+| 5-L6 | Site JS: `crew.js` with `crew_schema`, `archive.js`, `wiring.js`, `gallery.js` | |
+| 5-L7 | Jython: `sml_handoff.py`, `panel_status.py`, `audit_panel_contracts.py` | |
+| 5-L8 | Exam JS: `run-modern.js` off `window.ExtraEast` with `run.js`, `build_exam_answers.js` (after 5-L6) | |
+| 5-L9 | Size limits: `build_wiring_json.py`, `lcos_mqtt_mimic.py`, hartlib `tables_build.py` (after 5-L1b) | |
+| 5-L10 | Small items: `check_json` TypedDicts, the fixture tag, `test_package_contents`, `store_split` keys, `repo_guide_page.py` records | |
+| 5-RC | The report card | |
+
+Session lnevo-5f goes on with the hand-table moves (4-T4 and after), one PR per area.
