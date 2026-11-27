@@ -2045,15 +2045,6 @@
    "path": "ops/hart-ops/data/image_metadata.csv"
   },
   {
-   "id": "ops/hart-ops/data/card_overrides.csv",
-   "label": "card_overrides.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "ops",
-   "desc": "Car card overrides: a photo whose card prints a set image, type, road and number instead of its metadata row's.",
-   "path": "ops/hart-ops/data/card_overrides.csv"
-  },
-  {
    "id": "ops/hart-ops/data/loco_queue.csv",
    "label": "loco_queue.csv",
    "kind": "structured",
@@ -7986,10 +7977,6 @@
    "to": "ops/hart-ops/card_pipeline/generate_all_cards.py"
   },
   {
-   "from": "ops/hart-ops/data/card_overrides.csv",
-   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py"
-  },
-  {
    "from": "ops/hart-ops/data/image_metadata.csv",
    "to": "ops/hart-ops/card_pipeline/site_gallery.py"
   },
@@ -11035,13 +11022,6 @@
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
-   "to": "tools/ops/check_data.py",
-   "label": "rules",
-   "side": "check",
-   "gen": "manifest"
-  },
-  {
-   "from": "ops/hart-ops/data/card_overrides.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",

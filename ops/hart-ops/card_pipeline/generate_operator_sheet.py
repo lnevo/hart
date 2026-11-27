@@ -752,11 +752,11 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
 
     with gw.SPOT_CSV.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            industry = wdata._norm(row.get("Industry"))
-            usage = wdata._norm(row.get("Usage"))
+            industry = wdata.norm(row.get("Industry"))
+            usage = wdata.norm(row.get("Usage"))
             if not industry or usage.lower() not in wdata.SKIP_USAGES:
                 continue
-            spot = wdeck._parse_spot_num(row.get("Spot #", ""))
+            spot = wdeck.parse_spot_num(row.get("Spot #", ""))
             if spot:
                 key = (industry, usage)
                 spots[key].append(spot)
@@ -766,7 +766,7 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
     for (industry, usage), nums in spots.items():
         by_industry[industry].append(
             {
-                "spot": wdeck._format_spots(nums),
+                "spot": wdeck.format_spots(nums),
                 "usage": _usage_label(usage),
                 "cars": cars[(industry, usage)],
                 "inbound": "—",
@@ -784,7 +784,7 @@ def _load_all_spot_rows() -> dict[str, list[dict]]:
 
     for group in gw.load_spot_groups():
         industry = group["Industry"]
-        spec = wdeck._waybill_spec(industry, group["Usage"])
+        spec = wdeck.waybill_spec(industry, group["Usage"])
         combined[industry].append(
             {
                 "spot": group["Spots"],
