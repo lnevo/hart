@@ -12,6 +12,19 @@ load_parked
 deploy_facts
 tables_facts
 
+# check_jython_sources: every script tools/hosts/pi/jython_scripts.txt names is in the repo; returns 1 naming each one
+# that is not, so the step stops before this Mac changes.
+check_jython_sources() {
+  local f missing=() listed=("${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}" "${JYTHON_PANEL_STATUS_PARTS[@]}")
+  for f in "${listed[@]}"; do
+    [[ -f "$f" ]] || missing+=("${f#"$ROOT"/}")
+  done
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "ship_mac.sh: tools/hosts/pi/jython_scripts.txt names jython the repo lacks: ${missing[*]}" >&2
+    return 1
+  fi
+}
+
 install_jython_scripts() {
   local traininfo="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
   local patch_startup="$ROOT/cats/scripts/patch_jmri_startup.py"
@@ -21,7 +34,7 @@ install_jython_scripts() {
     mkdir -p "$dest"
     local f
     for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}" "${JYTHON_PANEL_STATUS_PARTS[@]}"; do
-      [[ -f "$f" ]] && cp -f "$f" "$dest/"
+      cp -f "$f" "$dest/"
       # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
       rm -f "$dest/$(basename "$f" .py)\$py.class"
     done
@@ -149,6 +162,7 @@ install_ctc_icons_local() {
 
 # A Store into this Mac's tables.xml since the last deploy would be lost: stop before anything is installed.
 check_mac_store || exit 1
+check_jython_sources || exit 1
 # Mac JMRI is for development: the STS and mimic links follow the page's host to the Mac's own
 # STS and mimic server (PORT as in tools/mqtt-mimic/install_mimic_launchagent.sh). The
 # speed-match link names the Pi, the only host that serves that page (HART_PI_WEB_HOST, load_env.sh).

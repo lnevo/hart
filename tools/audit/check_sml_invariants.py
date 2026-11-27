@@ -14,8 +14,8 @@ TABLES = paths.TABLES_XML
 
 
 def expected_dests(root: ET.Element) -> int:
-    """The SML destination count of the generated three-level panel: audit_panel_contracts.EXPECTED_SML (one place).
-    ValueError when the main panel is not a generated one."""
+    """The SML destination count of the generated three-level panel: audit_panel_contracts.expected_sml (one place).
+    ValueError when the main panel is not a generated one or the panel counts file cannot be read."""
     import importlib.util
     tables.require_generated_panel(root, paths.rel(TABLES))
     spec = importlib.util.spec_from_file_location("audit_panel_contracts",
@@ -25,7 +25,7 @@ def expected_dests(root: ET.Element) -> int:
     audit = importlib.util.module_from_spec(spec)
     sys.modules.setdefault("audit_panel_contracts", audit)
     spec.loader.exec_module(audit)
-    expected: int = audit.EXPECTED_SML[True]
+    expected: int = audit.expected_sml(True)
     return expected
 
 

@@ -44,7 +44,7 @@ def errors(fn, root, **kw):
 
 class ExpectedCounts(unittest.TestCase):
     def test_sml_count_follows_the_panel_kind(self):
-        hand, gen = apc.EXPECTED_SML[False], apc.EXPECTED_SML[True]
+        hand, gen = apc.expected_sml(False), apc.expected_sml(True)
         self.assertEqual(errors(apc.audit_sml, sml_root(hand), required=True), [])
         self.assertEqual(errors(apc.audit_sml, sml_root(gen), required=True, generated=True), [])
         self.assertTrue(errors(apc.audit_sml, sml_root(gen), required=True))
@@ -66,13 +66,13 @@ class ExpectedCounts(unittest.TestCase):
     @mock.patch.object(apc.parked, "PARKED", frozenset())
     def test_dispatcher_graph_follows_the_panel_kind(self):
         for generated in (False, True):
-            sections, transits = apc.EXPECTED_GRAPH[generated]
+            sections, transits = apc.expected_graph(generated)
             ok = errors(apc.audit_generated_dispatcher, graph_root(sections, transits), generated=generated)
             self.assertEqual(ok, [], generated)
             if not generated:
-                other = apc.EXPECTED_GRAPH[True]
+                other = apc.expected_graph(True)
                 self.assertTrue(errors(apc.audit_generated_dispatcher, graph_root(*other)))
-        before = apc.EXPECTED_GRAPH[False]       # a generated panel before Stage 1: allowed with a warning
+        before = apc.expected_graph(False)       # a generated panel before Stage 1: allowed with a warning
         self.assertEqual(errors(apc.audit_generated_dispatcher, graph_root(*before), generated=True), [])
         self.assertTrue(errors(apc.audit_generated_dispatcher, graph_root(before[0] + 1, before[1]), generated=True))
 
@@ -83,7 +83,7 @@ class ExpectedCounts(unittest.TestCase):
         empty = ET.Element("layout-config")
         for generated in (False, True):
             self.assertEqual(errors(apc.audit_generated_dispatcher, empty, generated=generated), [])
-            self.assertEqual(errors(apc.audit_generated_dispatcher, graph_root(*apc.EXPECTED_GRAPH[generated]),
+            self.assertEqual(errors(apc.audit_generated_dispatcher, graph_root(*apc.expected_graph(generated)),
                                     generated=generated), [])
             self.assertTrue(errors(apc.audit_generated_dispatcher, graph_root(1, 1), generated=generated))
 

@@ -46,35 +46,37 @@ class JmriAdditions(unittest.TestCase):
         self.assertEqual(ja._hosts_cell("x.py", {"Pi": {"x.py"}, "Windows": {"x.py"}, "Mac": set()}),
                          "the Pi and Windows")
 
-    def test_a_list_must_close_on_its_own_line(self):
+    def listing_copy(self) -> Path:
+        """A tree holding the jython list, its reader and the split scripts' files: what host_lists reads."""
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
         coordinator = [p.relative_to(ja.ROOT).as_posix() for script in (ja.COORDINATOR, ja.PANEL_STATUS)
                        for p in ja.coordinator.files(ja.ROOT / script)]
-        for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator + [ja.JYTHON_LIST, ja.JYTHON_READER]:
+        for rel in coordinator + [ja.JYTHON_LIST, ja.JYTHON_READER]:
             (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ja.ROOT / rel, tmp / rel)
-        win = tmp / ja.HOST_LISTS["Windows"][0]
-        text = win.read_text(encoding="utf-8")
-        win.write_text(text.replace("$jythonSrc = @(", "$jythonSrc = @(  # (see the README)", 1), encoding="utf-8")
-        self.assertEqual(ja.host_lists(tmp), self.facts["hosts"])   # a comment's bracket does not end the list
+        return tmp
 
-    def test_the_pi_and_the_mac_follow_the_one_jython_list(self):
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp)
-        coordinator = [p.relative_to(ja.ROOT).as_posix() for script in (ja.COORDINATOR, ja.PANEL_STATUS)
-                       for p in ja.coordinator.files(ja.ROOT / script)]
-        for rel in [r for r, _ in ja.HOST_LISTS.values()] + coordinator + [ja.JYTHON_LIST, ja.JYTHON_READER]:
-            (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy(ja.ROOT / rel, tmp / rel)
+    def test_every_host_follows_the_one_jython_list(self):
+        tmp = self.listing_copy()
         listing = tmp / ja.JYTHON_LIST
         text = listing.read_text(encoding="utf-8")
         listing.write_text(text.replace("pi jmri/layouts/hart/scripts/mimic_relay.py",
                                         "startup jmri/layouts/hart/scripts/mimic_relay.py"), encoding="utf-8")
         hosts = ja.host_lists(tmp)
-        self.assertIn("mimic_relay.py", hosts["Mac"])        # a startup row is the Mac's too
-        self.assertIn("mimic_relay.py", hosts["Pi"])
+        for host in ("Pi", "Windows", "Mac"):                # a startup row is every host's
+            self.assertIn("mimic_relay.py", hosts[host], host)
         self.assertNotIn("sml_beans.py", hosts["Pi"])        # a sibling row is a part, not a script
+        listing.write_text(text.replace("pi jmri/layouts/hart/scripts/mimic_relay.py",
+                                        "macpi jmri/layouts/hart/scripts/mimic_relay.py"), encoding="utf-8")
+        hosts = ja.host_lists(tmp)
+        self.assertIn("mimic_relay.py", hosts["Pi"])         # a macpi row is the Mac's and the Pi's, not Windows'
+        self.assertIn("mimic_relay.py", hosts["Mac"])
+        self.assertNotIn("mimic_relay.py", hosts["Windows"])
+        listing.write_text(text, encoding="utf-8")
+        hosts = ja.host_lists(tmp)
+        self.assertIn("mimic_relay.py", hosts["Pi"])         # a pi row is the Pi's alone
+        self.assertNotIn("mimic_relay.py", hosts["Mac"] | hosts["Windows"])
         listing.write_text(text + "module jmri/scripts/x.py\n", encoding="utf-8")
         with self.assertRaisesRegex(ja.PageError, "unknown role 'module'"):
             ja.host_lists(tmp)
