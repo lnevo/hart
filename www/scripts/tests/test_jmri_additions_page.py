@@ -25,11 +25,15 @@ class JmriAdditions(unittest.TestCase):
         self.assertEqual(f["planned"], f["lit"] + f["hidden"])
         self.assertLessEqual(f["wired"], f["lit"])
 
-    def test_lcos_head_rule_matches_the_coordinator(self):
-        lo, hi = ja._lcos_range(ja.ROOT)
-        self.assertTrue(ja.is_lcos_head("432", lo, hi))       # node 4, signal 32: Mast 6LB's head
-        self.assertFalse(ja.is_lcos_head("431", lo, hi))      # signal 31 is below the LCOS range
-        self.assertFalse(ja.is_lcos_head("932", lo, hi))      # node 9 is not an octal number
+    def test_lcos_heads_follow_the_coordinators_rule(self):
+        rule = ja._lcos(ja.ROOT)
+        self.assertEqual(Path(rule.is_head.__code__.co_filename), ja.ROOT / "jmri/scripts/sml_lcos.py")   # no copy
+        self.assertEqual(ja.lcos_heads("IF$shsm:basic:one-searchlight(IH432)", rule), ["IH432"])   # node 4, signal 32: 6LB's head
+        self.assertEqual(ja.lcos_heads("IF$shsm:basic:two-searchlight(IH432)(IH433)", rule), ["IH432", "IH433"])
+        self.assertEqual(ja.lcos_heads("IF$shsm:basic:one-searchlight(IH431)", rule), [])      # signal 31 is below the LCOS range
+        self.assertEqual(ja.lcos_heads("IF$shsm:basic:one-searchlight(IH932)", rule), [])      # node 9 is not an octal number
+        self.assertEqual(ja.lcos_heads("IF$vsm:basic:one-low($1001)", rule), [])     # a staging mast has no heads
+        self.assertEqual(ja.lcos_heads("IF$shsm:basic:one-low(IH:HART:C1:4RA)", rule), [])   # an internal head
 
     def test_every_listed_script_reaches_a_host(self):
         hosts = self.facts["hosts"]
@@ -93,8 +97,8 @@ class JmriAdditions(unittest.TestCase):
         shutil.copy(ja.ROOT / ja.COORDINATOR, tmp / ja.COORDINATOR)      # the script without its modules
         with self.assertRaisesRegex(ja.PageError, "no .py beside it"):
             ja._siblings(tmp)
-        with self.assertRaisesRegex(ja.PageError, "no .py beside it"):
-            ja._lcos_range(tmp)
+        with self.assertRaisesRegex(ja.PageError, "sml_lcos.py: missing"):
+            ja._lcos(tmp)
 
     def test_every_part_of_a_split_script_is_on_the_page(self):
         for script, parts in self.facts["parts"].items():
