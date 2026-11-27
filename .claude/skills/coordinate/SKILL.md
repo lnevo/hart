@@ -47,7 +47,7 @@ Whoever coordinates more than one lane, a session or a background coordinator ag
 
 The coordinator may squash-merge a PR whose history later commits rewrote.
 
-A docs-only PR (Markdown under `wiki/`, `docs/`, `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and nothing else) skips the full remote run before it opens; it still passes `make static` and the required CI (`handoff` skill, Merge).
+A docs-only PR (Markdown under `wiki/`, `docs/`, `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and nothing else) skips the full remote run before it opens, and so does a data edit that changes no behaviour, such as the pipeline map's presets or labels; both still pass `make static` and the required CI (`handoff` skill, Merge, gives the exact rule).
 
 Batch small related lanes into one PR: each merge costs a merge of main and a CI cycle, because `strict` is on.
 
