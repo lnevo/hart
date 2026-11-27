@@ -83,9 +83,12 @@ LOCO_MODELS = HART_OPS_DATA / "loco_models.csv"
 ROAD_COLUMNS = ["road", "marks", "car_spellings", "engine_spellings"]
 
 
-class RoadsError(HartlibError, ValueError):
-    """roads.csv or loco_models.csv cannot be read or is not in its shape; the message names the file, and the line
-    for a bad row."""
+class OpsDataError(HartlibError, ValueError):
+    """A hand-kept car pipeline file (roads, loco models, the operator sheet's industries, notes and usages) cannot be
+    read or is not in its shape; the message names the file, and the line for a bad row."""
+
+
+RoadsError = OpsDataError   # the name the roads readers raised first
 
 
 @dataclass(frozen=True)
@@ -101,7 +104,7 @@ def _rows(path: Path, required: list[str]) -> list[tuple[int, dict[str, str]]]:
     try:
         return read_rows(path, required, optional=["notes"])
     except FactsError as exc:
-        raise RoadsError(str(exc)) from exc
+        raise OpsDataError(str(exc)) from exc
 
 
 def _spellings(cell: str) -> list[str]:
@@ -116,18 +119,18 @@ def read_roads(path: Path = ROADS_CSV) -> Roads:
     for line, row in _rows(path, ROAD_COLUMNS):
         code = row["road"]
         if not code:
-            raise RoadsError(f"{path}:{line}: road is empty")
+            raise OpsDataError(f"{path}:{line}: road is empty")
         if code in codes:
-            raise RoadsError(f"{path}:{line}: road {code} is listed twice")
+            raise OpsDataError(f"{path}:{line}: road {code} is listed twice")
         codes.append(code)
         if row["marks"]:
             display[code] = row["marks"]
         for col, table in aliases.items():
             for s in _spellings(row[col]):
                 if s != s.upper():   # the matchers upper-case what they look up, so a lower-case spelling never matches
-                    raise RoadsError(f"{path}:{line}: {col} {s!r} must be in capitals ({s.upper()!r})")
+                    raise OpsDataError(f"{path}:{line}: {col} {s!r} must be in capitals ({s.upper()!r})")
                 if table.get(s, code) != code:
-                    raise RoadsError(f"{path}:{line}: {col} {s!r} is already road {table[s]}'s")
+                    raise OpsDataError(f"{path}:{line}: {col} {s!r} is already road {table[s]}'s")
                 table[s] = code
     return Roads(tuple(codes), display, aliases["car_spellings"], aliases["engine_spellings"])
 
@@ -137,8 +140,78 @@ def read_loco_models(path: Path = LOCO_MODELS) -> dict[str, str]:
     out: dict[str, str] = {}
     for line, row in _rows(path, ["model", "mfg"]):
         if not row["model"] or not row["mfg"]:
-            raise RoadsError(f"{path}:{line}: model and mfg are needed")
+            raise OpsDataError(f"{path}:{line}: model and mfg are needed")
         if row["model"] in out:
-            raise RoadsError(f"{path}:{line}: model {row['model']} is listed twice")
+            raise OpsDataError(f"{path}:{line}: model {row['model']} is listed twice")
         out[row["model"]] = row["mfg"]
+    return out
+
+
+# ---------------------------------------------------------------- the operator sheet's industry tables
+
+INDUSTRY_SHEET = HART_OPS_DATA / "industry_sheet.csv"
+INDUSTRY_NOTES = HART_OPS_DATA / "industry_notes.csv"
+SPOT_USAGES = HART_OPS_DATA / "spot_usages.csv"
+
+
+@dataclass(frozen=True)
+class IndustrySheet:
+    """One industry of the operator sheet and the waybill decks (industry_sheet.csv)."""
+    industry_id: str      # industries.csv's key
+    sheet_name: str       # the name the sheet and the waybills key it by (spot_assignments.csv's spelling)
+    sheet_order: int      # its place among the sheet's island industries
+    waybill_order: int | None   # its place in the waybill decks; None: no waybills (Shenango)
+    logo: str             # a file in ops/hart-ops/operator_logos/
+    logo_width: float     # the logo's width on the page, in inches
+
+
+def _whole(path: Path, line: int, col: str, cell: str) -> int:
+    if not cell.isdigit():
+        raise OpsDataError(f"{path}:{line}: {col} {cell!r} is not a whole number")
+    return int(cell)
+
+
+def read_industry_sheet(path: Path = INDUSTRY_SHEET) -> list[IndustrySheet]:
+    """The rows of industry_sheet.csv in file order. Stops on a repeated industry_id or sheet_name or a bad number."""
+    out: list[IndustrySheet] = []
+    cols = ["industry_id", "sheet_name", "sheet_order", "waybill_order", "logo", "logo_width"]
+    for line, row in _rows(path, cols):
+        if not row["industry_id"] or not row["sheet_name"] or not row["logo"]:
+            raise OpsDataError(f"{path}:{line}: industry_id, sheet_name and logo are needed")
+        if any(r.industry_id == row["industry_id"] or r.sheet_name == row["sheet_name"] for r in out):
+            raise OpsDataError(f"{path}:{line}: {row['industry_id']} ({row['sheet_name']}) is listed twice")
+        try:
+            width = float(row["logo_width"])
+        except ValueError as exc:
+            raise OpsDataError(f"{path}:{line}: logo_width {row['logo_width']!r} is not a number") from exc
+        waybill = row["waybill_order"]
+        out.append(IndustrySheet(row["industry_id"], row["sheet_name"],
+                                 _whole(path, line, "sheet_order", row["sheet_order"]),
+                                 _whole(path, line, "waybill_order", waybill) if waybill else None,
+                                 row["logo"], width))
+    return out
+
+
+def read_industry_notes(path: Path = INDUSTRY_NOTES) -> dict[str, list[str]]:
+    """{industry_id: its paragraphs, by line} of industry_notes.csv. Stops on an empty text or a repeated line."""
+    out: dict[str, dict[int, str]] = {}
+    for line, row in _rows(path, ["industry_id", "line", "text"]):
+        n = _whole(path, line, "line", row["line"])
+        if not row["industry_id"] or not row["text"]:
+            raise OpsDataError(f"{path}:{line}: industry_id and text are needed")
+        if n in out.setdefault(row["industry_id"], {}):
+            raise OpsDataError(f"{path}:{line}: {row['industry_id']} line {n} is listed twice")
+        out[row["industry_id"]][n] = row["text"]
+    return {k: [v[n] for n in sorted(v)] for k, v in out.items()}
+
+
+def read_spot_usages(path: Path = SPOT_USAGES) -> dict[str, str]:
+    """{usage, lower case: the label the sheet prints} of spot_usages.csv, in file order."""
+    out: dict[str, str] = {}
+    for line, row in _rows(path, ["usage", "label"]):
+        if not row["usage"] or not row["label"]:
+            raise OpsDataError(f"{path}:{line}: usage and label are needed")
+        if row["usage"] != row["usage"].lower() or row["usage"] in out:
+            raise OpsDataError(f"{path}:{line}: usage {row['usage']!r} must be lower case and listed once")
+        out[row["usage"]] = row["label"]
     return out

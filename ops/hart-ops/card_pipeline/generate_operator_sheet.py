@@ -24,6 +24,10 @@ from docx.table import Table, _Cell, _Row
 from docx.text.paragraph import Paragraph
 
 import generate_waybill_cards as gw
+import hartlib_path  # noqa: E402
+
+hartlib_path.ensure_on_path()
+from hartlib import operations  # noqa: E402
 import car_paths  # noqa: E402  (loaded by generate_waybill_cards)
 import car_repo  # noqa: E402
 import waybill_data as wdata  # noqa: E402
@@ -99,20 +103,8 @@ COLOR_PANEL = "FAFAFA"
 TABLE_COLS_IN = (0.32, 0.88, 0.82, 0.95, 0.95)
 TABLE_COLS_TRACK = (1.05, 0.55, 1.15, 1.15)  # Track, Cars, In, Out (no spots)
 
-USAGE_LABELS: dict[str, str] = {
-    "pellet unload": "Pellet Unloading",
-    "chemical unload": "Chemical Unloading",
-    "shipping door": "Shipping",
-    "coal unload": "Coal Unloading",
-    "carbon load": "Carbon Loading",
-    "cement unload": "Cement Unloading",
-    "aggregate unload": "Aggregate Unloading",
-    "lpg unload": "LPG Unloading",
-    "crane track": "Steel Unloading",
-    "team track": "Team Track",
-    "off spot": "Off Spot",
-    "storage": "Storage",
-}
+# The label the sheet prints for each spot usage: ops/hart-ops/data/spot_usages.csv (hartlib.operations).
+USAGE_LABELS: dict[str, str] = operations.read_spot_usages()
 
 # Spur colour names from layout `spurs` (STS location colour names) → the accent band and the text colour. The
 # accent is the crew master's fill for the colours it has (mediumblue is its blue); lightblue and lightgrey are
