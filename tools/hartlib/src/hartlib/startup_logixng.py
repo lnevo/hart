@@ -1,6 +1,6 @@
 """The startup LogixNG of the generated tables: the LogixNG that sets each virtual detector and turnout when the
 tables load (start_logixng), and its actions as PanelPro 5.16 stores them (start_action). The rows that give the
-actions are tables_build.start_actions'.
+actions are chosen by tables_build.start_actions.
 """
 from __future__ import annotations
 
