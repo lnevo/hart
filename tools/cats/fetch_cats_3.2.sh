@@ -9,9 +9,22 @@ URL="https://cats4ctc.wdfiles.com/local--files/main%3Adownloads/release3.2.zip"
 # release3.2.zip as published: 9898265 bytes, 37 files
 SHA256="e38e7dba78df751daf2cd0bf4f710e3b9108a147a87440cab2afba4e2eef0aa1"
 
-TMP=""
-cleanup() { if [[ -n "$TMP" ]]; then rm -f "$TMP"; fi; }
+# The files install_into_jmri.sh copies; a zip without them installs nothing.
+NEEDED=(cats.jar cats.csh designer.jar designer.csh)
+
+# The download and the unpacked copy, removed on any exit; DEST changes only once the copy holds NEEDED.
+TMP="" STAGE=""
+cleanup() {
+  if [[ -n "$TMP" ]]; then rm -f "$TMP"; fi
+  if [[ -n "$STAGE" ]]; then rm -rf "$STAGE"; fi
+}
 trap cleanup EXIT
+
+# DEST is replaced whole, so it must be absent or an earlier CATS release, never some other folder.
+if [[ -e "$DEST" && ! -f "$DEST/cats.jar" ]]; then
+  echo "fetch_cats_3.2.sh: $DEST exists and holds no cats.jar; not replacing it" >&2
+  exit 1
+fi
 
 if [[ -n "${CATS_ZIP:-}" ]]; then
   ZIP="$CATS_ZIP"
@@ -32,10 +45,17 @@ if [[ "$actual" != "$SHA256" ]]; then
   exit 1
 fi
 
+mkdir -p "$(dirname "$DEST")"
+STAGE="$(mktemp -d "$(dirname "$DEST")/.cats32.XXXXXX")"     # beside DEST, so the mv below is a rename
+python3 -m zipfile -e "$ZIP" "$STAGE"     # python3, not unzip: every host and CI has it
+for f in "${NEEDED[@]}"; do
+  [[ -f "$STAGE/$f" ]] || { echo "fetch_cats_3.2.sh: $ZIP has no $f; nothing installed" >&2; exit 1; }
+done
+chmod +x "$STAGE/cats.csh" "$STAGE/designer.csh"
 rm -rf "$DEST"
-mkdir -p "$DEST"
-python3 -m zipfile -e "$ZIP" "$DEST"     # python3, not unzip: every host and CI has it
-chmod +x "$DEST/cats.csh" "$DEST/designer.csh" 2>/dev/null || true
+chmod 755 "$STAGE"     # mktemp -d made it 700; the folder it replaces was made with mkdir
+mv "$STAGE" "$DEST"
+STAGE=""
 echo "Installed → $DEST"
 echo "Next: ./tools/cats/install_into_jmri.sh"
 echo "See cats/README.md for HART integration steps."

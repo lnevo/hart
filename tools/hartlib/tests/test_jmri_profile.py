@@ -125,6 +125,69 @@ class WriteSafety(Files):
             jmri_profile.write_user_interface(ui, "<windowDetails/>", backup=True)
         self.assertNotIn("cannot back up", str(cm.exception))
 
+    def test_two_backups_in_one_second_keep_both_files(self) -> None:
+        ui = self.write("user-interface.xml", "first")
+        with mock.patch.object(jmri_profile.time, "strftime", return_value="20260101-000000"):
+            one = jmri_profile.write_user_interface(ui, "second", backup=True)
+            two = jmri_profile.write_user_interface(ui, "third", backup=True)
+        assert one is not None and two is not None
+        self.assertEqual(one.name, "user-interface.xml.hart-20260101-000000.bak")
+        self.assertEqual(two.name, "user-interface.xml.hart-20260101-000000-1.bak")
+        self.assertEqual((one.read_text(encoding="utf-8"), two.read_text(encoding="utf-8")), ("first", "second"))
+        self.assertEqual(jmri_profile.backups(ui), [one, two])
+
+    def test_backups_sort_by_stamp_then_by_count(self) -> None:
+        ui = self.write("user-interface.xml", UI)
+        names = ["user-interface.xml.hart-20260101-000001.bak", "user-interface.xml.hart-20260101-000000-10.bak",
+                 "user-interface.xml.hart-20260101-000000-2.bak", "user-interface.xml.hart-20260101-000000.bak",
+                 "user-interface.xml.hart-20260101-000000-0.bak"]          # -0 is not a name _back_up makes
+        for name in names:
+            self.write(name, "old")
+        self.assertEqual([p.name for p in jmri_profile.backups(ui)],
+                         [names[3], names[2], names[1], names[0]])
+
+
+START_UP = """<startup>
+    <perform name="preference:jython/jmri_cmd_watcher.py" type="ScriptFile" enabled="yes" class="jmri.util.startup.configurexml.PerformScriptModelXml"/>
+    <perform name="preference:jython/old_sts_car_sync.py" type="ScriptFile" enabled="yes" class="jmri.util.startup.configurexml.PerformScriptModelXml"/>
+    <perform name="preference:jython/mimic_relay.py" type="ScriptFile" enabled="yes" class="jmri.util.startup.configurexml.PerformScriptModelXml"/>
+    <!-- sts_car_sync.py used to run here -->
+</startup>
+"""
+
+
+class StartUpEntries(Files):
+    """insert_after and remove_script go by the Start Up entries that run a script, not by text anywhere in the file."""
+
+    def test_a_mention_outside_an_entry_is_not_already_there(self) -> None:
+        profile = self.write("profile.xml", START_UP)
+        self.assertEqual(jmri_profile.insert_after(profile, "preference:jython/sts_car_sync.py",
+                                                   "jmri_cmd_watcher.py"), "inserted")
+        lines = profile.read_text(encoding="utf-8").splitlines()
+        self.assertIn('name="preference:jython/sts_car_sync.py"', lines[2])
+        self.assertIn("jmri_cmd_watcher.py", lines[1])
+        self.assertEqual(jmri_profile.insert_after(profile, "sts_car_sync.py", "jmri_cmd_watcher.py"), "already")
+
+    def test_an_entry_running_the_script_is_already_there(self) -> None:
+        profile = self.write("profile.xml", START_UP)
+        self.assertEqual(jmri_profile.insert_after(profile, "mimic_relay.py", "jmri_cmd_watcher.py"), "already")
+        self.assertEqual(profile.read_text(encoding="utf-8"), START_UP)
+
+    def test_remove_leaves_an_entry_whose_name_only_contains_the_script(self) -> None:
+        profile = self.write("profile.xml", START_UP)
+        self.assertEqual(jmri_profile.remove_script(profile, "sts_car_sync.py"), "absent")
+        self.assertEqual(profile.read_text(encoding="utf-8"), START_UP)
+
+    def test_remove_takes_every_entry_running_the_script_and_its_line(self) -> None:
+        doubled = START_UP.replace("</startup>", '    <perform name="C:\\jython\\mimic_relay.py" type="ScriptFile" '
+                                   'class="jmri.util.startup.configurexml.PerformScriptModelXml"/>\n</startup>')
+        profile = self.write("profile.xml", doubled)
+        self.assertEqual(jmri_profile.remove_script(profile, "mimic_relay.py"), "removed")
+        text = profile.read_text(encoding="utf-8")
+        self.assertNotIn("mimic_relay.py", text)
+        self.assertEqual(text.splitlines(), [line for line in doubled.splitlines() if "mimic_relay.py" not in line])
+        self.assertEqual(jmri_profile.remove_script(profile, "mimic_relay.py"), "absent")
+
 
 class Checks(Files):
     def test_insert_after_refuses_an_empty_after(self) -> None:
