@@ -368,7 +368,7 @@ COLLECTED=-1 reported=()      # reported: each finished job's code, once early_f
 early_failures() {
   local j rc
   for j in "${!pids[@]}"; do
-    (( j > COLLECTED )) && [[ -n "${pids[$j]}" && -z "${reported[$j]:-}" ]] && rc="$(cat "$JOBS/$j.rc" 2>/dev/null)" && [[ -n "$rc" ]] || continue
+    rc=; (( j > COLLECTED )) && [[ -n "${pids[$j]}" && -z "${reported[$j]:-}" ]] && { read -r rc <"$JOBS/$j.rc"; } 2>/dev/null; [[ -n "$rc" ]] || continue
     reported[$j]=$rc
     [[ "$rc" == 0 ]] || { echo "EARLY FAILURE: ${names[$j]} FAILED ($(cat "$JOBS/$j.time" 2>/dev/null)s), more jobs still running"
       cat "$JOBS/$j.log"; echo "EARLY FAILURE: end of ${names[$j]}; every job is reported in queue order once all have ended"; }

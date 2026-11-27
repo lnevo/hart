@@ -1,4 +1,5 @@
 """Car queue and Operations Pro merge rules."""
+import argparse
 import contextlib
 import io
 import sys
@@ -7,6 +8,7 @@ import unittest
 import unittest.mock
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
@@ -14,6 +16,7 @@ import car_compare  # noqa: E402
 import car_fields  # noqa: E402
 import car_ops_roster  # noqa: E402
 import car_repo  # noqa: E402
+import cars  # noqa: E402
 
 LIVE = """<operations-config><roads><road name="PRR" /></roads><types /><colors />
 <cars><car id="PRR1" roadName="PRR" roadNumber="1" locationId="9" moves="7" /></cars>
@@ -279,6 +282,85 @@ class FieldDifferenceTests(unittest.TestCase):
         with contextlib.redirect_stdout(out):
             car_fields.print_diffs([("NW2", "length", "52", "50")], False)
         self.assertIn("NW2 length: repo='52' tool='50'", out.getvalue())
+
+
+def queued(roster_id):
+    return {"roster_id": roster_id, "reason": "new car", "queued": "d", "card_built": "",
+            "card_printed": "", "sts": "", "ops": ""}
+
+
+class PublishStsFailureTests(unittest.TestCase):
+    """A failed STS step makes publish fail, naming the step; the STS tools are stubbed, never run."""
+
+    def stubbed(self, codes: dict[str, int]) -> contextlib.ExitStack:
+        """Stub the rebuild, the queue files, the Operations Pro merge and the STS tools; each STS tool exits with
+        codes[tool name]. Records the tools run in self.ran and the last queue written in self.final."""
+        queue = [queued("A1")]
+        self.ran: list[str] = []
+        self.final: list[dict[str, str]] = []
+
+        def fake_run(cmd, **_kw):
+            name = Path(cmd[1]).name
+            self.ran.append(name)
+            return SimpleNamespace(returncode=codes[name])
+
+        def write_queue(q):
+            self.final = [dict(x) for x in q]
+
+        stack = contextlib.ExitStack()
+        for patch in (
+            unittest.mock.patch.object(cars, "publish_gate"),
+            unittest.mock.patch("build_car_roster_sor.main"),
+            unittest.mock.patch.object(cars, "read_queue", return_value=queue),
+            unittest.mock.patch.object(cars, "write_queue", side_effect=write_queue),
+            unittest.mock.patch.object(cars, "read_rows", return_value=([], [])),
+            unittest.mock.patch.object(cars, "merge_ops", return_value=["A1"]),
+            unittest.mock.patch.object(cars, "sync_seed_copies"),
+            unittest.mock.patch.object(cars.subprocess, "run", side_effect=fake_run),
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            stack.enter_context(patch)
+        return stack
+
+    def publish(self, codes: dict[str, int]) -> None:
+        with self.stubbed(codes):
+            cars.cmd_publish(argparse.Namespace(only=None, skip_check=[], ops_live="/nonexistent"))
+
+    def test_both_steps_pass(self):
+        self.publish({"add_hart_cars.py": 0, "sync_hart_status.py": 0})
+        self.assertEqual(self.ran, ["add_hart_cars.py", "sync_hart_status.py"])
+        self.assertTrue(self.final[0]["sts"] and self.final[0]["ops"])
+
+    def test_add_failure_names_the_step_and_keeps_the_car_queued(self):
+        with self.assertRaises(cars.CardPipelineError) as ctx:
+            self.publish({"add_hart_cars.py": 3, "sync_hart_status.py": 0})
+        self.assertEqual(
+            str(ctx.exception),
+            "Publish: STS step failed:\n"
+            "  add_hart_cars.py exited 3; these cars stay queued for STS: A1",
+        )
+        self.assertEqual(self.ran, ["add_hart_cars.py", "sync_hart_status.py"])
+        self.assertEqual(self.final[0]["sts"], "")
+        self.assertTrue(self.final[0]["ops"], "the Operations Pro merge still runs")
+
+    def test_status_sync_failure_names_the_step(self):
+        with self.assertRaises(cars.CardPipelineError) as ctx:
+            self.publish({"add_hart_cars.py": 0, "sync_hart_status.py": 2})
+        self.assertEqual(
+            str(ctx.exception),
+            "Publish: STS step failed:\n  sync_hart_status.py (out-of-service sync) exited 2",
+        )
+        self.assertTrue(self.final[0]["sts"])
+
+    def test_main_exits_non_zero_with_the_message(self):
+        """main() turns the failure into a non-zero exit carrying the message."""
+        with unittest.mock.patch.object(sys, "argv", ["cars.py", "publish"]), \
+                self.stubbed({"add_hart_cars.py": 1, "sync_hart_status.py": 1}), \
+                self.assertRaises(SystemExit) as ctx:
+            cars.main()
+        self.assertIn("add_hart_cars.py exited 1", str(ctx.exception.code))
+        self.assertIn("sync_hart_status.py (out-of-service sync) exited 1", str(ctx.exception.code))
+        self.assertIsInstance(ctx.exception.__cause__, cars.CardPipelineError)
 
 
 if __name__ == "__main__":

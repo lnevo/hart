@@ -57,6 +57,7 @@ walk, the file-hash cache and the Checker, stamps_audit.py the audits; both are 
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -64,7 +65,7 @@ import re
 import sys
 from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import cast
+from typing import NoReturn, cast
 
 HERE = Path(__file__).resolve().parent
 # The parts (FILES) import each other by name, from any cwd and under any load name (check.sh runs this file by path;
@@ -669,14 +670,10 @@ def audit_trace(name: str, trace_log: str | Path, root: Path = ROOT, fails: bool
     return lines, audit, count
 
 
-def record_cmd(args: list[str], root: Path = ROOT, store: Path = STORE) -> int:
-    """`record NAME FILE --trace LOG [--skipped N] [--audit-fails]` (flags in that order): 0; with --audit-fails, 1
-    when the audit warned (nothing recorded) and 3 when it audited nothing (not stampable now, bash, a unit job)."""
-    fails, args = (True, args[:-1]) if args[-1:] == ["--audit-fails"] else (False, args)
-    if len(args) not in (4, 6) or args[2] != "--trace" or args[4:5] not in ([], ["--skipped"]):
-        print(__doc__.split("\n\n")[0], file=sys.stderr)
-        return 2
-    name, snap, trace, skipped = args[0], args[1], args[3], args[5] if len(args) == 6 else "0"
+def record_cmd(args: argparse.Namespace, root: Path = ROOT, store: Path = STORE) -> int:
+    """`record NAME FILE --trace LOG [--skipped N] [--audit-fails]`: 0; with --audit-fails, 1 when the audit warned
+    (nothing recorded) and 3 when it audited nothing (not stampable now, bash, a unit job)."""
+    name, snap, trace, skipped, fails = args.name, args.file, args.trace, args.skipped, args.audit_fails
     if not skipped.isdigit():
         print(f"check_stamps.py record: --skipped takes a count, not {skipped!r}; not stamped")
         return 2
@@ -690,70 +687,104 @@ def record_cmd(args: list[str], root: Path = ROOT, store: Path = STORE) -> int:
     return 0 if not fails else 1 if bad else 0 if audit is not None and not audit.get("bash") else 3
 
 
+class UsageError(Exception):
+    """A command line check_stamps.py does not take; main() prints it with the usage and returns 2."""
+
+
+class _Parser(argparse.ArgumentParser):
+    """An ArgumentParser whose errors raise UsageError, so main() returns 2 instead of the parser exiting."""
+
+    def error(self, message: str) -> NoReturn:
+        raise UsageError(f"{self.format_usage()}{self.prog}: error: {message}")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """The commands of the module docstring, with no abbreviated options."""
+    parser = _Parser(prog="check_stamps.py", description=(__doc__ or "").split("\n\n")[0],
+                     formatter_class=argparse.RawDescriptionHelpFormatter, allow_abbrev=False)
+    sub = parser.add_subparsers(dest="command", required=True, parser_class=_Parser)
+    cmd = {name: sub.add_parser(name, allow_abbrev=False)
+           for name in ("current", "current-batch", "record", "why", "declared", "audit", "audit-report")}
+    for name in ("current", "record", "why", "declared"):
+        cmd[name].add_argument("name")
+    cmd["current"].add_argument("--save", type=Path, metavar="FILE")
+    cmd["current-batch"].add_argument("names", type=Path)
+    cmd["current-batch"].add_argument("dir", type=Path)
+    for name in ("current", "current-batch"):
+        cmd[name].add_argument("--why", action="store_true", help="say why each job runs")
+    cmd["record"].add_argument("file")
+    cmd["record"].add_argument("--trace", required=True, metavar="LOG")
+    cmd["record"].add_argument("--skipped", default="0", metavar="N")
+    cmd["record"].add_argument("--audit-fails", action="store_true")
+    cmd["audit"].add_argument("names", nargs="*")
+    cmd["audit-report"].add_argument("dir", type=Path)
+    cmd["audit-report"].add_argument("-v", dest="verbose", action="store_true")
+    return parser
+
+
 def main(argv: list[str] | None = None) -> int:
-    argv = sys.argv[1:] if argv is None else argv
+    try:
+        args = build_parser().parse_args(sys.argv[1:] if argv is None else argv)
+    except UsageError as exc:
+        print(exc, file=sys.stderr)
+        return 2
     try:
         check_tables()
     except ValueError as exc:       # every job runs and records nothing (check.sh: an answer other than 0 or 1)
         print(f"check_stamps.py: {exc}", file=sys.stderr)
         return 2
     try:
-        return _main(argv)
+        return _main(args)
     except pm.ManifestError as exc:     # a manifest job's key cannot be made: it runs and records nothing
         print(f"check_stamps.py: not stamped: {exc}", file=sys.stderr)
         return 2
 
 
-def _main(argv: list[str]) -> int:
-    if len(argv) >= 2 and argv[0] == "current":
-        name, save = argv[1], None
-        if "--save" in argv:
-            save = Path(argv[argv.index("--save") + 1])
-        why = "--why" in argv              # say why it runs (a CI pull request run: check.sh CHECK_SKIP_FROM)
+def _main(args: argparse.Namespace) -> int:
+    if args.command == "current":
         ck = Checker(ROOT, STORE)
         try:
-            code, reason = verdict(name, ck, save)
+            code, reason = verdict(args.name, ck, args.save)
         finally:
             ck.cache.save()
-        if reason and why:
+        if reason and args.why:         # say why it runs (a CI pull request run: check.sh CHECK_SKIP_FROM)
             print(f"runs: {reason}")
         return code
-    if argv[:1] == ["current-batch"] and len(argv) in (3, 4) and argv[3:] in ([], ["--why"]):
+    if args.command == "current-batch":
         try:
-            current_batch(read_names(Path(argv[1])), Path(argv[2]), why=len(argv) == 4)
+            current_batch(read_names(args.names), args.dir, why=args.why)
         except BatchError as exc:
             print(f"check_stamps.py current-batch: {exc}", file=sys.stderr)
             return 3
         return 0
-    if len(argv) == 2 and argv[0] == "why":
-        print(not_stampable(argv[1]) or why_not_current(argv[1]) or "current")
+    if args.command == "why":
+        print(not_stampable(args.name) or why_not_current(args.name) or "current")
         return 0
-    if argv[:1] == ["record"]:
-        return record_cmd(argv[1:])
-    if argv[:1] == ["audit"]:
-        rc: int = audit_stamp(argv[1:], ROOT, STORE)
+    if args.command == "record":
+        return record_cmd(args)
+    if args.command == "audit":
+        rc: int = audit_stamp(args.names, ROOT, STORE)
         return rc
-    if len(argv) == 2 and argv[0] == "declared":
-        print("\n".join(declared(argv[1]) or ()))
+    if args.command == "declared":
+        print("\n".join(declared(args.name) or ()))
         return 0
-    if argv[:1] == ["audit-report"] and (len(argv) == 2 or argv[2:] == ["-v"]):
-        if not Path(argv[1]).is_dir():
-            print(f"check_stamps.py audit-report: {argv[1]} is not a folder (CHECK_AUDIT=DIR FULL=1 tools/check.sh "
-                  "writes one)", file=sys.stderr)
-            return 2
-        rc = 0
-        for name, (files, dirs) in read_audit(Path(argv[1])).items():
-            if declared(name) is None:
-                continue
-            bad = uncovered(name, files, dirs)
-            tops = sorted({"/".join(f.split("/")[:2]) for f in files})
-            print(f"{name}: {len(files)} files read{' ; UNCOVERED ' + ', '.join(bad[:20]) if bad else ''}")
-            if "-v" in argv or bad:
-                print("    reads:", ", ".join(tops))
-            rc |= bool(bad)
-        return rc
-    print(__doc__.split("\n\n")[0], file=sys.stderr)
-    return 2
+    if args.command != "audit-report":
+        raise AssertionError(f"check_stamps.py: build_parser takes {args.command!r} but _main has no branch for it")
+    if not args.dir.is_dir():
+        print(f"check_stamps.py audit-report: {args.dir} is not a folder (CHECK_AUDIT=DIR FULL=1 tools/check.sh "
+              "writes one)", file=sys.stderr)
+        return 2
+    rc = 0
+    for name, (files, dirs) in read_audit(args.dir).items():
+        if declared(name) is None:
+            continue
+        bad = uncovered(name, files, dirs)
+        tops = sorted({"/".join(f.split("/")[:2]) for f in files})
+        print(f"{name}: {len(files)} files read{' ; UNCOVERED ' + ', '.join(bad[:20]) if bad else ''}")
+        if args.verbose or bad:
+            print("    reads:", ", ".join(tops))
+        rc |= bool(bad)
+    return rc
 
 
 if __name__ == "__main__":

@@ -277,6 +277,56 @@ class DeclarationTest(unittest.TestCase):
                 self.assertIn("check_stamps", "".join(c.args[0] for c in err.write.call_args_list))
 
 
+class CommandLineTest(unittest.TestCase):
+    """main() parses with argparse: a command line it does not take is a usage error (exit 2), checked before the
+    tables or any stamp."""
+
+    def run_main(self, argv: list[str]) -> tuple[int, str]:
+        import contextlib
+        import io
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err), unittest.mock.patch.object(cs, "check_tables") as tables:
+            rc = cs.main(argv)
+        if rc == 2 and "usage:" in err.getvalue():
+            tables.assert_not_called()
+        return rc, err.getvalue()
+
+    def test_an_unknown_argument_is_a_usage_error(self) -> None:
+        for argv, says in ((["why", "unit-mimic", "--extra"], "unrecognized arguments: --extra"),
+                           (["declared", "unit-mimic", "unit-hartlib"], "unrecognized arguments: unit-hartlib"),
+                           (["current", "unit-mimic", "--sav", "x"], "unrecognized arguments: --sav x"),
+                           (["audit-report", "x", "-x"], "unrecognized arguments: -x"),
+                           (["record", "unit-mimic", "x"], "the following arguments are required: --trace"),
+                           (["current-batch", "names"], "the following arguments are required: dir"),
+                           (["no-such-command"], "invalid choice: 'no-such-command'"),
+                           ([], "the following arguments are required: command")):
+            with self.subTest(argv=argv):
+                rc, err = self.run_main(argv)
+                self.assertEqual(rc, 2)
+                self.assertIn("usage: check_stamps.py", err)
+                self.assertIn(says, err)
+                self.assertNotIn("Traceback", err)
+
+    def test_a_parsed_command_with_no_branch_is_refused(self) -> None:
+        import argparse
+        with self.assertRaisesRegex(AssertionError, "'new-command' but _main has no branch"):
+            cs._main(argparse.Namespace(command="new-command"))
+
+    def test_every_command_parses_its_documented_form(self) -> None:
+        parse = cs.build_parser().parse_args
+        args = parse(["current", "unit-mimic", "--save", "s", "--why"])
+        self.assertEqual((args.name, args.save, args.why), ("unit-mimic", Path("s"), True))
+        args = parse(["current-batch", "n", "d"])
+        self.assertEqual((args.names, args.dir, args.why), (Path("n"), Path("d"), False))
+        args = parse(["record", "unit-guards test_x", "f", "--trace", "t", "--skipped", "3", "--audit-fails"])
+        self.assertEqual((args.name, args.file, args.trace, args.skipped, args.audit_fails),
+                         ("unit-guards test_x", "f", "t", "3", True))
+        self.assertEqual(parse(["record", "a", "f", "--trace", "t"]).skipped, "0")
+        self.assertEqual(parse(["audit"]).names, [])
+        self.assertEqual(parse(["audit", "a", "b"]).names, ["a", "b"])
+        self.assertTrue(parse(["audit-report", "d", "-v"]).verbose)
+
+
 class NestedOutputTest(unittest.TestCase):
     """The helpers that read the nested check.sh run's output, on fake output in collect's format."""
 

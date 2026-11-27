@@ -195,16 +195,22 @@ def is_chosen(item: QueueItem, only: list[str] | None) -> bool:
     return not only or item["roster_id"] in only
 
 
-def publish_to_sts(queue: list[QueueItem], for_sts: list[QueueItem]) -> None:
-    """Add the chosen cars to STS (they stay queued when it fails), then sync the out-of-service flags."""
+def publish_to_sts(queue: list[QueueItem], for_sts: list[QueueItem]) -> list[str]:
+    """Add the chosen cars to STS (they stay queued when it fails), then sync the out-of-service flags.
+
+    Returns one line per STS step that exited non-zero; an empty list means both steps passed.
+    """
+    failed: list[str] = []
     if for_sts:
+        ids = [q["roster_id"] for q in for_sts]
         result = subprocess.run(
-            [sys.executable, str(STS_HELPERS / "tools/add_hart_cars.py"),
-             *[q["roster_id"] for q in for_sts]],
+            [sys.executable, str(STS_HELPERS / "tools/add_hart_cars.py"), *ids],
             check=False,
         )
         if result.returncode:
-            print("STS step failed; those cars stay queued.", file=sys.stderr)
+            failed.append(
+                f"add_hart_cars.py exited {result.returncode}; these cars stay queued for STS: {' '.join(ids)}"
+            )
         else:
             for item in for_sts:
                 item["sts"] = today()
@@ -214,7 +220,8 @@ def publish_to_sts(queue: list[QueueItem], for_sts: list[QueueItem]) -> None:
         [sys.executable, str(STS_HELPERS / "tools/sync_hart_status.py")], check=False
     )
     if result.returncode:
-        print("STS out-of-service sync failed.", file=sys.stderr)
+        failed.append(f"sync_hart_status.py (out-of-service sync) exited {result.returncode}")
+    return failed
 
 
 def publish_to_ops(queue: list[QueueItem], only: list[str] | None, live: Path) -> None:
@@ -234,7 +241,10 @@ def publish_to_ops(queue: list[QueueItem], only: list[str] | None, live: Path) -
 
 
 def cmd_publish(args: argparse.Namespace) -> int:
-    """Rebuild the rosters, refresh the STS seed copies, then send the queued cars to STS and Operations Pro."""
+    """Rebuild the rosters, refresh the STS seed copies, then send the queued cars to STS and Operations Pro.
+
+    The Operations Pro merge runs even when an STS step fails; the failure is raised after it, naming the step.
+    """
     from build_car_roster_sor import main as build_roster
 
     publish_gate(args)
@@ -245,8 +255,10 @@ def cmd_publish(args: argparse.Namespace) -> int:
         if unknown:
             raise CardPipelineError(f"Not in the queue: {' '.join(unknown)}")
     sync_seed_copies(SEED_INPUTS, SEED_COPIES)
-    publish_to_sts(queue, [q for q in queue if not q["sts"] and is_chosen(q, args.only)])
+    sts_failed = publish_to_sts(queue, [q for q in queue if not q["sts"] and is_chosen(q, args.only)])
     publish_to_ops(queue, args.only, Path(args.ops_live))
+    if sts_failed:
+        raise CardPipelineError("\n".join(["Publish: STS step failed:", *(f"  {line}" for line in sts_failed)]))
     return 0
 
 
