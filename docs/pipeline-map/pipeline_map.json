@@ -5178,6 +5178,15 @@
    "path": "tools/schematic/device_map_inputs.py"
   },
   {
+   "id": "tools/schematic/device_map_records.py",
+   "label": "device_map_records.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of build_device_map.py: its typed records (MapInputs, MapOutput, Drawing, MapBuild), which build_device_map re-exports.",
+   "path": "tools/schematic/device_map_records.py"
+  },
+  {
    "id": "tools/schematic/device_map_masts.py",
    "label": "device_map_masts.py",
    "kind": "generator",
@@ -12716,6 +12725,11 @@
   },
   {
    "from": "tools/schematic/device_map_inputs.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/device_map_records.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
   },

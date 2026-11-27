@@ -7,8 +7,8 @@
 --check prints SKIPPED and exits 0 when the plugin submodule is not checked out (1 with SCHEMATIC_REQUIRED=1).
 
 Inputs (jmri/layouts/hart/data/schematic/):
-- interlockings.csv, its level 2 and 3 rows: the placeholder control points, "CP <lowest switch>" (owner,
-  2026-11-15), which are also the signal rule's interlockings (one file for every level). Hand
+- interlockings.csv, its level 2 and 3 rows: the placeholder control points, "CP <lowest switch>", which
+  are also the signal rule's interlockings (one file for every level). Hand
   data, one row per control point: level (2 main, 3 upper), switch numbers, area (the LCOS node area). Only
   interlockings that affect the main route are control points, as in the bench plans
   (docs/wiring/bench/control_point_4 to 6): switches on the main route, grouped where they stand close together.
@@ -29,7 +29,7 @@ Outputs:
   point's interlocking limits and name, and the overall sheet a bar per control point (no car count). A control
   point may list only switches on one band, so a crossover whose halves sit on two bands (127, 131) lists the half
   on the control point's level. The bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
-  markers (draft, 2026-11-15; labels are placed before the page is scaled).
+  markers (labels are placed before the page is scaled).
 - The device master (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
   so are staging's block and occupancy rows (staging_rows, below). The main and upper rows are the one mapping from
   each main and upper JMRI device to its planned physical part. Per
@@ -77,15 +77,15 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   block (plan_overrides.json: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
   track below it: the staging device map names its staging piece, and the Layout Editor build
   binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives, and
-  its `stop` stays empty: the Dispatcher stations are parked with the stations topic (owner, 2026-11-22;
-  docs/parked/UNPARK.md has the helix stop rule for the day they return).
+  its `stop` stays empty: the Dispatcher stations are parked with the stations topic
+  (docs/parked/UNPARK.md has the helix stop rule for the day they return).
   A balloon loop is two blocks, "Track <n> Loop 1" from the switch's leg B and "Track <n> Loop 2" from leg C, parted
   at the turnback halfway round: JMRI keys a mast by its facing and protected blocks
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
   one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is not on a node until it is
   wired (NOT_WIRED), so no node or input assignment moves.
   A link, a track under block_layer.LINK_CM (50 cm) between two switches, is a part (the device master's part_of) of an OS
-  block (step 5 part 2): the lower-numbered switch's, or, where a home mast stands at a switch's
+  block: the lower-numbered switch's, or, where a home mast stands at a switch's
   points facing it, the OS block at its other end (the block boundary is at the mast). On main and upper a part is
   still a JMRI block and layout block of its own, drawn on the panel, whose occupancy sensor is its OS block's
   (hartlib.tables_build.master_beans): no occupancy row or detector of its own. A double crossover's link is part of the corner
@@ -94,12 +94,12 @@ Naming rules (ADR-005 grammar, LCOS conventions):
 - Detection on the main line only: main-route tracks and the OS blocks of control point
   switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
   get none (their virtual sensor stays, NO_DETECTOR).
-- Masts: the one mast process every level uses (mast_plan.plan, owner 2026-11-20; plan_masts): home masts,
+- Masts: the one mast process every level uses (mast_plan.plan; plan_masts): home masts,
   intermediates, and virtual masts (hidden, IF$vsm, ordinals from 2001 on main and 3001 on upper) only where a
   visible mast's route reaches a buffer stop first. What follows is the home mast rule as it stands here.
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
   or yard tracks that end at a bumper, and none where no route the mast would govern reaches another signal (every
-  route ends at a bumper or in dark track: mast_rule.reaches_signal, owner 2026-11-19, which leaves out 125B's mast
+  route ends at a bumper or in dark track: mast_rule.reaches_signal, which leaves out 125B's mast
   into Switch 129's spurs). "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number and direction
   has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
   control point before the next signal (mast_rule.facing_on_route), else one; high (searchlight) facing from running
@@ -116,16 +116,16 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   build (Nodes.freeze), and the rule hands them to nothing else; its detectors are pins (read_pins: an OS block by its
   name, a helix block by its name, a track by its end switches). The JMRI names stay virtual: freezing fixes the
   wiring only.
-- Hand lists keyed by end switches (block_overrides.csv, with a level column, and wiring.csv's main and upper detectors; source-data row 5; running
-  track and exit dwarfs are rules since 2026-11-20, mast_rule.running_tracks and signalled_spurs): columns switch_a,
+- Hand lists keyed by end switches (block_overrides.csv, with a level column, and wiring.csv's main and upper detectors; running track and
+  exit dwarfs are rules, mast_rule.running_tracks and signalled_spurs): columns switch_a,
   switch_b (the owner's switch numbers, lower first; switch_b blank for a spur, whose other end is a
   bumper), `parallel` (1, 2 in mast_rule.plan_order, only where two tracks run between the same switches) and, in the pins,
   `half` (1, 2: a balloon loop or split track, half 1 at the lower-numbered switch). Each row is resolved to the
   generated track at build time (mast_rule.resolve_track), so a renumber moves rows with their tracks; a pair that
   matches no track, or two tracks with no `parallel`, stops the build naming the file, line and candidates. A pin on a
   helix block gives the owner's block name instead (no switches).
-- DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first (owner,
-  2026-11-15). Each turnout also gets its LCC alias "DCC Switch <n>" (MTT<dcc>, same node comment, as staging has).
+- DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first. Each
+  turnout also gets its LCC alias "DCC Switch <n>" (MTT<dcc>, same node comment, as staging has).
 """
 from __future__ import annotations
 
@@ -135,10 +135,10 @@ import io
 import os
 import re
 import sys
-from collections import defaultdict
+from collections import Counter
 from pathlib import Path
-from collections.abc import Iterable, Mapping, Sequence
-from typing import Any, Literal, NamedTuple
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
@@ -149,6 +149,8 @@ import block_layer  # noqa: E402  the one block process for every level
 import device_map_masts  # noqa: E402  staging's mast and head rows
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
+from mast_plan import Bands  # noqa: E402  the plugin's solved bands
+from mast_rule import Joined  # noqa: E402  the plugin's connector partners
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
 from hartlib import block_numbering, device_ids, devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402,E501  names, facts, the master
 from device_map_inputs import (  # noqa: E402,F401  the readers; re-exported: callers read them from this module
@@ -167,6 +169,9 @@ from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-
     block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
     split_tracks, xover_corners)
+
+from device_map_records import (  # noqa: E402,F401  build()'s records; re-exported: callers read them here
+    Corners, DeviceMapRow, Drawing, MapBuild, MapInputs, MapOutput, MastEntry, MastKind, Runs, VirtualNames)
 
 SWITCHES = SOURCES.switches                     # switches.csv: its main and upper rows give the local switches' areas
 OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json, the owner's hand edits (read only)
@@ -209,7 +214,7 @@ def block_sensor(block: str) -> str:
         raise MapError(str(exc)) from exc
 
 
-def head_name(user: str, level) -> str:
+def head_name(user: str, level: int | str) -> str:
     """The internal system name of a head of `level` (hartlib.level_masts.head_name: the level's prefix is data,
     HEAD_PREFIXES; every level's builder names its heads so); MapError on a name out of the
     grammar."""
@@ -233,14 +238,12 @@ def load_cps(path: Path = CPS) -> list[railroad.Interlocking]:
         raise MapError(str(exc)) from exc
 
 
-MastKind = Literal["home", "intermediate", "virtual"]    # mast_plan's three lists of masts
-
-
 # ---------------------------------------------------------------- the map
 
 
-def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None
-               ) -> tuple[dict, dict, set, block_layer.Layer]:
+def plan_masts(bands: Bands, joined: Joined, runs: Runs, found: list[dict[str, Any]], cp_of: Mapping[str, str],
+               corners: Corners | None) -> tuple[dict[str, list[MastEntry]], dict[str, dict[str, str]], set[str],
+                                                 block_layer.Layer]:
     """(mast_plan.plan's masts of the main and upper levels, the double crossovers' corner blocks, the split track
     names, the block layer): the one mast process over this level's block layer (main_upper_layer) and the owner's
     block splits. Each home mast gains `facing`, the block of the track it faces (its track's: a part is a JMRI block
@@ -256,7 +259,7 @@ def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None
     return got, corner_blocks, set(split.values()), lay
 
 
-def master_virtual_names(files: devices.Files | None = None) -> dict:
+def master_virtual_names(files: devices.Files | None = None) -> VirtualNames:
     """{mast id: (user name, system name)} of the main and upper virtual masts as this script last wrote them (each
     keeps its ordinal by its ID, so a mast whose letter changed keeps its system name): name memory, its one
     read-back of its own output (devices.allocated_names)."""
@@ -265,23 +268,28 @@ def master_virtual_names(files: devices.Files | None = None) -> dict:
             if level_masts.virtual_ordinal(r["jmri_name"])}
 
 
-def owner_mast_names(files: devices.Files | None = None) -> dict:
+def owner_mast_names(files: devices.Files | None = None) -> dict[str, str]:
     """{mast id: the owner's user name} of the main and upper masts devices_field.csv names (by ID, hartlib.devices
     .KEY): the owner's name wins, and the mast's heads are named from it."""
     return {f["id"]: f["user_name"] for f in devices.field_index(files or device_files()).values()
             if f["level"] in ("2", "3") and f["layer"] == "mast" and f["user_name"]}
 
 
-def virtual_memory(virtual: list[dict], old: dict) -> dict[int, dict]:
+def virtual_memory(virtual: Iterable[Mapping[str, Any]], old: Mapping[str, tuple[str, str]]
+                   ) -> dict[int, dict[str, str]]:
     """{level: {"Mast <name>": system name}} of the virtual masts' old system names (`old`: master_virtual_names,
     by ID), each under its mast's name now (`virtual`: the planned virtual masts, each with its `id` and final
     `name`), an old ID the rule no longer places under its old name (mast_plan.virtual_system_names asks for it in
     retired_virtual_masts.csv). MapError when that old name is now another mast's."""
     now = {m["id"]: f"Mast {m['name']}" for m in virtual}
-    out, bad = {}, []
+    out: dict[int, dict[str, str]] = {}
+    bad: list[str] = []
     for ident, (user, system) in old.items():
         key = now.get(ident, user)
-        mine = out.setdefault(level_masts.virtual_level(system), {})
+        level = level_masts.virtual_level(system)
+        if level is None:
+            raise MapError(f"{user}: {system} (id {ident}) is not a main or upper virtual mast's system name")
+        mine = out.setdefault(level, {})
         if key in mine or (ident not in now and key in now.values()):
             bad.append(f"{key}: the virtual mast of id {ident} had that name, and another mast now has it: add "
                        f"{user} ({system}) to retired_virtual_masts.csv under another name, or give the mast its old "
@@ -292,7 +300,8 @@ def virtual_memory(virtual: list[dict], old: dict) -> dict[int, dict]:
     return out
 
 
-def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_blocks: set) -> None:
+def check_frozen_cps(rows: Iterable[DeviceMapRow], cps: frozenset[str], held_devices: set[tuple[str, str]],
+                     held_blocks: set[str]) -> None:
     """A control point wiring.csv holds (frozen) is read from it and proposed for no more: stop on a device the rule
     gave one of its rows (a turnout, feedback or head on a node, or a detector input) that wiring.csv does not
     hold. A switch added to a frozen control point is wired and frozen again (make wiring-freeze)."""
@@ -309,46 +318,16 @@ def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_b
                        f"{', '.join(sorted(bad))} for them: wire and freeze again (make wiring-freeze CP=...)")
 
 
-DeviceMapRow = dict[str, Any]   # a device-map row (device_map_rows.device_row); csv_text writes it under COLUMNS
 CORNER = "xover_corner"         # a double crossover's corner block and its occupancy row
 LAYER_ORDER = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}   # build()'s row order
 
 
-class MapBuild(NamedTuple):
-    """What build()'s stages share: the plan facts read once at the start, the node allocator, and the rows made so
-    far. `rows`, `block_ids`, `home` and `area_of` are filled in place, stage by stage, in build()'s order (a node's
-    12V turnout boards come before its 5V head boards)."""
-    bands: list[Any]                    # the plugin's bands
-    by_level: dict[int, set[str]]       # labels_by_level: {level: the switch labels drawn on it}
-    switches: dict[str, railroad.MainUpperSwitch]   # every main and upper switch, by number
-    cp_of: dict[str, str]               # {switch: its control point}
-    loc: dict[str, railroad.MainUpperSwitch]        # the switches in no control point (level, area, notes)
-    found: list[dict[str, Any]]         # named_tracks: the main and upper tracks
-    corner_blocks: dict[str, dict[str, str]]        # {double crossover: {schematic leg: corner block}}
-    split_names: set[str]               # the split tracks' names
-    lay: block_layer.Layer
-    trials: dict[str, str]              # {block: trial_name} (level_keys)
-    track_ids: dict[str, str]           # {block: device ID} (level_keys)
-    places: Places
-    helix: dict[str, Any]               # read_helix_tracks
-    nodes: Nodes
-    os_pin_level: dict[str, int]        # {OS block pinned by its name: the level its wiring.csv row gives}
-    dcc: dict[str, int]                 # {switch: its DCC address}
-    rows: list[DeviceMapRow]
-    block_ids: dict[tuple[str, str], str]   # (level, block) -> its device ID, for its detector and the masts facing it
-    home: dict[str, int]                # switch -> its turnout's node
-    area_of: dict[str, tuple[int, str]]     # switch -> (level, area)
-
-
-def build(bands: list[Any], joined: Any, runs: Any, overrides: Mapping[str, Any],
-          cps: Sequence[railroad.Interlocking], node_rows: Iterable[Any], local: Iterable[Any] = (),
-          corners: dict[str, Any] | None = None, helix: dict[str, Any] | None = None,
-          pins: dict[str, tuple[int, int]] | None = None, places: Places | None = None,
-          virtual_names: dict[str, tuple[str, str]] | None = None, frozen: list[Any] | None = None,
-          owner: dict[str, str] | None = None) -> tuple[dict[str, Any], list[DeviceMapRow], list[DeviceMapRow]]:
-    """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the
-    switches in no control point (the local switches of switches.csv rows). Every switch on the main and upper bands
-    must be in exactly one of the two. `corners`: dx_corners, needed when a band has a double crossover. `helix`:
+def build(bands: Bands, joined: Joined, runs: Runs, inputs: MapInputs, corners: Corners | None = None, *,
+          helix: Mapping[str, Mapping[str, str]] | None = None, pins: dict[str, tuple[int, int]] | None = None,
+          places: Places | None = None, virtual_names: VirtualNames | None = None,
+          frozen: list[wiring.Wire] | None = None, owner: Mapping[str, str] | None = None) -> MapOutput:
+    """MapOutput of the main and upper levels from the drawing (`bands`, `joined`, `runs`) and `inputs`.
+    `corners`: dx_corners, needed when a band has a double crossover. `helix`:
     read_helix_tracks (None: plan_overrides.json; {}: no helix tracks); `pins`: read_pins (None: wiring.csv's
     detectors, resolved against the tracks found here); `virtual_names`: {mast id: (user name, system name)} of the
     virtual masts that have one already (None: master_virtual_names); `frozen`: frozen_wires (None: wiring.csv's);
@@ -356,10 +335,11 @@ def build(bands: list[Any], joined: Any, runs: Any, overrides: Mapping[str, Any]
     `owner`: {mast id: the owner's name} (None: owner_mast_names), which a mast and its heads take."""
     helix = helix_tracks() if helix is None else helix
     places = read_places() if places is None else places
+    cps = inputs.cps
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
-    switches, cp_of, loc = _switch_facts(cps, local, by_level)
-    found = named_tracks(bands, joined, runs, overrides, helix)
+    switches, cp_of, loc = _switch_facts(cps, inputs.local, by_level)
+    found = named_tracks(bands, joined, runs, inputs.overrides, helix)
     check_helix_ends(bands, joined, found, helix)
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
     if lay.inside:          # the main and upper drawing gives each strand one block: a piece there is a part
@@ -371,15 +351,17 @@ def build(bands: list[Any], joined: Any, runs: Any, overrides: Mapping[str, Any]
         pins = read_pins(found=found, split=split_names, ids={v: k for k, v in track_ids.items()})
         os_pin_level = {w.device: w.level for w in wiring_rows() if w.kind == "detector" and w.device
                         and OS_BLOCK.fullmatch(w.device)}
-    nodes = Nodes(node_rows)
+    nodes = Nodes(inputs.node_rows)
     nodes.pin(pins)
     held_wires = frozen_wires() if frozen is None else frozen
     nodes.freeze(held_wires)
     frozen_cps = frozenset(cp for w in held_wires if (cp := wiring.frozen_cp(w)))
     held_devices, held_blocks = {(w.kind, w.device) for w in held_wires}, set(pins)
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
-    st = MapBuild(bands, by_level, switches, cp_of, loc, found, corner_blocks, split_names, lay, trials, track_ids,
-                  places, helix, nodes, os_pin_level, dcc, [], {}, {}, {})
+    st = MapBuild(bands=bands, by_level=by_level, switches=switches, cp_of=cp_of, loc=loc, found=found,
+                  corner_blocks=corner_blocks, split_names=split_names, lay=lay, trials=trials, track_ids=track_ids,
+                  places=places, helix=helix, nodes=nodes, os_pin_level=os_pin_level, dcc=dcc, rows=[], block_ids={},
+                  home={}, area_of={})
     _switch_and_os_rows(st, cps)
     part_rows = _part_rows(st)
     _track_rows(st)
@@ -396,10 +378,10 @@ def build(bands: list[Any], joined: Any, runs: Any, overrides: Mapping[str, Any]
     check_virtual(st.rows)
     assign_ports(st.rows)
     st.rows.sort(key=lambda r: (r["level"], LAYER_ORDER[r["layer"]], natural(r["user_name"])))
-    return cp_keys, st.rows, part_rows
+    return MapOutput(cp_keys, st.rows, part_rows)
 
 
-def _switch_facts(cps: Sequence[railroad.Interlocking], local: Iterable[Any], by_level: Mapping[int, set[str]]
+def _switch_facts(cps: Sequence[railroad.Interlocking], local: Iterable[railroad.LocalSwitch], by_level: Mapping[int, set[str]]
                   ) -> tuple[dict[str, railroad.MainUpperSwitch], dict[str, str], dict[str, railroad.MainUpperSwitch]]:
     """(every main and upper switch, {switch: its control point}, the switches in no control point). MapError on a
     switch the bands draw that is in neither."""
@@ -430,8 +412,8 @@ def _track_id(st: MapBuild, name: str) -> str:
     return st.track_ids[name]
 
 
-def _add(st: MapBuild, level: Any, cp: str, layer: str, user: str, system: str = "", node: Any = "",
-         comment: str = "", trial: str = "", notes: str = "", dcc: Any = "", jmri: str = "", *, role: str,
+def _add(st: MapBuild, level: int | str, cp: str, layer: str, user: str, system: str = "", node: int | str = "",
+         comment: str = "", trial: str = "", notes: str = "", dcc: int | str = "", jmri: str = "", *, role: str,
          ident: str, **facts: Any) -> None:
     """A device-map row with the role (hartlib.devices.ROLES) its caller says it has: no role is read off a name;
     and its device ID (`ident`, hartlib.device_ids), from the plan facts its caller holds. A block row's ID is kept
@@ -442,7 +424,7 @@ def _add(st: MapBuild, level: Any, cp: str, layer: str, user: str, system: str =
         st.block_ids[(str(level), user)] = ident
 
 
-def _occupancy(st: MapBuild, level: Any, cp: str, block: str, system: str = "", node: Any = "", comment: str = "",
+def _occupancy(st: MapBuild, level: int | str, cp: str, block: str, system: str = "", node: int | str = "", comment: str = "",
                notes: str = "", *, role: str) -> None:
     """The occupancy row of `block`, whose role (`role`) it shares: its virtual sensor (jmri_name), the block it
     serves and its detector: planned on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none
@@ -610,7 +592,7 @@ def _track_half_rows(st: MapBuild, t: dict[str, Any], sws: list[str], half: int 
     _occupancy(st, t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=role)
 
 
-def _facing_id(st: MapBuild, level: Any, block: str) -> str:
+def _facing_id(st: MapBuild, level: int | str, block: str) -> str:
     """The device ID of the block `block` a mast faces: its row on the mast's level, else its one row on another
     level (a helix block, a link drawn on the other band). MapError when it has none or several there."""
     got = st.block_ids.get((str(level), block))
@@ -741,7 +723,8 @@ def _virtual_mast_rows(st: MapBuild, virtual: list[dict[str, Any]], vnames: Mapp
 WRITER = "build_device_map.py"
 
 
-def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[dict], list[dict]]:
+def owned_rows(rows: Iterable[DeviceMapRow], parts: Iterable[Mapping[str, Any]], files: devices.Files | None = None
+               ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """(the main and upper rows with the owner's values over them, the same rows as generated): build()'s `rows`
     (the device-map form) and `parts` (already master rows) in the master's form, each with the field row of its id
     in devices_field.csv over it (device_map_rows.owner_over, hartlib.devices.KEY), as staging's are: on every level
@@ -759,14 +742,14 @@ def owned_rows(rows, parts, files: devices.Files | None = None) -> tuple[list[di
     return follow_swaps(out, field), made
 
 
-def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[dict]:
+def block_beans(rows: Iterable[dict[str, Any]], numbering_path: Path | None = None) -> list[dict[str, Any]]:
     """`rows` (main and upper master rows, as generated) with each block row's jmri_name and layout_block, a helix
     block's left out (its beans are staging's): the numbers block_numbering.csv gives (hartlib.block_numbering.read
     and bean_names: today's numbers until the levels are wired for good). They are numbered over the generated
     names, not the owner's, so an owner's rename in devices_field.csv keeps a block's numbers (sorting the owner's
     names would shift every block after a rename with no numbered_as row). Its assignment becomes virtual (an internal name) and its description is
     written again. `numbering_path`: block_numbering.csv (default the repo's). MapError on a numbering problem."""
-    def numbered(r) -> bool:
+    def numbered(r: Mapping[str, Any]) -> bool:
         return r["layer"] == "block" and r["level"] in block_numbering.LEVELS and r["role"] != "helix"
 
     names = {(r["level"], r["id"]): r["user_name"] for r in rows if numbered(r)}
@@ -786,8 +769,10 @@ def block_beans(rows: list[dict], numbering_path: Path | None = None) -> list[di
     return out
 
 
-def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None = None, warn=None,
-                   check: bool = False, held: list | None = None) -> dict[Path, str]:
+def master_outputs(bands: Bands, joined: Joined, runs: Runs, rows: Iterable[DeviceMapRow],
+                   parts: Iterable[Mapping[str, Any]], files: devices.Files | None = None,
+                   warn: Callable[[str], None] | None = None, check: bool = False,
+                   held: list[str] | None = None) -> dict[Path, str]:
     """{path: text} of the device master once this script has written every level's rows: main and upper's
     (build()'s `rows` and `parts`, owned_rows) and staging's (staging_rows, staging_wired_rows, and its masts and
     heads from those rows, device_map_masts.staging_masts), all generated from the plan with the owner's values over
@@ -824,13 +809,13 @@ def master_outputs(bands, joined, runs, rows, parts, files: devices.Files | None
     return devices.outputs_after(WRITER, [], f, master_rows=every, warn=warn, check=check)
 
 
-def startup_thrown(bands) -> frozenset:
+def startup_thrown(bands: Bands) -> frozenset[str]:
     """The switch numbers of the main and upper levels (not le_common.STAGING_LEVELS: staging's turnouts are the
     field's) whose virtual turnout starts Thrown: those whose main route runs through leg C and not leg B, so every
     virtual turnout lines the main line when the tables load (227 and 229 at the peninsula loop).
     A double crossover or a crossover half stays Closed (straight through). bean_cells writes it as the turnout
     row's start, which hartlib.tables_build's startup LogixNG sets."""
-    out = set()
+    out: set[str] = set()
     for (_title, band, _opts), level in zip(bands, le_common.band_levels(bands)):
         if level in le_common.STAGING_LEVELS:
             continue
@@ -844,11 +829,12 @@ def startup_thrown(bands) -> frozenset:
     return frozenset(out)
 
 
-def check_switch_ids(rows) -> None:
+def check_switch_ids(rows: Iterable[Mapping[str, Any]]) -> None:
     """Every switch number in a staging turnout, LCC alias or feedback ID is a switch the drawing has: it has an OS
     block ID (os:<n>, or a crossover half's os:<n>:...) among `rows`. staging_wired_rows makes those rows for the
     switches of the plan graph (staging_switches), the drawing's blocks come from the solved plan: this holds the two
     to each other. MapError naming each that is not."""
+    rows = list(rows)
     drawn = {r["id"].split(":")[1] for r in rows if r["layer"] == "block" and r["id"].startswith("os:")}
     stray = sorted({r["id"] for r in rows if r["layer"] in ("turnout", "fb") and r["id"].split(":")[1] not in drawn},
                    key=natural)
@@ -856,16 +842,18 @@ def check_switch_ids(rows) -> None:
         raise MapError(f"staging device IDs {', '.join(stray)} name a switch the plan does not draw")
 
 
-def staging_map_error() -> type:
-    import staging_device_map as sdm        # it imports this module
-    return sdm.StagingMapError
+def staging_map_error() -> type[Exception]:
+    """staging_device_map's StagingMapError, imported at call time (that module imports this one)."""
+    import staging_device_map as sdm
+    error: type[Exception] = sdm.StagingMapError
+    return error
 
 
-def check_virtual(rows) -> None:
+def check_virtual(rows: Iterable[Mapping[str, Any]]) -> None:
     """The rows' virtual names follow hartlib.level_devices (hartlib.railroad.check_virtual_names, which
     `python3 -m hartlib.railroad check` also holds the written file to); MapError naming each problem."""
     # the rows as generated, each with its id: a turnout's switch number and a block's detector are read by ID
-    bad = railroad.check_virtual_names(railroad.DeviceRow.from_dict(r) for r in rows)
+    bad = railroad.check_virtual_names(railroad.DeviceRow.from_dict(dict(r)) for r in rows)
     if bad:
         raise MapError("; ".join(bad))
 
@@ -873,7 +861,7 @@ def check_virtual(rows) -> None:
 PIN_RE = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)$")
 
 
-def assign_ports(rows) -> None:
+def assign_ports(rows: Iterable[DeviceMapRow]) -> None:
     """Board and pins for turnout and feedback rows, as docs/wiring/README.md lays boards out: turnouts two pins
     each on 12V DNOU8 boards from OU1; feedback N then R on DNIN8 boards from IN1. Heads get theirs when placed
     (Nodes.place_mast: 5V boards after the 12V ones, R Y G on three consecutive pins, a mast's heads on one board,
@@ -890,7 +878,7 @@ def assign_ports(rows) -> None:
             r["comment"] += f" | IN: {k // 8 + 1} Ports: {k % 8 + 1}"
 
 
-def csv_text(rows, columns=COLUMNS) -> str:
+def csv_text(rows: Iterable[Mapping[str, Any]], columns: Sequence[str] = COLUMNS) -> str:
     """The CSV text of `rows` under `columns` (default: the device map's), as the schematic data files are written;
     a row with a column not in `columns` stops (ValueError)."""
     buf = io.StringIO()
@@ -900,10 +888,10 @@ def csv_text(rows, columns=COLUMNS) -> str:
     return buf.getvalue()
 
 
-def generated_text(cp_keys) -> str:
+def generated_text(cp_keys: Mapping[str, Any]) -> str:
     """plan_generated.json's whole text with its main_upper section given these control points and stations (the
     hand file is not read or written; nothing here comes from the section's own earlier keys)."""
-    over = {}
+    over: dict[str, Any] = {}
     over["control_points"] = cp_keys
     over["stations"] = {name: {"switches": cp["switches"], "tracks": []} for name, cp in cp_keys.items()}
     over["_control_points"] = ("Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by "
@@ -912,22 +900,25 @@ def generated_text(cp_keys) -> str:
     return layer_files.generated_texts({SHEET: over}, OVERRIDES.parent)[GENERATED]
 
 
-def solve():
+def solve() -> Drawing:
+    """The Drawing from the solved sheet (publish_draft.solved_sheet) and the plugin's le module. build_layout_le's
+    BuildError when the plugin or the drawing stops."""
     import build_layout_le as bl
     sheet, le_mod, _core = bl.plugin()
     built = pd.solved_sheet(sheet)
-    return built.bands, le_mod.partners(built.bands), bl.runs, dx_corners(built.bands, le_mod, built.opts)
+    return Drawing(built.bands, le_mod.partners(built.bands), bl.runs, dx_corners(built.bands, le_mod, built.opts))
 
 
-def main(argv=None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
+    """Exit status: 0 current or written, 1 stale under --check (or SKIPPED with SCHEMATIC_REQUIRED=1), 2 a fact
+    that stops the build (its message on stderr), or rows written with staging's masts held."""
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="exit 1 if an output is stale")
     args = ap.parse_args(argv)
     # the device map is its own layer: it reads the inputs only (railroad.LAYERS), never a copy of itself
     rr = railroad.Railroad(sources(), upto="inputs")
     try:
-        overrides = rr.plan_overrides.data
-        inputs = rr.level_control_points, rr.lcos_nodes, rr.local_switches
+        inputs = MapInputs.of(rr)
     except railroad.FactsError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
@@ -940,7 +931,7 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        cp_keys, rows, parts = build(bands, joined, runs, overrides, *inputs, corners)
+        cp_keys, rows, parts = build(bands, joined, runs, inputs, corners)
     except (MapError, railroad.FactsError) as exc:        # a DevicesError (reading the master) is a FactsError
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
@@ -966,9 +957,7 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: rows written, staging's masts kept as they were: {'; '.join(held)}",
               file=sys.stderr)
         return 2
-    counts = defaultdict(int)
-    for r in rows:
-        counts[r["layer"]] += 1
+    counts = Counter(r["layer"] for r in rows)
     print(", ".join(f"{v} {k}" for k, v in counts.items()))
     return 0
 
