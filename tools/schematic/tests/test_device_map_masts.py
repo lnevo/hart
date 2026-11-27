@@ -355,9 +355,16 @@ class OneNameSource(unittest.TestCase):
         self.assertEqual(dmm.mast_system_name("one-low", ["IH:HART:C1:2R"]), "IF$shsm:basic:one-low(IH:HART:C1:2R)")
 
 
-class ReviewFixes(unittest.TestCase):
-    """Code review of naming-layers step 12."""
+class EdgeCases(unittest.TestCase):
+    """Names and IDs the rule must refuse rather than guess."""
     V = "IF$vsm:basic:one-low(${})"
+
+    def test_a_mast_at_a_switch_with_no_control_point_stops(self):
+        gen = [dict(mast="Mast 2R", toward="1"), dict(mast="Mast 34L", toward="33")]
+        planned = dict(virtual=[dict(name="12L", switch="11")])
+        dmm.check_control_points(gen, planned, {"1": "Brick", "11": "Barn", "33": "East End"})
+        with self.assertRaisesRegex(dmm.RuleError, r"switch\(es\) 9, 33, which no staging station names"):
+            dmm.check_control_points(gen + [dict(mast="Mast 10L", toward="9")], planned, {"1": "Brick", "11": "Barn"})
 
     def test_a_dropped_virtual_masts_name_taken_by_a_new_mast_stops(self):
         """A dropped mast's ordinal must not go silently to a new mast (a new ID) that takes its name."""
