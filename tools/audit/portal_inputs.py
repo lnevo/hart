@@ -41,8 +41,9 @@ SITE_TOOLS = ("tools/ops/build_pipeline_map.py", "tools/ops/pipeline_map_page.ht
               "tools/ops/pipeline_map_view_rail.js", "tools/ops/pipeline_map_view_nav.js",
               "tools/ops/pipeline_map_view_input.js",
               "tools/ops/pipeline_map_eff.py", "tools/ops/agent_docs_map.py",
-              "jmri/layouts/hart/scripts/render_le_layout.py", "jmri/layouts/hart/scripts/render_le_geometry.py",
-              "jmri/layouts/hart/scripts/render_le_draw.py", "tools/wiring/write_inventory.py")
+              "tools/wiring/write_inventory.py")
+# The schematic PNG's renderer: render_le_layout.py and the parts it imports from beside it (render_le_layout.SOURCES)
+RENDERER = "jmri/layouts/hart/scripts/render_le_"
 NO_CHANGE = 3
 
 
@@ -95,7 +96,8 @@ def manifest_sources(root: Path) -> set[str]:
 
 
 def site_inputs(paths: list[str], sources: set[str]) -> list[str]:
-    return [p for p in paths if p.startswith(SITE_PREFIXES) or p in SITE_TOOLS or p in sources]
+    return [p for p in paths if p.startswith(SITE_PREFIXES) or p in SITE_TOOLS or p in sources
+            or (p.startswith(RENDERER) and p.endswith(".py"))]
 
 
 def main() -> int:
