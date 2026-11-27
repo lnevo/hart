@@ -80,6 +80,32 @@ Size: S. Done when the check passes on `main`.
 
 Done 2026-11-22 (PR #928): all twelve cells cut with their detail in sections below the tables, and `check_agent_docs.py` fails a cell over 80 words.
 
+## Rescores
+
+The scores are a reviewer's judgment, and each one rests on the measurements in the table. Overall: 7.5 (2026-10-31, first pass), 8 (2026-10-31, after the gates), 8.5 (2026-11-22), 9 (2026-11-27, after the six code-quality waves).
+
+| Area | 10-31 | 11-22 | 11-27 | Measured on 2026-11-27 |
+|---|---|---|---|---|
+| Knowledge and decisions | 9 | 9 | 9.5 | 40 ADRs (31 on 11-22) and 20 pipeline pages. Status is one file per entry (ADR-038). Wiki cells are capped at 80 words. The 11-27 audit found 2 broken links. |
+| AI instructions | 9 | 9 | 9.5 | `AGENTS.md` is 65 lines and 980 words (109 lines on 11-22), held by the 70-line, 1,000-word check. There are 11 skills and 10 named agents. |
+| Workflow | 8 | 9 | 9 | 1,815 commits, 856 merges and 1 revert since 11-22. There is one cross-session merge queue (`coordinate` skill). The median green CI run is about 6 minutes (about 2.5 on 11-22). |
+| Verification | 7 | 8.5 | 9 | About 7,000 test functions in 416 test files (about 3,950 on 11-22). The habits and mypy counts are ratcheted. The last 100 CI runs were 84 passed, 1 failed and 14 cancelled (81, 7 and 11 on 11-22). |
+| Organization | 8 | 8 | 8.5 | Scripts over 1,000 lines fell from 11 to 3, and one of them is parked. `signal_coordinator.py` is 648 lines and `build_device_map.py` 520. The code report card is B+ (3.30), up from B- (2.86). `railroad_facts.py` (1,286) and `devices.py` (1,154) are still large, across 841 Python files. |
+| Subagents | 6.5 | 7.5 | 8.5 | `general-purpose` was 140 of 527 chosen launches (27%) for 2026-11-22 to 11-27, down from 68%. It was 54% of every launch. The leaders were `finding-verifier` (185), `tool-fixer` (58) and `schematic-builder` (39). |
+
+Held back on 2026-11-27:
+- **Verification:** the local quick `./tools/check.sh` fails in a fresh worktree on the Mac, while the remote run passes. The two failures are unit-cats (`No module named 'PIL'` under Homebrew Python) and `test_check_stamps`. This is queued on [wave-loose-ends](wave-loose-ends.md). The group D split of `signal_coordinator.py` was accepted without a live test.
+- **Organization:** the repo keeps growing faster than it gets simpler.
+- **Subagents:** the 2026-12-05 count below is still the formal re-measure.
+
+How to measure again:
+- Count commits since the last rescore with `git rev-list --count --since=…` and `--merges`.
+- Count test functions with `git grep -c "def test_"`, outside `archive/`, `external/` and `reference/`.
+- Get CI outcomes from `gh run list --limit 100`.
+- Run `agent_launch_count.py --since … --until …` and use its first count.
+- Take the report card from [code-quality-wave](code-quality-wave.md).
+- The Python file and test counts were not taken exactly as on 11-22, so treat those as approximate.
+
 ## Done when
 
 Left on 2026-11-23: only the 2026-12-05 agent count. Items 0, 1, 2 and 4 are merged, and item 1 is deployed.
