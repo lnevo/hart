@@ -43,6 +43,7 @@ def form(name: str, site: str) -> Form:
 
 
 def _drawn(name: str) -> Image.Image:
+    """The card of paperwork/NAME.html, drawn with the address of the site this run serves."""
     return kit.card(kit.draw(name, *form(name, kit._site)))
 
 
