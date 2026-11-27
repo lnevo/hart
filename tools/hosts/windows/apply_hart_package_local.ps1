@@ -298,6 +298,9 @@ foreach ($p in @(
 # Start Up entries for retired scripts stay in an old profile.xml until stripped: the shared one and each
 # per-computer profile\<node id>\profile.xml, which JMRI reads first.
 $retiredStartup = @('apply_maintain_mqtt.py', 'apply_mqtt_retain_at_startup.py', 'prepare_nx_sml_paths.py')
+# An entry whose name= is the retired file, alone or after its last /, \ or : (preference:jython/x.py), with the line
+# break before it; old_x.py or x.py.bak is another file. {0} is the escaped file name.
+$retiredEntry = '\r?\n[ \t]*<perform\b[^>]*\bname="(?:[^"]*[/\\:])?{0}"[^>]*/>'
 foreach ($r in ($profileRoots | Select-Object -Unique)) {
   $profiles = @(Join-Path $r 'profile\profile.xml') + @(Get-ChildItem (Join-Path $r 'profile') -Directory -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.FullName 'profile.xml' })
   foreach ($px in $profiles) {
@@ -305,7 +308,7 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
     $txt = Get-Content -Raw -Encoding UTF8 -LiteralPath $px
     $orig = $txt
     foreach ($name in $retiredStartup) {
-      $txt = [regex]::Replace($txt, ('\r?\n[ \t]*<perform\b[^>]*' + [regex]::Escape($name) + '[^>]*/>'), '')
+      $txt = [regex]::Replace($txt, ($retiredEntry -f [regex]::Escape($name)), '')
     }
     if ($txt -ne $orig) {
       Set-Content -LiteralPath $px -Value $txt -Encoding UTF8 -NoNewline

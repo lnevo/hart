@@ -282,7 +282,9 @@ scp_win() {
 pi_restart_if_due() {
   [[ "$DRY_RUN" -eq 0 && "${HART_PI_RESTART:-1}" != "0" ]] || return 0
   local due
-  due="$(ssh_pi "bash -s" < "$ROOT/tools/hosts/pi/panelpro_restart_due.sh")" || due="unknown"
+  # jmri_profile_match.sh goes first: it defines the JMRI app check the script uses (the Pi has no copy of it to read)
+  due="$(cat "$ROOT/tools/hosts/pi/jmri_profile_match.sh" "$ROOT/tools/hosts/pi/panelpro_restart_due.sh" \
+    | ssh_pi "bash -s")" || due="unknown"
   case "$due" in
     yes)
       echo "Starting PanelPro on the Pi again (it was quit for this deploy)..."

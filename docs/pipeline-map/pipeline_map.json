@@ -4673,6 +4673,15 @@
    "path": "tools/hosts/pi/panelpro_restart_due.sh"
   },
   {
+   "id": "tools/hosts/pi/jmri_profile_match.sh",
+   "label": "jmri_profile_match.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The one test of which processes run a JMRI app, and which run one on a JMRI profile (either profile word, whole id), for the Pi scripts and the Mac PanelPro runs.",
+   "path": "tools/hosts/pi/jmri_profile_match.sh"
+  },
+  {
    "id": "tools/hosts/pi/tables_base.sh",
    "label": "tables_base.sh",
    "kind": "generator",
@@ -14004,6 +14013,31 @@
    "from": "tools/hosts/pi/roster_sha.sh",
    "to": "tools/hosts/pi/unpulled_changes.sh",
    "label": "roster hash"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi/panelpro_restart_due.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi_start_panelpro.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/pi_quit_panelpro.sh",
+   "label": "JMRI running check"
+  },
+  {
+   "from": "tools/hosts/pi/jmri_profile_match.sh",
+   "to": "tools/hosts/panelpro_session.sh",
+   "label": "profile match"
   },
   {
    "from": "tools/hosts/pi/roster_sha.sh",

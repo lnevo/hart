@@ -110,15 +110,26 @@ class WindowsStartUpStrip(unittest.TestCase):
         assert found is not None, "no $retiredStartup list"
         names = found.group(1)
         self.assertEqual(sorted(re.findall(r"'([^']+)'", names)), sorted(STARTUP_STRIP))
-        pattern = re.search(r"\[regex\]::Replace\(\$txt, \('([^']+)' \+ \[regex\]::Escape\(\$name\) \+ '([^']+)'\)",
-                            self.text)
-        assert pattern is not None, "no [regex]::Replace of the Start Up entries"
-        out = DIRTY
+        self.assertIn("[regex]::Replace($txt, ($retiredEntry -f [regex]::Escape($name)), '')", self.text)
+        entry = re.search(r"^\$retiredEntry = '([^']+)'$", self.text, re.MULTILINE)
+        assert entry is not None, "no $retiredEntry pattern"
+        # the same file name inside a longer one, or with more after it, is another script and stays
+        kept = ['  <perform class="jmri.util.startup.configurexml.PerformScriptModelXml" enabled="yes" '
+                f'name="{name}" type="ScriptFile"/>'
+                for name in ("preference:jython/old_apply_maintain_mqtt.py", "C:\\jython\\apply_maintain_mqtt.py.bak",
+                             "xprepare_nx_sml_paths.py")]
+        dirty = DIRTY.replace("</startup>", "\n".join(kept) + "\n</startup>")
+        dirty = dirty.replace("</startup>", '  <perform class="jmri.util.startup.configurexml.PerformScriptModelXml" '
+                              'name="C:\\jython\\prepare_nx_sml_paths.py" type="ScriptFile"/>\n</startup>')
+        out = dirty
         for name in STARTUP_STRIP:
-            out = re.sub(pattern.group(1) + re.escape(name) + pattern.group(2), "", out)
-        self.assertNotIn("apply_maintain_mqtt.py", out)
+            # .NET -f fills {0}; the pattern uses no other braces
+            out = re.sub(entry.group(1).replace("{0}", re.escape(name)), "", out)
+        self.assertEqual(out.splitlines(), [line for line in dirty.splitlines()
+                                            if "scripts/apply_maintain_mqtt.py" not in line
+                                            and "jython\\prepare_nx_sml_paths.py" not in line])
         self.assertIn("panel_status.py", out)
-        self.assertEqual(out.count("<perform"), 1)
+        self.assertEqual(out.count("<perform"), 1 + len(kept))
 
 
 if __name__ == "__main__":
