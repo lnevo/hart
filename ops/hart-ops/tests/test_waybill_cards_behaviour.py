@@ -379,6 +379,19 @@ class DeckBuilding(SeededCase):
                              (row.commodity, row.car_type, row.route_from, row.route_to, row.via, row.load_summary))
             self.assertNotIn("Flow", card)   # interchange_flow counts in the report only; the card prints no flow
 
+    def test_routing_balance_counts_each_interchange_row_by_its_flow_and_via(self):
+        def row(card_id, flow, via):
+            return wdata.InterchangeCard(card_id, flow, "Widgets", "", "Boxcar", "A (X, NY)", "B (Y, NY)", via)
+        rows = [row(1, "OUT", "POHC"), row(2, "OUT", "POHC"), row(3, "OUT", "CSX"), row(4, "IN", "CSX")]
+        spot_out_csx = {"Commodity": "Widgets", "RouteChain": "CSX", "Flow": "OUT"}
+        interchange = wdeck.build_interchange_deck(rows)
+        deck = gwc.WaybillDeck([], [], [], 0, [], interchange, rows, [spot_out_csx, *interchange])
+        out = io.StringIO()
+        with mock.patch("sys.stdout", out):
+            gwc.print_routing(deck)
+        self.assertIn("IN: CSX 1 · POHC 0 | OUT: CSX 2 · POHC 2", out.getvalue())
+        self.assertIn("(spot only — IN: CSX 0 · POHC 0 | OUT: CSX 1 · POHC 0)", out.getvalue())
+
     def test_interchange_row_naming_an_island_industry_stops_the_build(self):
         row = wdata.interchange_rows()[0]._replace(route_to="Calgon Carbon")
         with self.assertRaises(wdata.WaybillDataError) as caught:
