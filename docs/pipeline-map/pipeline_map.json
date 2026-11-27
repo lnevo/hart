@@ -8277,6 +8277,36 @@
    "to": "ops/hart-ops/card_pipeline/generate_waybill_cards.py"
   },
   {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_waybill_cards.py",
+   "label": "industry order"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_sheet.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet industries"
+  },
+  {
+   "from": "ops/hart-ops/data/industry_notes.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet notes"
+  },
+  {
+   "from": "ops/hart-ops/data/spot_usages.csv",
+   "to": "ops/hart-ops/card_pipeline",
+   "label": "operator sheet usage labels"
+  },
+  {
+   "from": "ops/hart-ops/data/roads.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py",
+   "label": "road marks and spellings"
+  },
+  {
+   "from": "ops/hart-ops/data/loco_models.csv",
+   "to": "ops/hart-ops/card_pipeline/generate_all_cards.py",
+   "label": "loco builders"
+  },
+  {
    "from": "ops/hart-ops/industries",
    "to": "ops/hart-ops/data/HART_Spot_Waybills.csv",
    "label": "manual sync when lanes change"

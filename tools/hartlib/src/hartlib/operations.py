@@ -27,6 +27,7 @@ one road only. loco_models.csv maps a model (as Operations Pro names it) to its 
 """
 from __future__ import annotations
 
+import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -166,7 +167,7 @@ class IndustrySheet:
 
 
 def _whole(path: Path, line: int, col: str, cell: str) -> int:
-    if not cell.isdigit():
+    if not re.fullmatch(r"[0-9]+", cell):
         raise OpsDataError(f"{path}:{line}: {col} {cell!r} is not a whole number")
     return int(cell)
 
@@ -185,6 +186,9 @@ def read_industry_sheet(path: Path = INDUSTRY_SHEET) -> list[IndustrySheet]:
         except ValueError as exc:
             raise OpsDataError(f"{path}:{line}: logo_width {row['logo_width']!r} is not a number") from exc
         waybill = row["waybill_order"]
+        for col in ("sheet_order", "waybill_order"):
+            if row[col] and any(str(getattr(r, col)) == row[col] for r in out):
+                raise OpsDataError(f"{path}:{line}: {col} {row[col]} is another industry's too")
         out.append(IndustrySheet(row["industry_id"], row["sheet_name"],
                                  _whole(path, line, "sheet_order", row["sheet_order"]),
                                  _whole(path, line, "waybill_order", waybill) if waybill else None,

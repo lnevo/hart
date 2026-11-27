@@ -49,6 +49,7 @@ _SHEET = operations.read_industry_sheet()
 _NOTES = operations.read_industry_notes()
 INDUSTRY_LOGOS: dict[str, tuple[str, float]] = {r.sheet_name: (r.logo, r.logo_width) for r in _SHEET}
 SHEET_INDUSTRY_ORDER: dict[str, int] = {r.sheet_name: r.sheet_order for r in _SHEET}
+SHEET_INDUSTRY_IDS: dict[str, str] = {r.sheet_name: r.industry_id for r in _SHEET}   # sheet name -> industry_id
 INDUSTRY_SUMMARIES: dict[str, list[str]] = {r.sheet_name: _NOTES.get(r.industry_id, []) for r in _SHEET}
 
 SHENANGO_TRACK_ROWS: list[TrackRow] = [

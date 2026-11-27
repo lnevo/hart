@@ -79,7 +79,9 @@ class IndustrySheet(unittest.TestCase):
         self.assertEqual([(r.industry_id, r.sheet_order, r.waybill_order, r.logo_width) for r in rows],
                          [("stucki", 1, 1, 1.55), ("shenango", 5, None, 0.55)])
         for body, said in (("a,A,x,,l.png,1\n", "sheet_order 'x'"), ("a,A,0,,l.png,wide\n", "logo_width 'wide'"),
-                           ("a,A,0,,l.png,1\na,B,1,,l.png,1\n", "a (B) is listed twice")):
+                           ("a,A,0,,l.png,1\na,B,1,,l.png,1\n", "a (B) is listed twice"),
+                           ("a,A,0,3,l.png,1\nb,B,1,3,l.png,1\n", "waybill_order 3 is another industry's too"),
+                           ("a,A,\u00b2,,l.png,1\n", "is not a whole number")):
             with self.assertRaises(roads.OpsDataError) as cm:
                 roads.read_industry_sheet(self.write("s.csv", "industry_id,sheet_name,sheet_order,waybill_order,logo,"
                                                      "logo_width\n" + body))

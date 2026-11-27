@@ -1,4 +1,4 @@
 column,description,type,required,key,refs,values
-industry_id,"The industry (industries.csv). With line, the key.",str,yes,yes,ops/hart-ops/data/industries.csv:industry_id,
+industry_id,"The industry, one of the operator sheet's (industry_sheet.csv). With line, the key.",str,yes,yes,ops/hart-ops/data/industry_sheet.csv:industry_id,
 line,"The paragraph's place under the industry on the operator sheet (1 first). With industry_id, the key.",int,yes,yes,,
 text,"The paragraph: the industry's history through the 1990s, then a traffic line for the operator.",str,yes,,,
