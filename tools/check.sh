@@ -18,13 +18,13 @@ export JMRI_LAYOUT=hart
 # ops/hart-ops/.venv's Python when there is one: it carries pypdf, for the public text check's PDF part.
 HOPS_PY=python3
 [[ -x ops/hart-ops/.venv/bin/python ]] && HOPS_PY=ops/hart-ops/.venv/bin/python
-# Docs-only path, the rule CI uses (tools/ci/changed_kind.py): when every path this checkout changes (the branch
-# against its merge base with origin/main, plus uncommitted and untracked files) is Markdown docs, run only the quick
-# docs checks (tools/ci/docs_checks.sh, CI's list) and stop. It runs no job and records no stamp, and it does not end
-# "ALL PASSED": it is not a pass of check.sh (owner, 2026-11-24). CI, FULL=1 and any run that asks for something
-# particular (CHECK_ONLY, CHECK_AUDIT, HART_TABLES, PORTAL_CHECK=1, the CI stamp folders) take the normal path.
-# When git cannot say what changed (no merge base: a shallow clone), the normal path runs and says why.
-DOCS_ONLY=0
+# Docs-only and light paths, the rule CI uses (tools/ci/changed_kind.py --git: the branch against its merge base with
+# origin/main, plus uncommitted and untracked files). Markdown docs only: the quick docs checks (tools/ci/docs_checks.sh).
+# Light (docs, or data that only static checks read): tools/ci/light_checks.sh (make static's jobs, the static jobs
+# that read the changed files, then the quick docs checks). Neither ends "ALL PASSED": not a pass of check.sh (owner,
+# 2026-11-24, 2026-11-26). CI, FULL=1 and any run that asks for something particular (CHECK_ONLY, CHECK_AUDIT,
+# HART_TABLES, PORTAL_CHECK=1, the CI stamp folders) take the normal path, as does one where git cannot say what changed.
+DOCS_ONLY=0 LIGHT=0
 if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AUDIT:-}" && -z "${HART_TABLES:-}" \
       && "${PORTAL_CHECK:-}" != 1 && -z "${CHECK_RECORD_TO:-}" && -z "${CHECK_SKIP_FROM:-}" \
       && -z "${CHECK_AUDIT_FAILS:-}" ]]; then
@@ -32,6 +32,8 @@ if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AU
     case "$verdict" in
       docs:*) DOCS_ONLY=1
               echo "Docs-only change (${verdict#docs: }): quick docs checks only, no stamps recorded, not a full pass (FULL=1 runs everything)" ;;
+      light:*) LIGHT=1
+               echo "Light change (${verdict#light: }): the light checks only, not a full pass (FULL=1 runs everything)" ;;
       full:*) ;;
       unknown:*) echo "Full checks: cannot tell what changed, ${verdict#unknown: }" ;;
       *) echo "Full checks: tools/ci/changed_kind.py --git printed no verdict: $verdict" ;;
@@ -70,13 +72,10 @@ if [[ -n "$pin_problem" ]]; then
   echo "STOP: $pin_problem" >&2
   exit 2
 fi
+(( LIGHT )) && { HOPS_PY="$HOPS_PY" bash tools/ci/light_checks.sh --git; exit $?; }
 if (( DOCS_ONLY )); then
-  if HOPS_PY="$HOPS_PY" bash tools/ci/docs_checks.sh; then
-    echo "DOCS CHECKS PASSED (the docs-only path; FULL=1 runs check.sh in full)"
-    exit 0
-  fi
-  echo "FAILED"
-  exit 1
+  HOPS_PY="$HOPS_PY" bash tools/ci/docs_checks.sh && { echo "DOCS CHECKS PASSED (the docs-only path; FULL=1 runs check.sh in full)"; exit 0; }
+  echo "FAILED"; exit 1
 fi
 # A schematic check that cannot load the plugin fails rather than printing SKIPPED and passing, as in CI (owner,
 # 2026-11-23): a checkout without the submodule must not report ALL PASSED. SCHEMATIC_REQUIRED=0 lets those checks skip.
@@ -600,5 +599,5 @@ collect
 # a helper that fails leaves one line in step-timings.err beside the log, and the run is unchanged.
 [[ -n "${CI:-}${CHECK_AUDIT:-}" ]] || { if source tools/pipeline/step_timings.sh; then step_timings_jobs "$ROOT" "$JOBS" "$MANIFEST_JOBS" ${names[@]+"${names[@]}"}
   else printf '%s\tcheck\tsource tools/pipeline/step_timings.sh failed\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >>"$(hart_cache_dir "$ROOT" step-timings.err)"; fi; } 2>/dev/null
-if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
+if [[ "$fail" -eq 0 ]]; then echo "${CHECK_PASS_LINE:-ALL PASSED}"; else echo "FAILED"; fi
 exit "$fail"
