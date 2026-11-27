@@ -15656,13 +15656,6 @@
   },
   {
    "from": "wiki/projects",
-   "to": ".claude/agents/voice-reviewer.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "wiki/projects",
    "to": "docs/INDEX.md",
    "label": "points to",
    "gen": "agent-docs",
