@@ -1,7 +1,6 @@
 # Loose ends after the code-quality waves (2026-11-27)
 
-Status: active
-Coordinator: a background loose-ends coordinator of session hart-2d (merge queue, lanes, deploys, dashboard)
+Status: done (2026-11-27)
 Dashboard: https://claude.ai/artifact/P7sr9F2vXPUJnWfwxfYKAZ
 
 The owner asked on 2026-11-27 to clean up the "Left after the waves" list in [code-quality-wave.md](code-quality-wave.md#left-after-the-waves). The wave's rulings still hold ([Owner's choices](code-quality-wave.md#owners-choices-2026-11-26)): deploy each merge that ships, parked code stays as it is, ruff stays on F rules only.
@@ -22,10 +21,46 @@ The owner asked on 2026-11-27 to clean up the "Left after the waves" list in [co
 
 Not lanes: the mimic's "waiting" state (by design), the parked `occupancy_lamps_display_only.py`, `lcos_rule`'s `exec` (kept), and `play/answers.html`'s share card (owner kept it). `PUBLICATION` in `rebuild_crew_instructions` goes with the table moves.
 
+## Result
+
+Every lane merged; the last at 14:21. Agents and models as run (the plan table above was the starting brief; LE-L9 and LE-L10 ran on `data-lane`, the ADR-039 data-masters agent, which fits better than `tool-fixer`).
+
+| Lane | PR | Agent, model | Merge | Shipped |
+|------|----|--------------|-------|---------|
+| LE-L1 Hosts and deploy | #1347 | tool-fixer, opus | 0b1ea71f | Pi, Windows (Windows now installs from the shared Jython list), site |
+| LE-L2 Schematic | #1341 | schematic-builder, opus | 9fb9c0b8 | site (restamped LE PNG) |
+| LE-L3 Exam answers off eval | #1339 | site-builder, opus | fcdf9cca | site (`www/exam/run-data.js`) |
+| LE-L4 Exam run files | #1344 | site-builder, opus | d3e3a953 | site (`www/exam/run-tto.js`); the warrant `copy()` reuse was dropped (owner) |
+| LE-L5 Jython | #1343 | tool-fixer, opus | 36146975 | Pi, Windows (`jmri/scripts/sml_lcos.py`), site |
+| LE-L6 Site pages | #1342 | site-builder, sonnet | 6363ae01 | site |
+| LE-L7 Tests and errors | #1346 | tool-fixer, sonnet | 49d3073f | nothing; `unit-portal` stays whole (node and bash reads are untraced) |
+| LE-L8 WiThrottle client | none | panel-tracer, sonnet | | finding: this Mac's own netmon.py cron probes port 12090 every 5 minutes; owner: leave it ([not-pending](../not-pending.md)) |
+| LE-L9 Table moves A | #1350 | data-lane, opus | b0cb9d00 | Pi, Windows: train card roads and numbers from `trains.csv` (a `HART` row in `roads.csv`), mimic plants from `stations.csv`, native SML QA steps in `native_sml_qa.csv`; QA Switch 7 now drives its feedback sensors (owner) |
+| LE-L10 Waybill master | #1349 | data-lane, opus | c92acec1 | site: spot rules, parties and empty returns in data files, interchange cards read from `HART_Spot_Waybills.csv`; the generator writes its deck list to the output folder, never the master; the report balance line is CSX 11, POHC 13 (owner) |
+| LE-L11 Table moves B | #1348, #1352 | schematic-builder, opus; site-builder, opus | 6509b7c3, 83a27225 | site: status lamps in `panel_lamps.csv`, layout docs labels in `layout_docs_labels.csv`, roster card rows in `share-cards.json` |
+| LE-L12 Local check.sh | #1351 | tool-fixer, opus | bf5ef95b | nothing: the stamp-audit hook hid Homebrew's sitecustomize, so PIL went missing under CHECK_AUDIT; both audit hooks now share `tools/audit/trace_hook/hook_chain.py` |
+| LE-L13 Card follow-ups | #1356 | site-builder, opus; tool-fixer, opus | 189d6da0 | site: the additions page uses `hartlib.coordinator.lcos_rule`, `signals.js` is a data module the exam key requires, `check_sml_invariants.py` reports instead of exiting |
+
+Merge runners were general-purpose agents (sonnet, opus for logic). Every PR passed one full `make remote` before it opened (LE-L1, LE-L5, LE-L7, LE-L9, LE-L10, LE-L11b a second to confirm a fix), and `/code-review` high or medium; each non-nit finding went through `finding-verifier`. Review fixes: LE-L5 (the SML button retry stopped on a Python error), LE-L7 (a leaked run marker was not seen), LE-L10 (the generator overwrote the master it reads).
+
+Peer PRs in the same queue: #1336, #1337, #1338 and #1345 (hart-ce), #1340 (dashboards open dark), #1353, #1354 and #1355 (hart-9a check speed-ups). Deploys: Pi and Windows after #1343 (12:13), #1347 (12:33), #1350 (13:04) and at 189d6da0 (14:25), each after the PanelPro smoke test, with the strict audit passing and the Pi log clean; the site after every lane that ships it, Build counts unchanged apart from two new files (`run-data.js`, `run-tto.js`, files 1432 to 1434).
+
+Report card ([final card](https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE), section "After the loose ends"): 132 changed scripts read again. The average is 3.300 (wave 6: 3.301), on the B+ line; no C or D files are left (wave 6: 2). `build_exam_answers.js` C+ to B+, `le_names.py` C+ to B-, nine files up, eleven down, mostly closer reads of lightly touched files.
+
+Also closed: the Windows remote clone's stale `gc.log` (owner): renamed, `git gc` clean.
+
+### Left after the loose ends
+
+- A shared warrant scene in `www/js/track-warrant.js` (LE-L4 kept `run-modern.js`'s own copy, owner).
+- `PUBLICATION` in `rebuild_crew_instructions.py` is still read at import (the table moves did not include it).
+- Deploy tests (`test_deploy_stage`, `test_redeploy_commit`) read the real `~/JMRI` profile and failed once on a leftover `profile.xml.hart-run.bak` from a PanelPro smoke run; they should use a temp copy.
+- From the regrade: `cars.py` returns 0 after a failed STS step; `check_stamps.py` parses argv by position; `common.sh` keeps dated comments and its own parked script list; `run_native_sml_qa.py` ignores `mosquitto_sub`'s return code and leaves Switch 7's feedback topics set after a run when they had no retained value; `check_data_readers.py` copies hartlib's tracked-files helper; `run-tto.js` is B- (terse names, magic numbers); an unknown key in `signals.js` is a raw TypeError.
+- Review nits kept: the hook chain loads outside the hooks' try; `layout_docs_labels.csv` cells are not stripped; the QA step texts keep the old DCC numbers beside the switch numbers; `docs/parked/UNPARK.md` row 10 does not say that `check_sml_invariants.py` now fails when NX is unparked (parked docs, left as they are).
+- The bookkeeping-file collisions plan (hart-9a: #1357, then the red-main deploy gate, the owner's `strict` flip and its wording) runs on after this round.
+
 ## Waiting on the owner
 
-- The eight live table moves: `train_cards.py` `TRAINS`, `lcos_mqtt_mimic.py` `PLANT_ORDER`, `run_native_sml_qa.py` `OCC`, `TO` and `SCENARIO`, `panel_items.py` `STATUS_BEANS`, `build_layout_docs.py` `LABELS`, `panel_image.py` `ROSTER_ROWS`. Each moves to a data file or stays with a name check.
-- The waybill master: the 7 `waybill_data.py` rows in `tools/audit/hand_tables.csv`.
+Nothing. The eight table moves and the waybill master were decided at 11:15 to 12:10 and done in LE-L9 to LE-L11.
 
 ## How to run this
 

@@ -294,21 +294,8 @@ Two files are at C+: `tools/schematic/le_names.py` (it cuts functions out of `si
 
 ### Left after the waves
 
-- Eight live table moves (session lnevo-5f, after the waves; some may become keep with a name check, the owner's call): ops/hart-ops/card_pipeline/train_cards.py TRAINS (copies trains.csv with the cards' order text); tools/mqtt-mimic/lcos_mqtt_mimic.py PLANT_ORDER; tools/mqtt-mimic/qa/run_native_sml_qa.py OCC, TO and SCENARIO; tools/schematic/panel_items.py STATUS_BEANS; www/scripts/build_layout_docs.py LABELS; www/scripts/share_card_recipes/panel_image.py ROSTER_ROWS.
-- Waybill traffic tables: the 7 waybill_data.py rows in tools/audit/hand_tables.csv wait for the owner's waybill-master decision (held past the end).
-- #1326: the Windows apply keeps its own Jython list (tools/hosts/windows ps1); audit_panel_graph loads panel_counts.json at import, so a broken file is an import traceback; ship_mac.sh skips a missing listed script silently (the stage check now catches it first).
-- #1330: levels_page read_meta does not check the levels_meta.json shape; freeze_wiring gives a traceback on an OSError reading the device master and an IndexError in pin_row on wiring text with no pin group (pre-existing).
-- #1329: cell_of accepts Unicode digits that int() rejects (the build still reports it).
-- #1328: the mimic page shows "waiting" until the first message on a quiet broker (by design); test_mimic_web keeps source-substring checks.
-- #1323: le_tables keeps a module __getattr__ for BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS (build_layout_le and its tests); render_le_layout ignores --labels and --scale with --all-views (pre-existing); lcos_rule exec kept (runs Jython source pieces).
-- #1325: staging_device_map.load() still takes 9 parameters; staging_rows fills the caller's drawn dict in place.
-- #1324: PUBLICATION in rebuild_crew_instructions is still read at import (a move-row table, lnevo-5f); ruff TRY003 flags messages on the new errors.
-- #1319: build_exam_answers.js still uses a scanner plus Function() eval; the 1949 run keeps its own arriveTTO path; packed style in run-*.js.
-- #1320: fleet.js has the same view code as archive.js and gallery.js; www/README.md does not name photo-viewer.js.
-- #1318: the parked occupancy_lamps_display_only.py ends GeneratedTablesError as a traceback (parked code stays as is).
-- #1316: _log_once has two copies (sml_beans and panel_status_turnouts, different script families).
-- #1327: unit-portal still declares all of www/ (node and bash reads untraced).
-- Runners had no Agent tool, so finding-verifier ran from the coordinator for non-nit findings only; nits were checked by the runners.
-- Not checked: the WiThrottle client that opens port 12090 every 5 minutes (a 4-minute ss watch on the Pi saw no peer).
-- play/answers.html keeps the site card until a real photo of a PIR train exists (owner, 2026-11-27); candidates found: a drawn card of the run's line sketch, the Chartiers track scheme, Ohio Central 2091.
-- From the final regrade: tools/schematic/le_names.py (C+) cuts functions out of signal_coordinator.py's source with regexes and runs them with exec() (le_names.py:140-157); www/scripts/build_exam_answers.js (C+) still builds the answer key by evaluating the game's source with Function() and with(), render() about 114 lines; run-signals.js startSIG about 195 lines and run-modern.js's track warrant copy scene duplicates play/warrant.js copy(); tools/hosts/deploy/stage.sh stage_package about 123 lines; www/scripts/jmri_additions_page.py raises PageError(str(e)) from None (103, 208); jmri/scripts/sml_ui.py broad excepts and long Swing functions (97-158); tests that assert on source text (test_speedmatch_offline, test_check_docs_only, test_build_tables, test_layout_docs, test_exam_answers); dated owner notes in test docstrings (test_build_cats_panel_bindings, test_devices).
+The [loose-ends round](wave-loose-ends.md) (2026-11-27) closed this list; what it left is under "Left after the loose ends" there.
+
+- Done in the loose-ends round: the eight live table moves (#1350, #1348, #1352), the waybill master (#1349), the Windows Jython list, panel counts on use and `ship_mac.sh` (#1347), `levels_page` and `freeze_wiring` errors (#1342, #1346), `cell_of`, `le_tables`, `render_le_layout` flags and `staging_device_map.load()` (#1341), `build_exam_answers.js` without `Function()` (#1339, #1356), the 1949 run's `arriveTTO` and the run-file style (#1344), `fleet.js` on `photo-viewer.js` and `www/README.md` (#1342), one `_log_once` and `le_names.py` without `exec()` (#1343), `jmri_additions_page.py` `from e` (#1342), source-text tests and dated test notes (#1346), the WiThrottle client (found: this Mac's netmon.py cron; [not-pending](../not-pending.md)).
+- Kept as they are: the mimic's "waiting" state (by design); `unit-portal` declares all of `www/` (node and bash reads untraced, LE-L7); the parked `occupancy_lamps_display_only.py` (parked); `play/answers.html` keeps the site card (owner); the `run-modern.js` warrant copy scene (owner, LE-L4).
+- Still open: `PUBLICATION` in `rebuild_crew_instructions` is read at import; ruff TRY003 notes on the #1324 errors (ruff stays on F rules).

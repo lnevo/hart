@@ -52,3 +52,4 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 |------|------|------------------|------------|
 | Power districts and terminal blocks (the empty Power District column in the LCOS inventory, the unverified `docs/wiring/terminal_blocks.md`) | Not important for now. Never list them as data gaps or to-dos in the data-masters work. | None; not tracked | 2026-11-25 |
 | Pi LCC serial write timeouts right after PanelPro shutdown | Ignore. Report LCC serial trouble only if it shows while JMRI runs, or if a shutdown hangs and needs a kill. | None; not tracked | 2026-11-12 |
+| WiThrottle "null readLine()" warnings on the Pi every 5 minutes | From the Mac's own netmon.py cron (outside the repo) probing port 12090; harmless. Never list or chase it. | None; not tracked | 2026-11-27 |

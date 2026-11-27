@@ -15862,6 +15862,13 @@
   },
   {
    "from": "wiki/projects",
+   "to": ".claude/agents/data-lane.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/projects",
    "to": ".claude/agents/panel-tracer.md",
    "label": "points to",
    "gen": "agent-docs",
