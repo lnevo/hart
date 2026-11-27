@@ -117,8 +117,35 @@ The owner started a third round from the wave 2 report card, one PR per lane:
 | L6 | Types, after L1 to L5 and L4b: `build_device_map` and `build_cats_panel` typed to B+ |
 | L7 | Exemplary core, after L6 (owner): `build_device_map.py`, `build_cats_panel.py` and `device_map_records.py` to A or better, as examples of the repo's best code; outputs and panels unchanged |
 | L8 | Data-in-code check (owner): a `tools/audit/` check beside `check_data_readers.py` that fails when railroad data is typed into code, with a CSV allow list read through hartlib and a baseline of the 131 Python tables and the JS tables |
+| L9 | Fixes from the regrade: the stale spurs path in `generate_operator_sheet`, an empty party pool in `waybill_sheet` as a named error, `waybill_deck` and `intake_stages` on typed records |
+| L10 | A light PR kind (owner): `tools/ci/changed_kind.py` and `light_checks.sh`, so a docs-plus-map-preset change skips the full remote run by tool, not by waiver |
+| L11 | Showcase follow-up (owner): the `MastPlan` cast in `build_device_map`, the `bindings()` guard in `build_cats_panel`, `device_map_nodes` typed |
 
 Moved to a later wave (owner):
 - The device-row callers that still read by key, and `tools/ops` to mypy strict (L6 part 2). L7 updates only the callers it breaks.
 - The owner tags and dates inside the `NOT_WIRED`, `HEAD_NOT_WIRED` and `_control_points` strings of `build_device_map.py`: they are written into the outputs, so removing them changes `devices_generated.csv` and `plan_generated.json`.
+- Narrow the folder-wide unit and portal declarations (www/, docs/, ops/, wiki/) so more data edits count as light (owner, 2026-11-26). Today the light kind means docs plus the map presets.
+- The coordinate skill calls Markdown under `.claude/skills/` docs-only, but `tools/ci/changed_kind.py` treats everything under `.claude/` as full, on main too.
+- `repo_guide_page.py` treats any argument other than `--check` as a write run.
+- `skip_or_fail` is copied in five `tools/schematic` tests; make it one shared helper.
+- From L11: `level_signals()` in `build_cats_panel.generate()` is still outside the `SchematicError` guard, and `device_map_inputs.read_pins` and `frozen_wires` are loosely typed.
+- From the L9 review: the `sheet_kit` SystemExit, the unused `_chrome`, the `test_cars_sync` temp folders and the `test_package_contents` check of the retired `archive/` folder.
+- From the L11 and L10 reviews: the `panels.toml` device-map description, the `device_map_masts` mast-name copy, `MastEntry` as `dict[str, Any]`, and the private imports and bare-tuple records in `changed_kind.py`.
+- Unverified review notes on main, to check before fixing:
+  - `apply_hart_package_local.ps1` near line 346 trusts a stale `jmri_profile_id.txt`, because the resolver reuses its output file without `-Force`.
+  - The Pi `apply_hart_package_local.sh` near line 180 finds the JMRI process with a prefix pattern, so `TCS_MQTT_test` would match `TCS_MQTT`.
+  - The `jmri_profile.py` backup stamp has one-second resolution, so two runs in a second overwrite each other, and its `insert_after` and `remove_script` tests match a substring.
+  - In `check.yml` the schematic cache warm-up is gated on `kind != 'docs'`, so a light PR still runs it on a cache miss (12 to 34 minutes).
+  - `light_checks.sh` is committed 100644 while `docs_checks.sh` is 100755, and `changed_kind.map_display_only` never checks that the presets differ.
+  - Checked and closed: `intake_stages.py` near line 271 dropped SystemExit from the per-photo guard, and nothing it calls raises SystemExit.
+- Site pages that may be stale, not confirmed: the repository guide (docs-only and light paths), and `jmri-additions` and `tables-file` (the deploy sets saved panel window sizes).
+
+PRs: L3 #1261, L2 #1262, L1 #1264, L4 #1265, L5 #1266, L4b #1267 and #1268, L6 #1269, L7 #1272, L9 #1273, L8 #1274, L10 #1277, L11 #1278. Only #1265 shipped from the lanes, to the site. The other deploys that ran during the wave were for #1271 (Pi and Windows, by the main session), #1274 and #1275 (site), each with every Build count unchanged.
+
+Report card after wave 3 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE): the line-weighted average went from 3.12 to 3.16 (B), over 508 source files and 124,075 lines. C and D files went 16 to 17, none at D. A-range files went 133 to 147, and reviewers have read 488 source files. Fifteen of the 16 C files from wave 2 are now B or better (L1 to L4, L4b), and `generate_operator_sheet` went from F to B+ in L9. A fresh read of files changed since wave 2 put 16 other files at C or C+. The goal of no C files is not met, and B+ (3.3) is 0.14 away; fixing every C file would give about 3.21.
+
+### Left after wave 3
+
+- 17 files at C: `gen_ctc_track_plan.py` (C-, parked by owner ruling, 2026-11-26, not regraded), `rebuild_station_map.py` (C), `sharpen_card_fill_images.py` (C), and C+ for `run-modern.js`, `rebuild_station_map_full.py`, `build_signals.py`, `panel_status_turnouts.py`, `build_masts.py`, `build_hart_signal_heads.py`, `mimic_view.js`, `launch_cats.sh`, `build_hands.py`, `clear_mqtt_cmd_sensor_retain.py`, `page_figures.py`, `sync_mqtt_turnouts_from_fb.py`, `panel_snapshot.py` and `fetch_cats_3.2.sh`. The reasons are on the report card.
+- The largest gaps to B+ by lines times points: `rebuild_station_map.py`, `audit_panel_contracts.py`, `store_split.py`, `crop_car_image.py`, `crew.js`, `build_wiring_json.py`, `mast_rule.py`, `staging_device_map.py`.
 
