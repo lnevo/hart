@@ -10,8 +10,8 @@ const vm = require("vm");
 const ENGINE = require(path.join(__dirname, "..", "js", "game-engine.js"));
 
 const EXAM = path.join(__dirname, "..", "exam");
-/* The game's scripts in the order run.html loads them; the key reads them as one text. */
-/* The runs' files, and the track warrant form the modern run shares with play (js/track-warrant.js: BOXES, SAY). */
+/* The game's scripts, read as one text: the runs in run.html's order, then the track warrant form the modern run shares
+   with play (js/track-warrant.js: BOXES, SAY). The form comes last so it falls inside modernRange, after const TW_SEL=. */
 const RUN_FILES = ["run.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js"].map(f => path.join(EXAM, f))
   .concat(path.join(EXAM, "..", "js", "track-warrant.js"));
 const readRun = () => RUN_FILES.map(f => fs.readFileSync(f, "utf8")).join("\n");

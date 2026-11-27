@@ -2,7 +2,8 @@
    warrant out a line at a time; the player checks the boxes he gives, fills in their blanks and repeats it back. It is the
    form of the Extra West game (exam/run.js: BOXES, SAY, the copy step), ported with this run's places and trains. The pure
    check is compare(); copy() is the scene. A wrong copy costs 2 minutes and one miss (GCOR 14.9), not a mark.
-   It loads after road-engine.js and before pir.js, and adds RoadEngine.twc.
+   It loads after road-engine.js and js/track-warrant.js (the form's BOXES and SAY) and before pir.js, and adds
+   RoadEngine.twc.
  */
 (function(){
 "use strict";

@@ -152,7 +152,7 @@ www/exam/deck-data.js,SRC,7,keep,"the study deck's own chapter labels (§1.0 Sta
 www/exam/run-1949.js,ROAD_TTO,27,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-1949.js,STN_TTO,32,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-modern.js,ROAD_TWC,29,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/exam/run-modern.js,TW_SEL,7,move,2 railroad names (switch)
+www/exam/run-modern.js,TW_SEL,7,keep,"the exam warrant form's choices; its two railroad-name hits are warrant numbers (101, 103) that equal switch numbers, not switches (wave 4 review)"
 www/exam/run-signals.js,PLATE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/run-signals.js,RDELAY,18,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-signals.js,ROUTE_DELAY,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
@@ -163,7 +163,7 @@ www/exam/signals.js,ASPECTS,18,keep,"game text or schema: exam and play are sepa
 www/exam/signals.js,PLATES,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/signals.js,ROUTE,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/js/game-engine.js,DECK_SECTIONS,8,keep,"8 rulebook sections; the copy is guarded by test_exam_answers (Fable, pattern 5) (marked by claude (Fable's review))"
-www/js/game-engine.js,SOURCES,8,keep,"shared in code, so already one source: exported in the engine's api; play.js and run.js label sources through it. deck-data.js SRC repeats its keys and moves into it (review fix after the code review)"
+www/js/game-engine.js,SOURCES,8,keep,"shared in code, so already one source: exported in the engine's api; play.js and run.js label sources through it. deck-data.js SRC shares its keys but holds the deck's own labels and stays (review fix after the code review)"
 www/js/track-warrant.js,BOXES,17,keep,"the one shared copy of the GCOR track warrant form for the exam and play games (owner: shared JS, not a CSV); moved here from run-modern.js and warrant.js"
 www/js/track-warrant.js,SAY,17,keep,"the one shared copy of the GCOR track warrant form for the exam and play games (owner: shared JS, not a CSV); moved here from run-modern.js and warrant.js"
 www/play/passenger.js,Qs,19,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
@@ -191,7 +191,7 @@ www/play/road.js,STN,8,keep,"game text or schema: exam and play are separate rew
 www/play/road.js,coal,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/runs.js,NevilleRuns,7,move,"3 railroad names (industry, station)"
 www/play/runs.js,Q,8,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/play/warrant.js,TW_SEL,7,keep,"the warrant game's form choices; its station list is checked against road-engine.js ST by play_through_test (owner, wave 4)"
+www/play/warrant.js,TW_SEL,7,keep,"the warrant game's form choices; its station list is checked against road-engine.js ST by play_through_test (owner, wave 4); its railroad-name hits are warrant numbers (121, 125), not a switch or sensor"
 www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warrant game's exported functions and tables, read by its tests (review fix after the code review)"
 www/scripts/build_cats_layout_index.py,SIG_LOC,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 www/scripts/build_exam_answers.js,ENT,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)

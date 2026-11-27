@@ -1,5 +1,6 @@
 /* Extra East: the modern run under track warrants: the warrant form, the run and its road events.
-   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). The form's
+   boxes and the dispatcher's words come from js/track-warrant.js, which run.html loads first. */
 (function(){
 "use strict";
 const X=window.ExtraEast;

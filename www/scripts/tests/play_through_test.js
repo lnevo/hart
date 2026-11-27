@@ -192,7 +192,6 @@ function scrollCheck(failures) {
   click("ask"); click("yes");
   if (doc.getElementById("xwStart").hidden) failures.push("exit: Leave did not return to the start screen");
 }
-/* The start screen's choices: the run suggested after a run, and which rows each view shows. */
 /* The Chartiers stations are kept in three places, each its own selection (owner, the hand-tables review): road-engine.js
    ST (the time-table's line, Carnegie to Washington), pir.js POINTS (the PIR run's map) and warrant.js TW_SEL.s (the
    warrant form's station blank). A name in the other two must be one of ST's, or a point of the PIR run north of Carnegie,
@@ -201,6 +200,7 @@ const NORTH_OF_CARNEGIE = new Set(["McKees Rocks", "McKees Rocks diamond", "Duff
 function stationNameCheck(ctx, failures) {
   const RE = ctx.window.RoadEngine;
   const line = new Set(Array.from(RE.ST, (s) => s.n));
+  for (const n of NORTH_OF_CARNEGIE) if (RE.pirPoints && !RE.pirPoints.includes(n)) failures.push(`stations: "${n}" is in NORTH_OF_CARNEGIE but not a point of pir.js POINTS`);
   for (const [where, names] of [["pir.js POINTS", RE.pirPoints], ["warrant.js TW_SEL.s", RE.twc.TW_SEL.s]]) {
     if (!names) { failures.push(`stations: ${where} is not exposed`); continue; }
     for (const n of names)
@@ -208,6 +208,7 @@ function stationNameCheck(ctx, failures) {
   }
 }
 
+/* The start screen's choices: the run suggested after a run, and which rows each view shows. */
 function logicCheck(ctx, failures) {
   const L = ctx.window.PlayLogic, runs = ctx.window.NevilleRuns, keys = Object.keys(runs);
   if (!L) { failures.push("logic: window.PlayLogic is missing"); return; }
