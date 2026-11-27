@@ -91,6 +91,7 @@ class Facts:
     # (level, crossover half's OS block ID) -> a or b (half_label)
     half_letters: dict[tuple[str, str], str] = field(default_factory=dict)
 
+
 def staging_tracks() -> list[StagingChain]:
     """The staging tracks (staging_device_map.staging_chains) of the staging band as the Layout Editor draws it."""
     try:
