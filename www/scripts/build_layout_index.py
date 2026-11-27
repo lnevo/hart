@@ -102,18 +102,18 @@ def load_names(path: Path) -> tuple[dict[str, NameRecord], dict[str, NameRecord]
     by_hw: dict[str, NameRecord] = {}
     by_name: dict[str, NameRecord] = {}
     for row in device_master.load(path):
-        if row["level"] != railroad_facts.STAGING_LEVEL:
+        if row.level_cell != railroad_facts.STAGING_LEVEL:
             continue
         rec: NameRecord = {
-            "current": row["user_name"],
-            "proposed": row["user_name"],
+            "current": row.user_name,
+            "proposed": row.user_name,
             "cp": device_master.place(row),
-            "hardware": row["system_name"],
+            "hardware": row.system_name,
             "comment": device_master.comment_of(row),
         }
-        if row["system_name"]:
-            by_hw.setdefault(row["system_name"], rec)
-        by_name.setdefault(row["user_name"], rec)
+        if row.system_name:
+            by_hw.setdefault(row.system_name, rec)
+        by_name.setdefault(row.user_name, rec)
     return by_hw, by_name
 
 

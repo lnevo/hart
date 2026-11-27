@@ -47,6 +47,7 @@ P4 = DRAWINGS / "P4-yard.svg"
 SOQ_WORDS = ("Section 3.", "Section 4.", "Section 5.", "Appendix", "SOQ", "my own", "by me", "witness", "evaluator",
              "Requirement", "claim")
 LEVEL = "1"          # the template's {{name:...}} blocks are on the staging level
+Master = dict[tuple[str, str], DeviceRow]      # master_rows: {(level cell, id): row}
 
 # The page's labels for the layout's sections, by block ID (naming-layers step 5: a rename in devices_field.csv keeps
 # the ID, so the label stays and the name beside it follows). A new section needs its label here; a switch
@@ -103,18 +104,18 @@ def bare(name: str) -> str:
     return name.removeprefix("Track ")
 
 
-def turnout(master: dict, did: str) -> dict:
+def turnout(master: Master, did: str) -> DeviceRow:
     """The device master's row of the staging turnout `did` (switch:<n>)."""
     row = master.get((LEVEL, did))
-    if row is None or row["layer"] != "turnout" or row["role"] != "turnout":
+    if row is None or row.layer != "turnout" or row.role != "turnout":
         raise LayoutDocsError(f"build_layout_docs: {did} is no level {LEVEL} turnout of the device master (a switch "
                          "renumbered in the plan changes its ID; fix the template or build_layout_docs.py)")
     return row
 
 
-def switch_number(master: dict, did: str) -> str:
+def switch_number(master: Master, did: str) -> str:
     """The number in the name of the turnout `did` ("3" for "Switch 3")."""
-    name = turnout(master, did)["user_name"]
+    name = turnout(master, did).user_name
     m = SWITCH_NAME.fullmatch(name)
     if not m:
         raise LayoutDocsError(f"build_layout_docs: turnout {did} is named {name!r}, not Switch <n>; the page and its plans "
@@ -142,7 +143,7 @@ def station_at(stations: list, did: str) -> str:
     return held[0][1]
 
 
-def label(section: dict, master: dict) -> str:
+def label(section: dict, master: Master) -> str:
     """The page's description of a detected section, by its block ID; an OS block's by its turnout's number."""
     if section["id"] in LABELS:
         return LABELS[section["id"]]
@@ -154,9 +155,9 @@ def label(section: dict, master: dict) -> str:
     raise LayoutDocsError(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
 
 
-def master_rows(files: devices.Files | Path | None = None) -> dict[tuple[str, str], DeviceRow]:
+def master_rows(files: devices.Files | Path | None = None) -> Master:
     """{(level, id): merged device-master row} (hartlib.devices.load: the owner's name wins). `files` a test's copy."""
-    return {(r["level"], r.id): r for r in devices.load(files) if isinstance(r, DeviceRow) and r.id}
+    return {(r.level_cell, r.id): r for r in devices.load(files) if isinstance(r, DeviceRow) and r.id}
 
 
 def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
@@ -181,15 +182,15 @@ def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
         s = by_sensor.setdefault(b.occupancy_sensor, {"node": int(m.group(1)), "ch": int(m.group(2)), "id": None,
                                                       "name": None, "plan": 0.0, "measured": None})
         s["plan"] += b.plan_in
-        if row["role"] == "part":
-            s.setdefault("parts", []).append((row["user_name"], row["part_of"]))
+        if row.role == "part":
+            s.setdefault("parts", []).append((row.user_name, row.part_of))
             continue
         if s["id"]:
             raise LayoutDocsError(f"build_layout_docs: {b.occupancy_sensor} has two sections, {s['name']} and "
-                             f"{row['user_name']}")
-        s["id"], s["name"] = b.id, row["user_name"]
-        if row["user_name"] in measured:
-            s["measured"] = measured[row["user_name"]].measured_in
+                             f"{row.user_name}")
+        s["id"], s["name"] = b.id, row.user_name
+        if row.user_name in measured:
+            s["measured"] = measured[row.user_name].measured_in
     out = []
     for sensor, s in by_sensor.items():
         if not s["id"]:
@@ -204,7 +205,7 @@ def detected_sections(lengths=None, master=None, measured=None) -> list[dict]:
     return sorted(out, key=lambda s: (s["node"], s["ch"]))
 
 
-def sections_table(rows: list[dict], master: dict) -> str:
+def sections_table(rows: list[dict], master: Master) -> str:
     body = "".join(
         f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s, master))}</td>"
         f"<td>{html.escape(s['name'])}</td><td>C{s['node']} · {s['ch']}</td>"
@@ -216,7 +217,7 @@ def sections_table(rows: list[dict], master: dict) -> str:
             f'          <tbody>{body}</tbody>\n        </table>\n      </div>')
 
 
-def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
+def facts(rows: list[dict], master: Master | None = None) -> dict[str, str]:
     """The figures the page's text states, from the section list and rounded as it shows them. A length from plan
     estimates (marked ≈ in the list) is said as "about". The crossovers are named by their turnouts' numbers."""
     master = master_rows() if master is None else master
@@ -242,18 +243,18 @@ def facts(rows: list[dict], master: dict | None = None) -> dict[str, str]:
             "CROSSOVERS": f"{'crossovers' if len(xings) > 1 else 'a crossover'} at {listed}"}
 
 
-def fill_names(text: str, master: dict) -> str:
+def fill_names(text: str, master: Master) -> str:
     """Each {{name:<block id>}} in `text` replaced by the store's name of that staging block."""
     def one(m: re.Match) -> str:
         row = master.get((LEVEL, m.group(1)))
         if row is None:
             raise LayoutDocsError(f"build_layout_docs: the template names {m.group(1)}, no level {LEVEL} device of the "
                              "device master")
-        return html.escape(bare(row["user_name"]))
+        return html.escape(bare(row.user_name))
     return NAME.sub(one, text)
 
 
-def fill_switches(text: str, master: dict, stations: list) -> str:
+def fill_switches(text: str, master: Master, stations: list) -> str:
     """Each {{turnout:...}}, {{turnouts:...}}, {{dcc:...}} and {{station:...}} in `text` replaced from the device
     master and stations.csv."""
     def one(m: re.Match) -> str:
@@ -265,10 +266,10 @@ def fill_switches(text: str, master: dict, stations: list) -> str:
             return html.escape(station_at(stations, arg))
         row = turnout(master, arg)
         if kind == "turnout":
-            return html.escape(row["user_name"])
-        if not row["dcc"]:
+            return html.escape(row.user_name)
+        if not row.dcc:
             raise LayoutDocsError(f"build_layout_docs: turnout {arg} has no DCC address in the device master")
-        return html.escape(row["dcc"])
+        return html.escape(row.dcc)
     return SWITCHES.sub(one, text)
 
 
@@ -303,11 +304,11 @@ def drawn_switches(svg: str) -> list[str]:
     return sorted(out, key=int)
 
 
-def check_switch_labels(master: dict, plans=PLANS) -> None:
+def check_switch_labels(master: Master, plans=PLANS) -> None:
     """The plans (hand-edited files) label every staging switch by its number ("Sw 3" on plan P0, "3" on the others);
     they must label the live turnouts' numbers, so a switch renumbered or renamed stops here until they are edited."""
     live = sorted({switch_number(master, k[1]) for k, r in master.items()
-                   if k[0] == LEVEL and r["layer"] == "turnout" and r["role"] == "turnout"}, key=int)
+                   if k[0] == LEVEL and r.layer == "turnout" and r.role == "turnout"}, key=int)
     for svg in plans:
         drawn = drawn_switches(Path(svg).read_text())
         if drawn != live:
@@ -321,7 +322,7 @@ def svg_texts(svg: str) -> list[tuple[str, str]]:
             for _, attrs, inner in SVG_TEXT.findall(svg)]
 
 
-def check_station_labels(stations: list, master: dict, drawings=None) -> None:
+def check_station_labels(stations: list, master: Master, drawings=None) -> None:
     """The drawings (hand-edited files) name a station only in a data-station label, and each such label holds the
     name stations.csv gives the station at that switch; so a station renamed there stops here until they are edited."""
     names = {s.name.casefold() for s in stations if str(s.level) == LEVEL}

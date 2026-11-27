@@ -51,7 +51,7 @@ class StaleHeadCommentsTest(unittest.TestCase):
         self.assertEqual(check_bean_comments.stale_head_comments(), [])
 
     def test_a_head_whose_wiring_differs_is_named(self) -> None:
-        rows = [dict(r) for r in devices.load(self.files)]
+        rows = [r.cells() for r in devices.load(self.files)]
         head = next(r for r in rows if r["level"] == "1" and r["user_name"] == "Head 6LB")
         want = head["wiring"]
         head["wiring"] = "Node: 4 Signal: 9"
