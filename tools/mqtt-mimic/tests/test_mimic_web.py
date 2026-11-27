@@ -318,6 +318,13 @@ class Render(unittest.TestCase):
         ])
         self.assertEqual([b["attrs"]["data-occ"] for b in self._buttons(out, "blocks")], ["M"])
 
+    def test_every_level_the_build_emits_gets_a_tab(self) -> None:
+        # a level the layout build writes but the view has no title for would be dropped with no tab and no error
+        layout = _load("lcos_mqtt_mimic").load_layout()
+        built = {it["level"] for kind in ("turnouts", "blocks", "heads") for it in layout[kind]}
+        out = self._render({"level": "staging", "layout": layout})
+        self.assertEqual(built, {b["attrs"]["data-level"] for b in _elements(out["roots"]["tabs"])})
+
     def test_one_level_hides_the_tabs(self) -> None:
         out = self._render({"level": "staging", "layout": _layout(blocks=[_rec(addr="S")])})
         self.assertTrue(out["roots"]["tabs"]["hidden"])
