@@ -11,6 +11,7 @@ Chat is a scratchpad. Decisions that count live here.
 | All documents | [`../docs/INDEX.md`](../docs/INDEX.md) |
 | Website | [`../www/README.md`](../www/README.md) |
 | Pipelines | [`pipelines/README.md`](pipelines/README.md) |
+| Report cards (project, code, data) | [`report-cards.md`](report-cards.md) |
 | Pipeline map | [`../docs/pipeline-map/pipeline_map.json`](../docs/pipeline-map/pipeline_map.json) |
 
 **Active projects:** [cleanup and streamlining](projects/cleanup-streamline-handoff.md) · [every script in the pipeline](projects/pipeline-coverage-handoff.md) · [speed matching](projects/speedmatching.md) · [data masters](projects/data-masters.md) · [CATS integration](projects/cats-integration.md) · [leftovers after the loose ends](projects/leftovers-round.md)  
