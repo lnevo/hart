@@ -63,13 +63,16 @@ class Api(unittest.TestCase):
         except urllib.error.HTTPError as e:
             return e.code, e.headers["Content-Type"], e.read()
 
-    def post(self, path: str, body: object) -> tuple[int, object]:
-        req = urllib.request.Request(self.base + path, data=json.dumps(body).encode(), method="POST")
+    def post(self, path: str, body: object = None, raw: bytes | None = None) -> tuple[int, object]:
+        """POST body as JSON (or raw bytes as they are); the status and the reply's JSON, None when it is not JSON."""
+        data = raw if raw is not None else json.dumps(body).encode()
+        req = urllib.request.Request(self.base + path, data=data, method="POST")
         try:
             with urllib.request.urlopen(req, timeout=5) as r:
                 return r.status, json.loads(r.read())
         except urllib.error.HTTPError as e:
-            return e.code, json.loads(e.read() or b"null") if e.code == 400 else None
+            reply = e.read()
+            return e.code, json.loads(reply) if e.headers["Content-Type"] == "application/json" else None
 
     def test_the_page_its_shared_files_and_the_layout(self) -> None:
         self.assertEqual(self.get("/"), (200, "text/html; charset=utf-8", b"<html></html>"))
@@ -88,20 +91,18 @@ class Api(unittest.TestCase):
         self.assertEqual(self.post("/api/occupancy", {"addr": "100"}), (400, {"ok": False, "error": "'state'"}))
         self.assertEqual(self.post("/api/occupancy", ["not", "an", "object"]),
                          (400, {"ok": False, "error": "the request body is not a JSON object"}))
-        self.assertEqual(self.post("/api/nothing", {})[0], 404)
+        self.assertEqual(self.post("/api/nothing", {}), (404, None))
+
+    def test_an_unknown_path_is_a_404_before_its_body_is_read(self) -> None:
+        self.assertEqual(self.post("/api/nothing", raw=b"not json"), (404, None))
+        self.assertEqual(self.post("/api/nothing", ["not", "an", "object"]), (404, None))
+        self.assertEqual(self.post("/api/occupancy", raw=b"not json")[0], 400)
+        self.assertEqual(self.bus.calls, [])
 
     def test_a_client_that_cannot_run_is_a_json_503(self) -> None:
         self.bus.client_gone = True
-        status, body = self.post_any("/api/occupancy/clear", {})
+        status, body = self.post("/api/occupancy/clear", {})
         self.assertEqual((status, body), (503, {"ok": False, "error": "mosquitto_pub"}))
-
-    def post_any(self, path: str, body: object) -> tuple[int, object]:
-        req = urllib.request.Request(self.base + path, data=json.dumps(body).encode(), method="POST")
-        try:
-            with urllib.request.urlopen(req, timeout=5) as r:
-                return r.status, json.loads(r.read())
-        except urllib.error.HTTPError as e:
-            return e.code, json.loads(e.read() or b"null")
 
 
 if __name__ == "__main__":
