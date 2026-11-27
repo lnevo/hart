@@ -424,7 +424,7 @@ def generated_text(cp_keys: Mapping[str, Mapping[str, object]]) -> str:
     over: dict[str, object] = {}
     over["control_points"] = cp_keys
     over["stations"] = {name: {"switches": cp["switches"], "tracks": []} for name, cp in cp_keys.items()}
-    over["_control_points"] = ("Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by "
+    over["_control_points"] = ("Placeholder control points 'CP <lowest switch>', written by "
                                "tools/schematic/build_device_map.py from interlockings.csv; edit that "
                                "file, not this key.")
     return layer_files.generated_texts({SHEET: over}, OVERRIDES.parent)[GENERATED]

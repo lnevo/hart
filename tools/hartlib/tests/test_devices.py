@@ -794,10 +794,10 @@ class TheStagingFacts(unittest.TestCase):
                 self.assertIn(r["role"], D.LINE_ROLES, r["user_name"])
 
     def test_the_old_name_maps_notes_kept_their_facts(self):
-        """The owner's date on the internal heads and the alias's turnout and address, which the pnm_notes held."""
+        """The internal heads' note and the alias's turnout and address, which the pnm_notes held."""
         rows = [r for k, r in self.rows.items() if k[0] == "1"]
         internal = [r for r in rows if r["layer"] == "head" and r["assignment"] == "virtual"]
-        self.assertEqual({r["notes"] for r in internal}, {"internal, not wired (owner, 2026-11-19)"})
+        self.assertEqual({r["notes"] for r in internal}, {"internal, not wired"})
         turnouts = {r["user_name"]: r["system_name"] for r in rows if r["role"] == "turnout"}
         aliases = [r for r in rows if r["role"] == "lcc_alias"]
         self.assertEqual(len(aliases), 20)

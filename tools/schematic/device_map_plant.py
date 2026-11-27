@@ -27,7 +27,7 @@ from mast_rule import MapError, Track  # noqa: E402
 
 VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
 occupancy_user = level_devices.occupancy_user
-NOT_WIRED = "detector planned, not wired yet: no node or input (owner, 2026-11-16)"
+NOT_WIRED = "detector planned, not wired yet: no node or input"
 NO_DETECTOR = "no detector planned: dark until decided"
 CORNER = "xover_corner"         # a double crossover's corner block and its occupancy row
 OFF_MAIN = "no detector: off the main line"

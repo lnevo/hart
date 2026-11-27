@@ -250,7 +250,7 @@ class Rows(unittest.TestCase):
         self.assertEqual((by["Mast 4LA"]["system_name"], by["Mast 4LA"]["comment"], by["Mast 4LA"]["notes"]),
                          ("IF$vsm:basic:one-low($1001)", "Brick | Switch 3", "facing Track W-1, buffer stop"))
         self.assertEqual((by["Head 2L Top"]["jmri_name"], by["Head 2L Top"]["notes"]),
-                         ("IH:HART:C1:2L_Top", "internal, not wired (owner, 2026-11-19)"))   # with its date
+                         ("IH:HART:C1:2L_Top", dmm.INTERNAL_HEAD_NOTE))
         self.assertEqual([m["signal_kind"] for m in ms], ["planned", "planned", "virtual"])
 
     def test_a_wired_head_by_its_id_makes_a_field_signal(self):
