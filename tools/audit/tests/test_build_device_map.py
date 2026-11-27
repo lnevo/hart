@@ -75,9 +75,9 @@ class Pure(unittest.TestCase):
         cps = [cp("CP 105", 2, "105")]
         over = {"edits": [{"op": "relabel", "map": {}}]}
         with self.assertRaisesRegex(BD.MapError, "switch 101 is in no control point"):
-            BD.build(bands, {}, lambda b: [], over, cps, [])
+            BD.build(bands, {}, lambda b: [], BD.MapInputs(over, cps, []))
         with self.assertRaisesRegex(BD.MapError, "switch 105 is in a control point and in"):
-            BD.build(bands, {}, lambda b: [], over, cps, [], [R.LocalSwitch(0, "105", 2, "West")])
+            BD.build(bands, {}, lambda b: [], BD.MapInputs(over, cps, [], [R.LocalSwitch(0, "105", 2, "West")]))
 
     def test_track_names(self):
         sw, hx, bump = (lambda n: ("sw", n)), (lambda h: ("helix", h)), ("bumper", None)

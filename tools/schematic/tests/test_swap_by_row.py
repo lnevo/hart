@@ -73,8 +73,7 @@ class SwapByRow(RepoReadOnly, unittest.TestCase):
             skip_or_fail(exc)
         cls.runs = staticmethod(runs)
         rr = railroad.Railroad(bdm.sources(), upto="inputs")
-        _cp, main_rows, parts = bdm.build(cls.bands, cls.joined, runs, rr.plan_overrides.data,
-                                          rr.level_control_points, rr.lcos_nodes, rr.local_switches, corners)
+        _cp, main_rows, parts = bdm.build(cls.bands, cls.joined, runs, bdm.MapInputs.of(rr), corners)
         cls.before = {devices.key_of(r): dict(r) for r in devices.load()}
         cls.files = devices.pair_copy(cls.tmp / "data")
         cls.files.field.write_text(devices.master_text(swap_rows(list(devices.field_rows(cls.files)))),
