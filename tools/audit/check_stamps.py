@@ -110,6 +110,11 @@ REPO_FILES = ("Makefile", "AGENTS.md", "requirements.txt", ".github/**/*", ".git
 CODE = (*TOOLS, *LAYOUT, *REPO_FILES)       # what a unit job reads unless it says more
 SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive/**/*", "external/**/*")
 EVERYTHING = ("**/*",)
+# The files of ops/hart-ops/data/ that unit-hart-ops reads (a trace of the whole suite, the sts-helpers tests
+# included): the rest of that folder (trains.csv, locos.csv, the queues, the sidecars) is not its input.
+UNIT_HART_OPS_DATA = ("HART_MergedCarRoster.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml",
+                      "crew.json", "image_metadata.csv", "industries.csv", "industry_notes.csv", "industry_sheet.csv",
+                      "loco_models.csv", "roads.csv", "spot_assignments.csv", "spot_usages.csv")
 
 # job-name prefix -> patterns (tools/check.sh is always added): what a CHECK_AUDIT run saw each unit job read
 # (`check_stamps.py audit-report DIR`), widened to whole folders. Other manifest jobs fall back to MANIFEST_CHECK.
@@ -124,19 +129,31 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     # the pages' sources (docs/ops, the helix models, the pipeline map, docs/INDEX.md, the inventory workbook in
     # docs/wiring), the crew master and the waybill data the crew pages use, and the card and publication code. The
     # wiki and agent-doc Markdown it reads for the repo guide and the map lanes is in its trace only (docs-path files,
-    # left off on purpose: tests/test_check_stamps.py NARROWED)
+    # left off on purpose: tests/test_check_stamps.py NARROWED). www/ stays whole: node and the deploy script's bash
+    # run untraced, so this declaration is its stamp, and its Python and node read files in most of www/'s folders
     "unit-portal": (*CODE, "www/**/*", "package.json", "docs/INDEX.md", "docs/ops/**/*", "docs/benchwork/**/*",
                     "docs/pipeline-map/**/*", "docs/wiring/*.xlsx", "ops/hart-ops/AGENTS.md",
                     "ops/hart-ops/card_pipeline/**/*", "ops/hart-ops/publications/**/*", "ops/station_maps/**/*",
                     "ops/hart-ops/data/crew.json",
                     "ops/hart-ops/data/HART_Spot_Waybills.csv", "ops/hart-ops/data/industries.csv",
                     "ops/hart-ops/data/spot_assignments.csv"),
-    # the car cards, intake and publications: all of ops/, the Operating Instructions .docx in docs/ops, the site
-    # files the gallery and crew pages write or compare (www/), and the STS seed in external/sts-helpers
-    "unit-hart-ops": (*CODE, "ops/**/*", "docs/ops/**/*", "www/**/*", "external/sts-helpers/**/*"),
-    # build_panels.sh (bash, untraced) draws and checks every output in scratch checkouts and the real one: kept wide
+    # the car cards and publications (it starts no program): their code, tests, assets and logos, the station map
+    # scripts, the masters and Operations Pro rosters below, the gitignored photo folders car_paths probes, its pinned
+    # test packages (CI installs them), the documents in docs/ops it rebuilds and compares, the site's crew.json, and
+    # the STS seed in external/sts-helpers
+    "unit-hart-ops": (*CODE, "ops/hart-ops/card_pipeline/**/*", "ops/hart-ops/publications/**/*",
+                      "ops/hart-ops/tests/**/*", "ops/hart-ops/operator_logos/**/*", "ops/station_maps/**/*",
+                      *(f"ops/hart-ops/data/{name}" for name in UNIT_HART_OPS_DATA), "ops/hart-ops/requirements*.txt",
+                      "ops/car-cards/**/*", "ops/hart-ops/CarImagesCardFill*/**/*", "docs/ops/**/*",
+                      "www/data/crew.json", "external/sts-helpers/**/*"),
+    # build_panels.sh (bash, untraced) runs stand-in steps in test_build_panels; test_panel_stamps runs every real
+    # step under its own audit hook (untraced here too). Outside CODE those steps read only what the schematic step
+    # does: docs/ops, the crew master and industries.csv through the publications code, the station map pages and
+    # the site's crew.json and publications.json (tools/pipeline/panels.toml, step "schematic")
     "unit-schematic": (*CODE, "docs/ops/**/*", "docs/pipeline-map/pipeline_map.json", "wiki/pipelines/**/*",
-                       "www/crew/**/*", "www/data/**/*", "ops/**/*"),
+                       "www/crew/maps/**/*", "www/data/crew.json", "www/data/publications.json",
+                       "ops/hart-ops/data/crew.json", "ops/hart-ops/data/industries.csv",
+                       "ops/hart-ops/publications/**/*"),
     # test_levels_page compares the article it builds; nothing under docs/ is read
     "unit-anyrail": (*CODE, "www/build/**/*"),
     # test_devices_one_path reads every tracked .py; test_roads reads the car pipeline's roads and models

@@ -26,13 +26,22 @@ PROFILE_13 = "docs/jmri/speedmatching/profile-2026-11-13"       # a later profil
 LCOS_LOGIC = "docs/wiring/lcos/lcos_signal_logic.csv"           # an LCOS master with a sidecar
 TRAINS = "ops/hart-ops/data/trains.csv"
 LOCOS = "ops/hart-ops/data/locos.csv"
+CAR_QUEUE = "ops/hart-ops/data/car_queue.csv"                   # the car intake queue: no unit job reads it
+CREW = "ops/hart-ops/data/crew.json"                            # the crew master
 
 # job -> (files it reads, files beside them it does not read): each a tracked file, from a traced run of the job
 CASES: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "unit-portal": (("ops/hart-ops/data/industries.csv", "docs/ops/schematic-system-draft.svg", "docs/INDEX.md"),
                     (TRAINS, LCOS_LOGIC, ENTITIES)),
-    "unit-hart-ops": (("ops/hart-ops/data/image_metadata.csv",
-                       "docs/ops/HART Railroad Scale Operating Instructions.docx"), (ENTITIES, LCOS_LOGIC)),
+    "unit-hart-ops": (("ops/hart-ops/data/image_metadata.csv", "ops/hart-ops/data/OperationsCarRoster.xml",
+                       "ops/hart-ops/operator_logos/party_logo_map.json", "ops/hart-ops/requirements-test.txt",
+                       "docs/ops/HART Railroad Scale Operating Instructions.docx", "www/data/crew.json"),
+                      (ENTITIES, LCOS_LOGIC, TRAINS, LOCOS, CAR_QUEUE, "ops/packages/README.md",
+                       "www/data/site.json")),
+    "unit-schematic": ((CREW, "ops/hart-ops/data/industries.csv", "ops/hart-ops/publications/crew_master.py",
+                        "docs/ops/stations/barn.svg", "www/data/publications.json",
+                        "www/crew/maps/barn/index.html"),
+                       (TRAINS, CAR_QUEUE, "ops/hart-ops/data/image_metadata.csv", "www/data/site.json")),
     "unit-anyrail": (("www/build/track-plan.html",), (ENTITIES,)),
     "unit-guards test_check_sh_tables": (("www/assets/layout/HART_le_schematic.png",
                                           "docs/pipeline-map/pipeline_map.json"), ("www/data/site.json",)),
@@ -69,14 +78,15 @@ CASES: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
 }
 
 # Data files that the real declarations call light: no unit job reads them, and only make static's checks do.
-LIGHT = (f"{PROFILE_13}/profile.csv", f"{PROFILE_13}/site_labels.json", f"{PROFILE_08}/block_summary.csv")
-# Files the real declarations call full, with the reason's words: code, a master a unit job reads, and the site
-# folders unit-schematic, unit-hart-ops and unit-portal still declare whole (build_panels.sh is not traced).
+LIGHT = (f"{PROFILE_13}/profile.csv", f"{PROFILE_13}/site_labels.json", f"{PROFILE_08}/block_summary.csv", CAR_QUEUE)
+# Files the real declarations call full, with the reason's words: code, a master a unit job reads (trains.csv by the
+# data check's test, no longer by the ops suites), and www/, which the portal job reads whole.
 FULL = {
     "tools/ci/changed_kind.py": "is code or configuration",
     LCOS_LOGIC: "may be read by unit-guards test_check_data",
     f"{PROFILE_08}/results.csv": "may be read by unit-jmri test_speedmatch_speed_table",
-    TRAINS: "may be read by unit-hart-ops",
+    TRAINS: "may be read by unit-guards test_check_data and 1 more",
+    CREW: "may be read by unit-portal",
     "www/data/site.json": "is read by check.sh job portal",
 }
 
@@ -117,6 +127,12 @@ class NarrowedDeclarations(unittest.TestCase):
         for path in examples:
             with self.subTest(path=path):
                 self.assertTrue((ROOT / path).is_file(), path)
+
+    def test_each_hart_ops_data_name_is_a_file(self) -> None:
+        """A renamed or removed master left in UNIT_HART_OPS_DATA would match nothing, and its replacement go light."""
+        for name in check_stamps.UNIT_HART_OPS_DATA:
+            with self.subTest(name=name):
+                self.assertTrue((ROOT / "ops/hart-ops/data" / name).is_file(), name)
 
     def test_each_job_covers_what_it_reads_and_not_the_files_beside_them(self) -> None:
         for job, (reads, unread) in CASES.items():
