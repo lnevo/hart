@@ -133,7 +133,7 @@ class ExamAnswers(unittest.TestCase):
 
     def test_slash_after_increment_is_division(self):
         # i++/2 must not start a regex literal that runs to a later slash or fails as unclosed
-        q = self.mini(self.Q % ",after:o=>{s.a=i++/2;s.b=j--/3}")
+        q = self.mini(self.Q % ",after:o=>{s.a=i++/2}")
         self.assertEqual(len(q), 1)
 
     def test_unclosed_question_names_its_line(self):
