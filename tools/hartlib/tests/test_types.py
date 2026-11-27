@@ -12,7 +12,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import (block_numbering, coordinator, devices, drawing_keys, errors, files,  # noqa: E402
                      hand_lists, layer_files, levels, parked, railroad, railroad_facts, store_split, tables,
-                     tables_build, track_names, wiring)
+                     tables_build, tables_sections, track_names, wiring)
 
 
 class Levels(unittest.TestCase):
@@ -128,7 +128,7 @@ class ItemKeys(unittest.TestCase):
         self.assertEqual(hash(ss.BeanKey("bean", sk, "t", "", "n")), hash(("bean", sk, "t", "", "n")))
 
     def test_sort_group_is_public(self) -> None:
-        self.assertTrue(callable(tables_build.sort_group))
+        self.assertTrue(callable(tables_sections.sort_group))
 
 
 class WiringKinds(unittest.TestCase):

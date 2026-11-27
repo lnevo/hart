@@ -227,7 +227,11 @@ def main() -> int:
         print("%s: columns ready" % path.relative_to(ROOT))
         if write:
             from hartlib import tables_build
-            tables_build.refuse_generated(path, Path(__file__).name)
+            try:
+                tables_build.refuse_generated(path, Path(__file__).name)
+            except tables_build.GeneratedTablesError as exc:
+                print(exc, file=sys.stderr)
+                return 1
             path.write_text(updated, encoding="utf-8")
     if not write:
         print("dry-run (pass --apply)")

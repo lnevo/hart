@@ -83,7 +83,11 @@ def main() -> int:
         if leftover:
             print(f"  still present: {leftover}")
         if write:
-            tables_build.refuse_generated(path, Path(__file__).name)
+            try:
+                tables_build.refuse_generated(path, Path(__file__).name)
+            except tables_build.GeneratedTablesError as exc:
+                print(exc, file=sys.stderr)
+                return 1
             path.write_text(updated, encoding="utf-8")
     if not write:
         print("dry-run (pass --apply)")

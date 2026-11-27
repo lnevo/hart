@@ -167,7 +167,11 @@ def main(argv=None) -> int:
         print(f"ok: every level's signals in {paths.rel(args.tables)} follow {level_masts.PATH.name} "
               f"({counts['masts kept']} masts)")
         return 0
-    tables_build.refuse_generated(args.tables, Path(__file__).name)
+    try:
+        tables_build.refuse_generated(args.tables, Path(__file__).name)
+    except tables_build.GeneratedTablesError as exc:
+        print(exc, file=sys.stderr)
+        return 1
     try:
         running = tables.jmri_running()
     except tables.JmriCheckError as exc:

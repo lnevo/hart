@@ -1,5 +1,5 @@
 """hartlib.tables_sections: the sections of the generated tables, AlphanumComparator order and the Store's bean
-order; and the names tables_build still gives for the modules split out of it."""
+order; and that tables_build no longer gives the names of the modules split out of it."""
 from __future__ import annotations
 
 import sys
@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import (jmri_bean, startup_logixng, tables, tables_build, tables_normal, tables_roundtrip,  # noqa: E402
+from hartlib import (jmri_bean, tables, tables_build, tables_normal, tables_roundtrip,  # noqa: E402
                      tables_sections as ts, tables_sml)
 from xml_need import need  # noqa: E402
 
@@ -42,21 +42,23 @@ class Order(unittest.TestCase):
 
 
 class SplitNames(unittest.TestCase):
-    """tables_build gives the names its callers read there, as the very objects of the modules that hold them."""
+    """The names of the modules split out of tables_build are read from their own module, and tables_build gives
+    none of them."""
 
-    def test_each_name_is_its_module_s(self) -> None:
-        for module, names in ((ts, ("TablesBuildError", "SECTIONS", "MASTER_SECTIONS", "BLOCKS", "jmri_sort",
-                                    "sort_group", "section_key", "finish", "jmri_order")),
-                              (jmri_bean, ("bean_json", "row_beans", "kept_beans")),
-                              (startup_logixng, ("START_ACTIONS", "start_logixng")),
-                              (tables_normal, ("PROLOG", "EPILOG", "ENVELOPE_DROPS", "normalise_store",
-                                               "strip_envelope", "envelope_items")),
-                              (tables_sml, ("DISCOVERED", "merge_discovered", "read_discovered", "digicon_masts",
-                                            "disable_digicon", "enabled_digicon", "missing_logic")),
+    def test_tables_build_gives_no_split_name(self) -> None:
+        for module, names in ((ts, ("CONDITIONALNGS", "DIGITAL_ACTIONS", "INTERNAL_SENSORS", "INTERNAL_TURNOUTS",
+                                    "LCC_TURNOUTS", "LOGIXNGS", "MQTT_SENSORS", "MQTT_TURNOUTS", "jmri_order",
+                                    "jmri_sort", "sort_group")),
+                              (jmri_bean, ("bean_json", "row_beans")),
+                              (tables_normal, ("ENVELOPE_DROPS", "normalise_store", "strip_envelope")),
+                              (tables_sml, ("DISCOVERED", "digicon_masts", "disable_digicon", "discovered_from_store",
+                                            "enabled_digicon", "merge_discovered", "missing_logic", "read_discovered",
+                                            "read_discovered_root", "write_discovered")),
                               (tables_roundtrip, ("roundtrip_differences", "roundtrip_report"))):
             for name in names:
                 with self.subTest(module=module.__name__, name=name):
-                    self.assertIs(getattr(module, name), getattr(tables_build, name))
+                    self.assertTrue(hasattr(module, name))
+                    self.assertFalse(hasattr(tables_build, name))
 
 
 if __name__ == "__main__":
