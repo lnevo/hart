@@ -1452,6 +1452,24 @@
    "path": "jmri/layouts/hart/scripts/render_le_layout.py"
   },
   {
+   "id": "jmri/layouts/hart/scripts/render_le_geometry.py",
+   "label": "render_le_geometry.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of render_le_layout.py: anchors, turnout legs, track segments, masts, stations and panel labels read from the panel XML.",
+   "path": "jmri/layouts/hart/scripts/render_le_geometry.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/render_le_draw.py",
+   "label": "render_le_draw.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of render_le_layout.py: the colours, frame and layers that draw one view to a PNG.",
+   "path": "jmri/layouts/hart/scripts/render_le_draw.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/run_dispatcher_stage1.py",
    "label": "run_dispatcher_stage1.py",
    "kind": "generator",
@@ -14832,6 +14850,21 @@
   {
    "from": "tools/schematic/staging_records.py",
    "to": "tools/schematic/staging_mast_rows.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/render_le_geometry.py",
+   "to": "jmri/layouts/hart/scripts/render_le_layout.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/render_le_geometry.py",
+   "to": "jmri/layouts/hart/scripts/render_le_draw.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/render_le_draw.py",
+   "to": "jmri/layouts/hart/scripts/render_le_layout.py",
    "label": "imports"
   },
   {

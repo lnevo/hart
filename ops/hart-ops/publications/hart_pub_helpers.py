@@ -10,6 +10,7 @@ from __future__ import annotations
 import functools
 import sys
 from pathlib import Path
+from typing import Any, NamedTuple
 
 from docx.document import Document
 from docx.enum.section import WD_ORIENT
@@ -18,7 +19,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
-from docx.table import Table, _Cell
+from docx.table import Table, _Cell, _Row
+from docx.text.paragraph import Paragraph
 
 PUB = Path(__file__).resolve().parent
 ASSETS = PUB / "assets"
@@ -27,31 +29,27 @@ if str(PUB) not in sys.path:
 
 import crew_master  # noqa: E402
 from hart_ooxml import clear_table_borders, set_cell_margins, set_cell_width, set_row_height  # noqa: E402
-from hart_pub_styles import (  # noqa: E402,F401
-    ACCENT,
-    BODY,
-    MUTED,
-    RULE,
-    WHITE,
-    _set_run_font,
-    add_body,
-    add_bullet_items,
-    add_heading,
-    add_horizontal_rule,
-    add_masthead,
-    add_numbered_items,
-    fill_header_row,
-    fill_row,
-    fill_swatch_cell,
-    set_cell_shading,
-    style_table,
+from hart_pub_styles import (  # noqa: E402,F401  (the rebuild scripts import these names from here)
+    ACCENT, BODY, MUTED, RULE, WHITE, _set_run_font, add_body, add_bullet_items, add_heading, add_horizontal_rule,
+    add_masthead, add_numbered_items, fill_header_row, fill_row, fill_swatch_cell, set_cell_shading, style_table,
 )
 
 HEADER_FILL = "0F4761"
+STATION_MAP = ASSETS / "station_map_diagram_only.png"
+
+CrewMaster = dict[str, Any]  # the parsed crew.json (crew_master.load)
+
+
+class PublicationAssetError(FileNotFoundError):
+    """An image that a publication page places is missing (not a file)."""
+
+
+class ColorKeyError(ValueError):
+    """The crew master's colour groups cannot be laid out as the two-column key."""
 
 
 @functools.cache
-def _master() -> dict:
+def _master() -> CrewMaster:
     """The crew master, read on first use (importing this module reads no file)."""
     return crew_master.load()
 
@@ -62,7 +60,19 @@ def _set_col_width(cell: _Cell, width_in: float) -> None:
     set_cell_width(cell, int(width_in * 1440))
 
 
-def _float_to_page_y(table: Table, y_twips: int) -> None:
+def _spacing(paragraph: Paragraph, *, before: float = 0, after: float = 0) -> None:
+    paragraph.paragraph_format.space_before = Pt(before)
+    paragraph.paragraph_format.space_after = Pt(after)
+
+
+def _picture_path(map_path: str | Path) -> Path:
+    path = Path(map_path)
+    if not path.is_file():
+        raise PublicationAssetError(f"Station map not found: {path}")
+    return path
+
+
+def float_table_to_page_y(table: Table, y_twips: int) -> None:
     """Position the table absolutely, y_twips from the page top, centred in the margins, never overlapped."""
     tbl = table._tbl
     tbl_pr = tbl.tblPr
@@ -86,19 +96,15 @@ def _float_to_page_y(table: Table, y_twips: int) -> None:
 
 
 def set_letter_portrait(doc: Document, *, compact: bool = False) -> None:
+    """US letter portrait; compact narrows the margins (top, bottom, sides)."""
     section = doc.sections[0]
     section.page_width = Inches(8.5)
     section.page_height = Inches(11)
-    if compact:
-        section.top_margin = Inches(0.5)
-        section.bottom_margin = Inches(0.55)
-        section.left_margin = Inches(0.6)
-        section.right_margin = Inches(0.6)
-    else:
-        section.top_margin = Inches(0.7)
-        section.bottom_margin = Inches(0.7)
-        section.left_margin = Inches(0.75)
-        section.right_margin = Inches(0.75)
+    top, bottom, side = (0.5, 0.55, 0.6) if compact else (0.7, 0.7, 0.75)
+    section.top_margin = Inches(top)
+    section.bottom_margin = Inches(bottom)
+    section.left_margin = Inches(side)
+    section.right_margin = Inches(side)
 
 
 def set_page_size(
@@ -110,13 +116,9 @@ def set_page_size(
     top_margin_in: float | None = None,
     bottom_margin_in: float | None = None,
 ) -> None:
-    """Custom page size (e.g. 8×5 landscape desk sheet).
+    """Custom page size (e.g. 8×5 landscape desk sheet), oriented landscape when wider than tall for print dialogs.
 
-    Sets WD_ORIENT from the width/height ratio so print dialogs match the
-    sheet (width > height → landscape).
-
-    top_margin_in defaults higher than side margins when unset so clipboard
-    clips don't eat the title (pass explicitly to override).
+    top_margin_in defaults to at least 0.55 in so clipboard clips don't eat the title.
     """
     section = doc.sections[0]
     # Assign orientation before size — python-docx may swap dims on orient change
@@ -154,27 +156,12 @@ def add_compact_title(
     """Single-line title for one-page desk sheets."""
     t = doc.add_paragraph()
     t.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    t.paragraph_format.space_before = Pt(space_before)
-    t.paragraph_format.space_after = Pt(1)
+    _spacing(t, before=space_before, after=1)
     r = t.add_run(f"HART Railroad  ·  {title}")
     _set_run_font(r, size_pt=size_pt, bold=True, color=ACCENT)
     rule = doc.add_paragraph()
-    rule.paragraph_format.space_before = Pt(0)
-    rule.paragraph_format.space_after = Pt(rule_after)
+    _spacing(rule, after=rule_after)
     add_horizontal_rule(rule)
-
-
-def add_page1_bottom_bias(
-    doc: Document,
-    *,
-    space_before_pt: float = 36,
-) -> None:
-    """Empty pad under the title so page-1 body sits lower (clipboard clearance)."""
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(space_before_pt)
-    r = p.add_run("")
-    r.font.size = Pt(1)
 
 
 def add_publication_footer(
@@ -194,8 +181,7 @@ def add_publication_footer(
     for run in list(p.runs):
         run.text = ""
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(0)
+    _spacing(p)
     if compact:
         line = f"{pub_id}  ·  Rev {revision}  ·  Eff. {effective}  ·  Neville Island Ops"
         size = 6.5
@@ -216,27 +202,105 @@ def add_station_map_page(
     page_break: bool = True,
     plain_bg: bool = False,
 ) -> None:
-    """Append the subdivision diagram only (no extra title) as a full page."""
+    """Append the subdivision diagram only (no extra title) as a full page.
+
+    With no map_path the chrome-free diagram is used when it exists, else the SM-01 export (plain or cream).
+    """
     if map_path is None:
-        # Prefer chrome-free diagram; fall back to plain/cream SM-01 export
-        preferred = ASSETS / "station_map_diagram_only.png"
         fallback = ASSETS / ("station_map_subdivision_plain.png" if plain_bg else "station_map_subdivision.png")
-        map_path = preferred if preferred.is_file() else fallback
-    map_path = Path(map_path)
-    if not map_path.is_file():
-        raise FileNotFoundError(f"Station map not found: {map_path}")
+        map_path = STATION_MAP if STATION_MAP.is_file() else fallback
+    path = _picture_path(map_path)
 
     if page_break:
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
+        _spacing(p)
         p.add_run().add_break(WD_BREAK.PAGE)
 
     pic = doc.add_paragraph()
     pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    pic.paragraph_format.space_before = Pt(0)
-    pic.paragraph_format.space_after = Pt(0)
-    pic.add_run().add_picture(str(map_path), height=Inches(7.0))
+    _spacing(pic)
+    pic.add_run().add_picture(str(path), height=Inches(7.0))
+
+
+# The back page: STATION MAP (left) and the ROUTE 23 timetable (right), about 50/50.
+
+TIMETABLE_COLUMNS = ("AM", "STATION", "PM")
+TIMETABLE_WIDTHS_IN = (0.52, 0.92, 0.58)
+TIMETABLE_ALIGN = (WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER)
+
+
+def _add_back_page_lead(doc: Document, *, page_break: bool) -> None:
+    """The lead-in paragraph above the back page; it carries the page break (no empty blank page)."""
+    lead = doc.add_paragraph()
+    lead.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    _spacing(lead, before=12, after=4)  # a small pad under the clipboard zone
+    if page_break:
+        p_pr = lead._p.get_or_add_pPr()
+        for child in list(p_pr):
+            if child.tag == qn("w:pageBreakBefore"):
+                p_pr.remove(child)
+        p_pr.append(OxmlElement("w:pageBreakBefore"))
+
+
+def _add_column_title(cell: _Cell, text: str, *, after: float) -> None:
+    p = cell.paragraphs[0]
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _spacing(p, after=after)
+    _set_run_font(p.add_run(text), size_pt=8, bold=True, color=ACCENT, name="Arial")
+
+
+def _add_map_column(cell: _Cell, map_path: Path) -> None:
+    _add_column_title(cell, "STATION MAP", after=2)
+    pic = cell.add_paragraph()
+    pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _spacing(pic)
+    # Slightly shorter so the whole back page stays on one sheet
+    pic.add_run().add_picture(str(map_path), width=Inches(2.05), height=Inches(5.6))
+
+
+def _fill_timetable_cell(cell: _Cell, width_in: float) -> Paragraph:
+    """Empty the cell, give it its width and return its paragraph."""
+    cell.text = ""
+    _set_col_width(cell, width_in)
+    return cell.paragraphs[0]
+
+
+def _timetable_table(doc: Document, rows: list[tuple[str, str, str]]) -> Table:
+    """The AM | STATION | PM table, added at the end of the body (the caller moves it into its cell)."""
+    sched = doc.add_table(rows=1 + len(rows), cols=3)
+    sched.autofit = False
+    style_table(sched)
+    for cell, text, w in zip(sched.rows[0].cells, TIMETABLE_COLUMNS, TIMETABLE_WIDTHS_IN, strict=True):
+        p = _fill_timetable_cell(cell, w)
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        _spacing(p)
+        _set_run_font(p.add_run(text), size_pt=6, bold=True, color=WHITE, name="Arial")
+        set_cell_shading(cell, HEADER_FILL)
+    for row, values in zip(sched.rows[1:], rows, strict=True):
+        for cell, text, align, w in zip(row.cells, values, TIMETABLE_ALIGN, TIMETABLE_WIDTHS_IN, strict=True):
+            p = _fill_timetable_cell(cell, w)
+            p.alignment = align
+            _spacing(p, before=2, after=2)
+            _set_run_font(p.add_run(text), size_pt=6.5, color=BODY, name="Georgia")
+    return sched
+
+
+def _add_timetable_column(doc: Document, cell: _Cell, master: CrewMaster) -> None:
+    back_page = crew_master.tt23_back_page(master)
+    _add_column_title(cell, "ROUTE 23 TIMETABLE", after=0)
+    sub = cell.add_paragraph()
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _spacing(sub, after=4)
+    _set_run_font(sub.add_run(back_page["subtitle"]), size_pt=6.5, color=MUTED, name="Georgia")
+
+    tbl_el = _timetable_table(doc, crew_master.tt23_rows(master))._tbl
+    tbl_el.getparent().remove(tbl_el)
+    cell._tc.append(tbl_el)
+
+    note = cell.add_paragraph()
+    note.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    _spacing(note, before=6)
+    _set_run_font(note.add_run(back_page["note"]), size_pt=5.5, color=MUTED, name="Calibri")
 
 
 def add_diagram_and_timetable_page(
@@ -250,116 +314,146 @@ def add_diagram_and_timetable_page(
     The timetable is the master's TT-23 rows (AM | STATION | PM): each trip runs Barn to McKees Rocks, waits 10
     minutes and returns, so AM reads down and PM reads up.
     """
-    schedule = crew_master.tt23_rows(_master())
-    back_page = crew_master.tt23_back_page(_master())
-    if map_path is None:
-        map_path = ASSETS / "station_map_diagram_only.png"
-    map_path = Path(map_path)
-    if not map_path.is_file():
-        raise FileNotFoundError(f"Station map not found: {map_path}")
-
-    # Lead-in paragraph carries the page break (avoids an empty blank page)
-    lead = doc.add_paragraph()
-    lead.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    lead.paragraph_format.space_before = Pt(12)   # a small pad under the clipboard zone
-    lead.paragraph_format.space_after = Pt(4)
-    if page_break:
-        pPr = lead._p.get_or_add_pPr()
-        # Remove existing pageBreakBefore if any, then set
-        for child in list(pPr):
-            if child.tag == qn("w:pageBreakBefore"):
-                pPr.remove(child)
-        pPr.append(OxmlElement("w:pageBreakBefore"))
+    master = _master()
+    path = _picture_path(STATION_MAP if map_path is None else map_path)
+    _add_back_page_lead(doc, page_break=page_break)
 
     outer = doc.add_table(rows=1, cols=2)
     outer.alignment = WD_TABLE_ALIGNMENT.CENTER
     outer.autofit = False
     clear_table_borders(outer)
-
     left, right = outer.rows[0].cells
     _set_col_width(left, 2.15)
     _set_col_width(right, 2.15)
+    _add_map_column(left, path)
+    _add_timetable_column(doc, right, master)
 
-    # —— Left: Station Map ——
-    lp = left.paragraphs[0]
-    lp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    lp.paragraph_format.space_before = Pt(0)
-    lp.paragraph_format.space_after = Pt(2)
-    r = lp.add_run("STATION MAP")
-    _set_run_font(r, size_pt=8, bold=True, color=ACCENT, name="Arial")
 
-    pic = left.add_paragraph()
-    pic.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    pic.paragraph_format.space_before = Pt(0)
-    pic.paragraph_format.space_after = Pt(0)
-    # Slightly shorter so the whole back page stays on one sheet
-    pic.add_run().add_picture(str(map_path), width=Inches(2.05), height=Inches(5.6))
+# The abridged colour key: interchange swatches left, local industries right.
 
-    # —— Right: Route 23 timetable ——
-    rp = right.paragraphs[0]
-    rp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    rp.paragraph_format.space_before = Pt(0)
-    rp.paragraph_format.space_after = Pt(0)
-    r = rp.add_run("ROUTE 23 TIMETABLE")
-    _set_run_font(r, size_pt=8, bold=True, color=ACCENT, name="Arial")
 
-    sub = right.add_paragraph()
-    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sub.paragraph_format.space_before = Pt(0)
-    sub.paragraph_format.space_after = Pt(4)
-    r = sub.add_run(back_page["subtitle"])
-    _set_run_font(r, size_pt=6.5, color=MUTED, name="Georgia")
+class KeyMetrics(NamedTuple):
+    """Row heights (pt) and cell paddings (twips) of the colour key, by compact or not."""
 
-    sched = doc.add_table(rows=1 + len(schedule), cols=3)
-    sched.autofit = False
-    style_table(sched)
-    col_w = (0.52, 0.92, 0.58)
-    for cell, text, w in zip(sched.rows[0].cells, ("AM", "STATION", "PM"), col_w):
-        cell.text = ""
-        _set_col_width(cell, w)
-        p = cell.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
-        run = p.add_run(text)
-        _set_run_font(run, size_pt=6, bold=True, color=WHITE, name="Arial")
-        set_cell_shading(cell, HEADER_FILL)
+    header_pt: float
+    body_pt: float
+    swatch_pad: int
+    dest_pad: int
+    header_font_pt: float
+    dest_font_pt: float
 
-    for i, (am, station, pm) in enumerate(schedule, start=1):
-        row = sched.rows[i]
-        for cell, text, align, w in zip(
-            row.cells,
-            (am, station, pm),
-            (WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER),
-            col_w,
-        ):
-            cell.text = ""
-            _set_col_width(cell, w)
-            p = cell.paragraphs[0]
-            p.alignment = align
-            p.paragraph_format.space_before = Pt(2)
-            p.paragraph_format.space_after = Pt(2)
-            run = p.add_run(text)
-            _set_run_font(run, size_pt=6.5, color=BODY, name="Georgia")
 
-    tbl_el = sched._tbl
-    tbl_el.getparent().remove(tbl_el)
-    right._tc.append(tbl_el)
+KEY_METRICS = {
+    True: KeyMetrics(header_pt=12, body_pt=13, swatch_pad=14, dest_pad=20, header_font_pt=7.5, dest_font_pt=7),
+    False: KeyMetrics(header_pt=14, body_pt=16, swatch_pad=20, dest_pad=28, header_font_pt=8, dest_font_pt=7.5),
+}
+KEY_TITLE_PT = 16
+KEY_TITLE_PAD = 25
+KEY_SIDE_PAD = 30
+KEY_WIDTHS_IN = (0.26, 1.85, 0.26, 1.85)
 
-    note = right.add_paragraph()
-    note.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    note.paragraph_format.space_before = Pt(6)
-    note.paragraph_format.space_after = Pt(0)
-    r = note.add_run(back_page["note"])
-    _set_run_font(r, size_pt=5.5, color=MUTED, name="Calibri")
+Swatch = tuple[str, str]  # (RRGGBB fill, destination label), as crew_master.color_key gives them
+
+
+def _color_key_groups(master: CrewMaster) -> tuple[list[Swatch], list[Swatch]]:
+    """(interchange, island) swatches; the key has one row per island swatch, so interchange may not be longer."""
+    offline, island = crew_master.color_key(master)
+    if len(offline) > len(island):
+        raise ColorKeyError(
+            f"the crew master has {len(offline)} interchange colours and {len(island)} island colours; "
+            "the key prints one row per island colour, so interchange colours would be dropped"
+        )
+    return offline, island
 
 
 def abridged_color_key_height_in(*, compact: bool = False, pin_title: bool = True) -> float:
     """Approximate height of the abridged color-key table (inches)."""
     n = len(crew_master.color_key(_master())[1])
-    title_h = 16 if pin_title else 0
-    hdr_h, body_h = (12, 13) if compact else (14, 16)
-    return (title_h + hdr_h + n * body_h) / 72.0 + 0.05
+    title_h = KEY_TITLE_PT if pin_title else 0
+    m = KEY_METRICS[compact]
+    return (title_h + m.header_pt + n * m.body_pt) / 72.0 + 0.05
+
+
+def _key_swatch(cell: _Cell, fill_hex: str) -> None:
+    fill_swatch_cell(cell, "", fill_hex=fill_hex, text_hex="000000")
+    for p in cell.paragraphs:
+        _spacing(p)
+
+
+def _key_dest(cell: _Cell, text: str, m: KeyMetrics) -> None:
+    cell.text = ""
+    p = cell.paragraphs[0]
+    _spacing(p)
+    _set_run_font(p.add_run(text), size_pt=m.dest_font_pt, color=BODY, name="Calibri")
+
+
+def _add_key_heading(doc: Document, heading: str, *, space_before: float, compact: bool) -> None:
+    h = doc.add_paragraph()
+    _spacing(h, before=space_before, after=1 if compact else 2)
+    _set_run_font(h.add_run(heading.upper()), size_pt=9 if compact else 10, bold=True, color=ACCENT)
+    if not compact:
+        add_body(doc, "Interchange (left). Local industries (right).", space_after=2, size_pt=8, line_spacing=1.05)
+
+
+def _fill_key_title_row(row: _Row, heading: str) -> None:
+    """The heading as a merged first row (the pinned key carries its own title)."""
+    row.cells[0].merge(row.cells[3])
+    title = row.cells[0]
+    title.text = ""
+    set_cell_shading(title, HEADER_FILL)
+    tp = title.paragraphs[0]
+    tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _set_run_font(tp.add_run(heading.upper()), size_pt=8.5, bold=True, color=WHITE, name="Calibri")
+
+
+def _paint_key_header(row: _Row, m: KeyMetrics) -> None:
+    for cell in row.cells:
+        set_cell_shading(cell, HEADER_FILL)
+        for p in cell.paragraphs:
+            _spacing(p)
+            for run in p.runs:
+                _set_run_font(run, size_pt=m.header_font_pt, bold=True, color=WHITE, name="Calibri")
+
+
+def _fill_key_rows(rows: list[_Row], offline: list[Swatch], island: list[Swatch], m: KeyMetrics) -> None:
+    for i, (row, (island_fill, island_dest)) in enumerate(zip(rows, island, strict=True)):
+        if i < len(offline):
+            _key_swatch(row.cells[0], offline[i][0])
+            _key_dest(row.cells[1], offline[i][1], m)
+        else:
+            row.cells[0].text = ""
+            row.cells[1].text = ""
+            set_cell_shading(row.cells[0], "FFFFFF")
+        _key_swatch(row.cells[2], island_fill)
+        _key_dest(row.cells[3], island_dest, m)
+
+
+def _size_key_rows(table: Table, *, header_index: int, pinned: bool, m: KeyMetrics) -> None:
+    """Exact row heights and cell paddings for every row; paragraphs lose their spacing."""
+    for ri, row in enumerate(table.rows):
+        title_row = pinned and ri == 0
+        if title_row:
+            set_row_height(row, KEY_TITLE_PT)
+        elif ri == header_index:
+            set_row_height(row, m.header_pt)
+        else:
+            set_row_height(row, m.body_pt)
+        for ci, cell in enumerate(row.cells):
+            pad = m.swatch_pad if ci in (0, 2) else m.dest_pad
+            if title_row:
+                pad = KEY_TITLE_PAD
+            set_cell_margins(cell, top=pad, left=KEY_SIDE_PAD, bottom=pad, right=KEY_SIDE_PAD)
+            for p in cell.paragraphs:
+                _spacing(p)
+
+
+def _repaint_key_swatches(rows: list[_Row], offline: list[Swatch], island: list[Swatch], m: KeyMetrics) -> None:
+    """Swatch cells again after sizing, with the swatch padding (the sizing pass gives every cell its padding)."""
+    for i, (row, (island_fill, _dest)) in enumerate(zip(rows, island, strict=True)):
+        cells = [(row.cells[0], offline[i][0])] if i < len(offline) else []
+        for cell, fill in [*cells, (row.cells[2], island_fill)]:
+            _key_swatch(cell, fill)
+            set_cell_margins(cell, top=m.swatch_pad, left=KEY_SIDE_PAD, bottom=m.swatch_pad, right=KEY_SIDE_PAD)
 
 
 def add_abridged_color_key(
@@ -377,113 +471,27 @@ def add_abridged_color_key(
     The swatches are the master's colour groups, (fill, label), in its order. When pin_to_bottom=True, the chart is
     absolutely positioned near the bottom of the page (for 5×8 crew sheets).
     """
-    offline_dests, island_dests = crew_master.color_key(_master())
-
+    offline, island = _color_key_groups(_master())
+    m = KEY_METRICS[compact]
     if not pin_to_bottom:
-        h = doc.add_paragraph()
-        h.paragraph_format.space_before = Pt(space_before)
-        h.paragraph_format.space_after = Pt(1 if compact else 2)
-        hr = h.add_run(heading.upper())
-        _set_run_font(hr, size_pt=9 if compact else 10, bold=True, color=ACCENT)
+        _add_key_heading(doc, heading, space_before=space_before, compact=compact)
 
-        if not compact:
-            add_body(
-                doc,
-                "Interchange (left). Local industries (right).",
-                space_after=2,
-                size_pt=8,
-                line_spacing=1.05,
-            )
-
-    n = len(island_dests)
-    # Title row (optional) + header + data rows
-    title_rows = 1 if pin_to_bottom else 0
-    table = doc.add_table(rows=title_rows + 1 + n, cols=4)
-    data_start = title_rows
-    fill_header_row(table.rows[data_start], ["", "Interchange", "", "Local Industries"])
+    header_index = 1 if pin_to_bottom else 0
+    table = doc.add_table(rows=header_index + 1 + len(island), cols=4)
+    fill_header_row(table.rows[header_index], ["", "Interchange", "", "Local Industries"])
     style_table(table)
-
     if pin_to_bottom:
-        # Title as first row, merged
-        title_row = table.rows[0]
-        title_row.cells[0].merge(title_row.cells[3])
-        title_row.cells[0].text = ""
-        set_cell_shading(title_row.cells[0], HEADER_FILL)
-        tp = title_row.cells[0].paragraphs[0]
-        tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        trun = tp.add_run(heading.upper())
-        _set_run_font(trun, size_pt=8.5, bold=True, color=WHITE, name="Calibri")
+        _fill_key_title_row(table.rows[0], heading)
+    _paint_key_header(table.rows[header_index], m)
 
-    for cell in table.rows[data_start].cells:
-        set_cell_shading(cell, HEADER_FILL)
-        for p in cell.paragraphs:
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-            for run in p.runs:
-                _set_run_font(run, size_pt=7.5 if compact else 8, bold=True, color=WHITE, name="Calibri")
-
-    def _swatch(cell, fill_hex: str) -> None:
-        fill_swatch_cell(cell, "", fill_hex=fill_hex, text_hex="000000")
-        for p in cell.paragraphs:
-            p.paragraph_format.space_before = Pt(0)
-            p.paragraph_format.space_after = Pt(0)
-
-    def _dest(cell, text: str) -> None:
-        cell.text = ""
-        p = cell.paragraphs[0]
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
-        r = p.add_run(text)
-        _set_run_font(r, size_pt=7 if compact else 7.5, color=BODY, name="Calibri")
-
-    for i in range(n):
-        row = table.rows[data_start + 1 + i]
-        offline = offline_dests[i] if i < len(offline_dests) else None
-        if offline is None:
-            row.cells[0].text = ""
-            row.cells[1].text = ""
-            set_cell_shading(row.cells[0], "FFFFFF")
-        else:
-            _swatch(row.cells[0], offline[0])
-            _dest(row.cells[1], offline[1])
-        _swatch(row.cells[2], island_dests[i][0])
-        _dest(row.cells[3], island_dests[i][1])
-
-    hdr_h, body_h = (12, 13) if compact else (14, 16)
-    pad_s, pad_d = (14, 20) if compact else (20, 28)
-    for ri, row in enumerate(table.rows):
-        if pin_to_bottom and ri == 0:
-            set_row_height(row, 16)
-        elif ri == data_start:
-            set_row_height(row, hdr_h)
-        else:
-            set_row_height(row, body_h)
-        for ci, cell in enumerate(row.cells):
-            pad = pad_s if ci in (0, 2) else pad_d
-            if pin_to_bottom and ri == 0:
-                pad = 25
-            set_cell_margins(cell, top=pad, left=30, bottom=pad, right=30)
-            for p in cell.paragraphs:
-                p.paragraph_format.space_before = Pt(0)
-                p.paragraph_format.space_after = Pt(0)
-
-    for i in range(n):
-        row = table.rows[data_start + 1 + i]
-        offline = offline_dests[i] if i < len(offline_dests) else None
-        if offline is not None:
-            _swatch(row.cells[0], offline[0])
-            set_cell_margins(row.cells[0], top=pad_s, left=30, bottom=pad_s, right=30)
-        _swatch(row.cells[2], island_dests[i][0])
-        set_cell_margins(row.cells[2], top=pad_s, left=30, bottom=pad_s, right=30)
-
+    body = list(table.rows)[header_index + 1:]
+    _fill_key_rows(body, offline, island, m)
+    _size_key_rows(table, header_index=header_index, pinned=pin_to_bottom, m=m)
+    _repaint_key_swatches(body, offline, island, m)
     for row in table.rows:
-        for cell, w in zip(
-            row.cells,
-            [Inches(0.26), Inches(1.85), Inches(0.26), Inches(1.85)],
-        ):
-            cell.width = w
+        for cell, w in zip(row.cells, KEY_WIDTHS_IN, strict=True):
+            cell.width = Inches(w)
 
     if pin_to_bottom:
-        # Float the chart to the bottom of the page.
         block_in = abridged_color_key_height_in(compact=compact, pin_title=True)
-        _float_to_page_y(table, int((page_height_in - bottom_clearance_in - block_in) * 1440))
+        float_table_to_page_y(table, int((page_height_in - bottom_clearance_in - block_in) * 1440))

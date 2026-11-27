@@ -87,7 +87,7 @@ tools/audit/check_stamps.py,BY_KIND,14,keep,"stamp declarations built from Pytho
 tools/audit/check_stamps.py,ENTITY_MASTERS,15,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2)"
 tools/audit/check_stamps.py,EXTRA,46,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/audit/check_stamps.py,SIDECAR_MASTERS,13,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2)"
-tools/audit/portal_inputs.py,SITE_TOOLS,15,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
+tools/audit/portal_inputs.py,SITE_TOOLS,14,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/stamp_gate.py,MACHINERY,18,keep,"shared in code, so already one source: check_stamps.py and traced.py import it (review fix after the code review)"
