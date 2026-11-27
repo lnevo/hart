@@ -26,6 +26,7 @@ import car_paths
 import card_template_layout
 import card_template_sheet
 import generate_card_template as g
+from card_template_records import CcLabelRecord
 
 BASE = Path(__file__).resolve().parent.parent
 SHIPMENTS_JSON = BASE / "archive" / "docs" / "cc_shipments.json"
@@ -90,43 +91,23 @@ def _normalize_staging(track: str, spot: str, *, bill_kind: str) -> tuple[str, s
     return track, spot, flow
 
 
+EXPORT_PHP = Path(__file__).resolve().parent / "sts_cc_shipments.php"
+
+
+def export_php(path: Path = EXPORT_PHP) -> str:
+    """The shipment export as php -r takes it: the file less its <?php line and the // header under it, from the blank line on."""
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    if not lines or lines[0].strip() != "<?php":
+        raise car_paths.CardPipelineError(f"{path} does not start with <?php")
+    body = lines[1:]
+    while body and body[0].startswith("//"):
+        body.pop(0)
+    return "".join(body)
+
+
 def refresh_shipments_from_sts(dest: Path = SHIPMENTS_JSON) -> int:
     """Pull current shipments from the STS web container into JSON."""
-    php = r"""
-require "/var/www/html/sts/open_db.php";
-$dbc = open_db();
-$sql = "SELECT s.id, s.code,
-  COALESCE(c.description,\"\") AS consignment,
-  COALESCE(cc.code,\"\") AS car_code,
-  COALESCE(loc_u.code,\"\") AS unload_loc,
-  COALESCE(rout_u.station,\"\") AS unload_sta,
-  COALESCE(loc_u.track,\"\") AS unload_trk,
-  COALESCE(loc_u.spot,\"\") AS unload_spot,
-  COALESCE(NULLIF(loc_u.rpt_station,\"\"), rout_u.station, \"\") AS unload_rpt,
-  COALESCE(loc_l.code,\"\") AS load_loc,
-  COALESCE(rout_l.station,\"\") AS load_sta,
-  COALESCE(loc_l.track,\"\") AS load_trk,
-  COALESCE(loc_l.spot,\"\") AS load_spot,
-  COALESCE(NULLIF(loc_l.rpt_station,\"\"), rout_l.station, \"\") AS load_rpt,
-  COALESCE(s.special_instructions,\"\") AS special,
-  COALESCE(loc_u.color,\"\") AS unload_color,
-  COALESCE(loc_l.color,\"\") AS load_color,
-  COALESCE(s.description,\"\") AS description,
-  COALESCE(s.remarks,\"\") AS remarks
-FROM shipments s
-LEFT JOIN commodities c ON c.id = s.consignment
-LEFT JOIN car_codes cc ON cc.id = s.car_code
-LEFT JOIN locations loc_u ON loc_u.id = s.unloading_location
-LEFT JOIN routing rout_u ON rout_u.id = loc_u.station
-LEFT JOIN locations loc_l ON loc_l.id = s.loading_location
-LEFT JOIN routing rout_l ON rout_l.id = loc_l.station
-ORDER BY s.code";
-$rs = mysqli_query($dbc, $sql);
-$out = [];
-while ($row = mysqli_fetch_assoc($rs)) { $out[] = $row; }
-file_put_contents("/tmp/cc_shipments.json", json_encode($out, JSON_UNESCAPED_UNICODE));
-echo count($out);
-"""
+    php = export_php()
     count = subprocess.check_output(
         ["docker", "exec", "sts-docker-web-1", "php", "-r", php],
         text=True,
@@ -143,14 +124,14 @@ def _station(rpt: str, station: str) -> str:
     return rpt if rpt else (station or "").strip()
 
 
-def labels_from_shipments(shipments: list[dict]) -> list[dict]:
+def labels_from_shipments(shipments: list[dict]) -> list[CcLabelRecord]:
     """Two labels per shipment: empty (mtybill) then freight (waybill).
 
     STS is the source of truth for locations/commodities/car codes. Staging
     spots are normalized so empty bills are Staging IN and freight bills are
     Staging OUT (matching CC/WB flow).
     """
-    labels: list[dict] = []
+    labels: list[CcLabelRecord] = []
     for s in shipments:
         code = (s.get("code") or "").strip()
         consignment = (s.get("consignment") or "").strip()
@@ -208,7 +189,7 @@ def labels_from_shipments(shipments: list[dict]) -> list[dict]:
     return labels
 
 
-def _pad_to_page(deck: list[dict]) -> list[dict]:
+def _pad_to_page(deck: list[CcLabelRecord]) -> list[CcLabelRecord]:
     need = (CARDS_PER_PAGE - len(deck) % CARDS_PER_PAGE) % CARDS_PER_PAGE
     if not need:
         return deck
@@ -232,7 +213,7 @@ def _pad_to_page(deck: list[dict]) -> list[dict]:
     return out
 
 
-def _fill_page(sheet: Table, batch: list[dict], page_idx: int) -> None:
+def _fill_page(sheet: Table, batch: list[CcLabelRecord], page_idx: int) -> None:
     for i, record in enumerate(batch):
         r, c = card_template_layout.CARD_SLOTS[i]
         g.build_cc_waybill_label(
@@ -242,7 +223,7 @@ def _fill_page(sheet: Table, batch: list[dict], page_idx: int) -> None:
         )
 
 
-def generate(labels: list[dict], output: Path = OUTPUT) -> None:
+def generate(labels: list[CcLabelRecord], output: Path = OUTPUT) -> None:
     car_paths.require_sticker_sheet()
 
     deck = _pad_to_page(labels)

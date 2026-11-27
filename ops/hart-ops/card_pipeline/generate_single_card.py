@@ -14,13 +14,14 @@ import car_paths
 import card_template_layout
 import card_template_sheet
 import generate_card_template as g
+from card_template_records import CardRecord
 
 OUTPUT = car_paths.OUTPUT_DIR / "HART_Card_NW32800.docx"
 IMAGE = car_paths.ASSETS / "NW32800.png"
 
 # Matched from OperationsCarRoster.xml: NW 32800, Flatcar, 52 ft.
 # Color read from the photo (black); feet abbreviated with an apostrophe.
-RECORD = {
+RECORD: CardRecord = {
     "Type": "Flat Car",
     "RoadName": "N&W",
     "RoadNumber": "32800",

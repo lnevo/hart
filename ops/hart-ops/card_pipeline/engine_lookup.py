@@ -3,15 +3,32 @@
 from __future__ import annotations
 
 import re
-import sys
+from collections.abc import Mapping
 from pathlib import Path
+from typing import TypedDict
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+import hartlib_path  # noqa: E402
+
+hartlib_path.ensure_on_path()
 from hartlib import operations  # noqa: E402
 
 BASE = Path(__file__).resolve().parent.parent  # Car Cards project root (scripts live in card_pipeline/)
 ENGINE_ROSTER_XML = BASE / "data" / "OperationsEngineRoster.xml"
+
+class EngineRecord(TypedDict, total=False):
+    """One locomotive as the card description reads it: from OperationsEngineRoster.xml, MANUAL_ENGINES or locos.csv."""
+
+    engine_roster_id: str
+    roster_road: str
+    road_number: str
+    engine_type: str
+    model: str
+    length_ft: str
+    manufacturer: str
+
+
+# (roster road, road number), the key of an engine table.
+EngineKey = tuple[str, str]
 
 # JMRI roster road codes -> display reporting marks, for every card and roster.
 ROAD_DISPLAY = {
@@ -90,7 +107,7 @@ MODEL_MANUFACTURER: dict[str, str] = {
 }
 
 # Locomotives not in OperationsEngineRoster.xml
-MANUAL_ENGINES: dict[tuple[str, str], dict] = {
+MANUAL_ENGINES: dict[EngineKey, EngineRecord] = {
     ("CR", "1993"): {
         "engine_roster_id": "",
         "model": "B23-7",
@@ -101,6 +118,7 @@ MANUAL_ENGINES: dict[tuple[str, str], dict] = {
 
 
 def manufacturer_for_model(model: str) -> str:
+    """The maker of a model (EMD, GE, ALCO), by the table, then a part match, then the model's prefix; else blank."""
     model = model.strip()
     if not model:
         return ""
@@ -117,15 +135,16 @@ def manufacturer_for_model(model: str) -> str:
     return ""
 
 
-def load_engine_roster() -> tuple[dict[str, dict], dict[tuple[str, str], dict]]:
-    by_id: dict[str, dict] = {}
-    by_key: dict[tuple[str, str], dict] = {}
+def load_engine_roster() -> tuple[dict[str, EngineRecord], dict[EngineKey, EngineRecord]]:
+    """The engine roster by JMRI id and by (road, number)."""
+    by_id: dict[str, EngineRecord] = {}
+    by_key: dict[EngineKey, EngineRecord] = {}
     for el in operations.engines(ENGINE_ROSTER_XML):
         rid = el.get("id", "")
         road = el.get("roadName", "")
         num = el.get("roadNumber", "")
         model = el.get("model", "")
-        rec = {
+        rec: EngineRecord = {
             "engine_roster_id": rid,
             "roster_road": road,
             "road_number": num,
@@ -139,7 +158,8 @@ def load_engine_roster() -> tuple[dict[str, dict], dict[tuple[str, str], dict]]:
     return by_id, by_key
 
 
-def match_engine(row: dict, by_key: dict[tuple[str, str], dict]) -> dict | None:
+def match_engine(row: Mapping[str, str], by_key: Mapping[EngineKey, EngineRecord]) -> EngineRecord | None:
+    """The engine a repository row names by its marks (or road name) and number: the roster first, then MANUAL_ENGINES."""
     marks = (row.get("reporting_marks") or row.get("road_name") or "").strip()
     number = (row.get("road_number") or "").strip()
     if not number:
@@ -159,12 +179,13 @@ def match_engine(row: dict, by_key: dict[tuple[str, str], dict]) -> dict | None:
     return MANUAL_ENGINES.get((norm_marks, number)) or MANUAL_ENGINES.get((marks.upper(), number))
 
 
-def is_locomotive_row(row: dict) -> bool:
+def is_locomotive_row(row: Mapping[str, str]) -> bool:
     ctype = (row.get("car_type") or "").strip().lower()
     return ctype in ("locomotive", "diesel", "engine", "switcher", "electric")
 
 
-def build_locomotive_description(engine: dict | None, row: dict | None = None) -> str:
+def build_locomotive_description(engine: EngineRecord | None, row: Mapping[str, str] | None = None) -> str:
+    """Maker · model · length, from the engine record, else from the row's notes and roster length."""
     if engine:
         mfr = engine.get("manufacturer") or manufacturer_for_model(engine.get("model", ""))
         model = engine.get("model", "")

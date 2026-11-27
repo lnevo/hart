@@ -1,16 +1,21 @@
 """Sticker-sheet assembly for the HART card templates: the page-4 grid, extra grid pages and the body tail."""
 
+import os
+from collections.abc import Callable, Sequence
 from copy import deepcopy
 from pathlib import Path
+from typing import TypeVar
 
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches
-from docx.table import Table
+from docx.table import Table, _Cell
 
+from card_errors import CardPipelineError
 from card_template_docx import _tc_pr, borders
 from card_template_layout import (
+    CARD_SLOTS,
     PAGE_MAR_BOTTOM,
     PAGE_MAR_LEFT,
     PAGE_MAR_RIGHT,
@@ -202,3 +207,37 @@ def append_grid(doc: Document, grid_xml: OxmlElement) -> Table:
     table = Table(body.findall(qn("w:tbl"))[-1], doc)
     strip_grid_guides(table)
     return table
+
+
+R = TypeVar("R")
+CARDS_PER_PAGE = len(CARD_SLOTS)
+
+
+def page_count(cards: int) -> int:
+    """Sticker pages that hold ``cards`` cards."""
+    return (cards + CARDS_PER_PAGE - 1) // CARDS_PER_PAGE
+
+
+def write_sticker_deck(deck: Sequence[R], fill_slot: Callable[[_Cell, int, R], None], *, sticker_sheet: Path,
+                       output: Path) -> None:
+    """Write ``deck`` to ``output``, CARDS_PER_PAGE cards a page on the sticker sheet's grid.
+
+    ``fill_slot(cell, idx, record)`` builds one card; ``idx`` counts slots from the first page, so each card's frame
+    shape has its own id. The file is written beside ``output`` and moved into place, so a failed run leaves the old
+    one.
+    """
+    if not deck:
+        raise CardPipelineError(f"no cards to write to {output}")
+    blank_grid = blank_sticker_grid(sticker_sheet)
+    doc = Document(str(sticker_sheet))
+    keep_sticker_grid(doc)
+    for page_idx, start in enumerate(range(0, len(deck), CARDS_PER_PAGE)):
+        sheet = doc.tables[0] if page_idx == 0 else append_grid(doc, blank_grid)
+        for i, record in enumerate(deck[start:start + CARDS_PER_PAGE]):
+            r, c = CARD_SLOTS[i]
+            fill_slot(sheet.rows[r].cells[c], start + i, record)
+    add_document_tail(doc.element.body)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = output.with_suffix(".tmp.docx")
+    doc.save(str(temp_path))
+    os.replace(temp_path, output)

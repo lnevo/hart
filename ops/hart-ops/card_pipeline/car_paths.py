@@ -5,8 +5,9 @@ import os
 import sys
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+import hartlib_path  # noqa: E402
+
+hartlib_path.ensure_on_path()
 from hartlib import paths  # noqa: E402
 
 

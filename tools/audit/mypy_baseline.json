@@ -44,7 +44,6 @@
  "ops/hart-ops/card_pipeline/card_template_docx.py": 2,
  "ops/hart-ops/card_pipeline/cars.py": 34,
  "ops/hart-ops/card_pipeline/crop_car_image.py": 1,
- "ops/hart-ops/card_pipeline/generate_all_cards.py": 4,
  "ops/hart-ops/card_pipeline/generate_operator_sheet.py": 6,
  "ops/hart-ops/card_pipeline/generate_waybill_cards.py": 4,
  "ops/hart-ops/card_pipeline/intake_stages.py": 2,
