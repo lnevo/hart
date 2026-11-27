@@ -15,7 +15,9 @@ make site-data), and --check builds it in memory and runs its checks (problems()
   python3 www/scripts/build_wiring_json.py           # www/data/wiring-inventory.json (--out-dir for another folder)
   python3 www/scripts/build_wiring_json.py --check   # build in memory, exit 1 when it cannot be built or fails a check
 
-Data problems found along the way are printed as warnings; they do not stop the build. Network details (IP
+The sheets are read into viewer data by wiring_inventory.Inventory (its cell helpers are in wiring_sheet.py); this
+script cleans the cells first, then checks and writes what Inventory built. Data problems found along the way are
+printed as warnings; they do not stop the build. Network details (IP
 addresses, hostnames, serial ports, machine paths, credentials) are scrubbed from every cell before it reaches the
 JSON, and problems() fails a built JSON that still holds one.
 """
@@ -27,23 +29,25 @@ import datetime as dt
 import json
 import re
 import sys
-from collections import Counter, OrderedDict, defaultdict
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator, Mapping
 from pathlib import Path
-from typing import NamedTuple, TypedDict
+from typing import Any
 
 from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-PORTAL = Path(__file__).resolve().parents[1]
+HERE = Path(__file__).resolve().parent
+PORTAL = HERE.parent
 ROOT = PORTAL.parent
 OUT_INV = PORTAL / "data" / "wiring-inventory.json"
 OUT_REL = OUT_INV.relative_to(PORTAL).as_posix()  # its path in the site (site_views.VIEWS)
-sys.path.insert(0, str(ROOT / "tools" / "wiring"))
+sys.path[:0] = [str(HERE), str(ROOT / "tools" / "wiring")]
 import write_inventory  # noqa: E402  (the wiring model's inventory sheets; it puts hartlib on the path)
-
-class WiringDataError(Exception):
-    """The viewer data cannot be built from the wiring model, or fails a check; the message says why."""
+# the sheets' reader; the names the tests and site_views.py take from this module are re-exported
+from wiring_inventory import NEEDED_SHEETS, Built, BuildLog, Inventory, ViewerData  # noqa: E402
+from wiring_inventory import WiringDataError as WiringDataError  # noqa: E402
+from wiring_inventory import crossover_half as crossover_half, turnout_name as turnout_name  # noqa: E402
+from wiring_sheet import OutKind as OutKind, out_kind as out_kind  # noqa: E402
 
 
 # —— Cell cleanup ————————————————————————————————————————————————
@@ -88,549 +92,6 @@ def sheet_rows(ws: Worksheet, scrubbed: list[str]) -> list[list[str]]:
         if any(cells):
             out.append(cells)
     return out
-
-
-def table(rows: list[list[str]], header_idx: int, stop: Callable[[list[str]], bool] | None = None) -> list[dict[str, str]]:
-    """Rows under header_idx as dicts keyed by header, trailing empty columns dropped."""
-    header = rows[header_idx]
-    width = max((i + 1 for i, h in enumerate(header) if h), default=0)
-    header = header[:width]
-    out = []
-    for r in rows[header_idx + 1 :]:
-        if stop and stop(r):
-            break
-        d = {header[i]: (r[i] if i < len(r) else "") for i in range(width) if header[i]}
-        if any(d.values()):
-            out.append(d)
-    return out
-
-
-def strip_history(note: str) -> str:
-    """Drop rename history ("was S3-6 G", "renamed for linear6") that only confuses a reader.
-
-    The inventory's "was" notes disagree with each other (DNOU8 and DigiconSignals give
-    different old IDs for the same pin), so none of them are published.
-    """
-    note = re.sub(r"\s*\([^)]*\bwas\b[^)]*\)", "", note)
-    parts = re.split(r"\s*[;|]\s*", note)
-    keep = [p for p in parts if p and not re.match(r"(?i)was\b", p) and "renamed for" not in p.lower()]
-    return "; ".join(keep).strip()
-
-
-def version_of(path: Path) -> str:
-    m = re.search(r"_v(\d+)", path.stem)
-    return f"v{m.group(1)}" if m else path.stem
-
-
-def split_list(s: str) -> list[str]:
-    return [x.strip() for x in s.split(",") if x.strip()] if s else []
-
-
-PORT_RE = re.compile(r"^(?P<node>[A-Z]+\d+)-(?P<board>(?:OU|IN|B)\d+)-(?P<pin>\d+)$")
-HEAD_RE = re.compile(r"^Head (?P<head>.+?) (?P<color>[RYG])$")
-
-
-def parse_port(pid: str) -> tuple[str, str, int] | None:
-    m = PORT_RE.match(pid)
-    if not m:
-        return None
-    return m.group("node"), m.group("board"), int(m.group("pin"))
-
-
-def board_sort(b: str) -> tuple[str, int]:
-    m = re.match(r"([A-Z]+)(\d+)", b)
-    return (m.group(1), int(m.group(2))) if m else (b, 0)
-
-
-def node_sort(n: str) -> tuple[int, int]:
-    m = re.match(r"([A-Z]+)(\d+)", n)
-    return ({"M": 0, "C": 1, "D": 2}.get(m.group(1), 3), int(m.group(2))) if m else (9, 0)
-
-
-# —— Inventory ——————————————————————————————————————————————————
-
-class OutKind(NamedTuple):
-    """What a DNOU8 pin drives; color and head are set for a lamp only ("Head 12 R": head "12", color "R")."""
-    kind: str
-    color: str = ""
-    head: str = ""
-
-
-def out_kind(device: str, dtype: str) -> OutKind:
-    """What a DNOU8 pin drives, from its device name and device type."""
-    m = HEAD_RE.match(device)
-    if m:
-        return OutKind("lamp", m.group("color"), m.group("head"))
-    t = dtype.lower()
-    if "turnout" in t:
-        return OutKind("motor")
-    if "cal" in t:
-        return OutKind("cal")
-    if "relay" in t:
-        return OutKind("relay")
-    if "reserved" in t or device.lower() == "reserved":
-        return OutKind("reserved")
-    if not device:
-        return OutKind("spare")
-    return OutKind("other")
-
-
-def in_kind(device: str, dtype: str) -> str:
-    t = dtype.lower()
-    if "feedback" in t:
-        return "feedback"
-    if "button" in t:
-        return "button"
-    if not device:
-        return "spare"
-    return "other"
-
-
-def pick_location(locs: list[str]) -> str:
-    """The board's place: the most common specific location among its used pins."""
-    locs = [l for l in locs if l]
-    if not locs:
-        return ""
-    specific = [l for l in locs if "(" in l]
-    return Counter(specific or locs).most_common(1)[0][0]
-
-
-class BuildLog:
-    """What one build found along the way: data warnings, and the cells clean() dropped. A plain class, not a
-    dataclass: other scripts load this module by path without registering it in sys.modules."""
-
-    def __init__(self) -> None:
-        self.warnings: list[str] = []
-        self.scrubbed: list[str] = []
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, BuildLog) and (self.warnings, self.scrubbed) == (other.warnings, other.scrubbed)
-
-    def warn(self, msg: str) -> None:
-        self.warnings.append(msg)
-
-
-class Built(NamedTuple):
-    """The viewer data of one build, with what that build reported."""
-    data: dict
-    log: BuildLog
-
-
-Row = dict[str, str]                   # one sheet row, keyed by its header
-
-
-class Turnout(TypedDict):
-    """One TurnoutSummary row as the viewer shows it. turnout is the row's label, name the JMRI turnout; a crossover
-    half's label is "<name> (<OS block>)" and half is that OS block. motorN and motorR are DNOU8 port ids, button,
-    fbN and fbR DNIN8 port ids, signals the entry, normal and reverse signal names the row gives."""
-    turnout: str
-    name: str
-    half: str
-    node: str
-    area: str
-    elements: str
-    motorN: str
-    motorR: str
-    button: str
-    fbN: str
-    fbR: str
-    signals: dict[str, str]
-
-
-TURNOUT_SIGNALS = (("entry", "Entry Signal"), ("normal", "Normal Exit Signal"), ("reverse", "Reverse Exit Signal"))
-TURNOUT_INPUTS = (("button", "BTN"), ("fbN", "N FB"), ("fbR", "R FB"))  # field, the DNIN8 device name's suffix
-BoardKey = tuple[str, str]             # (node id, board), such as ("C13", "OU2")
-NEEDED_SHEETS = ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals")
-NOT_WIRED = ("spare", "reserved", "cal")  # output kinds that are not a device
-
-
-def turnout_name(r: Row, label: str) -> str:
-    """The JMRI turnout of a TurnoutSummary row: its own column, which a crossover's half rows (labelled by OS block)
-    share. The older workbook (v85) has no such column and one row per turnout, so its label is the name."""
-    jmri = r["JMRI Turnout"] if "JMRI Turnout" in r else label
-    if not jmri:
-        raise WiringDataError(f"TurnoutSummary: row {label!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
-    return jmri
-
-
-def crossover_half(label: str, jmri: str) -> str:
-    """The OS block of a crossover half's row label "<jmri> (<OS block>)"; "" when the label is the turnout itself."""
-    if label == jmri:
-        return ""
-    if not (label.startswith(jmri + " (") and label.endswith(")")):
-        raise WiringDataError(f"TurnoutSummary: row {label!r} is not {jmri!r} or {jmri!r} (<OS block>)")
-    return label[len(jmri) + 2:-1]
-
-
-def board_order(item: tuple[BoardKey, dict]) -> tuple:
-    (nid, board), _ = item
-    return node_sort(nid), board_sort(board)
-
-
-class Inventory:
-    """One pass over the inventory sheets. Each read_* step fills a part of the viewer data and warns through log;
-    the cross-checks run after the parts they compare are read."""
-
-    def __init__(self, sheets: dict[str, list[list[str]]], source: str, log: BuildLog) -> None:
-        self.sheets, self.source, self.log = sheets, source, log
-        self.nodes: OrderedDict[str, dict] = OrderedDict()
-        self.out_boards: dict[BoardKey, dict] = {}
-        self.out_pins: dict[str, dict] = {}            # port id -> its DNOU8 pin record
-        self.device_ports: dict[str, list[str]] = {}   # DNOU8 device -> its port ids
-        self.heads: OrderedDict[str, dict] = OrderedDict()
-        self.masts: list[dict] = []
-        self.blocks: list[dict] = []
-        self.turnouts: list[Turnout] = []
-
-    def node_for(self, nid: str, sheet: str, pid: str) -> dict:
-        """The node nid, added bare (with a warning) when the Nodes sheet does not list it."""
-        if nid not in self.nodes:
-            self.log.warn(f"{sheet}: {pid} names node {nid}, which is not on the Nodes sheet")
-            self.nodes[nid] = {"id": nid, "address": "", "location": "", "type": "",
-                               "turnouts": [], "signals": [], "blockNames": [], "summary": {},
-                               "outputs": [], "inputs": [], "detectors": [], "declared": {}}
-        return self.nodes[nid]
-
-    def read_nodes(self) -> None:
-        for r in table(self.sheets["Nodes"], 0):
-            nid = r.get("Node ID", "")
-            if not nid:
-                continue
-            self.nodes[nid] = {
-                "id": nid,
-                "address": r.get("Address", ""),
-                "location": r.get("Location", ""),
-                "type": r.get("Type", ""),
-                "turnouts": split_list(r.get("Turnout Names", "")),
-                "signals": split_list(r.get("Signal Names", "")),
-                "blockNames": split_list(r.get("Block Section Names", "")),
-                "summary": {
-                    "outputs12v": {"used": r.get("12V Used", ""), "free": r.get("12V Free", "")},
-                    "outputs5v": {"used": r.get("5V Used", ""), "free": r.get("5V Free", "")},
-                    "inputs": {"used": r.get("Input Used", ""), "free": r.get("Input Free", "")},
-                },
-                "outputs": [],
-                "inputs": [],
-                "detectors": [],
-                "declared": {
-                    "DNOU8": split_list(r.get("DNOU8", "")),
-                    "DNIN8": split_list(r.get("DNIN8", "")),
-                    "BS": split_list(r.get("BS Devices", "")),
-                },
-            }
-
-    # —— DNOU8 and DNIN8: one board sheet each ——
-
-    def pin_rows(self, sheet: str, port_col: str, check_parent: bool) -> Iterator[tuple[str, str, int, str, Row]]:
-        """(node, board, pin, port id, row) for each readable, first-listed row of a board sheet."""
-        seen: set[str] = set()
-        for r in table(self.sheets[sheet], 0):
-            pid = r.get(port_col, "")
-            p = parse_port(pid)
-            if not p:
-                self.log.warn(f"{sheet}: unreadable port id {pid!r}")
-                continue
-            nid, board, pin = p
-            if check_parent and r.get("Parent Node ID") and r["Parent Node ID"] != nid:
-                self.log.warn(f"{sheet}: {pid} has Parent Node {r['Parent Node ID']}")
-            if pid in seen:
-                self.log.warn(f"{sheet}: port {pid} listed twice")
-                continue
-            seen.add(pid)
-            yield nid, board, pin, pid, r
-
-    def sorted_boards(self, sheet: str, boards: dict[BoardKey, dict], ports: dict[str, list[str]],
-                      where: str) -> Iterator[tuple[str, str, dict, list[dict]]]:
-        """Warns of a device on more than one port, then gives (node, board, the board's record, its pins by number) in
-        node and board order."""
-        for dev, on in ports.items():
-            if len(on) > 1:
-                self.log.warn(f"{sheet}: {dev!r} is on more than one {where}: {', '.join(on)}")
-        for (nid, board), b in sorted(boards.items(), key=board_order):
-            pins = sorted(b["pins"], key=lambda x: x["pin"])
-            yield nid, board, b, pins
-
-    def missing_pins(self, sheet: str, nid: str, board: str, pins: list[dict]) -> None:
-        have = {x["pin"] for x in pins}
-        missing = [i for i in range(1, 9) if i not in have]
-        if missing:
-            self.log.warn(f"{sheet}: {nid}-{board} has no row for pin(s) {missing}")
-
-    def read_outputs(self) -> None:
-        ports: dict[str, list[str]] = defaultdict(list)
-        for nid, board, pin, pid, r in self.pin_rows("DNOU8", "Output Port ID", check_parent=True):
-            device = r.get("Connected Device", "")
-            kind, color, head = out_kind(device, r.get("Device Type", ""))
-            b = self.out_boards.setdefault((nid, board), {"board": board, "rail": Counter(), "pins": [], "_locs": []})
-            if r.get("Voltage Rail (12V/5V)"):
-                b["rail"][r["Voltage Rail (12V/5V)"]] += 1
-            rec = {"pin": pin, "port": pid, "device": device, "kind": kind}
-            if color:
-                rec["color"] = color
-                rec["head"] = head
-            if r.get("Board Location"):
-                rec["place"] = r["Board Location"]
-                if kind not in NOT_WIRED:
-                    b["_locs"].append(r["Board Location"])
-            if r.get("Notes"):
-                if kind == "lamp":
-                    rec["_note"] = r["Notes"]  # route info is lifted onto the head; not published per pin
-                elif strip_history(r["Notes"]):
-                    rec["note"] = strip_history(r["Notes"])
-            b["pins"].append(rec)
-            self.out_pins[pid] = rec
-            if device and kind not in NOT_WIRED:
-                ports[device].append(pid)
-        self.device_ports = ports
-        for nid, board, b, pins in self.sorted_boards("DNOU8", self.out_boards, ports, "pin"):
-            rails = list(b["rail"])
-            if len(rails) > 1:
-                self.log.warn(f"DNOU8: {nid}-{board} mixes rails {rails}")
-            self.missing_pins("DNOU8", nid, board, pins)
-            self.node_for(nid, "DNOU8", f"{nid}-{board}")["outputs"].append({
-                "board": board,
-                "rail": b["rail"].most_common(1)[0][0] if b["rail"] else "",
-                "place": pick_location(b["_locs"]),
-                "pins": pins,
-            })
-
-    def read_inputs(self) -> None:
-        boards: dict[BoardKey, dict] = {}
-        ports: dict[str, list[str]] = defaultdict(list)
-        for nid, board, pin, pid, r in self.pin_rows("DNIN8", "Input Port ID", check_parent=False):
-            device = r.get("Connected Device", "")
-            kind = in_kind(device, r.get("Device Type (Sensor/Switch/etc.)", ""))
-            rec = {"pin": pin, "port": pid, "device": device, "kind": kind}
-            if r.get("Board Location"):
-                rec["place"] = r["Board Location"]
-            if strip_history(r.get("Notes", "")):
-                rec["note"] = strip_history(r["Notes"])
-            b = boards.setdefault((nid, board), {"board": board, "pins": [], "_locs": []})
-            b["pins"].append(rec)
-            if device:
-                b["_locs"].append(r.get("Board Location", ""))
-                ports[device].append(pid)
-        for nid, board, b, pins in self.sorted_boards("DNIN8", boards, ports, "input"):
-            self.missing_pins("DNIN8", nid, board, pins)
-            self.node_for(nid, "DNIN8", f"{nid}-{board}")["inputs"].append(
-                {"board": board, "place": pick_location(b["_locs"]), "pins": pins})
-
-    def read_blocks(self) -> None:
-        det: dict[tuple[str, str], list] = defaultdict(list)
-        seen: set[str] = set()
-        for r in table(self.sheets["BlockSensors"], 0):
-            pid = r.get("Port ID", "")
-            nid = r.get("Node ID", "") or (pid.split("-")[0] if pid else "")
-            if pid in seen:
-                self.log.warn(f"BlockSensors: {pid} listed twice")
-                continue
-            seen.add(pid)
-            rec = {
-                "port": pid,
-                "node": nid,
-                "detector": r.get("B Device ID", ""),
-                "channel": r.get("B Number (1-2)", ""),
-                "block": r.get("Block Section Name", ""),
-                "track": r.get("Connected Track Segment", ""),
-                "area": r.get("Block Location", ""),
-                "district": r.get("Power District", ""),
-                "note": strip_history(r.get("Notes", "")),
-            }
-            if not rec["block"]:
-                self.log.warn(f"BlockSensors: {pid} has no block name")
-            self.blocks.append(rec)
-            det[(nid, rec["detector"])].append(rec)
-        for (nid, d), chans in sorted(det.items(), key=lambda kv: (node_sort(kv[0][0]), kv[0][1])):
-            self.node_for(nid, "BlockSensors", d)["detectors"].append({
-                "detector": d,
-                "channels": [{"channel": c["channel"], "port": c["port"], "block": c["block"]} for c in
-                             sorted(chans, key=lambda c: str(c["channel"]))],
-            })
-
-    # —— Signal heads: Digicon searchlights (DigiconSignals, lower deck) + RGB LED heads (DNOU8, upper deck) ——
-
-    def digicon_tables(self) -> tuple[list[Row], list[Row]]:
-        """The DigiconSignals sheet's port rows and mast rows (two tables, one under the other)."""
-        rows = self.sheets["DigiconSignals"]
-        hdr = next((i for i, r in enumerate(rows) if r and r[0] == "port_id"), None)
-        if hdr is None:
-            raise WiringDataError(f"{self.source}: the DigiconSignals sheet has no port_id header row")
-        mast_hdr = next((i for i, r in enumerate(rows) if r and r[0] == "mast_user_name"), None)
-        port_rows = table(rows[: (mast_hdr - 1) if mast_hdr else None], hdr)
-        return port_rows, (table(rows, mast_hdr) if mast_hdr else [])
-
-    def read_digicon_heads(self, port_rows: list[Row]) -> None:
-        for r in port_rows:
-            m = HEAD_RE.match(r.get("user_name", ""))
-            if not m:
-                continue
-            head = m.group("head")
-            color = r.get("lamp_color") or m.group("color")
-            mast = r.get("mast_user_name", "").replace("Mast ", "")
-            h = self.heads.setdefault(head, {
-                "head": head, "mast": mast, "disc": r.get("disc_role", ""),
-                "node": r.get("parent_node_id", ""), "place": r.get("board_location", ""),
-                "packed": r.get("system_name", ""), "type": "Digicon searchlight", "lamps": {},
-            })
-            if color in h["lamps"]:
-                self.log.warn(f"DigiconSignals: {head} lamp {color} on both {h['lamps'][color]} and {r['port_id']}")
-            h["lamps"][color] = r.get("port_id", "")
-            dn = self.out_pins.get(r.get("port_id", ""))
-            if not dn:
-                self.log.warn(f"DigiconSignals: {head} {color} on {r.get('port_id')} which is not on the DNOU8 sheet")
-            elif dn.get("head") != head or dn.get("color") != color:
-                self.log.warn(f"DigiconSignals: {head} {color} on {r['port_id']}, "
-                              f"but DNOU8 has {dn.get('device') or 'nothing'} there")
-
-    def read_led_heads(self) -> None:
-        for pid, rec in sorted(self.out_pins.items(), key=lambda kv: (node_sort(kv[0].split("-")[0]), kv[0])):
-            if rec["kind"] != "lamp":
-                continue
-            head = rec["head"]
-            if head in self.heads and self.heads[head]["type"] == "Digicon searchlight":
-                if self.heads[head]["lamps"].get(rec["color"]) != pid:
-                    self.log.warn(f"DNOU8: {rec['device']} on {pid} is not in DigiconSignals")
-                continue
-            note = rec.get("_note", "")
-            parts = [p.strip() for p in note.split("|")]
-            mm = re.search(r"mast (Switch \d+[^|]*)", note)
-            h = self.heads.setdefault(head, {
-                "head": head, "mast": mm.group(1).strip() if mm else "", "disc": "", "node": pid.split("-")[0],
-                "place": rec.get("place", ""), "packed": "", "type": "RGB LED", "lamps": {},
-                "cp": parts[0] if parts and re.match(r"CP\d", parts[0]) else "",
-                "route": parts[1] if len(parts) > 1 and "→" in parts[1] else "",
-            })
-            if rec["color"] in h["lamps"]:
-                self.log.warn(f"DNOU8: {head} lamp {rec['color']} on both {h['lamps'][rec['color']]} and {pid}")
-            h["lamps"][rec["color"]] = pid
-        for h in self.heads.values():
-            miss = [c for c in "RYG" if c not in h["lamps"]]
-            if miss:
-                self.log.warn(f"Signals: head {h['head']} has no {'/'.join(miss)} pin")
-            nodes_used = sorted({p.split("-")[0] for p in h["lamps"].values()})
-            if len(nodes_used) > 1:
-                self.log.warn(f"Signals: head {h['head']} spans nodes {nodes_used}")
-
-    def read_masts(self, mast_rows: list[Row]) -> None:
-        for r in mast_rows:
-            self.masts.append({
-                "mast": r.get("mast_user_name", "").replace("Mast ", ""),
-                "node": r.get("parent_node_id", ""),
-                "heads": r.get("heads", ""),
-                "appearance": r.get("appearance", ""),
-                "ports": r.get("port_ids", "").split(),
-            })
-        mast_by = {m["mast"]: m for m in self.masts}
-        for h in self.heads.values():
-            m = mast_by.get(h["mast"])
-            if m:
-                h["appearance"] = m["appearance"]
-
-    def check_node_signals(self) -> None:
-        """Node signal names vs the heads actually wired there."""
-        for n in self.nodes.values():
-            wired = {h["head"].split(" ")[0] for h in self.heads.values() if h["node"] == n["id"]}
-            extra = sorted(set(n["signals"]) - wired)
-            if extra and n["outputs"]:
-                self.log.warn(f"Nodes: {n['id']} lists signal(s) {extra} with no lamp pins on that node")
-
-    # —— Turnouts ——
-
-    def read_turnouts(self) -> None:
-        for r in table(self.sheets["TurnoutSummary"], 0):
-            name = r.get("Turnout", "")
-            if name:
-                self.turnouts.append(self.turnout(r, name))
-
-    def device_input(self, pid: str) -> str | None:
-        """The device on DNIN8 port pid, or None when no input pin read so far has that port."""
-        node = self.nodes.get(pid.split("-")[0])
-        return next((x["device"] for b in (node["inputs"] if node else []) for x in b["pins"] if x["port"] == pid), None)
-
-    def turnout(self, r: Row, name: str) -> Turnout:
-        """The viewer's record of the TurnoutSummary row labelled name, after its pins are checked against the board
-        sheets (read_outputs and read_inputs run first)."""
-        jmri = turnout_name(r, name)
-        motor = {pos: self.device_ports.get(f"{jmri} {pos}", []) for pos in ("N", "R")}
-        t = Turnout(
-            turnout=name,
-            name=jmri,
-            half=crossover_half(name, jmri),
-            node=r.get("Parent Node", ""),
-            area=r.get("Location/Area", ""),
-            elements=r.get("Switch Elements", ""),
-            motorN=", ".join(motor["N"]),
-            motorR=", ".join(motor["R"]),
-            button=r.get("Button", ""),
-            fbN=r.get("Feedback N", ""),
-            fbR=r.get("Feedback R", ""),
-            signals={key: r[label] for key, label in TURNOUT_SIGNALS if r.get(label)},
-        )
-        self.check_turnout_motor(t, motor["N"] + motor["R"])
-        for _, label in TURNOUT_SIGNALS:
-            self.check_turnout_lamps(r, name, label.replace(" Signal", ""), r.get(label, ""))
-        self.check_turnout_inputs(t)
-        return t
-
-    def check_turnout_motor(self, t: Turnout, ports: list[str]) -> None:
-        """A turnout's motor pins: there are some, and they are on its parent node."""
-        if not ports:
-            self.log.warn(f"TurnoutSummary: {t['turnout']} has no motor pins on the DNOU8 sheet")
-        motor_nodes = {p.split("-")[0] for p in ports}
-        if motor_nodes and t["node"] and t["node"] not in motor_nodes:
-            self.log.warn(f"TurnoutSummary: {t['turnout']} parent node {t['node']}, but its motor is on {sorted(motor_nodes)}")
-
-    def check_turnout_inputs(self, t: Turnout) -> None:
-        """A turnout's button and feedback ports against the devices the DNIN8 sheet puts there."""
-        ports = {"button": t["button"], "fbN": t["fbN"], "fbR": t["fbR"]}
-        for field, want in TURNOUT_INPUTS:
-            pid = ports[field]
-            if not pid:
-                continue
-            dev = self.device_input(pid)
-            if dev != f"{t['name']} {want}":
-                self.log.warn(f"TurnoutSummary: {t['turnout']} {field} → {pid}, but DNIN8 has {dev or 'nothing'} there")
-
-    def check_turnout_lamps(self, r: Row, name: str, base: str, sig: str) -> None:
-        """The sheet's lamp pins for one of a turnout's signals against the DNOU8 pin assignments."""
-        ports = {c: r.get(f"{base} Signal {c} Port", "") or r.get(f"{base} {c} Port", "") for c in "RYG"}
-        for c, pid in ports.items():
-            if not pid:
-                continue
-            dn = self.out_pins.get(pid)
-            who = dn.get("device") if dn else None
-            if not sig:
-                self.log.warn(f"TurnoutSummary: {name} {base.lower()} has {c} pin {pid} but no signal name")
-            elif not dn:
-                self.log.warn(f"TurnoutSummary: {name} {base.lower()} {sig} {c} → {pid}, not on the DNOU8 sheet")
-            elif dn.get("head", "").split(" ")[0] != sig.split(" ")[0] or dn.get("color") != c:
-                self.log.warn(f"TurnoutSummary: {name} {base.lower()} {sig} {c} → {pid}, "
-                              f"but DNOU8 has {who or 'nothing (spare)'} there")
-
-    def check_declared_boards(self) -> None:
-        """The boards each node declares vs the boards found on the DNOU8 and DNIN8 sheets."""
-        for n in self.nodes.values():
-            dec = n.pop("declared", {})
-            for sheet, side in (("DNOU8", "outputs"), ("DNIN8", "inputs")):
-                found = [b["board"] for b in n[side]]
-                if dec.get(sheet) is not None and sorted(dec.get(sheet, [])) != sorted(found):
-                    self.log.warn(f"Nodes: {n['id']} declares {sheet} {dec.get(sheet)} but the {sheet} sheet has {found}")
-
-    def data(self) -> dict:
-        """The viewer data, with the working fields (_locs, _note) dropped."""
-        for b in self.out_boards.values():
-            b.pop("_locs", None)
-        for rec in self.out_pins.values():
-            rec.pop("_note", None)
-        return {
-            # a label: the workbook these sheets are saved as (write_inventory.OUT), which this build never reads
-            "source": {"file": self.source, "version": version_of(Path(self.source))},
-            "nodes": sorted(self.nodes.values(), key=lambda n: node_sort(n["id"])),
-            "signals": sorted(self.heads.values(), key=lambda h: (node_sort(h["node"]), h["head"])),
-            "masts": self.masts,
-            "turnouts": self.turnouts,
-            "blocks": self.blocks,
-        }
 
 
 def read_sheets(wb: Workbook | None, source: str, log: BuildLog) -> dict[str, list[list[str]]]:
@@ -684,7 +145,8 @@ def shown(path: Path) -> str:
         return str(path)
 
 
-def render(data: dict) -> str:
+def render(data: ViewerData) -> str:
+    """The JSON text of built viewer data, its empty fields pruned."""
     return json.dumps(prune(data), indent=1, ensure_ascii=False) + "\n"
 
 
@@ -693,6 +155,7 @@ REQUIRED = ("nodes", "signals", "masts", "turnouts", "blocks")
 
 
 def _strings(x: object) -> Iterator[str]:
+    """Every key and string value in x, at any depth."""
     if isinstance(x, dict):
         for k, v in x.items():
             yield str(k)
@@ -704,7 +167,7 @@ def _strings(x: object) -> Iterator[str]:
         yield x
 
 
-def problems(inv: dict) -> list[str]:
+def problems(inv: Mapping[str, Any]) -> list[str]:
     """What is wrong with built viewer data: no source, a required list that is empty, a node id empty or twice, or a
     string that still looks like a network detail or a secret (clean() should have dropped it)."""
     out = []
@@ -723,7 +186,7 @@ def problems(inv: dict) -> list[str]:
     return out
 
 
-def data_text(inv: dict) -> str:
+def data_text(inv: ViewerData) -> str:
     """The checked wiring-inventory.json text of built viewer data. WiringDataError when it fails a check."""
     bad = problems(inv)
     if bad:
