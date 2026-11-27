@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """No new railroad data typed into code: a top-level table in a script that holds the railroad's own names, or that
-this check cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it (owner, 2026-11-26:
+this check cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it (the owner's rule:
 anything kept by hand goes in a CSV read through hartlib).
 
     python3 tools/audit/check_hand_tables.py            # tools/check.sh runs it (job hand-tables)

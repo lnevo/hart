@@ -6,7 +6,7 @@
     hand_tables.read_listed(path)       # {(file, table): Listed} from hand_tables.csv, each row checked
     hand_tables.write_listed(path, rows)
 
-The owner's rule (2026-11-26): anything kept by hand goes in a CSV read through hartlib. A table in code whose
+The owner's rule: anything kept by hand goes in a CSV read through hartlib. A table in code whose
 entries are the railroad's own names (blocks, switches, stations, industries, trains, locos, roads) is a copy of a
 master or a fact with no master, so it is listed in hand_tables.csv until it moves to a CSV.
 
@@ -59,7 +59,7 @@ def _rows(path: Path) -> tuple[list[str], list[dict[str, str]]]:
             reader = csv.DictReader(handle)
             return list(reader.fieldnames or []), list(reader)
     except (OSError, UnicodeDecodeError, csv.Error) as exc:
-        raise HandTablesError(f"{path}: cannot be read ({exc})") from None
+        raise HandTablesError(f"{path}: cannot be read ({exc})") from exc
 
 
 def masters(entities: Path = ENTITIES, root: Path = paths.REPO_ROOT) -> list[tuple[str, str, Path]]:
