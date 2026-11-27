@@ -34,7 +34,8 @@ const CLEAR_MARGIN=5;
 const RUN_ENDING=new Set(["headon","rear","meet"]);
 /* The farthest stations with a siding the crew may run to from one station. */
 const CHOICES_AHEAD=3;
-/* A wait with no train due, and how far past the start the par search keeps waiting, in minutes. */
+/* A wait with no train due, and how far past the start the par search keeps waiting, in minutes. waitTTO's
+   "Ten minutes pass" spells WAIT_MIN out: change the two together. */
 const WAIT_MIN=10,PAR_HORIZON=720;
 /* What is in the caboose locker at the start, and what Rule 99 protection uses up. */
 const LOCKER_FUSEES=1,LOCKER_TORPEDOES=0,FLAG_FUSEES=1,FLAG_TORPEDOES=2;
@@ -351,10 +352,10 @@ function marginMiss(p,at){
   return ask({miss:true,sec:"sup",src:"SC · Rule S-87",title:"Too close to "+p.tr.name,
     body:`You got into the siding at ${STATIONS[at].n} only ${Math.max(0,p.by)} minutes ahead of `+
       `${p.tr.name}'s time there. By how much must an extra clear the time of an opposing regular train?`,
-    right:"Not less than 5 minutes",
+    right:`Not less than ${CLEAR_MARGIN} minutes`,
     wrong:[["Any margin, as long as it is in the clear"],["Not less than 2 minutes"],["Only to the leaving time"]],
     ok:{marks:1},okText:"Right, and you did not. +1 mark.",
-    why:"Rule S-87: extras must clear the time of opposing regular trains by not less than 5 minutes unless "+
+    why:`Rule S-87: extras must clear the time of opposing regular trains by not less than ${CLEAR_MARGIN} minutes unless `+
       "otherwise provided. The TT&TO primer quotes 10 minutes."});
 }
 function r86Miss(p,at){
@@ -385,7 +386,7 @@ function crash(p,from,to,stopped){
   let why=p.kind==="headon"
     ?`You left ${STATIONS[from].n} at a time when you could not reach ${STATIONS[to].n} ahead of `+
     `${p.tr.name}. An extra must keep out of the way of opposing regular trains and clear their time by `+
-    `5 minutes (Rule S-87), or be protected under Rule 99.`
+    `${CLEAR_MARGIN} minutes (Rule S-87), or be protected under Rule 99.`
     :`${p.tr.name} is superior and was following you. You had to be clear when it was due to leave the `+
     `station behind you (Rule 86).`;
   if(p.tr.id==="2nd2")why+=" The two green flags on No 2 meant Second 2 was following on the same schedule (Rule 20).";
@@ -405,7 +406,7 @@ function hotBox(from,to,setProtection){
     const equipped=state.fus>=FLAG_FUSEES&&state.torp>=FLAG_TORPEDOES; // Rule 99: two torpedoes, and a lighted fusee left when recalled
     ask({sec:"sup",src:"SC · Rule 99",miss:!equipped,title:"Hot box",
       body:"Smoke from a journal on the ninth car. The engineer stops Extra 812 East on the main track to cool "+
-        "and repack it, about 15 minutes. Trains may come up behind you or against you. What protection do "+
+        `and repack it, about ${HOT_BOX_MIN} minutes. Trains may come up behind you or against you. What protection do `+
         "you give the train?",
       right:"Flagman goes back with two torpedoes and, when necessary, lighted fusees; the front is protected "+
         "the same way when necessary",
@@ -593,5 +594,5 @@ function endTTO(){
   );
   next();
 }
-X.give("run-tto.js",{startTTO,solvePar});
+X.give("run-tto.js",{startTTO,solvePar,checkMove});
 })();

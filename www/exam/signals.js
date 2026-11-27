@@ -21,11 +21,14 @@ function signalEntry(table,tableName,key,where){
 /* A speed-signal drawing: semaphore arms top to bottom, as the Standard Code draws them (Rules 281-292).
    R red horizontal, Y yellow 45 degrees up, G green vertical. */
 const ARM={R:{a:0,c:"#b8322b",t:"#fff",w:"red, horizontal"},Y:{a:-45,c:"#e0b52a",t:"#1d2733",w:"yellow, 45° up"},G:{a:-90,c:"#2d7a4a",t:"#fff",w:"green, vertical"}};
-/* The arms of a semaphore as letters, each checked against ARM; `where` names the call for the error. */
-function armsOf(arms,where){
-  if(typeof arms!=="string"||!arms)throw new TypeError(`${where}: the arms must be a string of letters, not ${JSON.stringify(arms)}`);
-  return [...arms].map(k=>signalEntry(ARM,"ARM",k,`${where}(${JSON.stringify(arms)})`));
+/* The entries of table (named tableName) for a string of letters, one per letter; `noun` names the letters and `where`
+   the call for the error. */
+function lettersOf(table,tableName,noun,letters,where){
+  if(typeof letters!=="string"||!letters)throw new TypeError(`${where}: the ${noun} must be a string of letters, not ${JSON.stringify(letters)}`);
+  return [...letters].map(k=>signalEntry(table,tableName,k,`${where}(${JSON.stringify(letters)})`));
 }
+/* The arms of a semaphore as letters, each checked against ARM. */
+const armsOf=(arms,where)=>lettersOf(ARM,"ARM","arms",arms,where);
 const armWords=arms=>armsOf(arms,"armWords").map(A=>A.w).join("; ");
 function sigFig(arms,plate){
   const n=arms.length,top=34,gap=46,h=top+(n-1)*gap+34;
@@ -38,11 +41,8 @@ function sigFig(arms,plate){
 
 /* A color-light route signal: heads top to bottom, R red, Y yellow, G green (Signals guide chart). */
 const LAMP={R:{c:"#c0392b",w:"red"},Y:{c:"#e0b52a",w:"yellow"},G:{c:"#2d8a4e",w:"green"}};
-/* The heads of a color-light signal as letters, each checked against LAMP; `where` names the call for the error. */
-function lampsOf(heads,where){
-  if(typeof heads!=="string"||!heads)throw new TypeError(`${where}: the heads must be a string of letters, not ${JSON.stringify(heads)}`);
-  return [...heads].map(k=>signalEntry(LAMP,"LAMP",k,`${where}(${JSON.stringify(heads)})`));
-}
+/* The heads of a color-light signal as letters, each checked against LAMP. */
+const lampsOf=(heads,where)=>lettersOf(LAMP,"LAMP","heads",heads,where);
 const lampWords=heads=>lampsOf(heads,"lampWords").map(L=>L.w).join(" over ");
 function lightFig(heads,plate){
   const n=heads.length,top=26,gap=40,h=top+(n-1)*gap+44;

@@ -360,7 +360,7 @@ showStart();
 const SHARED={state,$,fmt,esc,rnd,pick,shuffle,randSetup:()=>randSetup(),randOrders:()=>randOrders(),reduced,STATIONS,
   LAST,addTime,renderMap,animateTo,leg,renderStatus,renderSheet,runTime,drawRoad,drawStation,semSvg,finish,push,front,
   next,log,scene,ask,info};
-const GIVES={"run-tto.js":["startTTO","solvePar"],"run-1949.js":["ROAD_TTO","STN_TTO"],
+const GIVES={"run-tto.js":["startTTO","solvePar","checkMove"],"run-1949.js":["ROAD_TTO","STN_TTO"],
   "run-modern.js":["startTWC","ROAD_TWC","warrantForm"],
   "run-signals.js":["startSIG"],
   "run-yard.js":["YLOC","renderYardMap","startYARD"]};
