@@ -22,6 +22,10 @@ import changed_kind  # noqa: E402
 import check_stamps  # noqa: E402
 import docs_unit_tests  # noqa: E402
 import portal_inputs  # noqa: E402
+sys.path.insert(0, str(ROOT / "tools" / "hartlib" / "src"))
+from hartlib import devices  # noqa: E402
+
+FIELD_MASTER = devices.field_path().relative_to(ROOT).as_posix()   # a CSV master, by the one path
 
 manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load it
 
@@ -466,7 +470,7 @@ class RealDeclarations(unittest.TestCase):
         for paths, reason in (
             (["www/data/crew.json"], "is written by"),                 # a built www/data JSON
             (["www/data/site.json"], "is read by check.sh job portal"),  # a hand-kept one the site build reads
-            (["jmri/layouts/hart/data/devices_field.csv"], "is under jmri/"),   # a CSV master
+            ([FIELD_MASTER], "is under jmri/"),   # a CSV master
             (["tools/hosts/pi/settings.json"], "ships to the layout hosts"),    # under a live_paths.txt folder
             (["tools/hosts/live_paths.txt"], "may be read by unit-"),            # the list itself: tests read it
             (["tools/ci/changed_kind.py"], "is code or configuration (.py)"),
