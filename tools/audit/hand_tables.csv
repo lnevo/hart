@@ -148,7 +148,7 @@ tools/wiring/write_inventory.py,NODE_COLUMNS,32,keep,its values are used only by
 tools/wiring/write_inventory.py,OU_COLUMNS,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/wiring/write_inventory.py,TURNOUT_COLUMNS,20,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/exam/deck-data.js,SECTIONS,8,keep,"8 rulebook sections; the copy is guarded by test_exam_answers (Fable, pattern 5) (marked by claude (Fable's review))"
-www/exam/deck-data.js,SRC,7,move,"deck.js reads it and it repeats game-engine.js SOURCES' keys (SC, GC, TT, YL, TW, SG, SM) with other labels: merge into SOURCES (review fix after the code review)"
+www/exam/deck-data.js,SRC,7,keep,"the study deck's own chapter labels (§1.0 Standard Code ...), not a copy of game-engine.js SOURCES though they share keys (owner, wave 4)"
 www/exam/run-1949.js,ROAD_TTO,27,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-1949.js,STN_TTO,32,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/exam/run-modern.js,ROAD_TWC,29,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
@@ -174,7 +174,7 @@ www/play/pcy.js,POINTS,7,keep,its values are used only by this script: no reuse 
 www/play/pcy.js,Qs,17,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/pcy.js,SIGS,5,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/play/pcy.js,run,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/play/pir.js,POINTS,8,move,"merge into one shared www/js file of Chartiers stations (owner: shared JS, not a CSV) with road-engine.js ST and warrant.js TW_SEL's station list (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/pir.js,POINTS,8,keep,"the PIR run's map points, its own selection of the line; play_through_test checks the names against road-engine.js ST (owner, wave 4)"
 www/play/pir.js,Qs,26,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/pir.js,box5Key,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/play/pir.js,run,16,move,"2 railroad names (occupancy sensor, switch)"
@@ -183,7 +183,7 @@ www/play/play.js,LOC,25,move,"3 railroad names (industry, station)"
 www/play/play.js,TAG,8,keep,"short names on the engine's 8 section keys (Fable, pattern 5) (marked by claude (Fable's review))"
 www/play/road-engine.js,LEG,13,keep,"shared in code, so already one source: handed to the play games through newTT() on window.RoadEngine (review fix after the code review)"
 www/play/road-engine.js,Q,5,keep,"shared in code, so already one source: on window.RoadEngine; road.js and passenger.js build their questions from it (review fix after the code review)"
-www/play/road-engine.js,ST,14,move,"merge into one shared www/js file of Chartiers stations (owner: shared JS, not a CSV) with pir.js POINTS and warrant.js TW_SEL's station list (Fable, pattern 6) (marked by claude (Fable's review))"
+www/play/road-engine.js,ST,14,keep,"the time-table's line, shared with the play games on window.RoadEngine; pir.js POINTS and warrant.js TW_SEL.s are their own selections, and play_through_test checks their names against it (owner, wave 4)"
 www/play/road-engine.js,TT,6,keep,"shared in code, so already one source: on window.RoadEngine and through newTT() for the play games (review fix after the code review)"
 www/play/road.js,Qs,11,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/road.js,ROAD,5,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
@@ -191,7 +191,7 @@ www/play/road.js,STN,8,keep,"game text or schema: exam and play are separate rew
 www/play/road.js,coal,15,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/runs.js,NevilleRuns,7,move,"3 railroad names (industry, station)"
 www/play/runs.js,Q,8,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
-www/play/warrant.js,TW_SEL,7,move,"2 railroad names (occupancy sensor, switch)"
+www/play/warrant.js,TW_SEL,7,keep,"the warrant game's form choices; its station list is checked against road-engine.js ST by play_through_test (owner, wave 4)"
 www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warrant game's exported functions and tables, read by its tests (review fix after the code review)"
 www/scripts/build_cats_layout_index.py,SIG_LOC,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
 www/scripts/build_exam_answers.js,ENT,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
