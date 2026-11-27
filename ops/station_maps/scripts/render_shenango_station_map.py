@@ -189,16 +189,20 @@ def _write_docx(png: Path, dest: Path, media_name: str) -> None:
         title += " (rotated)"
     sheet_kit.write_sheet_docx(DOCX_TEMPLATE, png, dest,
                                media_names=("station_map_west_yard.png", media_name), title=title)
+    print(f"wrote {dest}")
 
 
 def main() -> None:
     render(OUT, False)
     render(OUT_ROT, True)
     if HOPS.is_dir():
-        _write_docx(OUT, DOCS / "Neville_Island_Station_Map_Shenango.docx",
-                    "station_map_shenango.png")
-        _write_docx(OUT_ROT, DOCS / "Neville_Island_Station_Map_Shenango_Rotated.docx",
-                    "station_map_shenango_rotated.png")
+        try:
+            _write_docx(OUT, DOCS / "Neville_Island_Station_Map_Shenango.docx",
+                        "station_map_shenango.png")
+            _write_docx(OUT_ROT, DOCS / "Neville_Island_Station_Map_Shenango_Rotated.docx",
+                        "station_map_shenango_rotated.png")
+        except sheet_kit.SheetTemplateMissing as exc:
+            raise SystemExit(f"render_shenango_station_map: {exc}") from exc
 
 
 if __name__ == "__main__":

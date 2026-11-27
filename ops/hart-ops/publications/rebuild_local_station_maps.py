@@ -84,8 +84,8 @@ from local_station_maps.kit import (  # noqa: E402, F401  (re-exported for impor
 
 # The constants and primitives above are re-exported from local_station_maps.kit for
 # rebuild_station_map_full and the tests. The drawers and the primitives read them from
-# kit, so rebinding a constant here (INK, SWNUM, the font paths ...) changes only _chrome
-# below, not the maps. _font, _canvas and _paste_compass are the exception: _hooks() reads
+# kit, so rebinding a constant here (INK, SWNUM, the font paths ...) does not change the
+# maps. _font, _canvas and _paste_compass are the exception: _hooks() reads
 # them from this module on every draw, so replacing them here reaches every drawer.
 
 DrawerKey = Literal["west_yard", "south_yard", "industries", "shenango"]
@@ -156,62 +156,6 @@ MAPS: list[StationMap] = [
                DOCS / "Neville_Island_Station_Map_Shenango_Rotated.docx", ASSETS / "station_map_shenango_rotated.png",
                rotate180=True, drawn_elsewhere=True),
 ]
-
-
-def _chrome(
-    draw: ImageDraw.ImageDraw,
-    *,
-    width: int,
-    height: int,
-    title: str,
-    subtitle: str = "",
-    pub_id: str = "",
-    revision: str = "",
-    minimal: bool = False,
-) -> tuple[int, int, int, int]:
-    """Title / footer chrome. Returns content box (left, top, right, bottom).
-
-    minimal=True: title + WEST/EAST only (no subtitle, rules, or publication footer).
-    """
-    margin = 48
-    title_font = _font(ARIAL_BOLD, 36)
-    sub_font = _font(GEORGIA, 20)
-    foot_font = _font(GEORGIA, 16)
-    foot_bold = _font(GEORGIA_BOLD, 16)
-    dir_font = _font(ARIAL, 14)
-
-    draw.text((width // 2, 28), title.upper(), font=title_font, fill=INK, anchor="mt")
-
-    if minimal:
-        draw.text((margin, height - 36), "← WEST", font=dir_font, fill=MUTED_INK, anchor="lm")
-        draw.text((width - margin, height - 36), "EAST →", font=dir_font, fill=MUTED_INK, anchor="rm")
-        return margin + 20, 90, width - margin - 20, height - 56
-
-    if subtitle:
-        draw.text((width // 2, 72), subtitle, font=sub_font, fill=MUTED_INK, anchor="mt")
-    draw.line([(margin, 98), (width - margin, 98)], fill=RULE, width=4)
-
-    foot_y = height - 56
-    draw.line([(margin, foot_y), (width - margin, foot_y)], fill=RULE, width=3)
-    draw.text(
-        (width // 2, foot_y + 10),
-        f"Publication {pub_id}  ·  Revision {revision}",
-        font=foot_font,
-        fill=INK,
-        anchor="mt",
-    )
-    draw.text(
-        (width // 2, foot_y + 30),
-        "Official Publication  ·  Neville Island Operations",
-        font=foot_bold,
-        fill=INK,
-        anchor="mt",
-    )
-
-    draw.text((margin, height - 78), "← WEST", font=dir_font, fill=MUTED_INK, anchor="lm")
-    draw.text((width - margin, height - 78), "EAST →", font=dir_font, fill=MUTED_INK, anchor="rm")
-
-    return margin + 20, 120, width - margin - 20, foot_y - 36
 
 
 def _paste_compass(base: Image.Image, *, cx: float, cy: float, size: int, north: str = "right") -> None:

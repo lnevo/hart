@@ -1,5 +1,6 @@
 """The panel background and HART's USS sensor icons reach every host's profile at the path tables.xml names; a parked
-Dispatcher System's traininfo is mirrored only from a package that holds it; the retired host scripts are kept.
+Dispatcher System's traininfo is mirrored only from a package that holds it. That no apply step deletes a retired
+script is checked in test_apply_no_retired_names.py.
 
 The Pi's apply step runs here on a made-up drop (pi_drop). The staged package is checked in test_deploy_stage.py
 (StageOnly), which stages for real. The Mac's step (ship_mac.sh) installs on this machine, so no test runs it, and
@@ -13,8 +14,7 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib import parked, paths  # noqa: E402
 from pi_drop import applied, files_under  # noqa: E402
@@ -86,16 +86,6 @@ class ProfileResources(unittest.TestCase):
                 self.assertNotIn("Program Files", line)
         install = WIN[WIN.index("$ussSrc ="):WIN.index("$ctcSrc =")]
         self.assertNotIn("Program Files", install)
-
-
-class RetiredScripts(unittest.TestCase):
-    """No apply step deletes them (test_apply_no_retired_names.py); their copies are kept in the repo."""
-
-    def test_copies_are_kept(self) -> None:
-        self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_turnout_buttons.py").is_file())
-        self.assertTrue((ROOT / "archive/code/jmri-scripts/sync_yard_ladder_buttons.py").is_file())
-        self.assertTrue((ROOT / "archive/data/layouts/linear6/SetBlockPreviewValues.py").is_file())
-        self.assertTrue((ROOT / "jmri/layouts/hart/scripts/apply_dispatcher_roster_profiles.py").is_file())
 
 
 class ParkedFeatures(unittest.TestCase):

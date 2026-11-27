@@ -1,8 +1,0 @@
-text ((500,28),'SOME MAP') {anchor='mt',fill=(22,22,22),font=Font(Arial Bold.ttf,36)}
-text ((500,72),'Sub') {anchor='mt',fill=(74,74,74),font=Font(Georgia.ttf,20)}
-line (((48,98),(952,98))) {fill=(22,22,22),width=4}
-line (((48,744),(952,744))) {fill=(22,22,22),width=3}
-text ((500,754),'Publication SM-99  ·  Revision Z') {anchor='mt',fill=(22,22,22),font=Font(Georgia.ttf,16)}
-text ((500,774),'Official Publication  ·  Neville Island Operations') {anchor='mt',fill=(22,22,22),font=Font(Georgia Bold.ttf,16)}
-text ((48,722),'← WEST') {anchor='lm',fill=(74,74,74),font=Font(Arial.ttf,14)}
-text ((952,722),'EAST →') {anchor='rm',fill=(74,74,74),font=Font(Arial.ttf,14)}
