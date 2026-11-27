@@ -1,6 +1,7 @@
 """The panel background and HART's USS sensor icons reach every host's profile at the path tables.xml names; a parked
-Dispatcher System's traininfo is mirrored only from a package that holds it. That no apply step deletes a retired
-script is checked in test_apply_no_retired_names.py.
+Dispatcher System's traininfo is mirrored only from a package that holds it. That no apply step deletes or names a
+retired script is checked in test_apply_no_retired_names.py; whether the repo still holds their old copies is not
+checked.
 
 The Pi's apply step runs here on a made-up drop (pi_drop). The staged package is checked in test_deploy_stage.py
 (StageOnly), which stages for real. The Mac's step (ship_mac.sh) installs on this machine, so no test runs it, and
