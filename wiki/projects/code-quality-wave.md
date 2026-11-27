@@ -1,7 +1,7 @@
 # Code-quality wave (2026-11-26)
 
-Status: active (wave 5, from 2026-11-27 03:01)
-Coordinator: wave 5 coordinator (a background agent of hart-e0), since 2026-11-27 03:01 (holds the merge queue and the deploys; took over from hart-e0)
+Status: active (wave 5 done 2026-11-27 06:35; wave 6 next)
+Coordinator: wave 6 coordinator (a background agent of hart-e0), from 2026-11-27 06:45 (holds the merge queue and the deploys; took over from the wave 5 coordinator)
 Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the background coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
@@ -196,22 +196,54 @@ The wave 3 card was wrong. Its merge script applied an older sweep grade over th
 
 ## Wave 5 (2026-11-27)
 
-The wave 5 coordinator (a background agent of hart-e0) planned these lanes from the wave 4 card and the list above. The owner is away for most of it: anything that needs the owner waits on the dashboard's "Waits on owner" row and here, and no lane stops for it.
+The wave 5 coordinator (a background agent of hart-e0) planned these lanes from the wave 4 card and the list above, while the owner was away. Nothing waited on the owner; two choices the owner may override are listed under Result.
 
 | Lane | Scope | PR |
 |------|-------|----|
-| 5-L1 | Device rows, part 1: `DeviceRow.cells()` for the writer and check side, hartlib readers on fields | |
-| 5-L1b | Device rows, part 2: callers in tools/schematic, www/scripts, tools/audit, jmri and the mimic | |
-| 5-L1c | Device rows, part 3: tests, then the mapping view removed | |
-| 5-L2 | `test_name_copies` rename test on a fixture copy; the undeclared master reads declared, so data edits can be light | |
-| 5-L3 | Card pipeline: `crop_span.py` (C+) and `process_car_images.py` | |
-| 5-L4 | tools/schematic: `mast_rule.py` split under its limit, `block_layer.py` | |
-| 5-L5 | Host scripts: one whole-word profile-match helper and the other notes above | |
-| 5-L6 | Site JS: `crew.js` with `crew_schema`, `archive.js`, `wiring.js`, `gallery.js` | |
-| 5-L7 | Jython: `sml_handoff.py`, `panel_status.py`, `audit_panel_contracts.py` | |
-| 5-L8 | Exam JS: `run-modern.js` off `window.ExtraEast` with `run.js`, `build_exam_answers.js` (after 5-L6) | |
-| 5-L9 | Size limits: `build_wiring_json.py`, `lcos_mqtt_mimic.py`, hartlib `tables_build.py` (after 5-L1b) | |
-| 5-L10 | Small items: `check_json` TypedDicts, the fixture tag, `test_package_contents`, `store_split` keys, `repo_guide_page.py` records | |
-| 5-RC | The report card | |
+| 5-L1 | Device rows, part 1: `MasterRow.cells()` and `level_cell`; hartlib readers on fields | #1304 merged |
+| 5-L1b | Device rows, part 2: callers in www/scripts, tools/audit, jmri and cats tests | #1310 merged |
+| 5-L1c | Device rows, part 3: tools/schematic and hartlib tests on fields, then the mapping view removed; public `devices.row_rank`; `ItemKey` and `BeanKey` store keys | #1313 merged |
+| 5-L2 | `test_name_copies` rename test on a scratch checkout; the master reads unit tests make declared in `check_stamps.py` | #1309 merged |
+| 5-L3 | Card pipeline: `crop_span.py` thresholds named in `CROP`, `_core_body_span` split, typed photo rows | #1303 merged |
+| 5-L4 | `mast_rule.py` split into five modules (786 to 287 lines), `block_layer.py` typed, one owner-name rule | #1306 merged |
+| 5-L5 | Host scripts: one whole-word JMRI profile check, the CATS `--profile` form, exact Start Up anchors, atomic `profile.xml` | #1305 merged |
+| 5-L6 | Site JS: `archive.js`, `gallery.js`, `wiring.js`, `crew.js` split into plain functions; `crew_schema` requires the desk notes and tracks | #1301 merged |
+| 5-L7 | Jython: `audit_panel_contracts.py` split (1024 to 548 lines), one SML destination walk, `panel_status` failures printed | #1302 merged |
+| 5-L8 | Exam JS: `run.js` and `run-modern.js` share names through `take` and `give`; the answer key reads data, not code | #1311 merged |
+| 5-L9 | `build_wiring_json.py` and `lcos_mqtt_mimic.py` split by job | #1308 merged |
+| 5-L10 | `check_json` TypedDicts, CLI usage errors, the fixture tag, `panel_status_clicks` and `_turnouts` failures printed | #1307 merged |
+| 5-L11 | hartlib `tables_build.py` split into six modules (1186 to 547 lines), `block_layer.py` split | #1312 merged |
 
-Session lnevo-5f goes on with the hand-table moves (4-T4 and after), one PR per area.
+Other PR: wave page #1300. Shipped: #1302 (layout 03:54); #1304 and #1307 (04:34); #1305 (05:01); #1308 (05:09); #1310 to #1313 (06:23); #1301 (site 04:00) and #1311 (site 05:37). Every layout deploy passed the Mac PanelPro smoke test and the strict panel audit, and the Pi's log showed no script errors after the restart. Session lnevo-5f's station map tables (4-T4) did not reach the queue during the wave.
+
+### Result
+
+Report card after wave 5 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE, "After wave 5"): the line-weighted average went from 3.204 to 3.232 (B), over 539 source files and 126,723 lines. A-range files went from 160 to 181, and reviewers have now read 519 source files. B+ (3.3) is 0.07 away.
+
+| | Start | Wave 1 | Wave 2 | Wave 3 (corrected) | Wave 4 | Wave 5 |
+|---|---|---|---|---|---|---|
+| Average | 2.86 | 3.03 | 3.12 | 3.183 | 3.204 | 3.232 |
+| C and D files | 64 | 33 | 16 | 2 | 2 | 3 |
+| A-range files | 8 | 18 | 133 | 157 | 160 | 181 |
+
+Three files are at C or below: the parked `gen_ctc_track_plan.py` (C-); `www/js/archive.js` (C+, down from B-: its mount is one 263-line closure, and its lightbox and view code copy `gallery.js`); and `tools/schematic/cats_panel_facts.py` (C+, down from B on a closer read: 14 bare fields built by position). `crop_span.py` went from C+ to B+ and `mast_rule.py` from B- to A-.
+
+Coordinator choices the owner may override:
+- Device rows option A: readers take `DeviceRow` fields, and writers and checks take text rows through `cells()`. The mapping view is now gone.
+- 5-L2 raised the `check_stamps.py` EXTRA row in `tools/audit/hand_tables.csv` from 36 to 46 entries and added keep rows for `ENTITY_MASTERS` and `SIDECAR_MASTERS`, because they are stamp declarations, not railroad data.
+
+Checked and closed: the repository guide and tables file pages are current by their own checks; the mimic page loads in a browser from the Pi with every level, turnout and sensor shown and no page errors.
+
+### Left after wave 5
+
+- `archive.js` (C+) and `gallery.js` share the view bar, toast and lightbox code; sharing it needs `nav.js` or a new file. `crew.js` (740 lines) and `archive.js` stay one file each so the pages' script tags do not change. `crew_schema` does not require `spotsheet.offline`.
+- `cats_panel_facts.py` (C+): typed `Facts`, annotations, the unused `F` parameter, a dated comment.
+- `tables_build.py` keeps about 25 re-exported names for the device-row files; repoint those callers and drop the block. `refuse_generated` and `check_layout_facts.py:396` still raise SystemExit outside main; `tables_page.PageError` subclasses SystemExit.
+- Swallowed errors in `sml_beans.py` (183, 340, 348) and `sml_ui.py:102`; `test_turnout_startup.py:85` turns any solver bug into a skip.
+- `apply_hart_package_local.sh` (104-124) keeps its own copy of the Jython script list from `common.sh`, with no test that they match.
+- Only `run-modern.js` uses `take` and `give`; `run-1949.js`, `run-signals.js` and `run-yard.js` still read `ExtraEast` directly, and the answer key still reads `renderSheet` with a regex.
+- `ops/` and `www/data/` edits stay full, because the unit declarations still cover those whole folders.
+- The mimic shows the broker as connected as soon as `mosquitto_sub` starts; its POST handler answers 400 before 404 for an unknown path.
+- Dated history in some tests (`test_block_layer.py`, `test_blocks_every_level.py`, `test_masts_every_level.py`, `test_live_desk_levels.py:63`) and in `lcc_turnout_contract.py:9`.
+- The top gaps to B+ after `archive.js`: `device_map_staging.py`, `gallery.js`, `build_exam_answers.js`, `hart_pub_helpers.py`, `rebuild_scale_operating_instructions.py`, `check_layout_facts.py`, `levels_page.py`, `le_names.py`.
+- Not checked: the WiThrottle "readLine failure limit exceeded" line comes every 5 minutes from a client that opens port 12090 and closes; it is not tied to PanelPro quits, and nothing on the Pi starts it.
