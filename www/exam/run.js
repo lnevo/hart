@@ -24,16 +24,8 @@ const RUNS={tto:{short:"1949",train:"Extra 812 East"},twc:{short:"Modern",train:
   sigs:{short:"Speed signals",train:"Extra 812 East"},sigr:{short:"Route signals",train:"KV 812 East"}};
 
 /* ---------- the railroad ---------- */
-const STATIONS=[
-  {n:"Ashby",mp:100.0,sd:1,yl:1,off:1},
-  {n:"Birchwood",mp:106.0,sd:1},
-  {n:"Cobb",mp:111.5,sd:1,off:1},
-  {n:"Dunmore",mp:117.5,sd:1,off:1},
-  {n:"Elk Gap",mp:123.0,sd:1},
-  {n:"Fenwick",mp:128.5,sd:0},
-  {n:"Granite",mp:134.0,sd:1,off:1},
-  {n:"Hollis",mp:140.0,sd:1},
-  {n:"Ironton",mp:146.0,sd:1,yl:1,off:1}];
+/* The railroad's tables and the semaphore picture: run-data.js, which the answer key reads too. */
+const {STATIONS,REGULARS,TIME_ORDER,SHEET_NOTES,semSvg}=window.ExtraEastData;
 const LAST=STATIONS.length-1;
 const DOUBLE_TRACK_FROM=7; // double track from Hollis (index 7) to Ironton
 
@@ -149,12 +141,6 @@ function renderStatus(){
 /* ---------- 1949: time-table and train orders ---------- */
 /* Regular trains. dir W runs Ironton→Ashby (index falling), E runs Ashby→Ironton.
    t[i] is the scheduled time at station i (one time = leaving time, Rule 5). act[i] is when the train actually passes. */
-/* The regular trains of time-table No 12: the first station's time (minutes from midnight), the spread drawn around it,
-   and minutes per mile. makeTT draws their schedules in this order; the answer key names the first westward one. */
-const REGULARS=[
-  {id:"1",name:"No 1",dir:"W",cls:"First class",start:370,spread:[-4,8],f:2.6},
-  {id:"2",name:"No 2",dir:"E",cls:"First class",start:420,spread:[-6,6],f:2.6},
-  {id:"21",name:"No 21",dir:"W",cls:"Second class",start:470,spread:[-8,8],f:3.4}];
 function makeTT(){
   const run=(mp0,mp1,f)=>Math.abs(mp1-mp0)*f;
   function sched(dir,startT,f){
@@ -482,9 +468,6 @@ function arriveTTO(j,notes){
   else{const ev=drawStation();if(ev)scenes.push(ev)}
   front(...(notes||[]),...scenes,stationTTO);next();
 }
-/* The time order an open office gives on a westward regular train still ahead: the range its number is drawn from, the
-   minutes late it may name, and its words. The answer key shows it with the first of each. */
-const TIME_ORDER={no:[11,19],late:[20,25,30,35],words:(train,L)=>`${train} run ${L} mins late Ironton to Ashby`};
 /* Coming into the open office at j: the train order board shows stop (Rule 221). */
 function boardAsk(j){
   return ask({sec:"to",src:"SC · Rule 221",where:STATIONS[j].n,title:"The train order board",
@@ -588,12 +571,6 @@ function endTTO(){
   next();
 }
 
-/* semaphore picture, angle in degrees (0 = horizontal, upper quadrant) */
-function semSvg(a){
-  const r=a*Math.PI/180;
-  return `<svg viewBox="0 0 120 120" width="110" height="110" aria-label="Semaphore, blade at ${a} degrees" role="img" style="align-self:flex-start"><rect x="57" y="20" width="6" height="96" fill="#1d2733"/><circle cx="60" cy="16" r="5" fill="#1d2733"/><g transform="rotate(${-a} 60 40)"><rect x="60" y="34" width="52" height="11" fill="#a3302b" stroke="#1d2733" stroke-width="1.5"/><rect x="100" y="34" width="4" height="11" fill="#fff"/></g><circle cx="52" cy="40" r="6" fill="#f3ecbf" stroke="#1d2733" stroke-width="1.5"/></svg>`;
-}
-
 function drawRoad(){return drawFrom("road",state.era==="tto"?X.ROAD_TTO:X.ROAD_TWC,.7)}
 function drawStation(){return drawFrom("stn",state.era==="tto"?X.STN_TTO:[],.6)}
 function drawFrom(key,pool,p){
@@ -638,22 +615,6 @@ function finish(text,failed){
 }
 
 /* ---------- the time-table and orders panel ---------- */
-/* The special instructions on each run's sheet, one list item each. The speed signals run puts the manual block first
-   (sheetSignals). build_exam_answers.js reads this literal and prints the 1949 list with the time-table. */
-const SHEET_NOTES={
-  tto:["Westward trains are superior to eastward trains of the same class.",
-    "One time shown is the leaving time (Rule 5).","Ashby and Ironton are inside yard limits.",
-    "Extras clear opposing regular trains by 5 minutes (Rule S-87).",
-    "Double track Hollis to Ironton: D- rules apply there."],
-  twc:["Main track between the yard limits is governed by track warrant (GCOR 14).",
-    "Ashby and Ironton yard limits: GCOR 6.13.","Double track Hollis to Ironton: Main 1 eastward, Main 2 westward.",
-    "Dispatcher: RK."],
-  yard:["Ironton yard limits include Main 1 and Main 2 (GCOR 6.13).",
-    "Main 1 eastward, Main 2 westward (current of traffic).",
-    "Yard tracks and the Kestrel Feed spur are not main track: GCOR 6.28.","East of CP Ironton East: CTC."],
-  signals:["Interlocking at Granite, where the line crosses another railroad.",
-    "River bridge: high water detector, P plate signal.","The grade below Granite: G plate signal.",
-    "Double track Hollis to Ironton."]};
 const notesHtml=items=>`<div class="xw-si"><b>Special instructions</b><ul>${items.map(t=>`<li>${t}</li>`).join("")}</ul></div>`;
 /* A sheet's list box: a heading and one line per item, or `none` when there are none. */
 const listHtml=(head,items,none)=>`<div class="xw-orders"><b>${head}</b>`+
