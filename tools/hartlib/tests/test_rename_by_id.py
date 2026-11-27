@@ -339,10 +339,10 @@ class OtherKeys(unittest.TestCase):
                 mod.numbering()
         importlib.reload(le_tables)
         self.assertIn("Track 107 Loop 2", le_tables.numbering().appended)
-        self.assertEqual(le_tables.APPENDED_BLOCKS, le_tables.numbering().appended)     # the names build_layout_le re-exports
-        self.assertEqual(le_tables.BLOCK_NUMBERED_AS, dict(le_tables.numbering().numbered_as))
-        with self.assertRaises(AttributeError):
-            le_tables.NOT_A_NAME  # noqa: B018
+        self.assertIs(le_tables.numbering(), le_tables.numbering())                     # read once, then cached
+        for gone in ("BLOCK_NUMBERED_AS", "APPENDED_BLOCKS", "RETIRED_BLOCKS"):        # no module-level lookups
+            with self.assertRaises(AttributeError, msg=gone):
+                getattr(le_tables, gone)
 
     def test_block_numbering_names_its_ids(self) -> None:
         import le_tables

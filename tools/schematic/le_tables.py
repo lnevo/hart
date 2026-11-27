@@ -53,22 +53,9 @@ def load_numbering(path: Path = NUMBERING,
 def numbering() -> block_numbering.Numbering:
     """The repo's block_numbering.csv (load_numbering), read once on first use, not at import: it names its blocks
     through the device master, and a master that does not load must not stop every importer of this module before
-    device-map can rebuild it or say what is wrong. A test patches this function."""
+    device-map can rebuild it or say what is wrong. Callers read its fields: numbered_as ({block: name it is numbered
+    as}), appended and retired. A test patches this function."""
     return load_numbering()
-
-
-# The numbering's parts under the names build_layout_le re-exports and older tests read: {block: name it is numbered
-# as}, the appended blocks, the retired blocks. Each reads numbering() when asked for.
-NUMBERING_NAMES = ("BLOCK_NUMBERED_AS", "APPENDED_BLOCKS", "RETIRED_BLOCKS")
-_NUMBERING_FIELDS = dict(zip(NUMBERING_NAMES, ("numbered_as", "appended", "retired")))
-
-
-def __getattr__(name: str) -> Any:
-    """BLOCK_NUMBERED_AS, APPENDED_BLOCKS and RETIRED_BLOCKS: numbering()'s fields (a dict and two tuples)."""
-    if name in _NUMBERING_FIELDS:
-        value = getattr(numbering(), _NUMBERING_FIELDS[name])
-        return dict(value) if name == "BLOCK_NUMBERED_AS" else value
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # ---------------------------------------------------------------- tables

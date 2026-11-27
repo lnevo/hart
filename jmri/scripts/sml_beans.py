@@ -7,8 +7,14 @@
 # same defaults.
 
 import jmri
-import re
 from collections import namedtuple
+
+from jython_siblings import once_printer
+
+# The LCOS head rule: signal_coordinator.py imports these names from here.
+from sml_lcos import (  # noqa: F401
+    _LCOS_SIGNAL_UID_MIN, _LCOS_SIGNAL_UID_MAX, _HEAD_IN_MAST, _packed_is_lcos_signal, _is_lcos_ih_sys,
+)
 
 TOPIC_PREFIX = "track/signalhead/"
 MAST_TOPIC_PREFIX = "track/signalmast/"
@@ -25,15 +31,9 @@ PROBE_WAIT_MS = 1000
 # Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
 # another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
 
-# LCOS signal UIDs: UID_OFFSET_SIGNALS .. UID_OFFSET_CROSSINGS-1 (lcos.h).
-_LCOS_SIGNAL_UID_MIN = 32
-_LCOS_SIGNAL_UID_MAX = 47
-
-_HEAD_IN_MAST = re.compile(r"\(IH\d+\)")
-
-# Failure lines already printed: the bean reads repeat on every property change and field
-# report, so a failure that repeats is printed once. A re-run reloads this module afresh.
-_logged = set()
+# Failure lines are printed once each: the bean reads repeat on every property change and field
+# report. A re-run reloads this module, which starts a new record.
+_log_once = once_printer()
 
 # One destination of a source mast's Signal Mast Logic: its system name, the bean, and
 # whether its Enabled box is checked.
@@ -49,13 +49,6 @@ _ASPECT_TO_APPEARANCE = {
     "dark": "Dark",
     "off": "Dark",
 }
-
-
-def _log_once(msg):
-    """Print msg the first time only."""
-    if msg not in _logged:
-        _logged.add(msg)
-        print(msg)
 
 
 def _ascii(s):
@@ -91,35 +84,6 @@ def _topic_suffix(sys_name):
     if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
         return name[2:]
     return name
-
-
-def _packed_is_lcos_signal(packed):
-    """True if packed = display_node*100 + signal UID (32-47) and node is octal-legal."""
-    if packed is None:
-        return False
-    s = str(packed).strip()
-    if not s.isdigit():
-        return False
-    n = int(s)
-    node = n // 100
-    uid = n % 100
-    if uid < _LCOS_SIGNAL_UID_MIN or uid > _LCOS_SIGNAL_UID_MAX:
-        return False
-    try:
-        int(str(node), 8)
-    except ValueError:
-        return False
-    return True
-
-
-def _is_lcos_ih_sys(sys_name):
-    """True if system name is IH<packed> for an LCOS signal UID."""
-    if sys_name is None:
-        return False
-    name = str(sys_name)
-    if len(name) <= 2 or name[:2].upper() != "IH":
-        return False
-    return _packed_is_lcos_signal(name[2:])
 
 
 def _mqtt_adapter():

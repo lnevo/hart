@@ -8,6 +8,7 @@ the module and the folder when one is missing or comes from elsewhere.
 from __future__ import annotations
 
 import contextlib
+import io
 import re
 import sys
 import tempfile
@@ -79,6 +80,24 @@ class Loader(unittest.TestCase):
         # The re-run's class is built from the reloaded mixins, not the first run's.
         self.assertIs(second["SmlBeans"], sys.modules["sml_beans"].SmlBeans)
         self.assertIsNot(second["SmlBeans"], first["SmlBeans"])
+
+    def test_each_module_prints_a_failure_once_per_run(self) -> None:
+        self.load()
+        beans, loader = sys.modules["sml_beans"], sys.modules["jython_siblings"]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            beans._log_once("a")
+            beans._log_once("a")
+            beans._log_once("b")
+            other = loader.once_printer()          # another module's record: its own
+            other("a")
+        self.assertEqual(out.getvalue().splitlines(), ["a", "b", "a"])
+        self.assertIs(sys.modules["sml_ui"]._log_once, beans._log_once)   # sml_beans' parts share its record
+        self.load()                                 # a re-run reloads sml_beans: a new record
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            sys.modules["sml_beans"]._log_once("a")
+        self.assertEqual(out.getvalue(), "a\n")
 
     def test_a_missing_sibling_stops_the_script(self) -> None:
         for name in (SIBLINGS[0], SIBLINGS[-1]):

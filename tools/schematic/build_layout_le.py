@@ -95,9 +95,8 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     check_masts, mast_turnouts, check_unplaced, turnout_facts,
 )
-import le_tables  # noqa: E402  its numbering, read on first use (__getattr__)
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    NUMBERING, NUMBERING_NAMES, load_numbering, numbering, block_sort,
+    NUMBERING, load_numbering, numbering, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, place, canon, level_bean_names, is_level_bean,
     numbered_blocks, level_block_beans, band_blocks, check_level_blocks, check_bound, bean_names, drawn_blocks,
 )
@@ -359,13 +358,6 @@ def _finish_three_levels(root: ET.Element, P: Any, fit: Any, page: dict[str, Any
     except parked.ParkError as exc:
         raise BuildError(f"parking: {exc}") from exc
     P.retired = retire_yard_ladder(root)
-
-
-def __getattr__(name: str) -> Any:
-    """le_tables' numbering (BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS), re-exported as read on first use."""
-    if name in NUMBERING_NAMES:
-        return getattr(le_tables, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
