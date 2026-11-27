@@ -380,7 +380,7 @@ class WorkflowTest(unittest.TestCase):
     def test_the_docs_path_and_no_label_trigger(self) -> None:
         """No `labeled` trigger: a run for any label would cancel the pull request's run in progress (the gate reads
         the labels live, so a re-run after adding full-ci sees it)."""
-        self.assertIn("if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'", self.text)
+        self.assertIn("if: github.event_name == 'pull_request' && steps.kind.outputs.kind == 'full'", self.text)
         self.assertNotIn("types:", self.text[:self.text.index("push:")])
         self.assertIn("|| labels=full-ci", self.text)
 
@@ -480,7 +480,7 @@ esac
         self.assertLess(self.text.index("run: ./tools/check.sh"), self.text.index("name: Did a pull request skip"))
         self.assertIn("CHECK_RESULTS_TO: ${{ runner.temp }}/check-results.tsv", self.text)
         rec = self.text[self.text.index("name: Record the jobs this run skipped"):]
-        self.assertIn("if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'", rec[:200])
+        self.assertIn("if: github.event_name == 'pull_request' && steps.kind.outputs.kind == 'full'", rec[:200])
         self.assertIn("name: check-skips", rec[:1200])
 
     def test_a_failed_label_or_message_lookup_runs_everything(self) -> None:

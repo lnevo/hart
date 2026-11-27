@@ -5663,7 +5663,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Says whether a change needs the full checks or only the quick docs checks (CI and check.sh).",
+   "desc": "Says whether a change needs the full checks, the light checks (docs, or data that only static checks read, from checks.toml, the stamp declarations and this map) or only the quick docs checks (CI, check.sh and make pr-kind).",
    "path": "tools/ci/changed_kind.py"
   },
   {
@@ -5674,6 +5674,15 @@
    "domain": "extras",
    "desc": "The quick docs checks: the docs_only steps of checks.toml, run in CI and by check.sh's docs-only path.",
    "path": "tools/ci/docs_checks.sh"
+  },
+  {
+   "id": "tools/ci/light_checks.sh",
+   "label": "light_checks.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The light checks: make static's jobs and the static jobs that read the changed files (through check.sh), then the quick docs checks; run in CI and by check.sh's light path.",
+   "path": "tools/ci/light_checks.sh"
   },
   {
    "id": "tools/ci/stamp_gate.py",
@@ -13268,12 +13277,52 @@
   {
    "from": "tools/ci/changed_kind.py",
    "to": "tools/check.sh",
-   "label": "docs or full"
+   "label": "docs, light or full"
   },
   {
    "from": "tools/ci/docs_checks.sh",
    "to": "tools/check.sh",
    "label": "docs-only path"
+  },
+  {
+   "from": "tools/ci/light_checks.sh",
+   "to": "tools/check.sh",
+   "label": "light path"
+  },
+  {
+   "from": "tools/ci/changed_kind.py",
+   "to": "tools/ci/light_checks.sh",
+   "label": "--jobs"
+  },
+  {
+   "from": "tools/ci/docs_checks.sh",
+   "to": "tools/ci/light_checks.sh",
+   "label": "quick docs checks"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/ci/light_checks.sh",
+   "label": "Light checks job"
+  },
+  {
+   "from": "tools/hosts/live_paths.txt",
+   "to": "tools/ci/changed_kind.py",
+   "label": "shipped paths"
+  },
+  {
+   "from": "tools/pipeline/checks.toml",
+   "to": "tools/ci/changed_kind.py",
+   "label": "what each check reads"
+  },
+  {
+   "from": "docs/pipeline-map/pipeline_map.json",
+   "to": "tools/ci/changed_kind.py",
+   "label": "boxes and writers"
+  },
+  {
+   "from": "tools/audit/check_stamps.py",
+   "to": "tools/ci/changed_kind.py",
+   "label": "imports (stamp declarations)"
   },
   {
    "from": "tools/pipeline/checks.toml",

@@ -26,20 +26,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2        # a pull request's merge commit and its first parent (the base): the changed paths
+      # the plugin before the verdict: changed_kind.py reads the stamp declarations, which load it
+      - run: 'git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills'
       # Docs-only pull requests (tools/ci/changed_kind.py) run the quick docs checks and skip the full check.sh, the
-      # schematic cache and its hand-off. This stays one job named "check", the required status check, so a docs-only
-      # pull request still gets a passing "check". A push to main always takes the full path (it saves the cache).
+      # schematic cache and its hand-off. Light pull requests (docs, or data that only static checks read) run
+      # tools/ci/light_checks.sh instead of the full check.sh, with the schematic cache but no stamp gate. This stays
+      # one job named "check", the required status check, so either still gets a passing "check". A push to main
+      # always takes the full path (it saves the cache).
       - name: What changed
         id: kind
         run: |
           set -euo pipefail
-          kind=full
+          line="full: a push or scheduled run"
           if [ "${{ github.event_name }}" = pull_request ]; then
-            kind="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/changed_kind.py)"
+            line="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/changed_kind.py --compare HEAD^1 --why)"
           fi
+          kind="${line%%:*}"
           echo "kind=$kind" >> "$GITHUB_OUTPUT"
-          echo "changed paths take the $kind path"
-      - run: 'git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills'
+          echo "changed paths take the $kind path (${line#*: })"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -48,13 +52,13 @@ jobs:
       - run: pip install -r ops/hart-ops/requirements-test.txt
       # ruff for check.sh's pyflakes job, at the version requirements.txt pins (check_ruff.py --pin reads it the way
       # the check does, and fails the step when there is no pin)
-      - if: steps.kind.outputs.kind != 'docs'
+      - if: steps.kind.outputs.kind == 'full'
         run: |
           set -euo pipefail
           pin="$(python3 tools/audit/check_ruff.py --pin)"
           pip install "$pin"
       # mypy for check.sh's mypy job, at the version requirements.txt pins
-      - if: steps.kind.outputs.kind != 'docs'
+      - if: steps.kind.outputs.kind == 'full'
         run: |
           set -euo pipefail
           pip install "mypy==$(python3 -c 'import sys; sys.path.insert(0, "tools/audit"); from pathlib import Path; import check_mypy; print(check_mypy.pinned_version(Path(".")))')"
@@ -78,7 +82,7 @@ jobs:
       # labels are read when the step runs: add full-ci, then re-run the job (or push a commit with [full-ci]).
       - name: Merge base
         id: base
-        if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'
+        if: github.event_name == 'pull_request' && steps.kind.outputs.kind == 'full'
         run: echo "sha=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
       - name: Check stamps from main
         if: steps.base.outputs.sha != ''
@@ -184,12 +188,18 @@ jobs:
           bash tools/schematic/build_panels.sh --check --full > /tmp/warm.log 2>&1 || echo "panels --check reported stale or failed steps; check.sh reports them"
           grep -E '^== |: (ok|FAILED)' /tmp/warm.log || true
           echo "cache warmed in $((SECONDS - start)) s: $(find .cache/hart/schematic -name '*.pickle' | wc -l) entries"
+      - name: Light checks
+        if: steps.kind.outputs.kind == 'light'
+        env:
+          SCHEMATIC_REQUIRED: "1"
+        # after the cache warm-up above; the script tools/check.sh's light path runs, on the changed paths above
+        run: git diff --no-renames --name-only HEAD^1 HEAD | bash tools/ci/light_checks.sh --compare HEAD^1
       # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below.
       # The weekly run fails a job that read a file its step does not declare in tools/pipeline/checks.toml
       # (CHECK_AUDIT_FAILS, ADR-037 stage 4c; pull request and push runs only warn). The audit runs when a job records
       # its stamp, so that run records into a folder of its own, which nothing saves: a job with no stamp anywhere is
       # audited from its own trace in that run.
-      - if: steps.kind.outputs.kind != 'docs'
+      - if: steps.kind.outputs.kind == 'full'
         id: checks
         run: ./tools/check.sh
         env:
@@ -202,7 +212,7 @@ jobs:
       # A pull request run that passed keeps the names of the jobs it skipped on main's stamps (tools/ci/stamp_gate.py
       # record-skips), every run of the full path, an empty list when it skipped none: the weekly run below reads them.
       - name: Record the jobs this run skipped
-        if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'
+        if: github.event_name == 'pull_request' && steps.kind.outputs.kind == 'full'
         env:
           PR: ${{ github.event.pull_request.number }}
           BASE: ${{ steps.base.outputs.sha }}
@@ -210,7 +220,7 @@ jobs:
         run: |
           python3 tools/ci/stamp_gate.py record-skips "$RUNNER_TEMP/check-results.tsv" --pr "$PR" \
             --run "$GITHUB_RUN_ID" --base "$BASE" --head "$HEAD_SHA" --out "$RUNNER_TEMP/check-skips/skips.json"
-      - if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'
+      - if: github.event_name == 'pull_request' && steps.kind.outputs.kind == 'full'
         uses: actions/upload-artifact@v4
         with:
           name: check-skips
@@ -222,7 +232,7 @@ jobs:
       # skip (a stamp key that leaves an input out) shows within a week, named as one. It runs after a failed
       # check.sh too (that is when it matters), but not when check.sh never ran (an earlier step failed): then there are
       # no results to read. A job named here failed in full after a pull request skipped it: the place to look first, not
-      # proof the skip was wrong. A run listed with no check-skips artifact took the docs-only path or
+      # proof the skip was wrong. A run listed with no check-skips artifact took the docs-only or light path or
       # predates the record; one whose artifact cannot be listed or downloaded fails this step.
       - name: Did a pull request skip a job that fails here?
         if: ${{ !cancelled() && github.event_name == 'schedule' && steps.kind.outputs.kind != 'docs' && (steps.checks.conclusion == 'success' || steps.checks.conclusion == 'failure') }}
