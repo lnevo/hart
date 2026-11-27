@@ -30,7 +30,7 @@ import sys
 from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Callable, Iterator
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
@@ -149,23 +149,30 @@ def node_sort(n: str) -> tuple[int, int]:
 
 # —— Inventory ——————————————————————————————————————————————————
 
-def out_kind(device: str, dtype: str) -> tuple[str, str]:
-    """(kind, lamp color) for a DNOU8 pin."""
+class OutKind(NamedTuple):
+    """What a DNOU8 pin drives; color and head are set for a lamp only ("Head 12 R": head "12", color "R")."""
+    kind: str
+    color: str = ""
+    head: str = ""
+
+
+def out_kind(device: str, dtype: str) -> OutKind:
+    """What a DNOU8 pin drives, from its device name and device type."""
     m = HEAD_RE.match(device)
     if m:
-        return "lamp", m.group("color")
+        return OutKind("lamp", m.group("color"), m.group("head"))
     t = dtype.lower()
     if "turnout" in t:
-        return "motor", ""
+        return OutKind("motor")
     if "cal" in t:
-        return "cal", ""
+        return OutKind("cal")
     if "relay" in t:
-        return "relay", ""
+        return OutKind("relay")
     if "reserved" in t or device.lower() == "reserved":
-        return "reserved", ""
+        return OutKind("reserved")
     if not device:
-        return "spare", ""
-    return "other", ""
+        return OutKind("spare")
+    return OutKind("other")
 
 
 def in_kind(device: str, dtype: str) -> str:
@@ -210,9 +217,49 @@ class Built(NamedTuple):
 
 
 Row = dict[str, str]                   # one sheet row, keyed by its header
+
+
+class Turnout(TypedDict):
+    """One TurnoutSummary row as the viewer shows it. turnout is the row's label, name the JMRI turnout; a crossover
+    half's label is "<name> (<OS block>)" and half is that OS block. motorN and motorR are DNOU8 port ids, button,
+    fbN and fbR DNIN8 port ids, signals the entry, normal and reverse signal names the row gives."""
+    turnout: str
+    name: str
+    half: str
+    node: str
+    area: str
+    elements: str
+    motorN: str
+    motorR: str
+    button: str
+    fbN: str
+    fbR: str
+    signals: dict[str, str]
+
+
+TURNOUT_SIGNALS = (("entry", "Entry Signal"), ("normal", "Normal Exit Signal"), ("reverse", "Reverse Exit Signal"))
+TURNOUT_INPUTS = (("button", "BTN"), ("fbN", "N FB"), ("fbR", "R FB"))  # field, the DNIN8 device name's suffix
 BoardKey = tuple[str, str]             # (node id, board), such as ("C13", "OU2")
 NEEDED_SHEETS = ("Nodes", "DNOU8", "DNIN8", "TurnoutSummary", "BlockSensors", "DigiconSignals")
 NOT_WIRED = ("spare", "reserved", "cal")  # output kinds that are not a device
+
+
+def turnout_name(r: Row, label: str) -> str:
+    """The JMRI turnout of a TurnoutSummary row: its own column, which a crossover's half rows (labelled by OS block)
+    share. The older workbook (v85) has no such column and one row per turnout, so its label is the name."""
+    jmri = r["JMRI Turnout"] if "JMRI Turnout" in r else label
+    if not jmri:
+        raise WiringDataError(f"TurnoutSummary: row {label!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
+    return jmri
+
+
+def crossover_half(label: str, jmri: str) -> str:
+    """The OS block of a crossover half's row label "<jmri> (<OS block>)"; "" when the label is the turnout itself."""
+    if label == jmri:
+        return ""
+    if not (label.startswith(jmri + " (") and label.endswith(")")):
+        raise WiringDataError(f"TurnoutSummary: row {label!r} is not {jmri!r} or {jmri!r} (<OS block>)")
+    return label[len(jmri) + 2:-1]
 
 
 def board_order(item: tuple[BoardKey, dict]) -> tuple:
@@ -233,7 +280,7 @@ class Inventory:
         self.heads: OrderedDict[str, dict] = OrderedDict()
         self.masts: list[dict] = []
         self.blocks: list[dict] = []
-        self.turnouts: list[dict] = []
+        self.turnouts: list[Turnout] = []
 
     def node_for(self, nid: str, sheet: str, pid: str) -> dict:
         """The node nid, added bare (with a warning) when the Nodes sheet does not list it."""
@@ -294,8 +341,8 @@ class Inventory:
 
     def sorted_boards(self, sheet: str, boards: dict[BoardKey, dict], ports: dict[str, list[str]],
                       where: str) -> Iterator[tuple[str, str, dict, list[dict]]]:
-        """Warns of a device on more than one port and of a board missing a pin row, then gives (node, board, the
-        board's record, its pins by number) in node and board order."""
+        """Warns of a device on more than one port, then gives (node, board, the board's record, its pins by number) in
+        node and board order."""
         for dev, on in ports.items():
             if len(on) > 1:
                 self.log.warn(f"{sheet}: {dev!r} is on more than one {where}: {', '.join(on)}")
@@ -313,14 +360,14 @@ class Inventory:
         ports: dict[str, list[str]] = defaultdict(list)
         for nid, board, pin, pid, r in self.pin_rows("DNOU8", "Output Port ID", check_parent=True):
             device = r.get("Connected Device", "")
-            kind, color = out_kind(device, r.get("Device Type", ""))
+            kind, color, head = out_kind(device, r.get("Device Type", ""))
             b = self.out_boards.setdefault((nid, board), {"board": board, "rail": Counter(), "pins": [], "_locs": []})
             if r.get("Voltage Rail (12V/5V)"):
                 b["rail"][r["Voltage Rail (12V/5V)"]] += 1
             rec = {"pin": pin, "port": pid, "device": device, "kind": kind}
             if color:
                 rec["color"] = color
-                rec["head"] = HEAD_RE.match(device).group("head")
+                rec["head"] = head
             if r.get("Board Location"):
                 rec["place"] = r["Board Location"]
                 if kind not in NOT_WIRED:
@@ -495,51 +542,54 @@ class Inventory:
             if name:
                 self.turnouts.append(self.turnout(r, name))
 
-    def turnout(self, r: Row, name: str) -> dict:
-        # The turnout's own name; a crossover's half rows (labelled by OS block) share it. The older workbook (v85) has
-        # no such column and one row per turnout, so its label is the name.
-        jmri = r["JMRI Turnout"] if "JMRI Turnout" in r else name
-        if not jmri:
-            raise WiringDataError(f"TurnoutSummary: row {name!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
+    def device_input(self, pid: str) -> str | None:
+        """The device on DNIN8 port pid, or None when no input pin read so far has that port."""
+        node = self.nodes.get(pid.split("-")[0])
+        return next((x["device"] for b in (node["inputs"] if node else []) for x in b["pins"] if x["port"] == pid), None)
+
+    def turnout(self, r: Row, name: str) -> Turnout:
+        """The viewer's record of the TurnoutSummary row labelled name, after its pins are checked against the board
+        sheets (read_outputs and read_inputs run first)."""
+        jmri = turnout_name(r, name)
         motor = {pos: self.device_ports.get(f"{jmri} {pos}", []) for pos in ("N", "R")}
-        if not motor["N"] and not motor["R"]:
-            self.log.warn(f"TurnoutSummary: {name} has no motor pins on the DNOU8 sheet")
-        half = ""
-        if name != jmri:                    # a crossover half: "<turnout> (<OS block>)"
-            if not (name.startswith(jmri + " (") and name.endswith(")")):
-                raise WiringDataError(f"TurnoutSummary: row {name!r} is not {jmri!r} or {jmri!r} (<OS block>)")
-            half = name[len(jmri) + 2:-1]
-        t = {
-            "turnout": name,
-            "name": jmri,
-            "half": half,
-            "node": r.get("Parent Node", ""),
-            "area": r.get("Location/Area", ""),
-            "elements": r.get("Switch Elements", ""),
-            "motorN": ", ".join(motor["N"]),
-            "motorR": ", ".join(motor["R"]),
-            "button": r.get("Button", ""),
-            "fbN": r.get("Feedback N", ""),
-            "fbR": r.get("Feedback R", ""),
-            "signals": {},
-        }
-        motor_nodes = {p.split("-")[0] for p in motor["N"] + motor["R"]}
+        t = Turnout(
+            turnout=name,
+            name=jmri,
+            half=crossover_half(name, jmri),
+            node=r.get("Parent Node", ""),
+            area=r.get("Location/Area", ""),
+            elements=r.get("Switch Elements", ""),
+            motorN=", ".join(motor["N"]),
+            motorR=", ".join(motor["R"]),
+            button=r.get("Button", ""),
+            fbN=r.get("Feedback N", ""),
+            fbR=r.get("Feedback R", ""),
+            signals={key: r[label] for key, label in TURNOUT_SIGNALS if r.get(label)},
+        )
+        self.check_turnout_motor(t, motor["N"] + motor["R"])
+        for _, label in TURNOUT_SIGNALS:
+            self.check_turnout_lamps(r, name, label.replace(" Signal", ""), r.get(label, ""))
+        self.check_turnout_inputs(t)
+        return t
+
+    def check_turnout_motor(self, t: Turnout, ports: list[str]) -> None:
+        """A turnout's motor pins: there are some, and they are on its parent node."""
+        if not ports:
+            self.log.warn(f"TurnoutSummary: {t['turnout']} has no motor pins on the DNOU8 sheet")
+        motor_nodes = {p.split("-")[0] for p in ports}
         if motor_nodes and t["node"] and t["node"] not in motor_nodes:
-            self.log.warn(f"TurnoutSummary: {name} parent node {t['node']}, but its motor is on {sorted(motor_nodes)}")
-        for key, label in (("entry", "Entry Signal"), ("normal", "Normal Exit Signal"), ("reverse", "Reverse Exit Signal")):
-            sig = r.get(label, "")
-            if sig:
-                t["signals"][key] = sig
-            self.check_turnout_lamps(r, name, label.replace(" Signal", ""), sig)
-        for f, want in (("button", "BTN"), ("fbN", "N FB"), ("fbR", "R FB")):
-            pid = t[f]
+            self.log.warn(f"TurnoutSummary: {t['turnout']} parent node {t['node']}, but its motor is on {sorted(motor_nodes)}")
+
+    def check_turnout_inputs(self, t: Turnout) -> None:
+        """A turnout's button and feedback ports against the devices the DNIN8 sheet puts there."""
+        ports = {"button": t["button"], "fbN": t["fbN"], "fbR": t["fbR"]}
+        for field, want in TURNOUT_INPUTS:
+            pid = ports[field]
             if not pid:
                 continue
-            dev = next((x["device"] for b in self.nodes.get(pid.split("-")[0], {}).get("inputs", [])
-                        for x in b["pins"] if x["port"] == pid), None)
-            if dev != f"{jmri} {want}":
-                self.log.warn(f"TurnoutSummary: {name} {f} → {pid}, but DNIN8 has {dev or 'nothing'} there")
-        return t
+            dev = self.device_input(pid)
+            if dev != f"{t['name']} {want}":
+                self.log.warn(f"TurnoutSummary: {t['turnout']} {field} → {pid}, but DNIN8 has {dev or 'nothing'} there")
 
     def check_turnout_lamps(self, r: Row, name: str, base: str, sig: str) -> None:
         """The sheet's lamp pins for one of a turnout's signals against the DNOU8 pin assignments."""

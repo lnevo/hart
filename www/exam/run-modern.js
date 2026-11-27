@@ -82,6 +82,8 @@ function legTWC(from,to,events){
     next();
   };
 }
+/* The modern run: draws its warrants (w1 to w3; Box 12 or 11 and 17, Box 8 or 10, the wait for 2211 West), then
+   queues the run a stretch at a time. build_exam_answers.js reads w1 and w2 from here for the answer key. */
 function startTWC(){
   state.tt={leg:[]};for(let i=0;i<LAST;i++)state.tt.leg[i]=Math.round((STATIONS[i+1].mp-STATIONS[i].mp)*2.6)+rnd(-1,2);
   const box12=randSetup()<.6;
@@ -102,7 +104,13 @@ function startTWC(){
   const wait=rnd(10,18);
   TW_SEL.time=["6:15","6:20","6:25","7:00","8:00","9:00"];
 
-  push(
+  const run={w1,w2,w3,box12,hold,wait,setBox5};
+  push(...ashby(run),...birchwoodToCobb(run),...dunmore(run),...granite(run),...ironton());
+  next();
+}
+/* Ashby: on duty, warrant 101 and its boxes, then out to Birchwood. */
+function ashby({w1,setBox5}){
+  return [
     info("Ashby","On duty at Ashby, 6:00",
       "<p>You are the conductor of KV 812 East, a freight from Ashby to Ironton through dark territory. "+
         "Train movements here are authorized by track warrant. Ashby and Ironton are inside yard limits. "+
@@ -154,7 +162,12 @@ function startTWC(){
           ["You may back up without permission"]],
           why:"Box 15: flag protection not required against following trains on the same track. The TWC guide "+
         "says a model railroad can drop it, along with Boxes 5, 6 and 12 to 14."}),
-    legTWC(0,1),
+    legTWC(0,1)
+  ];
+}
+/* Birchwood to Cobb, under Box 12 (men or equipment) or Boxes 11 and 17 (joint with work train 292). */
+function birchwoodToCobb({box12}){
+  return [
     legTWC(1,2,
       box12?[ask({sec:"sig",src:"GC · 5.8.2",where:"Birchwood to Cobb",title:"Men on the track",
       body:"Box 12 is in your warrant. Rounding a curve you see a track gang ahead at Cobb. What whistle signal?",
@@ -176,7 +189,12 @@ function startTWC(){
           ["Stop and wait for 292 to report clear"]],
           why:"Box 11: between the points, make all movements at restricted speed; limits occupied by train. Box "+
         "17 carries other instructions such as “joint with”. GCOR 6.27: not over 20 MPH, able to stop within "+
-        "half the range of vision."})]),
+        "half the range of vision."})])
+  ];
+}
+/* Cobb to Dunmore: the end of warrant 101, into the siding, warrant 102 and the meet with 2211 West. */
+function dunmore({w2,wait}){
+  return [
     ask({sec:"gcor",src:"GC · 1.47A",where:"Cobb",title:"Approaching your limit",
       body:"Dunmore is the end of your authority. When must you remind the engineer of it?",
       right:"After passing the last station before it, and at least 2 miles before it",
@@ -232,7 +250,12 @@ function startTWC(){
           "East at Olga Yard. When 2211 East arrives, its warrant 701 is reported clear and voided. Here 2211 "+
           "West does the same at Dunmore. Unless a Box 6 time ends it sooner, a warrant stays in effect until "+
           "the crew releases it."}));next()},
-    ()=>{state.inSiding=false;next()},
+    ()=>{state.inSiding=false;next()}
+  ];
+}
+/* Dunmore to Granite through the Elk Gap tunnel, the end of warrant 102 (Box 8 or not), and warrant 103. */
+function granite({w3,hold}){
+  return [
     legTWC(3,4,
       [ask({sec:"gcor",src:"GC · 1.43",where:"Elk Gap",title:"Stalled in the tunnel",
       body:"Your engine slips down to a stop in the tunnel at Elk Gap and cannot move promptly. What first?",
@@ -276,7 +299,12 @@ function startTWC(){
           wrong:[["Box 2, Proceed from … to"],["Box 7, Not in effect until after arrival of"],
           ["Box 10, Clear main track at last named point"]],
           why:"Box 2 is one direction only; backing up needs permission for a reverse move. Box 4, Work between, "+
-        "gives movement in both directions for locals and work trains."}),
+        "gives movement in both directions for locals and work trains."})
+  ];
+}
+/* Granite to Ironton on double track, into the Ironton yard limits and yard. */
+function ironton(){
+  return [
     legTWC(6,7,
       [ask({sec:"twc",src:"GC · 14.0 form",where:"Granite to Hollis",title:"Box 13",
       body:"Warrant 103 has Box 13, “Do not exceed 40 MPH between Granite and Hollis.” The engineer has the "+
@@ -329,8 +357,7 @@ function startTWC(){
         "allows stopping within half the range of vision short of a train, engine, car, men or equipment, "+
         "stop signal, derail or improperly lined switch."}),
     ()=>finish("KV 812 East is yarded at Ironton at "+fmt(state.clock)+".",false)
-  );
-  next();
+  ];
 }
 const ROAD_TWC=[
   ()=>ask({sec:"sig",src:"GC · 5.8.2(7)",title:"Crossing at 40 MPH",
