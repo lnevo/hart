@@ -69,9 +69,8 @@ SIG_LOC = {
     "RIGHTUP": (0.82, 0.18),
 }
 
-# LEFTCENT is not in SIG_LOC: its masts sit at the cell centre, as they always have. SIG_LOC is to move out of this
-# file (tools/audit/hand_tables.csv), and giving LEFTCENT a place of its own would move those hotspots on the site, so
-# it is the one SIGLOCATION placed at the centre on purpose; any other name SIG_LOC lacks stops the build.
+# LEFTCENT is not in SIG_LOC: its masts sit at the cell centre on purpose (a place of its own would move those
+# hotspots on the site). Any other SIGLOCATION that SIG_LOC lacks stops the build.
 CENTRED_SIGLOCATION = "LEFTCENT"
 
 # Portal-only pixel nudges when Digicon cell slots still sit on top of the plant.
@@ -197,8 +196,13 @@ def block_names(s: ET.Element) -> list[str]:
 
 
 def blocks_by_cell(sections: Sequence[ET.Element]) -> dict[Cell, list[str]]:
-    """(x, y) -> the OS blocks on that cell's edges, for switch cells that carry none."""
-    return {cell_of(s): names for s in sections if (names := block_names(s))}
+    """(x, y) -> the OS blocks on that cell's edges, for switch cells that carry none; sections that share a cell
+    pool their blocks."""
+    out: dict[Cell, list[str]] = {}
+    for s in sections:
+        if names := block_names(s):
+            out.setdefault(cell_of(s), []).extend(names)
+    return out
 
 
 def surrounding_block(cell: Cell, near_blocks: Mapping[Cell, list[str]]) -> str:

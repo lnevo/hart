@@ -124,6 +124,12 @@ class DeskTest(unittest.TestCase):
         with self.assertRaisesRegex(cats_index.CatsIndexError, "X='a' Y=None"):
             cats_index.cell_of(ET.fromstring('<SECTION X="a" />'))
 
+    def test_sections_that_share_a_cell_pool_their_blocks(self) -> None:
+        sections = [ET.fromstring(f'<SECTION X="1" Y="2"><SEC_EDGE><BLOCK NAME="{n}" /></SEC_EDGE></SECTION>')
+                    for n in ("OS Switch 1", "OS Switch 2")]
+        sections.append(ET.fromstring('<SECTION X="3" Y="2"><SEC_EDGE /></SECTION>'))
+        self.assertEqual({(1, 2): ["OS Switch 1", "OS Switch 2"]}, cats_index.blocks_by_cell(sections))
+
     def test_an_override_for_a_mast_the_desk_does_not_draw_stops(self) -> None:
         sections = [ET.fromstring('<SECTION X="0" Y="0"><SEC_EDGE /></SECTION>')]
         with self.assertRaisesRegex(cats_index.CatsIndexError, "HOTSPOT_OVERRIDE moves mast 32r"):
