@@ -132,7 +132,6 @@
  "tools/schematic/build_staging_sets.py": 3,
  "tools/schematic/build_tables.py": 2,
  "tools/schematic/check_device_master.py": 3,
- "tools/schematic/device_map_rows.py": 3,
  "tools/schematic/device_map_schematic.py": 1,
  "tools/schematic/le_checks.py": 3,
  "tools/schematic/le_common.py": 3,

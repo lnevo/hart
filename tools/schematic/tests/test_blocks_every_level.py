@@ -2,13 +2,11 @@
 
 - the committed block and occupancy rows of devices.csv, read as plain CSV: staging's row by row (name, role, control
   point, trial name; its parts: name, part_of, trial name; occupancy: blocks and detector), and every level's other
-  columns by a digest, so a change to any cell of those rows is seen. Step 5 part 1 changed only
-  this: staging's block and occupancy rows went from hand-kept to the one block builder's (written_by, left out of
-  the digests), devices.csv gained part_of (left out too), staging's 14 links (and the piece of Scale in OS Switch 7)
-  became part rows, and the OS blocks' trial names lost the link pieces those rows now carry. Step 5 part 2 (owner,
-  2026-11-20): the piece of Scale in OS Switch 7 went (Track Scale one block), and main and upper's 25 links became
-  part rows, their block and occupancy rows gone. Main and upper's trial names became switch-and-leg keys, as
-  staging's, so a new export's edge ids leave every row as it is (Readers' renumber test);
+  columns by a digest, so a change to any cell of those rows is seen. Every level's block and occupancy rows are
+  the one block builder's (written_by and part_of are left out of the digests). The links are part rows: staging's
+  14 and main and upper's 25, with no block or occupancy rows of their own; Track Scale is one block, none of it in
+  OS Switch 7. Every level's trial names are switch-and-leg keys, so a new export's edge ids leave every row as it
+  is (Readers' renumber test);
 - the block layer the readers build from those rows: staging_device_map.load's {strand: blocks} over the staging
   drawing, by the drawing's own keys (OS placeholders and track pieces, from the first end of each piece), and the
   main and upper rows build_device_map.build() writes.
@@ -168,7 +166,7 @@ STAGING_PART_BEANS = (
 
 # (level, name, part_of, trial_name) of the main and upper parts: the 25 links, each in the lower-numbered switch's OS
 # block or, where a home mast stands at a switch's points facing it, the OS block at its other end (125-129, 201-205,
-# 227-231, 229-233); 225's in the corner block of its leg (step 5 part 2)
+# 227-231, 229-233); 225's in the corner block of its leg
 MAIN_UPPER_PARTS = (
     ('2', 'Track 101-103', 'OS Switch 101', 'Track 101AB-103AA'),
     ('2', 'Track 105-109', 'OS Switch 105', 'Track 105A-109C'),
@@ -197,8 +195,8 @@ MAIN_UPPER_PARTS = (
     ('3', 'Track 239-245', 'OS Switch 239', 'Track 239C-245AA'),
 )
 
-# (level, name, trial_name) of the main and upper block rows but the parts: switch-and-leg keys, as staging's (owner,
-# 2026-11-20; they named AnyRail plan edges, "Track e33 1", before), the OS blocks keyed by their own name
+# (level, name, trial_name) of the main and upper block rows but the parts: switch-and-leg keys, as staging's (not
+# AnyRail plan edges such as "Track e33 1"), the OS blocks keyed by their own name
 MAIN_UPPER_TRIALS = (
     ('2', 'OS Switch 101', 'OS Switch 101'),
     ('2', 'OS Switch 103', 'OS Switch 103'),
@@ -365,12 +363,11 @@ STAGING_LAYER = {
 
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by, part_of,
 # jmri_bean (only ever set on a level-less row), id (test_device_ids pins it) and trial_name (pinned row by row
-# above, on every level), joined by
-# commas, one row a line, in file order. Main and upper changed in naming-layers step 8 (each block row gained its
-# jmri_name and layout_block from block_numbering.csv, assignment virtual); staging did not. Staging changed on
-# 2026-11-25: its two spare detectors gained detector none (owner)
+# above, on every level), joined by commas, one row a line, in file order. Main and upper's block rows carry
+# their jmri_name and layout_block from block_numbering.csv, assignment virtual; staging's two spare detectors have
+# detector none
 DIGESTS = {"1": (90, '13524895795db40f896526a17529683fecfc34cceabffe91310db5d52087c72c'), "2": (76, '11ec552cde7611930d48ca4862f85672735dfd547527fc2deb44290a02d32200'), "3": (118, '98683379569be6ee2435fa4c9f7836562d3efa094475658862da5628703dec3d')}
-# cats_discipline: the owner's CATS cell on 45 staging blocks (lane L12); the pins hold what the builders make
+# cats_discipline: the owner's CATS cell on 45 staging blocks; the pins hold what the builders make
 SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id", "start", "bean_comment", "cats_discipline")
         for level in "123"}
 
