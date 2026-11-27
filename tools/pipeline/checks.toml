@@ -180,14 +180,15 @@ outputs = [
   "www/behind/jmri-additions.html",
 ]
 # read as text, seen in the 2026-11-25 traced run (ADR-037 stage 4c): the modules signal_coordinator.py loads
-# and the parts panel_status.py runs (hartlib.coordinator), and each host's Jython install list (HOSTS in the script)
+# and the parts panel_status.py runs (hartlib.coordinator), and each host's Jython install list (LIST_ROLES and
+# HOST_LISTS in the script; the Pi and the Mac share jython_scripts.txt)
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/schematic/stations.csv",
                 "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py", "jmri/scripts/sml_handoff.py",
                 "jmri/scripts/sml_events.py", "jmri/scripts/sml_quit.py", "jmri/scripts/sml_ui.py",
                 "jmri/layouts/hart/scripts/panel_status.py", "jmri/layouts/hart/scripts/panel_status_turnouts.py",
                 "jmri/layouts/hart/scripts/panel_status_clicks.py",
-                "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
+                "tools/hosts/pi/jython_scripts.txt", "tools/hosts/pi/jython_list.sh",
                 "tools/hosts/windows/apply_hart_package_local.ps1"]
 
 [[step]]
