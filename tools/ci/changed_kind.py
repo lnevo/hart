@@ -34,11 +34,11 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Literal, NamedTuple, TypedDict
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
-from portal_inputs import ChangedFilesError, _git, changed_files  # noqa: E402
+from portal_inputs import ChangedFilesError, changed_files, git_lines  # noqa: E402
 
 # Rules for agents: tools/audit/check_agent_docs.py reads these and the rest of check.sh follows from them.
 AGENT_FILES = {"AGENTS.md", "CLAUDE.md"}
@@ -70,20 +70,43 @@ class Verdict:
     why: str
     jobs: tuple[str, ...] = ()          # light: the check.sh jobs to run, make static's first
 
+    @property
+    def line(self) -> str:
+        """The verdict with its reason: "docs: ...", "light: ..." or "full: ..."."""
+        return f"{self.kind}: {self.why}"
+
+
+class JobDecl(NamedTuple):
+    """A check.sh manifest job as the light rule reads it."""
+    patterns: tuple[str, ...]       # its declared inputs, quiet inputs, outputs and programs
+    on_light_path: bool             # in the static group or on the docs-only path
+
+
+class MapNode(TypedDict, total=False):
+    """A box of the pipeline map (the keys the light rule reads)."""
+    id: str
+    path: str
+    kind: str
+
+
+# A link of the pipeline map (the keys the light rule reads); "from" is a Python keyword, hence the functional form
+MapEdge = TypedDict("MapEdge", {"from": str, "to": str, "side": str}, total=False)
+
 
 @dataclass
 class Declarations:
-    """What the light rule reads, loaded once: check.sh's manifest jobs (name -> declared patterns, and whether the
-    job is in the static group or the docs-only path), the unit jobs' stamp declarations, the paths the deploy ships,
-    and the pipeline map's boxes and links."""
-    jobs: dict[str, tuple[tuple[str, ...], bool]]
+    """What the light rule reads, loaded once: check.sh's manifest jobs, the unit jobs' stamp declarations, the
+    paths the deploy ships, and the pipeline map's boxes and links."""
+    jobs: dict[str, JobDecl]
     static: tuple[str, ...]                 # make static's jobs: the static group less the panels-* jobs
     units: dict[str, tuple[str, ...]]
     live: tuple[str, ...]
-    nodes: list[dict]
-    edges: list[dict]
-    covers: Callable[[str, str], bool]          # manifest.covers(pattern, path): a step's declared path or glob
-    glob_match: Callable[[str, str], bool]      # the stamps' own glob rule (path, pattern)
+    nodes: list[MapNode]
+    edges: list[MapEdge]
+    # manifest.covers(pattern, path): a declared path or glob. The unit jobs' stamp declarations are matched by it
+    # too: on a plain path (plain()) it agrees with the stamps' own glob rule, which a test checks on every
+    # declared pattern
+    covers: Callable[[str, str], bool]
 
 
 def plain(path: str) -> str | None:
@@ -113,12 +136,12 @@ def load_declarations(root: Path = ROOT) -> Declarations:
     steps = pm.load()
     by_name = {s.name: s for s in steps}
     panels = next((s for s in steps if pm.runs_panels(s.cmd)), None)
-    jobs: dict[str, tuple[tuple[str, ...], bool]] = {}
+    jobs: dict[str, JobDecl] = {}
     for job, (decl,) in pm.declarations().items():
         step = by_name.get(job) or (panels if job.startswith(pm.PANEL_JOB_PREFIX) else None)
         if step is None:
             raise ValueError(f"check.sh job {job!r} has no step in {pm.MANIFEST.as_posix()}")
-        jobs[job] = (decl.patterns, step.group == "static" or step.docs_only)
+        jobs[job] = JobDecl(tuple(decl.patterns), step.group == "static" or step.docs_only)
     static = tuple(s.name for s in pm.select(steps, "check", group="static") if not pm.runs_panels(s.cmd))
     units: dict[str, tuple[str, ...]] = {}
     for name in (*(k for k in check_stamps.BY_KIND if k.startswith("unit-")), *check_stamps.EXTRA,
@@ -127,8 +150,7 @@ def load_declarations(root: Path = ROOT) -> Declarations:
     live = tuple(line.strip() for line in (root / LIVE_PATHS).read_text(encoding="utf-8").splitlines()
                  if line.strip() and not line.lstrip().startswith("#"))
     graph = json.loads((root / MAP).read_text(encoding="utf-8"))
-    return Declarations(jobs, static, units, live, graph["nodes"], graph["edges"], pm.covers,
-                        check_stamps.ps._glob_match)
+    return Declarations(jobs, static, units, live, graph["nodes"], graph["edges"], pm.covers)
 
 
 def map_display_only(base_text: str | None, head_text: str | None) -> str | None:
@@ -142,9 +164,12 @@ def map_display_only(base_text: str | None, head_text: str | None) -> str | None
         return f"a copy of the map is not JSON ({err})"
     if not isinstance(base, dict) or not isinstance(head, dict):
         return "a copy of the map is not a JSON object"
-    rest = [k for k in sorted(set(base) | set(head)) if k not in MAP_DISPLAY_KEYS and base.get(k) != head.get(k)]
+    changed = [k for k in sorted(set(base) | set(head)) if base.get(k) != head.get(k)]
+    rest = [k for k in changed if k not in MAP_DISPLAY_KEYS]
     if rest:
         return f"it changes {', '.join(repr(k) for k in rest)}, not only {', '.join(MAP_DISPLAY_KEYS)}"
+    if not changed:
+        return f"its keys are the base's, {', '.join(MAP_DISPLAY_KEYS)} included: only the file's text differs"
     return None
 
 
@@ -173,16 +198,16 @@ def light_problem(p: str, d: Declarations) -> tuple[str | None, tuple[str, ...]]
            and (p == n["path"] or p.startswith(n["path"].rstrip("/") + "/"))}
     if not ids:
         return f"is in no box of {MAP}, so whether a build writes it is unknown", ()
-    kinds = {n["id"]: n.get("kind") for n in d.nodes}
-    writers = sorted({e["from"] for e in d.edges if e.get("to") in ids and kinds.get(e.get("from")) == "generator"
+    generators = {n["id"] for n in d.nodes if n.get("kind") == "generator"}
+    writers = sorted({e["from"] for e in d.edges if e.get("to") in ids and e.get("from") in generators
                       and e.get("side") != "pointer"})
     if writers:
         return f"is written by {writers[0]} ({MAP}): a built file, which full-only tests compare", ()
-    readers = [j for j, (pats, _ok) in d.jobs.items() if any(d.covers(pat, p) for pat in pats)]
-    heavy = [j for j in readers if not d.jobs[j][1]]
+    readers = [j for j, job in d.jobs.items() if any(d.covers(pat, p) for pat in job.patterns)]
+    heavy = [j for j in readers if not d.jobs[j].on_light_path]
     if heavy:
         return f"is read by check.sh job {', '.join(heavy)}, outside the static group and the docs path", ()
-    units = [u for u, pats in d.units.items() if any(d.glob_match(p, pat) for pat in pats)]
+    units = [u for u, pats in d.units.items() if any(d.covers(pat, p) for pat in pats)]
     if units:
         more = f" and {len(units) - 1} more" if len(units) > 1 else ""
         return f"may be read by {units[0]}{more} (tools/audit/check_stamps.py), which only the full run runs", ()
@@ -195,7 +220,7 @@ def _base_copy(root: Path, ref: str | None, path: str) -> str | None:
     if ref is None:
         return None
     try:
-        return "\n".join(_git(root, "show", f"{ref}:{path}"))
+        return "\n".join(git_lines(root, "show", f"{ref}:{path}"))
     except ChangedFilesError:
         return None
 
@@ -247,19 +272,9 @@ def verdict(paths: list[str], root: Path = ROOT, compare: str | None = None,
                    tuple(dict.fromkeys((*d.static, *extra))))
 
 
-def kind(paths: list[str], compare: str | None = None) -> str:
-    return verdict(paths, compare=compare).kind
-
-
-def describe(paths: list[str], compare: str | None = None) -> str:
-    """The verdict for paths with its reason: "docs: ...", "light: ..." or "full: ..."."""
-    v = verdict(paths, compare=compare)
-    return f"{v.kind}: {v.why}"
-
-
 def merge_base(root: Path, base: str) -> str | None:
     try:
-        found = _git(root, "merge-base", base, "HEAD")
+        found = git_lines(root, "merge-base", base, "HEAD")
     except ChangedFilesError:
         return None
     return found[0] if len(found) == 1 else None
@@ -272,11 +287,6 @@ def checkout(root: Path, base: str) -> Verdict | str:
     except ChangedFilesError as e:
         return f"unknown: {e}"
     return verdict(paths, root, merge_base(root, base))
-
-
-def checkout_verdict(root: Path, base: str) -> str:
-    v = checkout(root, base)
-    return v if isinstance(v, str) else f"{v.kind}: {v.why}"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -299,7 +309,7 @@ def main(argv: list[str] | None = None) -> int:
         v = checkout(ROOT, args.base if args.base is not None else "origin/main")
     else:
         v = verdict(sys.stdin.read().splitlines(), compare=args.compare)
-    line = v if isinstance(v, str) else f"{v.kind}: {v.why}"
+    line = v if isinstance(v, str) else v.line
     if args.jobs:
         if isinstance(v, str) or v.kind != "light":
             print(f"changed_kind.py: not a light change: {line}", file=sys.stderr)
