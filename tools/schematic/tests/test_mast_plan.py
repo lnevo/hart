@@ -3,7 +3,6 @@ hand-made band, its error paths, and, as data checks over the committed plan und
 exactly what the deleted hand lists held."""
 from __future__ import annotations
 
-import os
 import sys
 import tempfile
 import unittest
@@ -15,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import mast_plan as mp  # noqa: E402
 import mast_rule as mr  # noqa: E402
+from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 from hartlib import track_names  # noqa: E402
 
@@ -602,12 +602,6 @@ class Plan(unittest.TestCase):
 # ---------------------------------------------------------------- the committed plan
 
 
-def skip_or_fail(exc: Exception) -> None:
-    if os.environ.get("SCHEMATIC_REQUIRED") == "1":
-        raise AssertionError(f"these data checks need the plugin (SCHEMATIC_REQUIRED=1): {exc}")
-    raise unittest.SkipTest(str(exc))
-
-
 class CommittedPlan(RepoReadOnly, unittest.TestCase):
     """The rules over the committed plan give exactly what the hand lists they replaced held (running_tracks_,
     signalled_spurs_ and split_tracks_main_upper.csv, deleted 2026-11-20), and on staging Scale is running track."""
@@ -622,7 +616,7 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         try:
             bands, joined, runs, _corners = bdm.solve()
         except bl.BuildError as exc:
-            skip_or_fail(exc)
+            skip_or_fail(exc, "these data checks")
         rr = railroad.Railroad(bdm.sources(), upto="inputs")
         cls.bands = bands
         cls.found = bdm.named_tracks(bands, joined, runs, rr.plan_overrides.data)

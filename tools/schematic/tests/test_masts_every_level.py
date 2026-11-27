@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import contextlib
 import csv
-import os
 import re
 import sys
 import unittest
@@ -38,6 +37,7 @@ import build_device_map as bdm  # noqa: E402
 import build_masts as bsm  # noqa: E402
 import mast_rule  # noqa: E402
 from hartlib import level_masts  # noqa: E402
+from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 # (mast without "Mast ", kind, heads, switch, facing, protects, dir) of the visible masts; heads 2 means Top and Bottom
@@ -222,13 +222,6 @@ class CommittedMastFiles(unittest.TestCase):
         self.assertFalse(names & DROPPED)
 
 
-def skip_or_fail(exc: Exception) -> None:
-    """Skip without the plugin, as the schematic checks do; with SCHEMATIC_REQUIRED=1 (CI) a missing plugin fails."""
-    if os.environ.get("SCHEMATIC_REQUIRED") == "1":
-        raise AssertionError(f"the rule pins need the plugin (SCHEMATIC_REQUIRED=1): {exc}")
-    raise unittest.SkipTest(str(exc))
-
-
 def main_upper_rule(no_pruning: bool = False) -> dict:
     """mast_plan.plan's main and upper masts over the committed plan, through build_device_map.plan_masts, the
     function build() calls. `no_pruning` turns reaches_signal off, to show what it leaves out."""
@@ -236,7 +229,7 @@ def main_upper_rule(no_pruning: bool = False) -> dict:
     try:
         bands, joined, runs, corners = bdm.solve()
     except bl.BuildError as exc:
-        skip_or_fail(exc)
+        skip_or_fail(exc, "the rule pins")
     rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
     found = bdm.named_tracks(bands, joined, runs, rr.plan_overrides.data)
     switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.SWITCHES.name)
@@ -257,7 +250,7 @@ class SignalsNameTracksAsTheDeviceMap(RepoReadOnly, unittest.TestCase):
         try:
             bdm.solve()
         except bl.BuildError as exc:
-            skip_or_fail(exc)
+            skip_or_fail(exc, "the rule pins")
         calls = []
         real = bdm.named_tracks
 
@@ -280,7 +273,7 @@ class RuleOutput(RepoReadOnly, unittest.TestCase):
         try:
             bsm.sdm.lc.plugin()
         except bsm.sdm.lc.BuildError as exc:
-            skip_or_fail(exc)
+            skip_or_fail(exc, "the rule pins")
         _want, cls.gen, cls.virtual = bsm.build()
         cls.planned = main_upper_rule()
         cls.mu = cls.planned["home"] + cls.planned["intermediates"]

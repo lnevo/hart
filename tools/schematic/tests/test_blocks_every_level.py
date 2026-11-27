@@ -19,7 +19,6 @@ panel (the approval fingerprints rule).
 from __future__ import annotations
 
 import hashlib
-import os
 import re
 import sys
 import unittest
@@ -31,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 import build_device_map as bdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import devices  # noqa: E402
+from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 DEVICES = bdm.OUT
@@ -375,13 +375,6 @@ SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id", "start
         for level in "123"}
 
 
-def skip_or_fail(exc: Exception) -> None:
-    """Skip without the plugin, as the schematic checks do; with SCHEMATIC_REQUIRED=1 (CI) a missing plugin fails."""
-    if os.environ.get("SCHEMATIC_REQUIRED") == "1":
-        raise AssertionError(f"the block pins need the plugin (SCHEMATIC_REQUIRED=1): {exc}")
-    raise unittest.SkipTest(str(exc))
-
-
 def committed() -> list[dict]:
     # devices.load also validates the master on load, which the plain csv read did not; the rows are the same
     return [dict(r) for r in devices.load(DEVICES)]
@@ -456,7 +449,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         try:
             band, _o, _c = sdm.staging_band()
         except sdm.lc.BuildError as exc:
-            skip_or_fail(exc)
+            skip_or_fail(exc, "the block pins")
         cls.band = band
         cls.names = sdm.load(band, with_masts=False)
 
@@ -473,7 +466,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         try:
             bands, joined, runs, corners = bdm.solve()
         except bl.BuildError as exc:
-            skip_or_fail(exc)
+            skip_or_fail(exc, "the block pins")
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
         _cp, rows, _parts = bdm.build(bands, joined, runs, bdm.MapInputs.of(rr), corners)
         mine = [(str(r["level"]), r["user_name"], r["trial_name"], r["notes"]) for r in rows
@@ -498,7 +491,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         try:
             bands, joined, runs, corners = bdm.solve()
         except bl.BuildError as exc:
-            skip_or_fail(exc)
+            skip_or_fail(exc, "the block pins")
         want = self.build_rows(bands, joined, runs, corners)
         self.assertEqual(want, sorted((r["level"], r["user_name"], r["trial_name"]) for r in committed()
                                       if r["layer"] == "block"))

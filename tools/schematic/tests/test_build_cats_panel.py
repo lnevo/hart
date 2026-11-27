@@ -145,6 +145,18 @@ class DeskSteps(unittest.TestCase):
             self.assertEqual(list(Path(tmp).iterdir()), [])
         self.assertEqual(cats.calls, [])        # the desk's panel was never asked for
 
+    def test_a_plugin_stop_placing_the_level_masts_is_a_named_error_and_writes_nothing(self):
+        cats = self.cats()
+        stop, patched = self.stopped_in_bindings(cats)
+        with tempfile.TemporaryDirectory() as tmp, patched as steps:
+            steps["plugin_modules"].return_value = (cats, SimpleNamespace())
+            steps["level_signals"].side_effect = stop
+            with self.assertRaisesRegex(b.CatsPanelError, "^error: switch 7 has no leg C$") as named:
+                b.generate(Path("plugin"), Path(tmp) / "ctc.xml", Path(tmp) / "bindings.json")
+            self.assertIs(named.exception.__cause__, stop)
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+            b.bindings.assert_not_called()      # the stand-in: the masts stop before the bindings are built
+
     def test_main_turns_a_bindings_stop_into_exit_1_with_its_message(self):
         cats = self.cats()
         _stop, patched = self.stopped_in_bindings(cats)

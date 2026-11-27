@@ -3,8 +3,8 @@
 Write the plan hands into jmri/layouts/hart/data/switches.csv: the hand (R or L, the diverging side seen from the
 points) of every main and upper level switch half, read from the AnyRail plan graph (inputs/main.json, node `hand`
 +1 = R, -1 = L) and renamed to the owner's switch numbers by the relabel edit in plan_overrides.json's main_upper
-section. Switch 225 is the double crossover: it has no hand. These are plan hands (owner decision 2026-11-14), not
-the schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped on the sheet. Provisional until the
+section. Switch 225 is the double crossover: it has no hand. These are plan hands (the owner's decision), not the
+schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped on the sheet. Provisional until the
 Layout Editor import.
 
 switches.csv is hand-kept, one row per OS block or switch half (switches.columns.csv). This script changes only the
@@ -22,6 +22,7 @@ import json
 import sys
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and hartlib paths
@@ -39,11 +40,24 @@ class HandsError(Exception):
     row. main() prints it and exits 1."""
 
 
+def graph_nodes(path: Path) -> dict[str, dict[str, Any]]:
+    """{node id: node} of the plan graph at `path` (its `nodes` object). HandsError, naming the file, when it cannot
+    be read, is not JSON, or has no `nodes` object of node objects."""
+    try:
+        nodes = json.loads(path.read_text(encoding="utf-8")).get("nodes")
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, AttributeError) as exc:
+        raise HandsError(f"build_hands.py: {path.name} does not read as the plan graph: {exc}") from exc
+    if not isinstance(nodes, dict) or not all(isinstance(n, dict) for n in nodes.values()):
+        raise HandsError(f"build_hands.py: {path.name} has no `nodes` object of node objects")
+    return nodes
+
+
 def plan_hands() -> dict[str, str]:
-    """{label: "L" or "R"} of the plan graph, in the owner's labels. HandsError on anything it cannot vouch for: an
-    edit kind it does not read (a `switch`, `crossover` or `remove` edit changes which switches exist), a relabel key
-    with no plan node other than the one double crossover, or a graph hand that is not +1 or -1."""
-    nodes = json.loads(GRAPH.read_text())["nodes"]
+    """{label: "L" or "R"} of the plan graph, in the owner's labels. HandsError on anything it cannot vouch for: a
+    graph that does not read (graph_nodes), an edit kind it does not read (a `switch`, `crossover` or `remove` edit
+    changes which switches exist), a relabel key with no plan node other than the one double crossover, or a graph
+    hand that is not +1 or -1."""
+    nodes = graph_nodes(GRAPH)
     # the hands are a layer of their own: this reads the inputs only (railroad.LAYERS)
     rr = railroad.Railroad(railroad.Sources.under().but(plan_overrides=OVERRIDES), upto="inputs")
     try:
@@ -116,13 +130,16 @@ def build() -> str:
 
 
 def main(argv: list[str]) -> int:
+    """Exit status: 0 current or written, 1 stale under --check or a HandsError (its message on stderr), 2 an argument
+    other than --check (the usage on stderr)."""
     if set(argv) - {"--check"}:
-        print(__doc__)
+        print(__doc__, file=sys.stderr)
         return 2
     try:
         text = build()
     except HandsError as exc:
-        sys.exit(str(exc))
+        print(exc, file=sys.stderr)
+        return 1
     if "--check" in argv:
         if OUT.read_text(encoding="utf-8") != text:
             print(f"{OUT.relative_to(pd.REPO)}: its plan hands are out of date: run "

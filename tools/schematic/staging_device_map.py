@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """Staging's facts in the device map's form: the source the Layout Editor build, the signals and the CATS desks read.
 
-The source since the device-map switch-over, when the frozen hand-drawn files (staging_le/) and the
-conversion from them retired. The turnout and feedback rows of level 1 of the device master are kept by hand but for their wiring cells,
-which build_device_map.py writes from wiring.csv (stations.csv's desk areas are staging's control points, build_staging_sets.py); the block and occupancy
-rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
-row's field facts over, writes its detector's wiring from wiring.csv (level 1 rows; step 6) and owns which
-blocks there are and what each holds; it writes the mast and head rows too (device_map_masts.py, from those
-block rows), and build_masts.py writes masts.csv from them. Edit these files, not a panel. This module reads
-them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
+The turnout and feedback rows of level 1 of the device master are kept by hand but for their wiring cells, which
+build_device_map.py writes from wiring.csv (stations.csv's desk areas are staging's control points,
+build_staging_sets.py). The block and occupancy rows are the one block builder's (build_device_map.py, block_layer),
+which carries each row's field facts over, writes its detector's wiring from wiring.csv (level 1 rows) and owns which
+blocks there are and what each holds; it writes the mast and head rows too (device_map_masts.py, from those block
+rows), and build_masts.py writes masts.csv from them. Edit these files, not a panel. This module reads them (load,
+load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
 (`make panels`, tools/check.sh) holds them, and every device row, to tables.xml and the schematic.
 
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
@@ -73,8 +72,9 @@ from __future__ import annotations
 
 import re
 import sys
-from collections import defaultdict
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
+from typing import Any, TypeVar
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
@@ -82,6 +82,9 @@ import le_names as ln  # noqa: E402  runs and crossovers
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
 from hartlib import device_ids, devices, drawing_keys, layer_files, level_masts, paths, railroad, tables, track_names  # noqa: E402
+from mast_plan import Band, Bands, Leg  # noqa: E402  the plugin's solved band shapes
+from staging_records import (  # noqa: E402,F401  the records; re-exported: callers read them from this module
+    Beyond, Idents, Joined, MastFact, MastKind, Ref, Row, SignalMast, StagingMast, StagingNames, TrackRuns)
 
 LEVEL = 1
 DEVICE_MAP = devices.MASTER     # the master: its level 1 rows are staging's device map
@@ -96,11 +99,15 @@ LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 TRACK_RE = re.compile(r"Track (\S+?(?: #\d+)?)(?: (\d+)/(\d+))?")       # a track by its piece (piece_refs), k-th of n blocks
 
 
+T = TypeVar("T")
+
+
 class StagingMapError(RuntimeError):
-    pass
+    """Staging's device-map rows, masts.csv's staging rows or the staging drawing break a rule this module reads them
+    by; the message names the file and row, or the switch or track."""
 
 
-def overrides() -> dict:
+def overrides() -> dict[str, Any]:
     """Staging's section of plan_overrides.json (hartlib.layer_files; LayerFileError if it is missing)."""
     return layer_files.read("plan_overrides", SHEET, pd.DATA)
 
@@ -108,17 +115,17 @@ def overrides() -> dict:
 # ---------------------------------------------------------------- placeholders: the drawing's keys
 
 
-def crossover_halves(band) -> dict:
+def crossover_halves(band: Band) -> dict[str, str]:
     """{node: other half} for each switch that is half of a single crossover (two switches of one label joined C to C,
     build_layout_le.crossover_strands)."""
-    out = {}
+    out: dict[str, str] = {}
     for sid in ln.crossover_strands(band):
         u, v = band["strands"][sid]["src"][0], band["strands"][sid]["dst"][0]
         out[u], out[v] = v, u
     return out
 
 
-def end_key(band, end, beyond=None) -> str:
+def end_key(band: Band, end: Leg, beyond: Beyond | None = None) -> str:
     """A run's end (node, port) by what survives a new export: a switch's label and leg ("17C", "121AB", a double
     crossover's "225D"), "helix" for a helix end, the far side's key for a connector (`beyond`: a function of the end,
     band_refs), "end" for any other track end (a bumper). StagingMapError on a connector with no `beyond`."""
@@ -134,12 +141,12 @@ def end_key(band, end, beyond=None) -> str:
     return "end"
 
 
-def band_refs(bands, joined: dict, bi: int) -> dict[str, tuple[str, bool]]:
+def band_refs(bands: Bands, joined: Joined, bi: int) -> dict[str, Ref]:
     """piece_refs of band `bi` of `bands` (the solved schematic), a run that ends at a connector keyed by the switch
     and leg where the run beyond it, on the band `joined` (the plugin's partners: {(band, node): (band, node)}) gives,
     ends: one track cut by a connector has one key on both bands. StagingMapError on a connector `joined` does not
     pair, or one whose run beyond ends at another connector."""
-    def beyond(end):
+    def beyond(end: Leg) -> str:
         if (bi, end[0]) not in joined:
             raise StagingMapError(f"{bands[bi][0]}: connector {end[0]} is joined to no other band")
         bj, m = joined[(bi, end[0])]
@@ -154,8 +161,8 @@ def band_refs(bands, joined: dict, bi: int) -> dict[str, tuple[str, bool]]:
     return piece_refs(bands[bi][1], beyond)
 
 
-def strand_names(bands, joined: dict, bi: int, section: dict, owner: dict | None = None,
-                 data: Path | None = None) -> dict[str, str]:
+def strand_names(bands: Bands, joined: Joined, bi: int, section: Mapping[str, Any],
+                 owner: Mapping[tuple[str, str], str] | None = None, data: Path | None = None) -> dict[str, str]:
     """{strand id: its track's name, without "Track "} of every strand of band `bi` the name store names, looked up
     by the strand's ID part (band_refs) in hartlib.track_names (piece_names over `section`, the hand plan_overrides
     section of the band's drawing; `owner`, owner_names of `data`, default publish_draft.DATA), never read off the
@@ -163,7 +170,8 @@ def strand_names(bands, joined: dict, bi: int, section: dict, owner: dict | None
     return _names_by_ref(band_refs(bands, joined, bi), section, owner, data, bands[bi][0])
 
 
-def staging_names(band, data: Path, section: dict | None = None, owner: dict | None = None) -> dict[str, str]:
+def staging_names(band: Band, data: Path, section: Mapping[str, Any] | None = None,
+                  owner: Mapping[tuple[str, str], str] | None = None) -> dict[str, str]:
     """strand_names of the staging band alone (`band`, no connector: piece_refs), from the schematic folder `data` the
     band was solved from: staging's hand section there (`section`, default) and the owner rows beside it (`owner`,
     default)."""
@@ -175,7 +183,10 @@ def staging_names(band, data: Path, section: dict | None = None, owner: dict | N
     return _names_by_ref(piece_refs(band), section, owner, data, "staging")
 
 
-def _names_by_ref(refs: dict, section: dict, owner, data, where: str) -> dict[str, str]:
+def _names_by_ref(refs: Mapping[str, Ref], section: Mapping[str, Any], owner: Mapping[tuple[str, str], str] | None,
+                  data: Path | None, where: str) -> dict[str, str]:
+    """{strand id: its track's name} of each strand of `refs` whose piece the name store names
+    (track_names.piece_names); StagingMapError naming `where` when the names do not read."""
     try:
         got = track_names.piece_names(section, {piece for piece, _rev in refs.values()}, owner,
                                       pd.DATA if data is None else data)
@@ -184,12 +195,13 @@ def _names_by_ref(refs: dict, section: dict, owner, data, where: str) -> dict[st
     return {sid: got[piece] for sid, (piece, _rev) in refs.items() if piece in got}
 
 
-def piece_refs(band, beyond=None) -> dict[str, tuple[str, bool]]:
+def piece_refs(band: Band, beyond: Beyond | None = None) -> dict[str, Ref]:
     """{strand id: (its piece reference, whether the strand runs against it)} of every strand of `band` outside a
     staging-style single crossover (two switches of one label joined C to C; their insides carry no blocks):
     "<end>-<end>" of its run (end_key, the lower first; `beyond` keys a connector end, band_refs) and " #<i>" when the
     run has several pieces. Stops when two runs share ends, which could not be told apart."""
-    out, seen = {}, {}
+    out: dict[str, Ref] = {}
+    seen: dict[str, str] = {}
     for start, chain, stop in ln.runs(band, ln.crossover_strands(band)):
         a, b = end_key(band, start, beyond), end_key(band, stop, beyond)
         flip = track_names.end_order(b) < track_names.end_order(a)
@@ -203,7 +215,7 @@ def piece_refs(band, beyond=None) -> dict[str, tuple[str, bool]]:
     return out
 
 
-def placeholders(band) -> tuple[dict, dict, dict]:
+def placeholders(band: Band) -> tuple[dict[str, str], dict[str, str], dict[str, Ref]]:
     """({switch node: turnout placeholder}, {switch node: OS placeholder}, {strand id: (piece reference, reversed)})
     of the staging band (piece_refs). Inner crossover strands carry none (the plugin draws them inside the
     crossover). A crossover half is told apart by where the run from its leg A goes."""
@@ -213,11 +225,11 @@ def placeholders(band) -> tuple[dict, dict, dict]:
     return turnouts, os_, refs
 
 
-def os_keys(band) -> dict[str, tuple[str, str]]:
+def os_keys(band: Band) -> dict[str, tuple[str, str]]:
     """{switch node: (its OS placeholder, its OS block's device ID)} of the staging band: "OS Switch <n>" and
     os:<n> of a plain switch; "OS <n> A-<end>" and os:<n>:A-<end> of a crossover half, by where the run from its leg
     A goes (hartlib.device_ids: the plan has no corner letter for a staging half)."""
-    out = {}
+    out: dict[str, tuple[str, str]] = {}
     for n, (label, half) in _switch_halves(band).items():
         out[n] = ((f"OS {label} A-{half}", device_ids.os_id(label, f"A-{half}")) if half else
                   (f"OS Switch {label}", device_ids.os_id(label)))
@@ -226,13 +238,13 @@ def os_keys(band) -> dict[str, tuple[str, str]]:
     return out
 
 
-def _switch_halves(band) -> dict[str, tuple[str, str]]:
+def _switch_halves(band: Band) -> dict[str, tuple[str, str]]:
     """{switch node: (its label, the end its leg A runs to when it is a crossover half, else "")}."""
     halves = crossover_halves(band)
-    leg_a = {}
+    leg_a: dict[tuple[str, str], str] = {}
     for start, _chain, stop in ln.runs(band, ln.crossover_strands(band)):
         leg_a[tuple(start)], leg_a[tuple(stop)] = end_key(band, stop), end_key(band, start)
-    out = {}
+    out: dict[str, tuple[str, str]] = {}
     for n, d in sorted(band["nodes"].items()):
         if d["kind"] == "dx":
             raise StagingMapError(f"staging switch {d.get('label')}: a double crossover, which staging has none of")
@@ -248,10 +260,11 @@ def _switch_halves(band) -> dict[str, tuple[str, str]]:
 
 
 def track_placeholder(piece: str, k: int, count: int) -> str:
+    """The trial key of the k-th of a piece's `count` blocks ("Track 5C-7B", or "Track 5C-7B 1/2" of two)."""
     return f"Track {piece}" if count == 1 else f"Track {piece} {k}/{count}"
 
 
-def strand_placeholders(ref: tuple[str, bool], count: int = 1) -> list[str]:
+def strand_placeholders(ref: Ref, count: int = 1) -> list[str]:
     """The trial keys of a strand's `count` blocks, from the strand's first end as drawn: `ref` is its (piece, whether
     it runs against the piece) from piece_refs or band_refs, and the k-th of n blocks is counted from the piece's
     first end (track_placeholder). The one rule the writer (build_device_map.piece_trials) and every reader key a
@@ -263,7 +276,7 @@ def strand_placeholders(ref: tuple[str, bool], count: int = 1) -> list[str]:
     return keys[::-1] if against else keys
 
 
-def strand_ids(ref: tuple[str, bool], count: int = 1) -> list[str]:
+def strand_ids(ref: Ref, count: int = 1) -> list[str]:
     """The device-ID parts (hartlib.device_ids.strand_key) of a strand's `count` blocks, in the order
     strand_placeholders gives their keys: the same piece, k and n."""
     if count < 1:
@@ -283,10 +296,11 @@ def piece_of(key: str) -> tuple[str, int, int]:
 
 
 def split_names(cell: str) -> list[str]:
+    """The names of a comma-separated cell, each stripped, empty ones left out."""
     return [t.strip() for t in (cell or "").split(",") if t.strip()]
 
 
-def staging_band():
+def staging_band() -> tuple[Band, dict[str, Any], Any]:
     """The staging band as build_layout_le.py draws it (the plugin's drawn_bands: the preferences' le_shift and
     le_longer_straights): (band, its options, the plugin's core)."""
     _sheet, le_mod, core = lc.plugin()
@@ -302,7 +316,7 @@ def staging_band():
     return band, opts, core
 
 
-def mast_kind(r: dict) -> str:
+def mast_kind(r: Mapping[str, Any]) -> MastKind:
     """The kind of slot a masts.csv row stands in: a switch number means a turnout leg, no protected block an
     end bumper, else an anchor."""
     if r["switch"]:
@@ -310,17 +324,18 @@ def mast_kind(r: dict) -> str:
     return "end bumper" if not r["protects"] else "anchor"
 
 
-def occupancy_blocks(r: dict) -> list[str]:
+def occupancy_blocks(r: Mapping[str, str]) -> list[str]:
     """The blocks an occupancy row's detector serves, its `blocks` column ("Track S-1;Track S-1 West")."""
     return railroad.device_list(r["blocks"])
 
 
-def check_helix(band, names: dict, stored: dict, helix: dict | None = None) -> list[str]:
+def check_helix(band: Band, names: StagingNames, stored: Mapping[str, str],
+                helix: Mapping[str, Mapping[str, str]] | None = None) -> list[str]:
     """Each helix track of plan_overrides.json is drawn on the staging band from its staging_switch, and its staging
     piece is that file's block (load()'s names). A strand is the helix track the name store names it by its ID
-    (`stored`: staging_names of the band, from the caller's data folder)."""
+    (`stored`: staging_names of the band, from the caller's data folder). The problems, one per track."""
     helix = mr.read_helix_tracks() if helix is None else helix
-    bad = []
+    bad: list[str] = []
     for plan, h in sorted(helix.items()):
         sids = [sid for sid in band["strands"] if stored.get(sid) == plan]
         if len(sids) != 1:
@@ -339,7 +354,7 @@ def check_helix(band, names: dict, stored: dict, helix: dict | None = None) -> l
 # ---------------------------------------------------------------- reading the files
 
 
-def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
+def read_device_rows(path: Path = DEVICE_MAP) -> list[Row]:
     """Staging's device-map rows: the level 1 rows of the master at `path` (hartlib.devices.device_map_lines), each a
     dict of the device-map columns and `role`. StagingMapError when the master cannot be read or has none."""
     try:
@@ -365,7 +380,9 @@ def switch_areas(path: Path = STATIONS, level: int = LEVEL) -> dict[str, str]:
     return {s: a.name for a in desk_areas(path) if a.level == level for s in a.switches}
 
 
-def read_rows(path: Path, columns) -> list[dict]:
+def read_rows(path: Path, columns: Sequence[str]) -> list[Row]:
+    """The rows of the CSV file at `path`, whose columns must be `columns` in that order. StagingMapError when it
+    cannot be read, has no rows or other columns."""
     try:
         rows = lc.read_csv(path)
     except OSError as exc:
@@ -377,7 +394,7 @@ def read_rows(path: Path, columns) -> list[dict]:
     return rows
 
 
-def switch_facts(read):
+def switch_facts(read: Callable[[], T]) -> T:
     """`read()` (a le_common reader of the staging switches, hartlib.railroad: switches.csv,
     ADR-021, read once per run), with its BuildError as a StagingMapError naming the file and row."""
     try:
@@ -386,18 +403,18 @@ def switch_facts(read):
         raise StagingMapError(str(exc)) from exc
 
 
-def closed_legs() -> dict:
+def closed_legs() -> dict[str, str]:
     """{OS block: closed leg block} of every staging switch (switches.csv, ADR-021)."""
     return {leg.os_block: leg.closed for sw in switch_facts(lc.staging_switches).values() for leg in sw.legs}
 
 
-def run_blocks(band, names: dict) -> list[tuple]:
+def run_blocks(band: Band, names: StagingNames) -> list[tuple[Leg, list[str], Leg]]:
     """[(start (node, port), [block, ...], end (node, port))]: each run of the band (le_names.runs: tracks joined
     through turnbacks, crossover insides left out) with its blocks from `names` in order from its start; a block
     that runs on through a turnback (Brick-Plane) counted once."""
-    out = []
+    out: list[tuple[Leg, list[str], Leg]] = []
     for start, chain, end in ln.runs(band, ln.crossover_strands(band)):
-        seq = []
+        seq: list[str] = []
         for sid, rev in chain:
             bl = names["blocks"][sid]
             for b in (bl[::-1] if rev else bl):
@@ -407,11 +424,11 @@ def run_blocks(band, names: dict) -> list[tuple]:
     return out
 
 
-def leg_first_blocks(band, names: dict) -> dict:
+def leg_first_blocks(band: Band, names: StagingNames) -> dict[Leg, str | None]:
     """{(switch node, leg): first block past the switch's own OS block along that leg}: along the run of tracks from
     that leg (through turnbacks), else the OS block of the switch at the run's far end; None at a bumper."""
     nodes = band["nodes"]
-    out = {}
+    out: dict[Leg, str | None] = {}
     for start, seq, end in run_blocks(band, names):
         for here, there, blocks_ in ((start, end, seq), (end, start, seq[::-1])):
             if nodes[here[0]]["kind"] != "switch":
@@ -424,12 +441,13 @@ def leg_first_blocks(band, names: dict) -> dict:
     return out
 
 
-def normal_legs(band, names: dict) -> dict:
+def normal_legs(band: Band, names: StagingNames) -> dict[str, str]:
     """{plain switch node: "B" or "C"}: the drawn leg whose first block is the switch's closed leg in switches.csv."""
     closed = closed_legs()
     first = leg_first_blocks(band, names)
     halves = crossover_halves(band)
-    out, bad = {}, []
+    out: dict[str, str] = {}
+    bad: list[str] = []
     for n, d in sorted(band["nodes"].items()):
         if d["kind"] != "switch" or n in halves:
             continue
@@ -448,7 +466,7 @@ def normal_legs(band, names: dict) -> dict:
     return out
 
 
-def part_lines(device_map: Path = DEVICE_MAP, rows=None) -> list[tuple[int, dict]]:
+def part_lines(device_map: Path = DEVICE_MAP, rows: Sequence[Mapping[str, str]] | None = None) -> list[tuple[int, Row]]:
     """(line, row) of staging's parts (role part: a piece of track inside another block, part_of naming it), which
     the device maps leave out (hartlib.devices.OUT_OF_MAPS): of the master at `device_map`, or of `rows` (master rows
     a builder is writing, numbered from 2 as a file's lines)."""
@@ -460,20 +478,28 @@ def part_lines(device_map: Path = DEVICE_MAP, rows=None) -> list[tuple[int, dict
         raise StagingMapError(str(exc)) from exc
 
 
-def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations_path: Path = STATIONS,
-         turnout_idents: bool = True, with_masts: bool = True,
-         interlockings_path: Path = INTERLOCKINGS, master_rows=None, with_normal: bool = True) -> dict:
-    """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
-    switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
-    (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
-    the device master keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
-    use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed. A
-    part (part_lines) is a JMRI block of its own on every level: its pieces are its own block, and
-    staging_parts gives {part: the block it is part of} (os_layer reads the blocks as the masts do). `master_rows`: the
-    master's rows as a builder writes them (build_device_map.py's staging masts, from the block rows it makes in the
-    same run), read in place of the file at `device_map` (which then only names it in messages). with_normal False
-    leaves out `normal` (switches.csv's closed legs, by block name: the masts do not read it, and in a build the
-    hands step writes those names only after the device map)."""
+class _Trials:
+    """load()'s reader of the drawing keys (hartlib.drawing_keys.read): the name a trial key's row is bound by, the
+    keys read so far (`used`) and the problems found (`bad`, the caller's list)."""
+
+    def __init__(self, keys: drawing_keys.Keys, bad: list[str]) -> None:
+        self.keys, self.bad = keys, bad
+        self.used: set[str] = set()
+
+    def name(self, ph: str, layer: str) -> str:
+        """The name the panels bind the `layer` row of trial key `ph` by: a turnout's jmri_name, any other row's user
+        name. "" with a problem in `bad` when no `layer` row has that key."""
+        row = self.keys.row(ph)
+        if row is None or row["layer"] != layer:
+            self.bad.append(f"no {layer} row has trial_name {ph}")
+            return ""
+        self.used.add(ph)
+        return row["jmri_name"] if layer == "turnout" else row["user_name"]
+
+
+def _staging_lines(device_map: Path, master_rows: Sequence[Mapping[str, str]] | None) -> list[tuple[int, Row]]:
+    """(line, row) of the master's level 1 rows that a device map holds: of the file at `device_map`, or of
+    `master_rows` (rows a builder is writing, numbered from 2 as a file's lines). StagingMapError when there is none."""
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
         if master_rows is None:
@@ -481,74 +507,116 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
         else:                               # as master_lines reads a file: a device map's rows, placed ones
             lines = [(n, dict(r)) for n, r in enumerate(master_rows, 2) if r["level"] == str(LEVEL)
                      and r["role"] not in devices.OUT_OF_MAPS]
+    except cdm.DeviceMasterError as exc:
+        raise StagingMapError(str(exc)) from exc
+    if not lines:
+        raise StagingMapError(f"{paths.rel(device_map)}: no staging rows")
+    return lines
+
+
+def _row_problems(lines: list[tuple[int, Row]], device_map: Path, stations_path: Path,
+                  interlockings_path: Path) -> tuple[list[str], set[str]]:
+    """(the problems of `lines` under the rules every level's rows keep (check_device_master.row_problems), staging's
+    control point names). StagingMapError when interlockings.csv or stations.csv does not read."""
+    import check_device_master as cdm
+    try:
         interlockings = railroad.read_interlockings(interlockings_path)
         cps = cdm.control_points(interlockings, stations_path)
         places = cdm.known_places(interlockings, stations_path)
     except (cdm.DeviceMasterError, railroad.FactsError) as exc:
         raise StagingMapError(str(exc)) from exc
-    if not lines:
-        raise StagingMapError(f"{paths.rel(device_map)}: no staging rows")
     # staging's rows cross no level but a helix block's, whose cp lists the places it joins
-    bad = cdm.row_problems(lines, cps, paths.rel(device_map), ends_cps={}, places=places)
+    return cdm.row_problems(lines, cps, paths.rel(device_map), ends_cps={}, places=places), cps.get(str(LEVEL), set())
+
+
+def track_runs(keys: drawing_keys.Keys) -> TrackRuns:
+    """{piece: {k: (n, trial key)}} of the block rows whose trial key is a track key (piece_of)."""
+    runs: TrackRuns = {}
+    for ph, device_id in keys.ids.items():
+        if keys.rows[device_id]["layer"] == "block" and TRACK_RE.fullmatch(ph):
+            piece, k, count = piece_of(ph)
+            runs.setdefault(piece, {})[k] = (count, ph)
+    return runs
+
+
+def strand_blocks(strands: Mapping[str, Ref], runs: TrackRuns, trials: _Trials) -> dict[str, list[str]]:
+    """{strand id: its blocks from the strand's first end, as drawn} of each strand of `strands` (placeholders) whose
+    piece's block rows (`runs`, track_runs) are 1/n to n/n; a problem in trials.bad for a strand with none, or with a
+    broken k/n run."""
+    out: dict[str, list[str]] = {}
+    for sid, (piece, against) in sorted(strands.items()):
+        got = runs.get(piece, {})
+        if not got:
+            trials.bad.append(f"track {piece} ({sid}) is on no block row: give it a block, or a part row naming the "
+                              "block it is part of (build_device_map.py writes them)")
+            continue
+        counts = {c for c, _ph in got.values()}
+        if len(counts) != 1 or sorted(got) != list(range(1, next(iter(counts)) + 1)):
+            trials.bad.append(f"track {piece}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n "
+                              "to n/n")
+            continue
+        blocks = [trials.name(got[k][1], "block") for k in sorted(got)]     # from the run's first end
+        out[sid] = blocks[::-1] if against else blocks                       # from the strand's first end, as drawn
+    return out
+
+
+def le_idents(turnout_ph: Mapping[str, str], bad: list[str]) -> dict[str, str]:
+    """{switch node: its Layout Editor ident} from switches.csv's le_ident (le_common.switch_idents), by the turnout
+    placeholders `turnout_ph`; a problem in `bad` for a switch with none."""
+    ident_of = switch_facts(lc.switch_idents)
+    idents: dict[str, str] = {}
+    for n, ph in turnout_ph.items():
+        ident = ident_of.get(ph.removeprefix("Switch "), "")
+        if not ident:
+            bad.append(f"{ph} has no le_ident in switches.csv")
+        idents[n] = ident
+    return idents
+
+
+def load(band: Band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations_path: Path = STATIONS,
+         turnout_idents: bool = True, with_masts: bool = True,
+         interlockings_path: Path = INTERLOCKINGS, master_rows: Sequence[Mapping[str, str]] | None = None,
+         with_normal: bool = True) -> StagingNames:
+    """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
+    switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
+    (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
+    the device master keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing
+    does not use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed.
+    A part (part_lines) is a JMRI block of its own on every level: its pieces are its own block, and
+    staging_parts gives {part: the block it is part of} (os_layer reads the blocks as the masts do). `master_rows`: the
+    master's rows as a builder writes them (build_device_map.py's staging masts, from the block rows it makes in the
+    same run), read in place of the file at `device_map` (which then only names it in messages). with_normal False
+    leaves out `normal` (switches.csv's closed legs, by block name: the masts do not read it, and in a build the
+    hands step writes those names only after the device map)."""
+    lines = _staging_lines(device_map, master_rows)
+    bad, cp_names = _row_problems(lines, device_map, stations_path, interlockings_path)
     if bad:
         raise StagingMapError("; ".join(bad))
     rows = [r for _n, r in lines]
-    cp_names = cps.get(str(LEVEL), set())
     turnout_ph, os_ph, strands = placeholders(band)
     try:        # the one reader of every level's drawing keys, keyed by device ID
         keys = drawing_keys.read((str(LEVEL),), None if master_rows is not None else device_map, rows=master_rows)
     except (drawing_keys.DrawingKeyError, railroad.FactsError) as exc:
         raise StagingMapError(f"{paths.rel(device_map)}: {exc}") from exc
-    parts = keys.parts()            # a part's pieces are its own JMRI block
-    used = set()
-
-    def get(ph, layer):
-        row = keys.row(ph)
-        if row is None or row["layer"] != layer:
-            bad.append(f"no {layer} row has trial_name {ph}")
-            return None
-        used.add(ph)
-        return row["jmri_name"] if layer == "turnout" else row["user_name"]
-
-    names = dict(turnouts={n: get(ph, "turnout") for n, ph in turnout_ph.items()},
-                 os={n: get(ph, "block") for n, ph in os_ph.items()}, blocks={})
-    runs = defaultdict(dict)
-    for ph, device_id in keys.ids.items():
-        m = TRACK_RE.fullmatch(ph)
-        if keys.rows[device_id]["layer"] == "block" and m:
-            k, count = (int(m.group(2)), int(m.group(3))) if m.group(2) else (1, 1)
-            runs[m.group(1)][k] = (count, ph)
-    for sid, (piece, against) in sorted(strands.items()):
-        got = runs.pop(piece, {})
-        if not got:
-            bad.append(f"track {piece} ({sid}) is on no block row: give it a block, or a part row naming the block "
-                       "it is part of (build_device_map.py writes them)")
-            continue
-        counts = {c for c, _ph in got.values()}
-        if len(counts) != 1 or sorted(got) != list(range(1, next(iter(counts)) + 1)):
-            bad.append(f"track {piece}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
-            continue
-        blocks = [get(got[k][1], "block") for k in sorted(got)]       # from the run's first end
-        names["blocks"][sid] = blocks[::-1] if against else blocks    # from the strand's first end, as drawn
-    for sid, got in runs.items():
-        bad.append(f"trial names for track {sid}, which the staging drawing does not have: "
+    trials = _Trials(keys, bad)
+    turnouts = {n: trials.name(ph, "turnout") for n, ph in turnout_ph.items()}
+    os_blocks = {n: trials.name(ph, "block") for n, ph in os_ph.items()}
+    runs = track_runs(keys)
+    names = StagingNames(turnouts=turnouts, os=os_blocks, blocks=strand_blocks(strands, runs, trials))
+    drawn = {piece for piece, _against in strands.values()}
+    left = {piece: got for piece, got in runs.items() if piece not in drawn}
+    for piece, got in left.items():
+        bad.append(f"trial names for track {piece}, which the staging drawing does not have: "
                    f"{sorted(ph for _c, ph in got.values())}")
-    unused = sorted(set(keys.ids) - used - {ph for got in runs.values() for _c, ph in got.values()})
+    unused = sorted(set(keys.ids) - trials.used - {ph for got in left.values() for _c, ph in got.values()})
     if unused:
         bad.append(f"trial names the staging drawing does not have: {unused}")
     if bad:
         raise StagingMapError(f"{paths.rel(device_map)}: " + "; ".join(bad))
     if with_normal:             # switches.csv names a leg by its first OS block
-        names["normal"] = normal_legs(band, os_layer(names, parts))
+        names["normal"] = normal_legs(band, os_layer(names, keys.parts()))   # a part's pieces are its own JMRI block
     if turnout_idents:
-        ident_of = switch_facts(lc.switch_idents)
-        idents = {}
-        for n, ph in turnout_ph.items():
-            ident = ident_of.get(ph.removeprefix("Switch "))
-            if not ident:
-                bad.append(f"{ph} has no le_ident in switches.csv")
-            idents[n] = ident
-        names["idents"] = dict(turnouts=idents, boundaries=[], ends={}, segments={})
+        names["idents"] = Idents(turnouts=le_idents(turnout_ph, bad), boundaries=[], ends={}, segments={})
     if with_masts:              # masts.csv's staging rows, for the readers of the drawn masts
         names["masts"] = load_masts(masts_path, cp_names, rows, device_map)
     if bad:
@@ -556,13 +624,13 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
     return names
 
 
-def staging_parts(device_map: Path = DEVICE_MAP, rows=None) -> dict[str, str]:
+def staging_parts(device_map: Path = DEVICE_MAP, rows: Sequence[Mapping[str, str]] | None = None) -> dict[str, str]:
     """{part: the block it is part of} of staging's parts (part_lines, of the file or of `rows`): each a JMRI block of
     its own that the masts read inside its block (os_layer)."""
     return {r["user_name"]: r["part_of"] for _n, r in part_lines(device_map, rows)}
 
 
-def os_layer(names: dict, parts: dict) -> dict:
+def os_layer(names: StagingNames, parts: Mapping[str, str]) -> StagingNames:
     """A copy of load()'s names with each part's pieces given to the block it is part of (`parts`, staging_parts),
     as the one mast process reads a level's block layer on every level (main and upper: block_layer.Layer.bands): a
     mast's place and the blocks it protects follow the OS blocks, a part being inside its OS block (mast_plan,
@@ -570,10 +638,12 @@ def os_layer(names: dict, parts: dict) -> dict:
     bad = sorted(p for p, of in parts.items() if of in parts)
     if bad:
         raise StagingMapError(f"parts {bad} are part of another part")
-    return dict(names, blocks={sid: [parts.get(b, b) for b in v] for sid, v in names["blocks"].items()})
+    out = names.copy()
+    out["blocks"] = {sid: [parts.get(b, b) for b in v] for sid, v in names["blocks"].items()}
+    return out
 
 
-def staging_masts(path: Path = MASTS) -> list[tuple[int, dict]]:
+def staging_masts(path: Path = MASTS) -> list[tuple[int, dict[str, Any]]]:
     """(line, row) of masts.csv's staging rows (hartlib.level_masts.read checks the whole file); StagingMapError on a
     file that breaks its rules or has no staging row."""
     try:
@@ -585,7 +655,8 @@ def staging_masts(path: Path = MASTS) -> list[tuple[int, dict]]:
     return [(r["line"], r) for r in rows]
 
 
-def load_masts(path: Path, cp_names: set, device_rows: list[dict], device_map: Path = DEVICE_MAP) -> list[dict]:
+def load_masts(path: Path, cp_names: set[str], device_rows: Sequence[Mapping[str, str]],
+               device_map: Path = DEVICE_MAP) -> list[StagingMast]:
     """The plugin's staging masts from masts.csv's staging rows: each with its facing and protected blocks, its kind
     of slot (mast_kind), hidden for a virtual mast and its icon size (hartlib.tables.mast_icon_size). Stops on a row
     whose mast, heads or system name the device map does not hold as the same mast, or whose switch no turnout row
@@ -596,7 +667,9 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict], device_map: P
     heads = {r["system_name"]: r["user_name"] for r in device_rows if r["layer"] == "head"}
     switches = {r["trial_name"].removeprefix("Switch ") for r in device_rows     # a turnout, not its LCC alias
                 if r["layer"] == "turnout" and devices.row_role(r, where(r)) == "turnout"}
-    out, bad, seen = [], [], set()
+    out: list[StagingMast] = []
+    bad: list[str] = []
+    seen: set[str] = set()
     for i, r in lines:
         name = r["mast"]
         if r["switch"] and r["switch"] not in switches:
@@ -623,8 +696,8 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict], device_map: P
         if not known:
             bad.append(f"line {i}: {name}: no icon size for {r['system_name']}")
         protects = [b for b in r["protects"].split(";") if b]
-        entry = dict(mast=name, facing=r["facing"], protects=protects, kind=mast_kind(r),
-                     hidden=r["system_name"].startswith("IF$vsm:"), icon=list(size))
+        entry = StagingMast(mast=name, facing=r["facing"], protects=protects, kind=mast_kind(r),
+                            hidden=r["system_name"].startswith("IF$vsm:"), icon=list(size))
         if r["leg"]:
             entry["leg"] = r["leg"]
         if entry["kind"] == "end bumper":       # may stand at a helix join instead (the three-level panel)
@@ -635,37 +708,39 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict], device_map: P
     return sorted(out, key=lambda m: m["mast"])
 
 
-def load_signal_masts(masts_path: Path | None = None) -> list[dict]:
+def load_signal_masts(masts_path: Path | None = None) -> list[SignalMast]:
     """The staging masts as build_signals.py reads them: masts.csv's staging rows with their plan facts
     (level_masts.PLAN_FIELDS, which hartlib.level_masts.read checks), blocks and slot kind (mast_kind), with the fields
     signal_rows and build_signals.check_lengths read; the signal's name, kind and heads follow from the row
     (level_masts.signal_name, signal_kind, head_count). Stops on a staging row without plan facts: the drawing places
     staging's masts from them."""
     masts_path = masts_path or MASTS
-    out, bad = [], []
+    out: list[SignalMast] = []
+    bad: list[str] = []
     for i, r in staging_masts(masts_path):
         if not level_masts.placed(r):
             bad.append(f"line {i} ({r['mast']}): no plan facts ({', '.join(level_masts.PLAN_FIELDS)})")
             continue
-        out.append(dict(mast=r["mast"], kind=mast_kind(r), facing=r["facing"],
-                        protects=[x for x in r["protects"].split(LIST) if x], signal=level_masts.signal_name(r["mast"]),
-                        toward=r["toward"], run=r["run"].split(LIST), names=[x for x in r["names"].split(LIST) if x],
-                        edge_cm=float(r["edge_cm"]), cm_from_toward=float(r["cm_from_toward"]), dir=r["dir"],
-                        signal_kind=level_masts.signal_kind(r), heads=level_masts.head_count(r),
-                        schematic_edge=r["schematic_edge"], schematic_toward_node=r["schematic_toward_node"]))
+        out.append(SignalMast(mast=r["mast"], kind=mast_kind(r), facing=r["facing"],
+                              protects=[x for x in r["protects"].split(LIST) if x],
+                              signal=level_masts.signal_name(r["mast"]), toward=r["toward"], run=r["run"].split(LIST),
+                              names=[x for x in r["names"].split(LIST) if x], edge_cm=float(r["edge_cm"]),
+                              cm_from_toward=float(r["cm_from_toward"]), dir=r["dir"],
+                              signal_kind=level_masts.signal_kind(r), heads=level_masts.head_count(r),
+                              schematic_edge=r["schematic_edge"], schematic_toward_node=r["schematic_toward_node"]))
     if bad:
         raise StagingMapError(f"{paths.rel(masts_path)}: " + "; ".join(bad))
     return out
 
 
-def staging_chains(band, names: dict) -> list[dict]:
+def staging_chains(band: Band, names: StagingNames) -> list[dict[str, Any]]:
     """The staging tracks between switches and ends, as the hand-drawn panel's tracks were read once:
     [{ends: [(Layout Editor ident or "END", band port), ...], blocks: [...]}], each a run of the band (through
     turnbacks) with its blocks from the device map (load()) in order. A switch's ident is switches.csv's le_ident
     (names["idents"]); the port is the band's, not a Layout Editor leg letter."""
     nodes = band["nodes"]
     idents = names["idents"]["turnouts"]
-    out = []
+    out: list[dict[str, Any]] = []
     for start, seq, end in run_blocks(band, names):
         ends = [("END", str(e[1])) if nodes[e[0]]["kind"] != "switch" else (idents[e[0]], str(e[1]))
                 for e in (start, end)]
@@ -673,25 +748,27 @@ def staging_chains(band, names: dict) -> list[dict]:
     return out
 
 
-def mast_facts(device_map: Path = DEVICE_MAP, masts_path: Path = MASTS) -> dict:
+def mast_facts(device_map: Path = DEVICE_MAP, masts_path: Path = MASTS) -> dict[str, MastFact]:
     """{mast: {kind, facing, protects, hidden, turnout}} of every staging mast from masts.csv: its slot kind
     (mast_kind), blocks, hidden (a virtual mast) and, for a turnout mast, the turnout name the panels bind its switch
     by (the device map's jmri_name)."""
     turnout_of = {r["trial_name"].removeprefix("Switch "): r["jmri_name"]
                   for r in read_device_rows(device_map) if r["layer"] == "turnout" and r["trial_name"]}
-    out = {}
+    out: dict[str, MastFact] = {}
     for _line, r in staging_masts(masts_path):
         kind = mast_kind(r)
         if kind == "turnout" and r["switch"] not in turnout_of:
             raise StagingMapError(f"{paths.rel(masts_path)}: {r['mast']} is on switch {r['switch']}, which the "
                                   "device map has no turnout for")
-        out[r["mast"]] = dict(kind=kind, facing=r["facing"], protects=[b for b in r["protects"].split(";") if b],
-                              hidden=r["system_name"].startswith("IF$vsm:"),
-                              **({"turnout": turnout_of[r["switch"]]} if kind == "turnout" else {}))
+        fact = MastFact(kind=kind, facing=r["facing"], protects=[b for b in r["protects"].split(";") if b],
+                        hidden=r["system_name"].startswith("IF$vsm:"))
+        if kind == "turnout":
+            fact["turnout"] = turnout_of[r["switch"]]
+        out[r["mast"]] = fact
     return out
 
 
-def signal_rows(masts: list[dict]) -> list[dict]:
+def signal_rows(masts: Sequence[SignalMast]) -> list[dict[str, Any]]:
     """signals.json[staging]'s signals from the staging masts (load_signal_masts), in the plugin's order (by number,
     then name)."""
     rows = [dict(mast=m["signal"], toward=m["toward"], run=list(m["run"]), names=list(m["names"]),
@@ -699,7 +776,7 @@ def signal_rows(masts: list[dict]) -> list[dict]:
                  heads=m["heads"], source="le_panel", _edge=m["schematic_edge"],
                  _toward_node=m["schematic_toward_node"]) for m in masts]
 
-    def key(r):
+    def key(r: Mapping[str, Any]) -> tuple[int, str]:
         n = re.match(r"\d+", r["mast"])
         return (int(n.group()) if n else 10 ** 9, r["mast"])
     return sorted(rows, key=key)
