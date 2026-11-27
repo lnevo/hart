@@ -14,17 +14,21 @@ flagged from the OCR text and the AI review, and ``cars.py kind`` switches a pho
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import html
 import os
 import re
+from collections.abc import Callable, Sequence
 from datetime import date
 from pathlib import Path
+from typing import TypedDict
 
 import hartlib_path  # noqa: E402
 
 hartlib_path.ensure_on_path()
 from card_errors import CardPipelineError  # noqa: E402
+from car_records import CarRow, IntakeContext  # noqa: E402
 from hartlib import paths  # noqa: E402
 HART_ROOT = paths.REPO_ROOT
 BATCH_ROOT = Path(os.environ.get("HART_INTAKE_ROOT", HART_ROOT / "ops/intake"))
@@ -69,17 +73,32 @@ LOCO_TYPES = ("locomotive", "diesel", "engine", "switcher", "electric", "steam")
 KIND_FLAGS = ("maybe-loco", "ai-says-loco", "ai-says-car")
 PENDING, APPROVED, REJECTED, RECORDED = "pending", "approved", "rejected", "recorded"
 
+# One review.csv row, keyed by REVIEW_COLUMNS. The stages read and set its columns by name (EDIT_FIELDS,
+# DETAIL_FIELDS, cars.py fill --set), so it stays a text mapping.
+ReviewRow = dict[str, str]
+
+
+class ManifestRow(TypedDict):
+    """One manifest.csv row: a photo the records stage wrote into the repository."""
+
+    photo: str
+    kind: str
+    roster_id: str
+    outcome: str
+    reviewed: str
+    recorded: str
+
 
 def batch_dir(name: str) -> Path:
     return BATCH_ROOT / name
 
 
-def read_csv(path: Path) -> list[dict]:
+def read_csv(path: Path) -> list[ReviewRow]:
     with path.open(newline="", encoding="utf-8") as fh:
         return list(csv.DictReader(fh))
 
 
-def write_csv(path: Path, columns: list[str], rows: list[dict]) -> None:
+def write_csv(path: Path, columns: list[str], rows: Sequence[ReviewRow] | Sequence[ManifestRow]) -> None:
     with path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=columns, extrasaction="ignore")
         writer.writeheader()
@@ -97,9 +116,10 @@ def blur_score(path: Path) -> float:
     return float(edges.var())
 
 
-def flag_row(row: dict, known_roads: set[str], repo_rows: list[dict], find_car, seen: dict) -> list[str]:
+def flag_row(row: ReviewRow, known_roads: set[str], repo_rows: list[CarRow],
+             find_car: Callable[[list[CarRow], str], CarRow | None], seen: dict[str, str]) -> list[str]:
     """The reasons a human should look at this photo before it is approved."""
-    flags = []
+    flags: list[str] = []
     if row["crop_status"] not in ("ok", ""):
         flags.append(f"crop-{row['crop_status']}")
     if row["blur"] and float(row["blur"]) < BLUR_THRESHOLD:
@@ -135,10 +155,11 @@ def photo_kind(path: Path) -> str:
     return "loco" if path.name.lower().startswith(LOCO_PREFIXES) else "car"
 
 
-def photos_to_review(images_dir: Path, repo_rows: list[dict], suffixes: set[str]) -> list[tuple[Path, str]]:
+def photos_to_review(images_dir: Path, repo_rows: list[CarRow], suffixes: frozenset[str] | set[str]) -> list[tuple[Path, str]]:
     """New photos in Images/. A converted copy of the same photo is not a second photo."""
     seen = {Path(r["source_image"]).stem for r in repo_rows if r.get("source_image")}
-    found, listed = [], set()
+    found: list[tuple[Path, str]] = []
+    listed: set[str] = set()
     for p in sorted(images_dir.iterdir()) if images_dir.is_dir() else []:
         if p.is_file() and p.suffix.lower() in suffixes and p.stem not in seen | listed:
             found.append((p, photo_kind(p)))
@@ -174,14 +195,14 @@ document.getElementById('dl').onclick=()=>{
 """
 
 
-def contact_sheet(path: Path, rows: list[dict]) -> None:
+def contact_sheet(path: Path, rows: list[ReviewRow]) -> None:
     """The review page. Every field can be edited; Download writes review.csv back out."""
     import json
 
     import crop_picker
 
     picker_css, picker_html, picker_script, pick = crop_picker.page_parts(path.parent, rows)
-    cells = []
+    cells: list[str] = []
     for i, r in enumerate(rows):
         flags = r["flags"].replace(";", " · ") or "ok"
         img = f'<img class=orig src="file://{html.escape(r["image"])}">' if r["image"] else ""
@@ -222,7 +243,7 @@ def contact_sheet(path: Path, rows: list[dict]) -> None:
     )
 
 
-def cmd_review(args, ctx) -> int:
+def cmd_review(args: argparse.Namespace, ctx: IntakeContext) -> int:
     """Stage 1. ``ctx`` is the cars module: it supplies the photo processing and repository."""
     rows, _ = ctx.read_rows()
     photos = photos_to_review(ctx.IMAGES_DIR, rows, ctx.IMAGE_SUFFIXES)
@@ -238,15 +259,16 @@ def cmd_review(args, ctx) -> int:
 
     known_roads = {c["roster_road"] for c in load_roster()} | {c["reporting_marks"] for c in rows}
     known_roads.discard("")
-    review, seen = [], {}
+    review: list[ReviewRow] = []
+    seen: dict[str, str] = {}
     for photo, kind in photos:
         print(f"{photo.name} ({kind})")
         final = ctx.FINAL_DIR / f"{photo.stem}.png"
-        row = {c: "" for c in REVIEW_COLUMNS}
+        row: ReviewRow = {c: "" for c in REVIEW_COLUMNS}
         row.update(photo=photo.name, kind=kind, image=str(final), status=PENDING)
         try:
             fields = ctx.process_photo(ctx.to_png(photo))
-        except (Exception, SystemExit) as err:  # one bad photo must not stop the batch
+        except Exception as err:  # one bad photo must not stop the batch
             row.update(image="", flags="process-failed", note=str(err)[:200])
             print(f"  failed: {row['note']}")
             review.append(row)
@@ -272,7 +294,12 @@ def norm(text: str) -> str:
     return "".join(ch for ch in text.upper() if ch.isalnum())
 
 
-def apply_ai_notes(rows: list[dict], notes: dict) -> list[str]:
+def _text(value: object) -> str:
+    """A reading from the AI notes as text; a missing or null reading is blank."""
+    return "" if value is None else str(value)
+
+
+def apply_ai_notes(rows: list[ReviewRow], notes: dict[str, dict[str, object]]) -> list[str]:
     """Merge an AI reviewer's readings. A reading that differs from the OCR flags the row.
 
     ``notes`` maps photo name to {"marks", "number", "type", "note"}. The AI only
@@ -283,8 +310,8 @@ def apply_ai_notes(rows: list[dict], notes: dict) -> list[str]:
         n = notes.get(r["photo"])
         if n is None:
             continue
-        r["ai_marks"], r["ai_number"] = n.get("marks", ""), str(n.get("number", ""))
-        r["ai_type"], r["ai_note"] = n.get("type", ""), n.get("note", "") or "reviewed"
+        r["ai_marks"], r["ai_number"] = _text(n.get("marks")), str(n.get("number", ""))
+        r["ai_type"], r["ai_note"] = _text(n.get("type")), str(n.get("note", "") or "reviewed")
         flags = [f for f in r["flags"].split(";") if f and f not in ("ai-disagrees", "ai-says-loco", "ai-says-car")]
         ai_loco = r["ai_type"].lower() in LOCO_TYPES
         if ai_loco and r["kind"] == "car":
@@ -298,7 +325,7 @@ def apply_ai_notes(rows: list[dict], notes: dict) -> list[str]:
     return unknown
 
 
-def cmd_ai_notes(args, _ctx) -> int:
+def cmd_ai_notes(args: argparse.Namespace, _ctx: IntakeContext) -> int:
     import json
 
     path = batch_dir(args.batch) / "review.csv"
@@ -313,7 +340,7 @@ def cmd_ai_notes(args, _ctx) -> int:
     return 0
 
 
-def cmd_kind(args, ctx) -> int:
+def cmd_kind(args: argparse.Namespace, ctx: IntakeContext) -> int:
     """Set the kind of photos. The roster id is worked out again; kind flags are cleared."""
     path = batch_dir(args.batch) / "review.csv"
     rows = read_csv(path)
@@ -336,7 +363,7 @@ def cmd_kind(args, ctx) -> int:
     return 0
 
 
-def cmd_approve(args, _ctx) -> int:
+def cmd_approve(args: argparse.Namespace, _ctx: IntakeContext) -> int:
     path = batch_dir(args.batch) / "review.csv"
     rows = read_csv(path)
     unreviewed = [r["photo"] for r in rows if r["status"] == PENDING and not r["ai_note"]]
@@ -357,12 +384,19 @@ def cmd_approve(args, _ctx) -> int:
     return 0
 
 
-def cmd_records(args, ctx) -> int:
+def _manifest_row(row: ReviewRow) -> ManifestRow:
+    """A manifest.csv row read back; a column the file lacks is blank."""
+    return {"photo": row.get("photo", ""), "kind": row.get("kind", ""), "roster_id": row.get("roster_id", ""),
+            "outcome": row.get("outcome", ""), "reviewed": row.get("reviewed", ""),
+            "recorded": row.get("recorded", "")}
+
+
+def cmd_records(args: argparse.Namespace, ctx: IntakeContext) -> int:
     """Stage 2. Writes approved rows into the repository and the batch manifest."""
     out = batch_dir(args.batch)
     review = read_csv(out / "review.csv")
     manifest_path = out / "manifest.csv"
-    manifest = read_csv(manifest_path) if manifest_path.is_file() else []
+    manifest = [_manifest_row(r) for r in read_csv(manifest_path)] if manifest_path.is_file() else []
     todo = [r for r in review if r["status"] == APPROVED]
     waiting = [r["photo"] for r in review if r["status"] == PENDING]
     if waiting and not args.allow_pending:
@@ -402,14 +436,14 @@ DETAIL_FIELDS = ["car_type", "car_class", "color", "roster_length_ft", "capy_lbs
                  "ld_lmt_lbs", "lt_wt_lbs", "built", "full_name"]
 
 
-def refresh_rows(rows: list[dict], ctx, only_pending: bool = True) -> None:
+def refresh_rows(rows: list[ReviewRow], ctx: IntakeContext, only_pending: bool = True) -> None:
     """Work out roster ids and flags again after rows were edited."""
     from process_car_images import load_roster
 
     repo_rows, _ = ctx.read_rows()
     known_roads = {c["roster_road"] for c in load_roster()} | {c["reporting_marks"] for c in repo_rows}
     known_roads.discard("")
-    seen: dict = {}
+    seen: dict[str, str] = {}
     lengths = [len(r["road_number"]) for r in rows if r["road_number"]]
     usual = max(set(lengths), key=lengths.count) if lengths else 0
     for r in rows:
@@ -423,12 +457,12 @@ def refresh_rows(rows: list[dict], ctx, only_pending: bool = True) -> None:
         r["flags"] = ";".join(flags)
 
 
-def best_row(rows: list[dict]) -> dict:
+def best_row(rows: list[ReviewRow]) -> ReviewRow:
     """The row with the most detail filled in; ties go to the sharper photo."""
     return max(rows, key=lambda r: (sum(bool(r[f]) for f in DETAIL_FIELDS), float(r["blur"] or 0)))
 
 
-def cmd_fill(args, ctx) -> int:
+def cmd_fill(args: argparse.Namespace, ctx: IntakeContext) -> int:
     """Set fields on every row, then fill each row's empty details from the best row."""
     path = batch_dir(args.batch) / "review.csv"
     rows = read_csv(path)
@@ -453,7 +487,7 @@ def cmd_fill(args, ctx) -> int:
     return 0
 
 
-def cmd_sheet_import(args, ctx) -> int:
+def cmd_sheet_import(args: argparse.Namespace, ctx: IntakeContext) -> int:
     """Take the review.csv downloaded from the review page and make it the batch's sheet."""
     new = read_csv(Path(args.file).expanduser())
     path = batch_dir(args.batch) / "review.csv"

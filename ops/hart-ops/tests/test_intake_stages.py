@@ -192,6 +192,44 @@ class AiNotesTests(unittest.TestCase):
     def test_unknown_photo_reported(self):
         self.assertEqual(st.apply_ai_notes([review_row()], {"zz.png": {}}), ["zz.png"])
 
+    def test_null_readings_are_blank(self):
+        rows = [review_row(photo="a.png")]
+        st.apply_ai_notes(rows, {"a.png": {"marks": None, "number": "32800", "type": None, "note": None}})
+        self.assertEqual((rows[0]["ai_marks"], rows[0]["ai_type"], rows[0]["ai_note"]), ("", "", "reviewed"))
+        self.assertEqual(rows[0]["flags"], "ai-disagrees")
+
+
+class ReviewStageTests(unittest.TestCase):
+    def test_a_photo_that_fails_is_flagged_and_the_batch_goes_on(self):
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            images = root / "Images"
+            images.mkdir()
+            for name in ("bad.png", "good.png"):
+                (images / name).write_bytes(b"")
+
+            def process_photo(png):
+                if png.name == "bad.png":
+                    raise OSError("cannot read bad.png")
+                return {"reporting_marks": "N&W", "road_number": "32800"}
+
+            ctx = SimpleNamespace(
+                IMAGES_DIR=images, FINAL_DIR=root / "final", IMAGE_SUFFIXES=frozenset({".png"}),
+                read_rows=lambda: ([], []), to_png=lambda p: p, process_photo=process_photo,
+                guess_roster_id=lambda row, kind: "NW32800", find_car=find)
+            fake_roster = SimpleNamespace(load_roster=lambda: [{"roster_road": "N&W"}])
+            with mock.patch.object(st, "BATCH_ROOT", root / "intake"), \
+                    mock.patch.dict(sys.modules, {"process_car_images": fake_roster}), \
+                    mock.patch("crop_picker.prepare"), mock.patch.object(st, "contact_sheet"):
+                self.assertEqual(st.cmd_review(SimpleNamespace(batch="b"), ctx), 0)
+                rows = {r["photo"]: r for r in st.read_csv(st.batch_dir("b") / "review.csv")}
+        self.assertEqual(rows["bad.png"]["flags"], "process-failed")
+        self.assertEqual(rows["bad.png"]["note"], "cannot read bad.png")
+        self.assertEqual(rows["good.png"]["roster_id"], "NW32800")
+        self.assertNotIn("process-failed", rows["good.png"]["flags"])
+
     def test_approve_waits_for_ai_unless_told(self):
         with tempfile.TemporaryDirectory() as tmp:
             st.BATCH_ROOT = Path(tmp)

@@ -1,29 +1,83 @@
 #!/usr/bin/env python3
-"""Generate an operator reference sheet for HART industries and yards."""
+"""Generate an operator reference sheet for HART industries and yards.
+
+Each industry page takes its colours from the STS seed's `spurs` file (external/sts-helpers/seed/inputs/spurs), read
+when the sheet is built. The page text lives in operator_sheet_data.py.
+"""
 
 from __future__ import annotations
 
+import csv
 from collections import defaultdict
+from pathlib import Path
+from typing import TypedDict
 
 from docx import Document
+from docx.document import Document as DocxDocument
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from docx.section import Section
 from docx.shared import Inches, Pt, RGBColor
-
-import csv
+from docx.table import Table, _Cell, _Row
+from docx.text.paragraph import Paragraph
 
 import generate_waybill_cards as gw
-import waybill_data as wdata  # noqa: E402  (loaded by generate_waybill_cards)
+import car_paths  # noqa: E402  (loaded by generate_waybill_cards)
+import car_repo  # noqa: E402
+import waybill_data as wdata  # noqa: E402
 import waybill_deck as wdeck  # noqa: E402
 import crew_master
+from card_errors import CardPipelineError
 from hart_ooxml import shade_cell
+from operator_sheet_data import (
+    INDUSTRY_LOGOS,
+    INDUSTRY_SUMMARIES,
+    SHEET_INDUSTRY_ORDER,
+    SHENANGO_TRACK_ROWS,
+    YARD_PAGES,
+    TrackRow,
+    YardPage,
+)
+from waybill_data import WaybillSpec
 
-OUTPUT = gw.BASE.parents[1] / "docs/ops/HART_Operator_Sheet.docx"
-LOGO_DIR = gw.BASE / "operator_logos"
-SPUR_FILE = gw.BASE / "sts-docker-helpers" / "seed" / "inputs" / "spurs"
+OUTPUT = car_repo.HART_ROOT / "docs/ops/HART_Operator_Sheet.docx"
+LOGO_DIR = car_paths.HART_OPS_ROOT / "operator_logos"
+SPUR_FILE = car_repo.SEED_INPUTS / "spurs"
 EMPTY = wdata.EMPTY
+
+
+class SpursFileMissingError(CardPipelineError, FileNotFoundError):
+    """The STS seed's spurs file is not where SPUR_FILE says (the external/sts-helpers submodule is not checked out)."""
+
+
+class SpursLineError(CardPipelineError, ValueError):
+    """A spurs line is not ``Industry - count - Colour``."""
+
+
+class IndustryColourMissingError(CardPipelineError, KeyError):
+    """An industry on the sheet has no colour in the spurs file."""
+
+
+class IndustryStyle(TypedDict):
+    """A page banner's look: RRGGBB accent and text colours, and an optional logo in LOGO_DIR."""
+
+    accent: str
+    text: str
+    logo: str | None
+    logo_width: float
+
+
+class SpotRow(TypedDict):
+    """One row of an industry's spot table; sort is the first spot number."""
+
+    spot: str
+    usage: str
+    cars: str
+    inbound: str
+    outbound: str
+    sort: int
 
 PAGE_W = Inches(5)
 PAGE_H = Inches(8)
@@ -82,322 +136,35 @@ def spur_palette() -> dict[str, dict[str, str]]:
     return {name: {"accent": accent[name], "text": text} for name, text in _SPUR_TEXT.items()}
 
 
-INDUSTRY_LOGOS: dict[str, tuple[str, float]] = {
-    "Aristech Plastics": ("aristech.png", 1.95),
-    "A Stucki Co": ("stucki.png", 1.55),
-    "Calgon Carbon": ("calgon.png", 2.05),
-    "Ferrel Gas": ("ferrellgas.png", 1.05),
-    "Kosmos Cement": ("kosmos.png", 1.45),
-    "Shenango Coke Works": ("shenango.png", 0.55),
-}
+def load_industry_styles(spur_file: Path = SPUR_FILE) -> dict[str, IndustryStyle]:
+    """Each industry's colours from `spurs` (``Industry - count - Colour`` lines), with its logo if it has one.
 
-# Local page order for island industries (includes Shenango; not in waybill INDUSTRY_ORDER).
-SHEET_INDUSTRY_ORDER: dict[str, int] = {
-    "Aristech Plastics": 0,
-    "A Stucki Co": 1,
-    "Calgon Carbon": 2,
-    "Ferrel Gas": 3,
-    "Kosmos Cement": 4,
-    "Shenango Coke Works": 5,
-}
-
-# Historical notes (through 1990s) plus a short traffic line for the operator.
-INDUSTRY_SUMMARIES: dict[str, list[str]] = {
-    "Aristech Plastics": [
-        "Founded 1986 as Aristech Chemical, spun off from U.S. Steel's USS Chemicals "
-        "division with headquarters in Pittsburgh.",
-        "Major producer of acrylic sheet, molded plastics, and synthetic resins for "
-        "bathtubs, spas, architectural panels, and packaging.",
-        "Continuous-cast acrylic sheet production began in 1969; chemical operations "
-        "draw on the former USS Chemicals heritage dating to the 1960s.",
-        "Traffic: plastic pellets (HC) and process chemicals (TA) in; plastic resins (XM) "
-        "out. NVL serves the plant.",
-    ],
-    "A Stucki Co": [
-        "Founded 1911 by Swiss engineer Arnold Stucki in the Pittsburgh area.",
-        "Stucki's roller side-bearing design stabilized freight cars and became a "
-        "North American industry standard by the 1950s.",
-        "Grew through the 20th century as a supplier of railcar components, springs, "
-        "bearings, and machined steel.",
-        "Traffic: steel (FM/GA/XM) on the crane; general freight (XM/FM/GA) on the team "
-        "track. Empties and outbound parts leave after spotting. NVL serves the plant.",
-    ],
-    "Calgon Carbon": [
-        "Traces to 1942, when Pittsburgh Coke & Chemical developed coal-based activated "
-        "carbon for U.S. military gas masks during World War II.",
-        "Pioneered granular activated carbon for municipal drinking-water treatment in "
-        "the 1960s; headquartered in the Pittsburgh area.",
-        "Became an independent public company in 1987; one of the world's leading "
-        "activated-carbon producers by the 1990s.",
-        "Traffic: coal (HM) and process chemicals (TA) in; activated carbon (HC) out. "
-        "NVL serves the plant.",
-    ],
-    "Ferrel Gas": [
-        "Founded 1939 as A.C. Ferrell Butane Gas Company in Atchison, Kansas.",
-        "James E. Ferrell took over in 1965 when the business had just four employees, "
-        "then rebuilt it through Midwest propane dealer acquisitions.",
-        "Bulk propane storage and rail deliveries expanded through the 1970s and 1980s "
-        "as residential and farm demand grew.",
-        "Traffic: LPG (TA) in at the unload racks; empty tanks out. NVL serves the plant.",
-    ],
-    "Kosmos Cement": [
-        "Portland cement plant at Kosmosdale, Kentucky, shipping from the same site since "
-        "1905; founded by Samuel Horner Jr. as Kosmos Portland Cement Company.",
-        "Supplied cement for early Ohio River lock and dam construction; a fleet of "
-        "company towboats with names beginning in \"K\" moved cement and quarry stone.",
-        "The company town of Kosmosdale grew around the mill; Horner heirs sold the "
-        "operation in 1957 and the plant was rebuilt in the early 1970s.",
-        "Traffic: cement (HC) and aggregate (HM/GA) in; empty hoppers out. NVL serves "
-        "the plant.",
-    ],
-    "Shenango Coke Works": [
-        "Pittsburgh Coke & Chemical (PC&C) was making coke and pig iron on the "
-        "eastern end of Neville Island by 1929. The coke ovens and chemical works "
-        "that later became Shenango date to about 1930.",
-        "PC&C was more than a coke plant: on the island it also made cement, "
-        "industrial chemicals, and activated carbon. Those other branches became "
-        "the Kosmos, Aristech, and Calgon operations still switched today.",
-        "In 1962 Shenango Furnace purchased PC&C. The coke-and-iron division became "
-        "Shenango Inc. and kept making coke and coke by-products on the same site "
-        "for decades after the PC&C name disappeared.",
-        "Traffic: HM coke on Shipping 1 and Shipping 2 (no numbered spots). CK1 lifts "
-        "for South Yard scale. Loads to U.S. Steel Edgar Thomson Works (Braddock, PA) "
-        "via CSX and LTV Steel Cleveland Works (Cleveland, OH) via POHC. NVL may set "
-        "out deliveries; no Shenango empty pickup on the NVL return.",
-    ],
-}
-
-SHENANGO_TRACK_ROWS: list[dict[str, str]] = [
-    {
-        "track": "Shipping 1",
-        "cars": "HM",
-        "inbound": "Empty / reload coke",
-        "outbound": "Coke",
-    },
-    {
-        "track": "Shipping 2",
-        "cars": "HM",
-        "inbound": "Empty / reload coke",
-        "outbound": "Coke",
-    },
-]
-
-# Yard / desk reference pages (after island industries).
-# Offline company lists from hart_scully_nville_shipping_map_proposed.csv
-# (party tracks at McKees Rocks-PA / Mckeesport-PA — not Neville Island plants).
-YARD_PAGES: list[dict] = [
-    {
-        "title": "Scully Yard",
-        "subtitle": "POHC interchange · McKees Rocks offline",
-        "accent": "FFA500",  # STS orange
-        "text": "000000",
-        "logo": "pohc.png",
-        "logo_width": 1.25,
-        "role": [
-            "POHC gateway. NVL takes its session-start block here. McKees Rocks-PA "
-            "party tracks hold offline suppliers and customers.",
-            "Connections beyond the offline tracks are typically POHC and NS.",
-        ],
-        "sections": [
-            (
-                "McKees Rocks — inbound (suppliers)",
-                [
-                    "Allegheny Ludlum (Brackenridge, PA)",
-                    "Exxon Chemical (Bayonne, NJ)",
-                    "Ferrellgas Co (Taneytown, MD)",
-                    "General Chemical (Parsippany, NJ)",
-                    "Hillman Coal (Canton Twp, PA)",
-                    "Houghton Chemical (Allston, MA)",
-                    "Kosmos Cement (Canton, OH)",
-                    "Lehigh Cement (Mitchell, IN)",
-                    "McConway & Torley (Pittsburgh, PA)",
-                    "Michigan Limestone (Rogers City, MI)",
-                    "Novacor (Indian Orchard, MA)",
-                    "Republic Steel (Cleveland, OH)",
-                ],
-            ),
-            (
-                "McKees Rocks — outbound (customers)",
-                [
-                    "LTV Steel Cleveland Works (Cleveland, OH) — coke",
-                    "Owens-Illinois (Toledo, OH)",
-                    "Bemis Company (Flemington, NJ)",
-                    "Pittsburgh Forge (McKees Rocks, PA)",
-                    "Univar (Salem, MA)",
-                ],
-            ),
-        ],
-        "jobs": [
-            "NVL — assign/pickup session block at Scully, then run to South Yard.",
-        ],
-    },
-    {
-        "title": "Demmler Yard",
-        "subtitle": "CSX interchange · Mckeesport offline",
-        "accent": "0000CD",  # STS mediumblue
-        "text": "0000CD",
-        "logo": "csx.png",
-        "logo_width": 1.55,
-        "role": [
-            "CSX gateway. D749 lifts its inbound block here at session start. "
-            "Mckeesport-PA party tracks hold offline suppliers and customers.",
-            "Connections beyond the offline tracks are typically CSX "
-            "(URR territory historically adjacent at Mckeesport).",
-        ],
-        "sections": [
-            (
-                "Mckeesport — inbound (suppliers)",
-                [
-                    "BASF (Wyandotte, MI)",
-                    "Consol Energy (Pittsburgh, PA)",
-                    "Dow Chemical (Midland, MI)",
-                    "Ferrellgas pipeline terminal",
-                    "Martin Marietta (Clairton, PA)",
-                    "Medusa Cement (Charlevoix, MI)",
-                    "Metal Service Co. (Apollo, PA)",
-                    "R&P Coal (Brady Twp, PA)",
-                    "Ryerson Steel Service",
-                    "US Aggregates (Indianapolis, IN)",
-                    "Washington Steel (Washington, PA)",
-                    "Calgon Corp (Columbus, OH)",
-                ],
-            ),
-            (
-                "Mckeesport — outbound (customers)",
-                [
-                    "U.S. Steel Edgar Thomson Works (Braddock, PA) — coke",
-                    "Calgon Corp (Columbus, OH)",
-                    "Houghton Chemical (Allston, MA)",
-                    "Metal Service Co. (Apollo, PA)",
-                    "Owens-Illinois (Ottawa, IL)",
-                    "Ryerson Steel Service",
-                ],
-            ),
-        ],
-        "jobs": [
-            "D749 — pickup Demmler block → South Yard setout to open the session; "
-            "later return from McKeesport side and terminate West Yard.",
-        ],
-    },
-    {
-        "title": "South Yard",
-        "subtitle": "Classification hub · session start",
-        "accent": "D3D3D3",  # STS lightgrey
-        "text": "000000",
-        "logo": "hart.png",
-        "logo_width": 0.72,
-        "role": [
-            "Session open / class yard. West Lead = SOUTH-SCALE (CK1 weigh at 4 MPH, "
-            "stretch, no brakes). Exchange: Demmler/CSX off; Island/Shenango on.",
-        ],
-        "trains": [
-            {
-                "name": "D749 — CSX turn",
-                "lines": [
-                    "Lift West Yard consist → Demmler pickup → South setout to open ops; "
-                    "interchange per YM; west when cleared.",
-                    "Return from McKeesport; YM spots West or South; engine to terminal.",
-                ],
-            },
-            {
-                "name": "NVL — POHC Island local",
-                "lines": [
-                    "Scully → South; interchange per YM; work Island industries + "
-                    "Shenango setouts.",
-                    "Finish Island/Shenango deliveries before return homebound. Final "
-                    "South interchange → Scully. Shenango deliver-only on return.",
-                ],
-            },
-            {
-                "name": "CK1 — Coke transfer",
-                "lines": [
-                    "Calibrate scale. Shenango: set out reloads, lift Shipping 1/2 coke → "
-                    "weigh West Lead → class. Imbalanced → reload orders.",
-                    "Same session: reloads South → Shenango when authorized.",
-                ],
-            },
-        ],
-        "blocking": [
-            "1. D749 Demmler → South setout opens the session.",
-            "2. NVL South exchange before Island work.",
-            "3. Island/Shenango setouts before NVL return homebound assigns.",
-            "4. CK1 weigh/resort; reloads to Shenango when ready.",
-            "5. D749 return → West Yard.",
-        ],
-    },
-    {
-        "title": "Dispatcher",
-        "subtitle": "HART Railroad · session control",
-        "accent": "000000",
-        "text": "000000",
-        "logo": "hart.png",
-        "logo_width": 0.72,
-        "role": [
-            "Authorize road moves, keep train order, and protect the South Yard block "
-            "exchange. Crews work from switch lists; yardmaster owns South class tracks.",
-        ],
-        "sections": [
-            (
-                "Territory",
-                [
-                    "Scully Yard — POHC interchange (NVL start).",
-                    "Neville Island / Shenango — NVL local; CK1 coke plant.",
-                    "South Yard — class hub, session open, track scale (West Lead).",
-                    "Demmler Yard — CSX interchange (D749 start / return).",
-                    "West Yard — D749 overnight / terminate.",
-                ],
-            ),
-            (
-                "Session sequence",
-                [
-                    "D749: Demmler pickup → South setout opens ops; then west as cleared.",
-                    "NVL: Scully block → South exchange → Island / Shenango work → return "
-                    "to Scully (Shenango deliver-only on return).",
-                    "CK1: Shenango shipping → South scale → class; reloads back when ready.",
-                    "D749 return from McKeesport → West Yard.",
-                ],
-            ),
-        ],
-        "blocking": [
-            "1. Hold NVL Island work until South has taken the D749 inbound setout "
-            "and completed the block exchange.",
-            "2. Island / Shenango deliveries before NVL builds the homebound.",
-            "3. CK1 scale string clear of West Lead conflicts during weigh (4 MPH).",
-            "4. One road move at a time across shared leads when crews meet at South.",
-        ],
-    },
-]
-
-
-def _load_industry_styles() -> dict[str, dict]:
-    """Merge spur colors from `spurs` with optional logo paths."""
-    styles: dict[str, dict] = {}
+    Blank lines, lines with no ``-`` and colours the palette does not know are skipped.
+    """
+    if not spur_file.is_file():
+        raise SpursFileMissingError(
+            f"Missing the spurs file {spur_file} (git submodule update --init external/sts-helpers)"
+        )
+    styles: dict[str, IndustryStyle] = {}
     palettes = spur_palette()
-    with SPUR_FILE.open(encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or "-" not in line:
-                continue
-            industry, _, color_name = [part.strip() for part in line.split("-", 2)]
-            palette = palettes.get(color_name.lower())
-            if not palette:
-                continue
-            entry = dict(palette)
-            logo_info = INDUSTRY_LOGOS.get(industry)
-            if logo_info:
-                entry["logo"] = logo_info[0]
-                entry["logo_width"] = logo_info[1]
-            else:
-                entry["logo"] = None
-                entry["logo_width"] = 0.0
-            styles[industry] = entry
+    for raw in spur_file.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or "-" not in line:
+            continue
+        parts = [part.strip() for part in line.split("-", 2)]
+        if len(parts) != 3:
+            raise SpursLineError(f"{spur_file}: {line!r} is not 'Industry - count - Colour'")
+        industry, _, color_name = parts
+        palette = palettes.get(color_name.lower())
+        if not palette:
+            continue
+        logo, logo_width = INDUSTRY_LOGOS.get(industry, (None, 0.0))
+        styles[industry] = {"accent": palette["accent"], "text": palette["text"], "logo": logo,
+                            "logo_width": logo_width}
     return styles
 
 
-INDUSTRY_STYLE = _load_industry_styles()
-
-
-def _configure_page(section) -> None:
+def _configure_page(section: Section) -> None:
     section.page_width = PAGE_W
     section.page_height = PAGE_H
     section.left_margin = MARGIN
@@ -408,7 +175,7 @@ def _configure_page(section) -> None:
     section.footer_distance = Inches(0)
 
 
-def _configure_document(doc: Document) -> None:
+def _configure_document(doc: DocxDocument) -> None:
     _configure_page(doc.sections[0])
     normal = doc.styles["Normal"]
     normal.font.size = FONT_BODY
@@ -416,7 +183,7 @@ def _configure_document(doc: Document) -> None:
     normal.font.color.rgb = RGBColor(0x33, 0x33, 0x33)
 
 
-def _set_cell_margins(cell, top=40, bottom=40, left=60, right=60) -> None:
+def _set_cell_margins(cell: _Cell, top: int = 40, bottom: int = 40, left: int = 60, right: int = 60) -> None:
     tc_pr = cell._tc.get_or_add_tcPr()
     mar = OxmlElement("w:tcMar")
     for tag, val in (("top", top), ("bottom", bottom), ("left", left), ("right", right)):
@@ -428,7 +195,7 @@ def _set_cell_margins(cell, top=40, bottom=40, left=60, right=60) -> None:
 
 
 def _set_table_borders(
-    table,
+    table: Table,
     *,
     color: str = COLOR_BORDER,
     outer_size: int = 6,
@@ -451,7 +218,7 @@ def _set_table_borders(
     tbl_pr.append(borders)
 
 
-def _set_cell_border(cell, *, bottom_size: int = 0, bottom_color: str = COLOR_BORDER) -> None:
+def _set_cell_border(cell: _Cell, *, bottom_size: int = 0, bottom_color: str = COLOR_BORDER) -> None:
     tc_pr = cell._tc.get_or_add_tcPr()
     borders = OxmlElement("w:tcBorders")
     for edge in ("top", "left", "right"):
@@ -469,7 +236,7 @@ def _set_cell_border(cell, *, bottom_size: int = 0, bottom_color: str = COLOR_BO
     tc_pr.append(borders)
 
 
-def _accent_rule(doc: Document, accent: str) -> None:
+def _accent_rule(doc: DocxDocument, accent: str) -> None:
     rule = doc.add_table(rows=1, cols=1)
     rule.autofit = False
     cell = rule.rows[0].cells[0]
@@ -481,17 +248,17 @@ def _accent_rule(doc: Document, accent: str) -> None:
     _set_table_borders(rule, color=accent, outer_size=0, inner_size=0)
 
 
-def _keep_with_next(paragraph) -> None:
+def _keep_with_next(paragraph: Paragraph) -> None:
     paragraph.paragraph_format.keep_with_next = True
 
 
-def _set_row_cant_split(row) -> None:
+def _set_row_cant_split(row: _Row) -> None:
     tr_pr = row._tr.get_or_add_trPr()
     if tr_pr.find(qn("w:cantSplit")) is None:
         tr_pr.append(OxmlElement("w:cantSplit"))
 
 
-def _set_table_column_widths(table, widths_in: tuple[float, ...]) -> None:
+def _set_table_column_widths(table: Table, widths_in: tuple[float, ...]) -> None:
     table.autofit = False
     for row in table.rows:
         for idx, cell in enumerate(row.cells):
@@ -499,8 +266,8 @@ def _set_table_column_widths(table, widths_in: tuple[float, ...]) -> None:
                 cell.width = Inches(widths_in[idx])
 
 
-def _add_banner(doc: Document, title: str, style: dict) -> None:
-    logo_name = style.get("logo")
+def _add_banner(doc: DocxDocument, title: str, style: IndustryStyle) -> None:
+    logo_name = style["logo"]
     logo_path = LOGO_DIR / logo_name if logo_name else None
     has_logo = bool(logo_path and logo_path.exists())
     banner = doc.add_table(rows=1, cols=1)
@@ -527,7 +294,7 @@ def _add_banner(doc: Document, title: str, style: dict) -> None:
     _set_table_borders(banner, color=COLOR_BORDER, outer_size=4, inner_size=0)
 
 
-def _add_title_heading(doc: Document, title: str, accent: str, *, subtitle: str = "") -> None:
+def _add_title_heading(doc: DocxDocument, title: str, accent: str, *, subtitle: str = "") -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(8)
     p.paragraph_format.space_after = Pt(2 if subtitle else 6)
@@ -548,7 +315,7 @@ def _add_title_heading(doc: Document, title: str, accent: str, *, subtitle: str 
         _keep_with_next(s)
 
 
-def _add_section_label(doc: Document, text: str) -> None:
+def _add_section_label(doc: DocxDocument, text: str) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(8)
     p.paragraph_format.space_after = Pt(4)
@@ -560,7 +327,7 @@ def _add_section_label(doc: Document, text: str) -> None:
     _keep_with_next(p)
 
 
-def _add_body_paragraph(doc: Document, text: str, *, keep: bool = True) -> None:
+def _add_body_paragraph(doc: DocxDocument, text: str, *, keep: bool = True) -> None:
     p = doc.add_paragraph(text)
     p.paragraph_format.space_after = Pt(4)
     p.paragraph_format.line_spacing = 1.15
@@ -572,7 +339,7 @@ def _add_body_paragraph(doc: Document, text: str, *, keep: bool = True) -> None:
         _keep_with_next(p)
 
 
-def _add_bullet(doc: Document, text: str, *, keep: bool = True) -> None:
+def _add_bullet(doc: DocxDocument, text: str, *, keep: bool = True) -> None:
     p = doc.add_paragraph()
     p.paragraph_format.left_indent = Inches(0.15)
     p.paragraph_format.space_after = Pt(2)
@@ -585,7 +352,7 @@ def _add_bullet(doc: Document, text: str, *, keep: bool = True) -> None:
         _keep_with_next(p)
 
 
-def _style_data_table(table, accent: str, *, center_first: bool = True) -> None:
+def _style_data_table(table: Table, accent: str, *, center_first: bool = True) -> None:
     header = table.rows[0]
     for idx, cell in enumerate(header.cells):
         _set_cell_margins(cell, top=35, bottom=35, left=45, right=45)
@@ -622,16 +389,16 @@ def _usage_label(usage: str) -> str:
     return USAGE_LABELS.get(usage.lower(), usage).lstrip()
 
 
-def _format_inbound(spec: dict) -> str:
+def _format_inbound(spec: WaybillSpec) -> str:
     return wdeck.inbound_commodity_label(spec)
 
 
-def _format_outbound(spec: dict) -> str:
+def _format_outbound(spec: WaybillSpec) -> str:
     load = spec["outbound_load"]
     return "Empty cars" if load == EMPTY else load
 
 
-def _add_spot_table(doc: Document, rows: list[dict], accent: str) -> None:
+def _add_spot_table(doc: DocxDocument, rows: list[SpotRow], accent: str) -> None:
     table = doc.add_table(rows=1, cols=5)
     for i, text in enumerate(("Spot", "Track", "Cars", "In", "Out")):
         table.rows[0].cells[i].text = text
@@ -647,7 +414,7 @@ def _add_spot_table(doc: Document, rows: list[dict], accent: str) -> None:
     _style_data_table(table, accent)
 
 
-def _add_track_table(doc: Document, rows: list[dict], accent: str) -> None:
+def _add_track_table(doc: DocxDocument, rows: list[TrackRow], accent: str) -> None:
     table = doc.add_table(rows=1, cols=4)
     for i, text in enumerate(("Track", "Cars", "In", "Out")):
         table.rows[0].cells[i].text = text
@@ -663,13 +430,13 @@ def _add_track_table(doc: Document, rows: list[dict], accent: str) -> None:
 
 
 def _add_industry_section(
-    doc: Document, industry: str, rows: list[dict], *, page_break: bool
+    doc: DocxDocument, industry: str, rows: list[SpotRow], style: IndustryStyle, *, page_break: bool
 ) -> None:
     if page_break:
         doc.add_page_break()
 
-    style = INDUSTRY_STYLE[industry]
-    logo_path = LOGO_DIR / style["logo"] if style.get("logo") else None
+    logo = style["logo"]
+    logo_path = LOGO_DIR / logo if logo else None
     has_logo = bool(logo_path and logo_path.exists())
 
     _add_banner(doc, industry, style)
@@ -697,11 +464,11 @@ def _add_industry_section(
     _add_spot_table(doc, rows, style["accent"])
 
 
-def _add_yard_section(doc: Document, page: dict, *, page_break: bool) -> None:
+def _add_yard_section(doc: DocxDocument, page: YardPage, *, page_break: bool) -> None:
     if page_break:
         doc.add_page_break()
 
-    style = {
+    style: IndustryStyle = {
         "accent": page["accent"],
         "text": page["text"],
         "logo": page.get("logo"),
@@ -746,7 +513,7 @@ def _add_yard_section(doc: Document, page: dict, *, page_break: bool) -> None:
             _add_bullet(doc, item)
 
 
-def _load_off_spot_rows() -> dict[str, list[dict]]:
+def _load_off_spot_rows() -> dict[str, list[SpotRow]]:
     spots: dict[tuple[str, str], list[int]] = defaultdict(list)
     cars: dict[tuple[str, str], str] = {}
 
@@ -762,7 +529,7 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
                 spots[key].append(spot)
                 cars[key] = row.get("Cars Applicable", "").replace(";", ", ")
 
-    by_industry: dict[str, list[dict]] = defaultdict(list)
+    by_industry: dict[str, list[SpotRow]] = defaultdict(list)
     for (industry, usage), nums in spots.items():
         by_industry[industry].append(
             {
@@ -779,8 +546,8 @@ def _load_off_spot_rows() -> dict[str, list[dict]]:
     return dict(by_industry)
 
 
-def _load_all_spot_rows() -> dict[str, list[dict]]:
-    combined: dict[str, list[dict]] = {name: [] for name in wdata.INDUSTRY_ORDER}
+def _load_all_spot_rows() -> dict[str, list[SpotRow]]:
+    combined: dict[str, list[SpotRow]] = {name: [] for name in wdata.INDUSTRY_ORDER}
 
     for group in gw.load_spot_groups():
         industry = group["Industry"]
@@ -804,7 +571,15 @@ def _load_all_spot_rows() -> dict[str, list[dict]]:
     return combined
 
 
-def generate() -> None:
+def _style_for(styles: dict[str, IndustryStyle], industry: str, spur_file: Path) -> IndustryStyle:
+    if industry not in styles:
+        raise IndustryColourMissingError(f"{industry} has no colour the sheet knows in {spur_file}")
+    return styles[industry]
+
+
+def generate(output: Path = OUTPUT, spur_file: Path = SPUR_FILE) -> int:
+    """Write the operator sheet to output and return its page count."""
+    styles = load_industry_styles(spur_file)
     doc = Document()
     _configure_document(doc)
 
@@ -813,25 +588,27 @@ def generate() -> None:
     page_count = 0
 
     for industry in ordered:
-        if industry == "Shenango Coke Works":
-            _add_industry_section(doc, industry, [], page_break=page_count > 0)
-            page_count += 1
-            continue
-        rows = by_industry.get(industry, [])
-        if rows:
-            _add_industry_section(doc, industry, rows, page_break=page_count > 0)
+        rows = [] if industry == "Shenango Coke Works" else by_industry.get(industry, [])
+        if rows or industry == "Shenango Coke Works":
+            style = _style_for(styles, industry, spur_file)
+            _add_industry_section(doc, industry, rows, style, page_break=page_count > 0)
             page_count += 1
 
     for yard in YARD_PAGES:
         _add_yard_section(doc, yard, page_break=page_count > 0)
         page_count += 1
 
-    doc.save(OUTPUT)
-    print(
-        f"Wrote {OUTPUT} ({PAGE_W.inches:.0f}×{PAGE_H.inches:.0f} in, "
-        f"{page_count} pages)"
-    )
+    doc.save(output)
+    return page_count
+
+
+def main() -> None:
+    pages = generate()
+    print(f"Wrote {OUTPUT} ({PAGE_W.inches:.0f}×{PAGE_H.inches:.0f} in, {pages} pages)")
 
 
 if __name__ == "__main__":
-    generate()
+    try:
+        main()
+    except CardPipelineError as exc:
+        raise SystemExit(str(exc)) from exc
