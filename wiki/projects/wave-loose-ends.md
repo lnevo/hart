@@ -51,6 +51,8 @@ Also closed: the Windows remote clone's stale `gc.log` (owner): renamed, `git gc
 
 ### Left after the loose ends
 
+Done in the [leftovers round](leftovers-round.md) (2026-11-27), except `check_data_readers.py`'s copied helper, the Switch 7 topics after a QA run and the review nits; that page lists what is left.
+
 - A shared warrant scene in `www/js/track-warrant.js` (LE-L4 kept `run-modern.js`'s own copy, owner).
 - `PUBLICATION` in `rebuild_crew_instructions.py` is still read at import (the table moves did not include it).
 - Deploy tests (`test_deploy_stage`, `test_redeploy_commit`) read the real `~/JMRI` profile and failed once on a leftover `profile.xml.hart-run.bak` from a PanelPro smoke run; they should use a temp copy.

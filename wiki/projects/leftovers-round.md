@@ -1,7 +1,6 @@
 # Leftovers after the loose-ends round (2026-11-27)
 
-Status: active
-Coordinator: a background leftovers coordinator of session hart-2d (merge queue, lanes, deploys, dashboard)
+Status: done (2026-11-27)
 Dashboard: https://claude.ai/artifact/DiMs49NdBzpTiH9Bq1FiSe
 
 The owner asked on 2026-11-27 to finish the "Left after the loose ends" list in [wave-loose-ends.md](wave-loose-ends.md). The changed files are regraded at the end, and the [report card](https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE) is republished only if the average rises above 3.297 (owner).
@@ -25,3 +24,27 @@ The owner asked on 2026-11-27 to finish the "Left after the loose ends" list in 
 ## Done when
 
 Every lane is merged and deployed, the regrade is done (and the card republished only if it rose), and this page is `Status: done`.
+
+## Result
+
+Coordinated by hart-55 from 16:23 (hand-off from hart-2d). Every lane merged; main's push run passed after each merge.
+
+| Lane | PR | Merge | Shipped |
+|------|----|-------|---------|
+| Size caps with headroom, health round 2, this plan | #1364 | c948929a3 | nothing |
+| LO-L2 regrade faults and LO-L4 small items | #1365 | 75d10992a | nothing |
+| LO-L3 site JS | #1367 | 2b371a670 | site, 17:26, Build counts unchanged |
+| LO-L1 deploy and host scripts | #1368 | 2f14be300 | nothing (no file under `live_paths.txt`) |
+
+- `PUBLICATION` in `rebuild_crew_instructions.py` was already read on use (3a9e2324a); the module-level reads left are in `rebuild_dispatcher_train_list.py`, `rebuild_yardmaster_sequence.py`, `rebuild_station_map.py` and `rebuild_operator_primer.py`.
+- No fake-writer test for #1361's cause: `deploy_status.sh` now uses a here-string, so no pipe is left to test.
+- Regrade (LO-RC): 34 changed code files read again at 2f14be300 by two repo-auditors. The average rose from 3.297 to 3.298 (222 grade-point-lines under B+, from 402), so the [report card](https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE) was republished with an "After the leftovers" section. Six source files up a step, three down (`check.sh`, `run_native_sml_qa.py`, `run.js`).
+- The closing PR ran `make baselines`: the mypy and habits baselines went down, `py_sizes.csv` and `hand_tables.csv` were already current.
+
+### Left after the leftovers
+
+- `run_native_sml_qa.py` restores only topics that had a retained value (Switch 7's feedback topics stay set after a run), and `pub()` shows a traceback when `mosquitto_pub` fails.
+- `check.sh` runs manifest lines through `eval`; `run.js`'s three random streams are all `Math.random`; `track-warrant.js` inserts `opt.intro` unescaped.
+- `check_py_sizes.py` keeps two dated comments; `check_stamps.py` is at 791 of 800 lines; `check_data_readers.py` copies hartlib's tracked-files helper.
+- Tests: `test_check_stamps.py` has dated comments and two source greps; `test_deploy_stage.py` keeps its PowerShell and rsync source reads; the deploy tests copy each other's ssh and git helpers; `test_signals_keys.py` repeats the node-runner wrapper.
+- Stopping `make remote` on the Mac leaves its run going on the Windows box: the remote bash outlives the killed ssh, so its `~/wt` folder and processes stay until cleared by hand.
