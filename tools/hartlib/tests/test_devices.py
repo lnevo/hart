@@ -73,8 +73,8 @@ class TheCommittedMaster(unittest.TestCase):
     def test_it_loads_and_every_row_has_a_description_and_a_known_writer(self):
         rows = D.load()
         self.assertGreater(len(rows), 700)
-        self.assertTrue(all(r["description"].strip() for r in rows))
-        self.assertLessEqual({r["written_by"] for r in rows}, {""} | set(D.WRITERS))
+        self.assertTrue(all(r.description.strip() for r in rows))
+        self.assertLessEqual({r.written_by for r in rows}, {""} | set(D.WRITERS))
 
     def test_the_three_generated_files_are_what_it_generates(self):
         self.assertEqual(D.stale(), [])
@@ -84,9 +84,9 @@ class TheCommittedMaster(unittest.TestCase):
 
     def test_levels_are_one_structure_and_hold_spares_and_status_beans(self):
         rows = D.load()
-        self.assertEqual({r["level"] for r in rows if not D.is_unplaced(r)}, {"1", "2", "3"})
-        self.assertEqual({r["user_name"] for r in rows if r["role"] == "spare"}, {"unused Block 2-2", "unused Block 3-8"})
-        self.assertEqual({r["user_name"] for r in rows if r["role"] == "panel_status"},
+        self.assertEqual({r.level_cell for r in rows if not D.is_unplaced(r)}, {"1", "2", "3"})
+        self.assertEqual({r.user_name for r in rows if r.role == "spare"}, {"unused Block 2-2", "unused Block 3-8"})
+        self.assertEqual({r.user_name for r in rows if r.role == "panel_status"},
                          {"Bridge HBLOOP", "SML Mode", "Track Power", "Turnout FB status"})
 
     def test_the_command_checks_the_checkout(self):
@@ -109,7 +109,7 @@ class TheMasterAgainstTables(unittest.TestCase):
                     for e in root.iter(tag)]
         cls.turnouts, cls.blocks, cls.heads = beans("turnout"), beans("block"), beans("signalhead")
         cls.masts = beans("signalmast") + beans("virtualsignalmast")
-        cls.names = {layer: {r["user_name"] for r in cls.rows if r["layer"] == layer} for layer in D.LAYERS}
+        cls.names = {layer: {r.user_name for r in cls.rows if r.layer == layer} for layer in D.LAYERS}
 
     def test_every_live_user_name_on_a_turnout_block_mast_or_head_has_a_row(self):
         missing = [f"{layer} {user} ({system})"
@@ -120,28 +120,28 @@ class TheMasterAgainstTables(unittest.TestCase):
         self.assertEqual(missing, [])
 
     def test_every_field_device_system_name_is_in_tables_xml(self):
-        missing = [f"{r['user_name']} {r['system_name']}" for r in self.rows
-                   if r["assignment"] == "field" and r["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))
-                   and r["system_name"] not in self.system_names]
+        missing = [f"{r.user_name} {r.system_name}" for r in self.rows
+                   if r.assignment == "field" and r.system_name.startswith(("M2T", "M2S", "IH", "MTT"))
+                   and r.system_name not in self.system_names]
         self.assertEqual(missing, [])
 
     def test_field_rows_for_wired_hardware_carry_a_comment(self):
-        bare = [f"{r['layer']} {r['user_name']}" for r in self.rows
-                if r["assignment"] == "field" and r["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))
-                and not (r["wiring"] or r["jmri_comment"]) and not D.is_unplaced(r)]   # kept as the Store had it
+        bare = [f"{r.layer} {r.user_name}" for r in self.rows
+                if r.assignment == "field" and r.system_name.startswith(("M2T", "M2S", "IH", "MTT"))
+                and not (r.wiring or r.jmri_comment) and not D.is_unplaced(r)]   # kept as the Store had it
         self.assertEqual(bare, [])
 
     def test_mtt_100_to_119_are_lcc_aliases_named_dcc_switch(self):
-        by_system = {r["system_name"]: r for r in self.rows if r["system_name"].startswith("MTT")}
+        by_system = {r.system_name: r for r in self.rows if r.system_name.startswith("MTT")}
         wrong = [name for name in (f"MTT{n}" for n in range(100, 120))
-                 if name not in by_system or by_system[name]["role"] != "lcc_alias"
-                 or not by_system[name]["user_name"].startswith("DCC Switch ")]
+                 if name not in by_system or by_system[name].role != "lcc_alias"
+                 or not by_system[name].user_name.startswith("DCC Switch ")]
         self.assertEqual(wrong, [])
 
     def test_mast_comments_name_the_protected_switch(self):
-        masts = {r["user_name"]: r for r in self.rows if r["layer"] == "mast" and r["level"] == "1"}
-        self.assertEqual(masts["Mast 2L"]["jmri_comment"], "Brick | Switch 1")
-        self.assertEqual(masts["Mast 67"]["jmri_comment"], "Princess")
+        masts = {r.user_name: r for r in self.rows if r.layer == "mast" and r.level == 1}
+        self.assertEqual(masts["Mast 2L"].jmri_comment, "Brick | Switch 1")
+        self.assertEqual(masts["Mast 67"].jmri_comment, "Princess")
 
 
 class TheDictionary(unittest.TestCase):
@@ -482,7 +482,7 @@ class TheRowForms(unittest.TestCase):
 def hand_keep(files, layer="turnout", user="Switch 1"):
     """Make one row of the copied master hand-kept again (no written_by; since 2026-11-20 every committed row has a
     writer), moved ahead of the writers' rows of its level as a hand-kept row stands, and return it."""
-    rows = [dict(r) for r in D.load(files)]
+    rows = [r.cells() for r in D.load(files)]
     i = next(i for i, r in enumerate(rows) if r["layer"] == layer and r["user_name"] == user)
     row = dict(rows.pop(i), written_by="")
     at = next(i for i, r in enumerate(rows) if r["level"] == row["level"])
@@ -505,12 +505,12 @@ class TheWriters(unittest.TestCase):
     def test_a_device_not_on_the_layout_yet_passes_the_check(self):
         """A Store's level-less row (split_store --apply) has no role: it is on no device map, so the check leaves it
         out rather than stopping on its empty role."""
-        self.files.master.write_text(D.master_text(list(D.load(self.files)) + [unplaced()]), encoding="utf-8")
+        self.files.master.write_text(D.master_text([r.cells() for r in D.load(self.files)] + [unplaced()]), "utf-8")
         self.assertTrue(any(D.is_unplaced(r) for r in D.load(self.files)))
         self.assertEqual(D.stale(self.files), [])
 
     def test_a_row_the_old_form_readers_cannot_convert_fails_the_check(self):
-        rows = [dict(r) for r in D.load(self.files)]
+        rows = [r.cells() for r in D.load(self.files)]
         row = next(r for r in rows if r["role"] == "turnout" and r["assignment"] == "field" and r["wiring"] and r["dcc"])
         row["wiring"] = row["wiring"] + " | DCC: 1"                  # a DCC group of its own beside the dcc column
         self.files.master.write_text(D.master_text(rows), encoding="utf-8")
@@ -519,8 +519,8 @@ class TheWriters(unittest.TestCase):
         self.assertIn(row["user_name"], got[0])
 
     def test_the_device_maps_leave_out_spare_and_status_rows_and_split_levels(self):
-        staging = D.device_map_rows(D.load(self.files), ("1",))
-        both = D.device_map_rows(D.load(self.files), ("2", "3"))
+        staging = D.device_map_rows([r.cells() for r in D.load(self.files)], ("1",))
+        both = D.device_map_rows([r.cells() for r in D.load(self.files)], ("2", "3"))
         self.assertEqual({r["level"] for r in staging}, {"1"})
         self.assertEqual({r["level"] for r in both}, {"2", "3"})
         names = {r["user_name"] for r in staging}
@@ -529,7 +529,7 @@ class TheWriters(unittest.TestCase):
     WRITER = "build_device_map.py"          # every level's rows, masts and heads too (naming-layers step 12)
 
     def mine(self, files):
-        return [dict(r) for r in D.load(files) if r["written_by"] == self.WRITER]
+        return [r.cells() for r in D.load(files) if r.written_by == self.WRITER]
 
     def test_a_writer_that_gives_its_rows_back_unchanged_changes_no_file(self):
         out = D.outputs_after_rows(self.WRITER, self.mine(self.files), self.files)
@@ -542,12 +542,12 @@ class TheWriters(unittest.TestCase):
         gone = (drop["level"], drop["layer"], drop["user_name"])
         out = D.outputs_after_rows(self.WRITER, [r for r in mine if r is not drop], self.files,
                                    warn=lambda line: None)
-        before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
+        before = {(r.level_cell, r.layer, r.user_name) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
         self.assertEqual(before - after, {gone})
         self.assertEqual(after - before, set())                       # no row is added
-        held = [dict(r) for r in D.load(self.files) if r["written_by"] != self.WRITER]
+        held = [r.cells() for r in D.load(self.files) if r.written_by != self.WRITER]
         kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != self.WRITER]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
@@ -581,7 +581,7 @@ class TheWriters(unittest.TestCase):
         mine = [r for r in self.mine(self.files) if r["user_name"] != "Mast 4LA"]
         out = D.outputs_after_rows(self.WRITER, mine, self.files, warn=lambda line: None)
         self.assertNotIn(",Mast 4LA,", out[self.files.master])
-        status = [dict(r) for r in D.load(self.files) if r["written_by"] == "panel_items.json"]
+        status = [r.cells() for r in D.load(self.files) if r.written_by == "panel_items.json"]
         out = D.outputs_after_rows("panel_items.json", [r for r in status if r["user_name"] != "SML Mode"], self.files)
         self.assertNotIn(",SML Mode,", out[self.files.master])
 
@@ -595,20 +595,20 @@ class TheWriters(unittest.TestCase):
         rows = {D.key_of(r): r for r in D.load()}
         named = {k for k, f in keys.items() if f["layer"] == "mast"
                  and not any(f[c] for c in D.FIELD_COLUMNS if c != "user_name")}
-        self.assertEqual({rows[k]["assignment"] for k in set(keys) - named}, {"field"})
-        self.assertEqual(sorted(rows[k]["user_name"] for k in named), ["Mast 6LA", "Mast 8RA", "Mast 8RB"])
+        self.assertEqual({rows[k].assignment for k in set(keys) - named}, {"field"})
+        self.assertEqual(sorted(rows[k].user_name for k in named), ["Mast 6LA", "Mast 8RA", "Mast 8RB"])
 
     def test_a_writer_may_drop_a_main_or_upper_row_without_saying_so(self):
         """A writer may drop a row the field file holds no cells for (here a main level spur): the row is the
         rule's alone."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_device_map.py" and r["level"] == "2"
-                and r["role"] == "spur"]
-        gone = held[0]
-        rest = [dict(r) for r in D.load(self.files) if r["written_by"] == "build_device_map.py"
-                and (r["level"], r["layer"], r["user_name"]) != (gone["level"], gone["layer"], gone["user_name"])]
+        held = [r for r in D.load(self.files) if r.written_by == "build_device_map.py" and r.level == 2
+                and r.role == "spur"]
+        gone = (held[0].level_cell, held[0].layer, held[0].user_name)
+        rest = [r.cells() for r in D.load(self.files) if r.written_by == "build_device_map.py"
+                and (r.level_cell, r.layer, r.user_name) != gone]
         out = D.outputs_after_rows("build_device_map.py", rest, self.files)
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
-        self.assertNotIn((gone["level"], gone["layer"], gone["user_name"]), after)
+        self.assertNotIn(gone, after)
 
     def test_a_writer_that_gives_a_row_a_hand_kept_row_has_is_refused(self):
         hand = hand_keep(self.files)
@@ -667,8 +667,8 @@ class TheReaders(unittest.TestCase):
     def test_a_line_is_the_masters_own(self):
         rows = list(D.load())
         for n, r in D.device_map_lines(("2", "3")):
-            self.assertEqual((rows[n - 2]["level"], rows[n - 2]["user_name"]), (r["level"], r["user_name"]))
-            self.assertEqual(rows[n - 2]["role"], r["role"])
+            self.assertEqual((rows[n - 2].level_cell, rows[n - 2].user_name), (r["level"], r["user_name"]))
+            self.assertEqual(rows[n - 2].role, r["role"])
 
     def test_no_panel_status_row_is_in_a_device_map(self):
         roles = {r["role"] for _n, r in D.device_map_lines(("1", "2", "3"))}
@@ -713,7 +713,7 @@ class TheKindFromTheRow(unittest.TestCase):
         self.assertIn("Switch 101", ix.names("turnout", roles=("turnout",)))
         self.assertNotIn("DCC Switch 101", ix.names("turnout", roles=("turnout",)))
         self.assertEqual(set(ix.names("occupancy", levels=("2",))),
-                         {r["user_name"] for r in D.load() if r["layer"] == "occupancy" and r["level"] == "2"})
+                         {r.user_name for r in D.load() if r.layer == "occupancy" and r.level == 2})
         with self.assertRaisesRegex(D.DevicesError, "devices_generated.csv: no block row 'Track Nowhere'"):
             ix.role("block", "Track Nowhere")
 
@@ -728,7 +728,7 @@ class TheKindFromTheRow(unittest.TestCase):
         row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, el)], row)
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "devices.csv"
-            path.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
+            path.write_text(D.master_text([r.cells() for r in D.load()] + [row]), encoding="utf-8")
             ix = D.index(path)
             detectors = ix.names("occupancy", roles=set(D.ROLES) - {"spare"})
             self.assertNotIn("BS Store Added", detectors)
@@ -745,7 +745,7 @@ class TheKindFromTheRow(unittest.TestCase):
     def test_rows_that_disagree_on_a_role_stop_naming_their_lines(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "devices.csv"
-            rows = list(csv.reader(io.StringIO(D.master_text(D.load()), newline="")))
+            rows = list(csv.reader(io.StringIO(D.master_text(r.cells() for r in D.load()), newline="")))
             col = rows[0].index
             helix = [i for i, r in enumerate(rows) if r[col("layer")] == "block" and r[col("user_name")] ==
                      "Track Helix Inner"]
@@ -765,7 +765,7 @@ class TheStagingFacts(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.rows = {(r["level"], r["layer"], r["user_name"]): r for r in D.load()}
+        cls.rows = {(r.level_cell, r.layer, r.user_name): r.cells() for r in D.load()}
 
     def test_a_line_blocks_cp_lists_the_places_it_joins(self):
         """The owner's rule (2026-11-21): the stations (or control points) of the switches at a line block's two ends,
@@ -818,7 +818,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
         self.path = D.one_file_copy(self.tmp / "devices.csv")
 
     def test_a_bad_row_names_the_file_the_line_and_the_row(self):
-        rows = [dict(r) for r in D.load(self.path)]
+        rows = [r.cells() for r in D.load(self.path)]
         rows[4]["description"] = ""
         self.path.write_text(D.master_text(rows), encoding="utf-8")
         with self.assertRaises(D.DevicesError) as cm:
@@ -829,17 +829,17 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
     def test_a_same_size_write_in_the_same_tick_is_read_again(self):
         import os
         before = os.stat(self.path)
-        rows = [dict(r) for r in D.load(self.path)]
+        rows = [r.cells() for r in D.load(self.path)]
         old = rows[0]["description"]
         rows[0]["description"] = old[:-1] + ("!" if old[-1] != "!" else "?")        # one character, the same length
         self.path.write_text(D.master_text(rows), encoding="utf-8")
         os.utime(self.path, ns=(before.st_atime_ns, before.st_mtime_ns))        # the same mtime too
         after = os.stat(self.path)
         self.assertEqual((after.st_size, after.st_mtime_ns), (before.st_size, before.st_mtime_ns))
-        self.assertEqual(D.load(self.path)[0]["description"], rows[0]["description"])
+        self.assertEqual(D.load(self.path)[0].description, rows[0]["description"])
 
     def test_a_line_break_in_a_field_is_refused_naming_the_row(self):
-        rows = [dict(r) for r in D.load(self.path)]
+        rows = [r.cells() for r in D.load(self.path)]
         rows[2]["notes"] = "two\nlines"
         self.path.write_text(D.master_text(rows), encoding="utf-8")
         with self.assertRaisesRegex(D.DevicesError, rf"{rows[2]['user_name']} \(level 1, turnout\): notes hold a line break"):

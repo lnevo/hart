@@ -564,19 +564,13 @@ class DeviceRows(unittest.TestCase):
                                     "dcc": 201, "line": 99}, line=7)
         self.assertEqual((r.level, r.dcc, r.line), (3, "201", 7))
 
-    def test_a_row_is_a_mapping_of_the_masters_columns_as_text(self) -> None:
+    def test_two_rows_are_equal_by_every_field(self) -> None:
         r = drow("mast", "Mast 2L", "home", comment="built", line=5, written_by="build_masts.py")
-        self.assertEqual(list(r), list(devices.COLUMNS))
-        self.assertEqual(len(r), len(devices.COLUMNS))
-        self.assertEqual((r["level"], r["layer"], r["written_by"], r.get("dir")), ("2", "mast", "build_masts.py", ""))
-        for not_a_column in ("comment", "line", "swapped"):
-            with self.subTest(not_a_column), self.assertRaises(KeyError):
-                r[not_a_column]
-        self.assertEqual(dict(r) | {"dir": "east"}, r | {"dir": "east"})
-        self.assertEqual(r, dict(r))                    # equal to the same columns as a dict
-        self.assertNotEqual(r, dict(r) | {"dir": "east"})
-        self.assertNotEqual(r, replace(r, line=6))      # two rows also hold line and comment to each other
+        self.assertEqual(r, replace(r))
         self.assertEqual(hash(r), hash(replace(r)))
+        self.assertNotEqual(r, replace(r, line=6))      # two rows also hold line and comment to each other
+        self.assertNotEqual(r, replace(r, comment=""))
+        self.assertNotEqual(r, r.cells())               # a row is not its cells
 
     def test_cells_are_the_row_as_the_master_holds_it(self) -> None:
         r = drow("mast", "Mast 2L", "home", comment="built", line=5, written_by="build_masts.py", dir="east")
@@ -606,11 +600,11 @@ class DeviceRows(unittest.TestCase):
                                                          user_name="OS Switch 1")
         r = rf.MasterRow.from_master(cells, 4, "here")
         self.assertIsInstance(r, rf.DeviceRow)
-        self.assertEqual((r.level, r.line, r.id, dict(r)), (1, 4, "os:1", cells))
+        self.assertEqual((r.level, r.line, r.id, r.cells()), (1, 4, "os:1", cells))
         store = cells | dict(level="", role="", id="", assignment="field", jmri_name="IS9", system_name="IS9")
         kept = rf.MasterRow.from_master(store, 5, "here")       # a Store's level-less row: no level, no role
         self.assertNotIsInstance(kept, rf.DeviceRow)
-        self.assertEqual((kept.level, kept["level"], kept.role), (None, "", ""))
+        self.assertEqual((kept.level, kept.level_cell, kept.role), (None, "", ""))
         with self.assertRaisesRegex(rf.FactsError, "here: level is 1, 2 or 3"):
             rf.MasterRow.from_master(cells | {"level": "4"}, 6, "here")
         with self.assertRaisesRegex(rf.FactsError, "here: a device master row has no jmri_bean"):

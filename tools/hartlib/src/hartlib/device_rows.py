@@ -2,12 +2,11 @@
 
 hartlib.devices.load() returns these rows, and hartlib.railroad_facts.DeviceMap holds DeviceRow records of main and
 upper. A reader takes a row's fields; a writer or a check that works on the master's text takes MasterRow.cells(),
-the row as the file holds it. Each row is also a read-only Mapping of those cells, for the callers outside hartlib
-that still read it so. railroad_facts re-exports every name here.
+the row as the file holds it. railroad_facts re-exports every name here.
 """
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from typing import cast
 
@@ -27,19 +26,17 @@ MASTER_COLUMNS = ("level", "cp", "layer", "role", "id", "user_name", "assignment
                   "dcc", "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
                   "cats_discipline", "part_of", "switch", "facing", "protects", "dir", "start", "bean_comment",
                   "written_by", "description", "jmri_bean")
-_MASTER_CELLS = frozenset(MASTER_COLUMNS)
 
 
 @dataclass(frozen=True, eq=False)
-class MasterRow(Mapping[str, str]):
+class MasterRow:
     """A row of the device master: a JMRI device (jmri_name, virtual) and its planned physical part (system_name, a
     draft). `role` is what the device is (devices.ROLES), given by the row or its writer; readers test it, not the
     name. `level` is None only on a Store's level-less row (devices.is_unplaced), which has no role either; every
     row with a level is a DeviceRow, whose level is a Level.
 
     A reader takes the fields. A writer or a check that works on the master's text takes cells(): the row as the
-    file holds it, {column: text} in MASTER_COLUMNS order, the level as "1", "2", "3" or "" (level_cell). The row is
-    also a read-only Mapping of those cells (row["layer"]), which the callers outside hartlib still read. `comment`
+    file holds it, {column: text} in MASTER_COLUMNS order, the level as "1", "2", "3" or "" (level_cell). `comment`
     (the device-map form's built comment) and `line` are not columns of the master and are not among the cells."""
     level: Level | None
     layer: str
@@ -101,35 +98,13 @@ class MasterRow(Mapping[str, str]):
         out["level"] = self.level_cell
         return out
 
-    # ------------------------------------------------ the Mapping of the master's columns
-
-    def __getitem__(self, column: str) -> str:
-        if column not in _MASTER_CELLS:
-            raise KeyError(column)
-        if column == "level":
-            return self.level_cell
-        value: str = getattr(self, column)
-        return value
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(MASTER_COLUMNS)
-
-    def __len__(self) -> int:
-        return len(MASTER_COLUMNS)
-
-    def __or__(self, other: Mapping[str, str]) -> dict[str, str]:
-        """The row's cells with `other`'s over them, as a dict (as a mappingproxy's | gives)."""
-        return {**self.cells(), **other}
-
     def _values(self) -> tuple[object, ...]:
         return tuple(getattr(self, f) for f in _DEVICE_ROW_FIELDS)
 
     def __eq__(self, other: object) -> bool:
-        """Equal to a row with the same fields (line and comment too), or to a Mapping with the same columns."""
+        """Equal to a row with the same fields (line and comment too)."""
         if isinstance(other, MasterRow):
             return self._values() == other._values()
-        if isinstance(other, Mapping):
-            return self.cells() == dict(other)
         return NotImplemented
 
     def __hash__(self) -> int:

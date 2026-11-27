@@ -284,8 +284,8 @@ class Repo(unittest.TestCase):
     def test_every_main_and_upper_block_has_a_plan_length(self):
         from hartlib import devices
         rows = PL.block_lengths.plan_blocks(PL.LENGTHS)
-        want = {r["user_name"] for r in devices.load(devices.master_path(PL.pd.DATA.parents[0]))
-                if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
+        want = {r.user_name for r in devices.load(devices.master_path(PL.pd.DATA.parents[0]))
+                if r.level_cell in ("2", "3") and r.layer == "block" and r.role != "part"}
         self.assertEqual(sorted(want - set(rows)), [])
         self.assertFalse(hasattr(next(iter(rows.values())), "measured_in"))    # the plan file holds the plan length only
 

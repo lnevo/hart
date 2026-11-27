@@ -68,15 +68,15 @@ class CommittedRows(unittest.TestCase):
         """The committed device master: each main and upper block row but a helix block's carries the names the rule
         gives over block_numbering.csv and the generated names (as build_device_map.block_beans numbers them, so an
         owner's rename keeps them), and only those rows have them."""
-        rows = [r for r in devices.load() if r["level"] in bn.LEVELS and r["layer"] == "block"]
-        numbered = [r for r in rows if r["role"] != "helix"]
+        rows = [r for r in devices.load() if r.level_cell in bn.LEVELS and r.layer == "block"]
+        numbered = [r for r in rows if r.role != "helix"]
         generated = {(r["level"], r["id"]): r["user_name"] for r in devices.generated_rows()
                      if r["level"] in bn.LEVELS and r["layer"] == "block" and r["role"] != "helix"}
         want = bn.bean_names(generated.values(), bn.read(bn.PATH, generated))
-        self.assertEqual({(r["level"], r["id"]): (r["jmri_name"], r["layout_block"]) for r in numbered},
+        self.assertEqual({(r.level_cell, r.id): (r.jmri_name, r.layout_block) for r in numbered},
                          {k: want[name] for k, name in generated.items()})
-        self.assertEqual({r["assignment"] for r in numbered}, {"virtual"})
-        self.assertEqual([(r["jmri_name"], r["layout_block"]) for r in rows if r["role"] == "helix"],
+        self.assertEqual({r.assignment for r in numbered}, {"virtual"})
+        self.assertEqual([(r.jmri_name, r.layout_block) for r in rows if r.role == "helix"],
                          [("", "")] * 2)
 
 

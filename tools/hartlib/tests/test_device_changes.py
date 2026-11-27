@@ -133,7 +133,7 @@ class ThroughTheWriter(unittest.TestCase):
 
     def test_an_unchanged_write_says_nothing(self):
         said = []
-        mine = [dict(r) for r in D.load(self.files) if r["written_by"] == OTHER]
+        mine = [r.cells() for r in D.load(self.files) if r.written_by == OTHER]
         D.outputs_after_rows(OTHER, mine, self.files, said.append)
         self.assertEqual(said, [])
 
@@ -173,9 +173,9 @@ class ThroughTheWriter(unittest.TestCase):
         """A staging device: the owner renames it in its field row (keyed by id), the builder takes the name from
         there, and the write says so."""
         self.files.field.write_text(D.master_text([field(user_name="Switch One", id="switch:1")]), encoding="utf-8")
-        self.assertEqual(D.load(self.files)[0]["user_name"], "Switch One")
+        self.assertEqual(D.load(self.files)[0].user_name, "Switch One")
         said = []
-        mine = [dict(D.load(self.files)[0])]
+        mine = [D.load(self.files)[0].cells()]
         out = D.outputs_after_rows("build_device_map.py", mine, self.files, said.append)
         self.assertIn(",Switch One,", out[self.files.master])           # the generated file names the row too
         self.assertEqual(len(said), 1)

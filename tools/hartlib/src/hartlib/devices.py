@@ -275,7 +275,7 @@ def check_field(rows: Iterable[Mapping[str, str]], name: str = FIELD_FILE) -> No
         if r["layer"] not in LAYERS or (r["level"] and r["level"] not in LEVELS):
             bad.append(f"{at}: level is one of {', '.join(LEVELS)} or empty, layer one of {', '.join(LAYERS)}")
         elif not r["written_by"]:               # a writer's row is refused above, and has no place here
-            ranks.append((_rank(r), row_text(r)))
+            ranks.append((row_rank(r), row_text(r)))
     for (a, ka), (b, kb) in zip(ranks, ranks[1:]):
         if b < a:
             bad.append(f"{name}: {kb} is out of order (level, then layer); it follows {ka}")
@@ -314,7 +314,7 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
           names: tuple[str, str] = (GENERATED_FILE, FIELD_FILE)) -> tuple[Mapping[str, str], ...]:
     """The one view every reader gets: each generated row with its field row's cells over it (a non-empty field cell
     replaces the generated one; an empty one means no override), then the field file's level-less rows (a Store's
-    devices), in the master's order (_rank), checked (check_rows). Rows are matched by KEY (level, id), so a field
+    devices), in the master's order (row_rank), checked (check_rows). Rows are matched by KEY (level, id), so a field
     user_name is the owner's name over the generated one. A field jmri_comment with OCCUPANCY_MARK is the builder's to
     fill: the generated cell stands, and must be the field text with the mark filled in. DevicesError on a field cell
     outside FIELD_COLUMNS, a field row whose id no generated row has (the plan no longer has that device: the owner
@@ -353,7 +353,7 @@ def merge(generated: Iterable[Mapping[str, str]], field: Iterable[Mapping[str, s
         raise DevicesError("; ".join(bad))
     out = follow_renames(out, generated)
     out += [r for r in field if not r["level"]]
-    out.sort(key=_rank)
+    out.sort(key=row_rank)
     rows = tuple(out)
     check_rows(rows, f"{gname} with {fname}")
     return rows
@@ -748,7 +748,7 @@ def read_dictionary(path: Path) -> dict[str, str]:
 
 # ---------------------------------------------------------------- the checks
 
-def _rank(row: Mapping[str, str]) -> tuple[int, int, int]:
+def row_rank(row: Mapping[str, str]) -> tuple[int, int, int]:
     """A row's place: by level (a level-less row after every level), layer, then hand-kept rows before each writer's."""
     writer = row["written_by"]
     level = LEVELS.index(row["level"]) if row["level"] else len(LEVELS)
@@ -919,7 +919,7 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str,
     old_rows, new_rows = [dict(r) for r in rows], [dict(r) for r in new]
     _writes_only_its_own(writer, new_rows, [r for r in old_rows if r["written_by"] != writer])
     out = [r for r in old_rows if r["written_by"] != writer] + new_rows
-    out.sort(key=_rank)
+    out.sort(key=row_rank)
     check_rows(out, f"the master after {writer}'s write")
     return out
 
@@ -1035,7 +1035,7 @@ def _after_rows(writer: str, new: Iterable[Mapping[str, str]],
     keep = [dict(g) for g in last if g["written_by"] != writer]
     _writes_only_its_own(writer, new, keep + [r for r in field if not r["level"]])
     out = keep + unmerge(new, field, writer)
-    out.sort(key=_rank)
+    out.sort(key=row_rank)
     changes = device_changes.stop(last, out, field)
     back = merge(out, field, (f.master.name, f.field.name))
     mine = {key_of(r): dict(r) for r in back if r["written_by"] == writer}

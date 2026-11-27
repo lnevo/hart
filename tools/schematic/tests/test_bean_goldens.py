@@ -112,7 +112,7 @@ class EveryLevelBeans(unittest.TestCase):
     def test_master_beans_makes_every_levels_beans(self) -> None:
         """No level is left to another process (GENERATED_LEVELS went in step 11): every main and upper row's names
         are among master_beans' beans."""
-        rows = devices.load()
+        rows = [r.cells() for r in devices.load()]
         made = {n for els in tb.master_beans(rows, block_lengths.operating_lengths(tb.BLOCK_LENGTHS)).values()
                 for el in els for n in (tables.system_name(el), tables.user_name(el))}
         level = {n for r in rows if r["level"] in LEVELS and r["assignment"] != "none" and r["role"] != "lcc_alias"
@@ -146,7 +146,7 @@ class MainUpperBeans(unittest.TestCase):
         """The row-to-bean map: a switch one internal turnout, its LCC alias and feedback rows
         none (DIRECT feedback); a block (part or not) a names-only and a full block and a layout block, except a
         helix block, which is staging's bean; a detector one internal sensor; a head and a mast one bean each."""
-        rows = [r for r in devices.load() if r["level"] in LEVELS]
+        rows = [r for r in devices.load() if r.level_cell in LEVELS]
         got = Counter()
         for sec in tables.elements(self.root):
             for el in tables.elements(sec):
@@ -154,8 +154,8 @@ class MainUpperBeans(unittest.TestCase):
                     got[(el.tag, tables.user_name(el))] += 1
         want = Counter()
         for r in rows:
-            layer, user = r["layer"], r["user_name"]
-            if layer == "turnout" and r["role"] == "turnout":
+            layer, user = r.layer, r.user_name
+            if layer == "turnout" and r.role == "turnout":
                 want[("turnout", user)] += 1
             elif layer == "block" and user not in HELIX:
                 want[("block", user)] += 2
@@ -165,7 +165,7 @@ class MainUpperBeans(unittest.TestCase):
             elif layer == "head":
                 want[("signalhead", user)] += 1
             elif layer == "mast":
-                tag = "virtualsignalmast" if r["jmri_name"].startswith("IF$vsm:") else "signalmast"
+                tag = "virtualsignalmast" if r.jmri_name.startswith("IF$vsm:") else "signalmast"
                 want[(tag, user)] += 1
         self.assertEqual(sorted((want - got).items()), [], "rows with no bean")
         self.assertEqual(sorted((got - want).items()), [], "beans with no row")
@@ -197,7 +197,7 @@ class RowCellsAreTheGoldenBeans(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.rows = [r for r in devices.load() if r["level"] in LEVELS]
+        cls.rows = [r.cells() for r in devices.load() if r.level_cell in LEVELS]
         cls.beans = [(line.split("\t", 1)[0], ET.fromstring(line.split("\t", 1)[1])) for line in read_fixture()
                      if not line.startswith("detector")]
 
@@ -247,9 +247,9 @@ class RowCellsAreTheGoldenBeans(unittest.TestCase):
         switches, writes back the committed cells (no plugin needed)."""
         import device_map_rows
         thrown = frozenset(r["id"].removeprefix("switch:") for r in self.rows if r["start"] == "thrown")
-        blank = [dict(r, start="", bean_comment="") for r in devices.load()]
+        blank = [r.cells() | {"start": "", "bean_comment": ""} for r in devices.load()]
         got = device_map_rows.bean_cells(blank, thrown)
-        want = [dict(r) for r in devices.load()]
+        want = [r.cells() for r in devices.load()]
         self.assertEqual([(r["start"], r["bean_comment"]) for r in want], [(r["start"], r["bean_comment"]) for r in got])
         self.assertFalse(any(r["start"] or r["bean_comment"] for r in got if r["level"] not in LEVELS))
 
@@ -260,9 +260,10 @@ class StagingAlone(unittest.TestCase):
 
     def test_staging_beans_are_the_same_but_the_helix_blocks_sensor(self) -> None:
         rows = devices.load()
+        cells = [r.cells() for r in rows]
         lengths = block_lengths.operating_lengths(tb.BLOCK_LENGTHS)
-        every = tb.master_beans(rows, lengths)
-        alone = tb.master_beans(rows, lengths, (railroad.STAGING_LEVEL,))
+        every = tb.master_beans(cells, lengths)
+        alone = tb.master_beans(cells, lengths, (railroad.STAGING_LEVEL,))
         names = lt.level_bean_names(rows=rows)
         for key, els in alone.items():
             with self.subTest(section=key):
@@ -281,7 +282,8 @@ class StagingAlone(unittest.TestCase):
                    if line.startswith("LogixNGDigitalActions")]
         many = next(e for e in fixture if e.tag == "DigitalMany")
         sockets = [s.findtext("systemName") for s in many.find("Actions")]
-        actions = tb.master_beans(devices.load(), block_lengths.operating_lengths(tb.BLOCK_LENGTHS))[tb.START_ACTIONS]
+        actions = tb.master_beans([r.cells() for r in devices.load()],
+                                  block_lengths.operating_lengths(tb.BLOCK_LENGTHS))[tb.START_ACTIONS]
         self.assertEqual(sockets, [a.findtext("systemName") for a in actions])
 
 

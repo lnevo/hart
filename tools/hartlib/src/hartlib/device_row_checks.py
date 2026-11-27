@@ -164,7 +164,7 @@ def _check_row(r: Mapping[str, str], seen: _Seen, bad: list[str]) -> None:
     _check_cells(r, at, bad)
     _check_part(r, at, seen, bad)
     if not unknown:
-        seen.ranks.append((devices._rank(r), at))
+        seen.ranks.append((devices.row_rank(r), at))
 
 
 def _check_mast_ids(rows: Sequence[Mapping[str, str]], bad: list[str]) -> None:
@@ -184,7 +184,7 @@ def _check_mast_ids(rows: Sequence[Mapping[str, str]], bad: list[str]) -> None:
 
 
 def _check_parts_and_order(seen: _Seen, bad: list[str]) -> None:
-    """Each part names a whole block on its own level; the rows are in devices._rank order (else the first that
+    """Each part names a whole block on its own level; the rows are in devices.row_rank order (else the first that
     is not)."""
     for at, level, target in seen.parts:
         if (level, target) in seen.part_names:

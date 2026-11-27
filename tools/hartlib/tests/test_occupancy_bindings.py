@@ -44,7 +44,7 @@ class TheRepo(unittest.TestCase):
         self.assertEqual(sum(r["cats_discipline"] == "YARD" for r in rows), 12)
         names = track_names.names_by_id([r["block_id"] for r in rows])
         self.assertEqual({r["block_id"]: r["block_user_name"] for r in rows}, names)
-        users = {r["user_name"] for r in devices.load()}
+        users = {r.user_name for r in devices.load()}
         self.assertEqual([r for r in rows if r["occupancy_sensor_user_name"] not in users], [])
         by_name = {r["block_user_name"]: r for r in rows}
         self.assertEqual(by_name["Track W-1"]["occupancy_sensor_user_name"], "BS W-1")
@@ -53,7 +53,7 @@ class TheRepo(unittest.TestCase):
 
     def test_only_block_rows_have_one(self):
         self.assertEqual([devices.row_text(r) for r in devices.load()
-                          if r["cats_discipline"] and r["layer"] != "block"], [])
+                          if r.cats_discipline and r.layer != "block"], [])
 
 
 class OnACopy(unittest.TestCase):

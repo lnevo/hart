@@ -123,9 +123,9 @@ class ItemKeys(unittest.TestCase):
         self.assertEqual(ss.label(ss.SettingKey("setting", sk, "opt", ss.ById(ss.BY_ID, "k"))), "<turnouts> <opt> 'k'")
         got = ss.label(ss.SettingKey("setting", sk, "opt", ss.ByContent(ss.BY_CONTENT, "<a>hi</a>", 1)))
         self.assertRegex(got, r"^<turnouts> <opt> \(hi; [0-9a-f]{6}\) copy 2$")
-        # a plain tuple of the same shape is the same key
-        self.assertEqual(ss.label(("bean", sk, "turnout", "", "IT1")), "turnout IT1")
+        # a key compares and hashes as the plain tuple of its parts
         self.assertEqual(ss.BeanKey("bean", sk, "t", "", "n"), ("bean", sk, "t", "", "n"))
+        self.assertEqual(hash(ss.BeanKey("bean", sk, "t", "", "n")), hash(("bean", sk, "t", "", "n")))
 
     def test_sort_group_is_public(self) -> None:
         self.assertTrue(callable(tables_build.sort_group))

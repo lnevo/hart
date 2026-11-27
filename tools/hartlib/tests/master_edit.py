@@ -36,7 +36,7 @@ def fixture_id(row: Mapping[str, str]) -> str:
 
 
 def _rows(path: Path) -> list[dict]:
-    return [dict(r) for r in devices.load(path)]
+    return [r.cells() for r in devices.load(path)]
 
 
 def find(rows: list[dict], key: tuple[str, str, str]) -> dict:
@@ -46,7 +46,7 @@ def find(rows: list[dict], key: tuple[str, str, str]) -> dict:
 
 
 def _write(path: Path, rows: list[dict]) -> None:
-    rows.sort(key=devices._rank)      # the master's own order, which check_rows holds it to
+    rows.sort(key=devices.row_rank)      # the master's own order, which check_rows holds it to
     path.write_text(devices.master_text(rows), encoding="utf-8")
     devices._read.cache_clear()       # (the cache is keyed on the bytes, so this is belt and braces)
 

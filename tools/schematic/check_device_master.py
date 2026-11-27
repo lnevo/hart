@@ -74,7 +74,7 @@ def master_lines(path: Path = DEVICE_MAP) -> list[tuple[int, dict[str, str]]]:
     """(line, row) of every row of the master at `path` that a device map holds (all levels, outside
     devices.OUT_OF_MAPS, and not a level-less device), each a dict of the master's columns. DeviceMasterError when it cannot be read or is empty."""
     try:
-        out = [(r.line, dict(r)) for r in devices.load(path)
+        out = [(r.line, r.cells()) for r in devices.load(path)
                if r.role not in devices.OUT_OF_MAPS and not devices.is_unplaced(r)]   # on no level's map yet
     except railroad.FactsError as exc:
         raise DeviceMasterError(str(exc)) from exc
@@ -442,7 +442,7 @@ def check(band=None) -> list[str]:
     _part(bad, read_mast_files)
     _part(bad, lambda: check_tables([r for _n, r in lines], rr))
     # every row, parts too (master_lines leaves them out): a part's block bean has its comment as well
-    _part(bad, lambda: check_bean_cells([dict(r) for r in devices.load(DEVICE_MAP)], rr.tables.root))
+    _part(bad, lambda: check_bean_cells([r.cells() for r in devices.load(DEVICE_MAP)], rr.tables.root))
     return bad
 
 

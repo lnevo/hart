@@ -54,7 +54,8 @@ def want_masts(path: Path = level_masts.PATH) -> list[dict]:
 
 def head_comments(files: devices.Files | None = None) -> dict:
     """{head JMRI name: its device row's comment and notes} of every level's head rows (hartlib.devices)."""
-    rows = devices.device_map_rows(devices.load(files), tuple(str(lv) for lv in level_masts.LEVELS))
+    rows = devices.device_map_rows([r.cells() for r in devices.load(files)],
+                                   tuple(str(lv) for lv in level_masts.LEVELS))
     return {r["jmri_name"]: " | ".join(x for x in (r["comment"], r["notes"]) if x)
             for r in rows if r["layer"] == "head"}
 

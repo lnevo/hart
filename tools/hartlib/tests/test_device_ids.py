@@ -94,11 +94,11 @@ class Committed(unittest.TestCase):
         cls.rows = D.load()
 
     def test_every_row_with_a_level_has_an_id_unique_on_its_level_and_a_store_row_none(self):
-        placed = [r for r in self.rows if r["level"]]
-        self.assertFalse([D.key_of(r) for r in placed if not r["id"]])
-        twice = [k for k, n in Counter((r["level"], r["id"]) for r in placed).items() if n > 1]
+        placed = [r for r in self.rows if r.level]
+        self.assertFalse([D.key_of(r) for r in placed if not r.id])
+        twice = [k for k, n in Counter((r.level, r.id) for r in placed).items() if n > 1]
         self.assertEqual(twice, [])
-        self.assertFalse([D.key_of(r) for r in self.rows if not r["level"] and r["id"]])
+        self.assertFalse([D.key_of(r) for r in self.rows if not r.level and r.id])
 
     def test_each_kind_follows_the_grammar(self):
         want = {"turnout": r"switch:\d+", "lcc_alias": r"dcc:\d+", "fb": r"fb:\d+:[NR]",
@@ -110,45 +110,45 @@ class Committed(unittest.TestCase):
             want[kind] = r"block:[^+\s]+(\+[^+\s]+)*"
         bad = []
         for r in self.rows:
-            if not r["level"]:
+            if not r.level:
                 continue
-            if r["layer"] == "occupancy" and r["role"] != "spare":
-                ok = re.fullmatch(r"det:(block|os):\S+", r["id"])
-            elif r["layer"] == "head" and r["role"] == "head":
-                ok = re.fullmatch(r"mast:\S+:(top|bottom|single)", r["id"])
+            if r.layer == "occupancy" and r.role != "spare":
+                ok = re.fullmatch(r"det:(block|os):\S+", r.id)
+            elif r.layer == "head" and r.role == "head":
+                ok = re.fullmatch(r"mast:\S+:(top|bottom|single)", r.id)
             else:
-                ok = re.fullmatch(want[r["role"]], r["id"])
+                ok = re.fullmatch(want[r.role], r.id)
             if not ok:
-                bad.append((D.key_of(r), r["role"], r["id"]))
+                bad.append((D.key_of(r), r.role, r.id))
         self.assertEqual(bad, [])
 
     def test_a_staging_half_mast_names_its_half(self):
         """Every home mast at a staging crossover half carries the half its protected OS block's ID gives."""
-        osid = {r["user_name"]: r["id"] for r in self.rows if r["level"] == "1" and r["layer"] == "block"}
+        osid = {r.user_name: r.id for r in self.rows if r.level == 1 and r.layer == "block"}
         got = {}
         for r in self.rows:
-            if r["level"] == "1" and r["layer"] == "mast" and r["role"] == "home" and osid[r["protects"]].count(":") == 2:
-                got[r["user_name"]] = (r["id"], osid[r["protects"]])
+            if r.level == 1 and r.layer == "mast" and r.role == "home" and osid[r.protects].count(":") == 2:
+                got[r.user_name] = (r.id, osid[r.protects])
         self.assertEqual(len(got), 9)
         for name, (mid, os_) in got.items():
             self.assertTrue(mid.startswith(f"mast:{os_.removeprefix('os:')}:"), (name, mid, os_))
 
     def test_a_detector_takes_its_blocks_id(self):
-        block = {(r["level"], r["user_name"]): r["id"] for r in self.rows if r["layer"] == "block"}
+        block = {(r.level, r.user_name): r.id for r in self.rows if r.layer == "block"}
         for r in self.rows:
-            if r["layer"] == "occupancy" and r["role"] != "spare":
-                with self.subTest(r["user_name"]):
-                    self.assertEqual(r["id"], "det:" + block[(r["level"], r["blocks"])])
+            if r.layer == "occupancy" and r.role != "spare":
+                with self.subTest(r.user_name):
+                    self.assertEqual(r.id, "det:" + block[(r.level, r.blocks)])
 
     def test_no_block_or_mast_id_holds_its_user_name(self):
         """The ID comes from the plan ends, not the name: no name (Track Barn, Track 29-31, Mast 8LA, Head 2L Top)
         is in it. An OS block's name and ID both hold the switch number, so they are left out."""
         bad = []
         for r in self.rows:
-            if r["level"] and r["layer"] in ("block", "mast", "head") and r["role"] not in D.OS_ROLES:
-                bare = re.sub(r"^(Track|Mast|Head) ", "", r["user_name"])
-                if bare in r["id"]:
-                    bad.append((r["user_name"], r["id"]))
+            if r.level and r.layer in ("block", "mast", "head") and r.role not in D.OS_ROLES:
+                bare = re.sub(r"^(Track|Mast|Head) ", "", r.user_name)
+                if bare in r.id:
+                    bad.append((r.user_name, r.id))
         self.assertEqual(bad, [])
 
 

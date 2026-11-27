@@ -58,7 +58,7 @@ class Committed(RepoReadOnly, unittest.TestCase):
         text = level_masts.PATH.read_text(encoding="utf-8")
         plan = {(r["level"], r["mast"]): {c: r[c] for c in level_masts.PLAN_FIELDS}
                 for r in level_masts.read() if level_masts.placed(r)}
-        got = bmm.csv_text(bmm.file_rows(list(devices.load()), plan), level_masts.FIELDS)
+        got = bmm.csv_text(bmm.file_rows([r.cells() for r in devices.load()], plan), level_masts.FIELDS)
         self.assertEqual(got, text)
         self.assertEqual(text.splitlines()[0], ",".join(level_masts.FIELDS))
 

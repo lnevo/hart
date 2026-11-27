@@ -422,7 +422,7 @@ class CommittedData(unittest.TestCase):
     def setUpClass(cls):
         bands, joined, runs, _corners = bdm.solve()
         files = devices.Files.here()
-        cls.master = list(devices.load(files))
+        cls.master = [r.cells() for r in devices.load(files)]
         cls.got = dmm.staging_masts(bands, joined, runs, cls.master, files)
 
     def test_the_builder_wrote_these_rows(self):

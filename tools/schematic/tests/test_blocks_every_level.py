@@ -377,7 +377,7 @@ SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id", "start
 
 def committed() -> list[dict]:
     # devices.load also validates the master on load, which the plain csv read did not; the rows are the same
-    return [dict(r) for r in devices.load(DEVICES)]
+    return [r.cells() for r in devices.load(DEVICES)]
 
 
 def digest(rows: list[dict], level: str) -> tuple[int, str]:

@@ -299,7 +299,7 @@ def build(check: bool = False) -> Built:
     problems = devices.stale(files)       # the master is read below: stop if it or the files generated from it are off
     if problems:
         raise RuleError("; ".join(problems))
-    master = list(devices.load(files))
+    master = [r.cells() for r in devices.load(files)]       # the rows as the master's text (MasterCells)
     got = dmm.staging_masts(bands, joined, runs, master, files)
     current(master, got["rows"])
     rows = file_rows(master, got["facts"])

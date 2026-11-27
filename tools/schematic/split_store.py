@@ -130,7 +130,7 @@ def make_plan(store_path: Path, args) -> tuple[ss.Plan, dict]:
     repo_bytes = _read(TABLES)
     try:
         template_doc = tb.read_template(TEMPLATE)
-        rows = devices.load(DEVICE_FILES)
+        rows = [r.cells() for r in devices.load(DEVICE_FILES)]
         roots = dict(
             base=ss.normalised(base_bytes, "the base") if base_bytes is not None else None,
             repo=ss.normalised(repo_bytes, "tables.xml"),

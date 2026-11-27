@@ -56,8 +56,8 @@ class PlacesTest(unittest.TestCase):
 
     def test_readers_see_names(self):
         rows = devices.load()
-        self.assertIn("Barn;Engine House", {r["cp"] for r in rows})
-        self.assertFalse([r for r in rows if r["cp"].startswith(("st:", "cp:"))])
+        self.assertIn("Barn;Engine House", {r.cp for r in rows})
+        self.assertFalse([r for r in rows if r.cp.startswith(("st:", "cp:"))])
         masts = level_masts.read()
         self.assertIn("CP 107", {r["cp"] for r in masts})
         self.assertFalse([r for r in masts if r["cp"].startswith(("st:", "cp:"))])
@@ -161,10 +161,10 @@ class CopyListsTest(unittest.TestCase):
 
     def test_the_copied_master_reads_and_writes_by_its_lists(self):
         rows = devices.load(self.files)
-        self.assertIn("Barn;Roundhouse", {r["cp"] for r in rows})
-        self.assertNotIn("Barn;Engine House", {r["cp"] for r in rows})
-        self.assertIn("Barn;Engine House", {r["cp"] for r in devices.load()})
-        text = devices.master_text(rows, self.files)
+        self.assertIn("Barn;Roundhouse", {r.cp for r in rows})
+        self.assertNotIn("Barn;Engine House", {r.cp for r in rows})
+        self.assertIn("Barn;Engine House", {r.cp for r in devices.load()})
+        text = devices.master_text([r.cells() for r in rows], self.files)
         self.assertIn("st:barn;st:engine-house", text)
         self.assertNotIn("Roundhouse", text)
         devices.write_generated(devices.generated_rows(self.files), self.files)
@@ -179,17 +179,17 @@ class CopyListsTest(unittest.TestCase):
         self.assertTrue(all(b.replace("Engine House", "Roundhouse") == a for a, b in renamed), renamed)
 
     def test_a_changed_list_is_read_again(self):
-        self.assertIn("Barn;Roundhouse", {r["cp"] for r in devices.load(self.files)})
+        self.assertIn("Barn;Roundhouse", {r.cp for r in devices.load(self.files)})
         stations = self.folder / places.STATIONS.name
         stations.write_text(stations.read_text(encoding="utf-8").replace("Roundhouse", "Engine Shed"),
                             encoding="utf-8")
-        self.assertIn("Barn;Engine Shed", {r["cp"] for r in devices.load(self.files)})
+        self.assertIn("Barn;Engine Shed", {r.cp for r in devices.load(self.files)})
 
     def test_a_copy_with_no_lists_reads_the_repos(self):
         with tempfile.TemporaryDirectory() as tmp:
             files = devices.pair_copy(Path(tmp))
             self.assertIsNone(places.lists_beside(files))
-            self.assertIn("Barn;Engine House", {r["cp"] for r in devices.load(files)})
+            self.assertIn("Barn;Engine House", {r.cp for r in devices.load(files)})
 
     def test_an_id_the_copys_lists_lack_stops_the_load(self):
         stations = self.folder / places.STATIONS.name
@@ -224,13 +224,14 @@ class SwitchPlaceTest(unittest.TestCase):
     def test_every_switch_has_the_place_its_turnout_cp_held(self):
         want = {(lv, s): ident for lv, by in BEFORE.items() for ident, sw in by.items() for s in sw.split()}
         self.assertEqual(dict(places.switch_places()), want)
-        turnouts = [r for r in devices.load() if r["layer"] == "turnout"]
+        turnouts = [r for r in devices.load() if r.layer == "turnout"]
         self.assertTrue(turnouts)
         for r in turnouts:
-            number = r["id"].split(":")[1]
-            self.assertEqual(r["cp"], "", r["user_name"])
-            self.assertEqual(places.switch_place(r["level"], number), want.get((r["level"], number), ""), r["id"])
-            self.assertEqual(devices.place(r), places.names(want.get((r["level"], number), "")), r["id"])
+            number = r.id.split(":")[1]
+            level = r.level_cell
+            self.assertEqual(r.cp, "", r.user_name)
+            self.assertEqual(places.switch_place(level, number), want.get((level, number), ""), r.id)
+            self.assertEqual(devices.place(r), places.names(want.get((level, number), "")), r.id)
 
     def test_a_switch_in_two_stations_takes_its_desk_area(self):
         self.assertEqual(places.switch_place(1, 3), "st:brick")            # also in West Yard, of the Brick area
@@ -269,7 +270,7 @@ class SwitchPlaceTest(unittest.TestCase):
                 places.of({"layer": "turnout", "id": ident, "level": "2", "cp": "", "user_name": "Switch 7"})
 
     def test_check_rows_holds_every_turnout_id_to_its_role(self):
-        rows = [dict(r) for r in devices.load()]
+        rows = [r.cells() for r in devices.load()]
         turnouts = [r for r in rows if r["layer"] == "turnout" and r["level"]]
         self.assertEqual({r["role"] for r in turnouts}, {"turnout", "lcc_alias"})      # every real row passes
         devices.check_rows(rows)
@@ -291,7 +292,7 @@ class SwitchPlaceTest(unittest.TestCase):
             devices.check_rows(changed)
 
     def test_a_cp_put_back_on_a_turnout_row_stops(self):
-        rows = [dict(r) for r in devices.load()]
+        rows = [r.cells() for r in devices.load()]
         for ident, cp in (("switch:107", "CP 107"), ("dcc:1", "Brick")):
             with self.subTest(ident):
                 changed = [dict(r, cp=cp) if r["id"] == ident else r for r in rows]

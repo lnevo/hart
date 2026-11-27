@@ -1,5 +1,7 @@
-"""The store split's item keys (hartlib.store_split.index): one NamedTuple per kind of item, so code reads a key's
-parts by name. Each is a plain tuple too: a key built as a tuple of the same shape is the same key."""
+"""The store split's item keys (hartlib.store_split.index): one NamedTuple per kind of item (ItemKey), so code reads a
+key's parts by name and tells the kinds apart by class. index() builds every key as its NamedTuple; a bare tuple of
+the same shape hashes and compares as the same key, but the readers that test a key's kind (claimed_by,
+new_template) do not take one."""
 from __future__ import annotations
 
 import copy

@@ -17,7 +17,7 @@ Columns (COLUMNS):
   head's <mast id>:top|bottom|single, a detector's det:<block id> (det:block:17C-29C, det:os:19). The row holds no
   name: `read` gives each Wire the device's user name from the name store (hartlib.devices.user_names; a detector's
   is its block's), so a rename in devices_field.csv changes no row here and the frozen pins stay as they are. A main
-  or upper detector on a track is named by switch_a, switch_b, parallel and half instead (mast_rule.track_key: lower
+  or upper detector on a track is named by switch_a, switch_b, parallel and half instead (plan_tracks.track_key: lower
   number first), a key from the plan as well. A staging detector with neither is a spare input.
 - device: a button's, relay's or calibration relay's label (Switch 1 BTN, C4 calibration relay): they have no JMRI
   device, so no ID. Empty on every other row.

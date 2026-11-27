@@ -102,7 +102,7 @@ def station_plates(cats: ModuleType, root: ET.Element, stations: Iterable[tuple[
     import digicon_trace as trace          # cats/scripts, on build_cats_panel's path
     cells = trace.track_cells(root.find("TRACKPLAN"))
     from hartlib import devices, tables_build
-    plants = trace.desk_plants(cells, bound=True, level_turnouts=tables_build.level_turnouts(devices.load()))
+    plants = trace.desk_plants(cells, bound=True, level_turnouts=tables_build.level_turnouts(r.cells() for r in devices.load()))
     cols, rows = fit
     out = []
     for name, switches in stations:

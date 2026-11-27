@@ -55,8 +55,8 @@ from dataclasses import dataclass
 from . import devices, tables
 from . import tables_build as tb
 from .store_items import LOGIC, PANEL, SplitError, index, index_section, label, normalised, value  # noqa: F401
-from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, LogicKey, PanelKey,  # noqa: F401
-                         SectionKey, SettingKey, canon)
+from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, ItemKey, LogicKey,  # noqa: F401
+                         PanelKey, SecKey, SectionKey, SettingKey, canon)
 from .store_plan import (CLASH, DEVICE, DROPPED, KEPT, KINDS, REVIEWED, ROW, DeviceEdit, Edit, Item,  # noqa: F401
                          Plan, RowAdd, RowDelete, plan, unplaced_row)
 
@@ -127,8 +127,8 @@ def edited_rows(rows: Iterable[Mapping[str, str]], edits: Iterable[DeviceEdit]) 
     for add in edits:
         if isinstance(add, RowAdd):
             new = add.row
-            rank = devices._rank(new)
-            pos = next((n for n, r in enumerate(out) if devices._rank(r) > rank), len(out))
+            rank = devices.row_rank(new)
+            pos = next((n for n, r in enumerate(out) if devices.row_rank(r) > rank), len(out))
             out.insert(pos, new)
     return out
 
@@ -144,14 +144,13 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
     root = doc.root
     store_top = [c for c in tables.elements(store)]
 
-    def sections() -> dict[tuple, ET.Element]:
+    def sections() -> dict[SecKey, ET.Element]:
         return {tb.section_key(s): s for s in tables.elements(root) if s.tag != PANEL}
 
     for item in changes:
         key, s = item.key, item.store
-        kind = key[0]
-        if kind == "section":
-            have = sections().get(key[1:])
+        if isinstance(key, SectionKey):
+            have = sections().get((key.tag, key.cls))
             if have is not None:
                 idx = list(root).index(have)
                 root.remove(have)
@@ -160,15 +159,16 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
             elif s is not None:
                 root.insert(_after(root, store_top, s), copy.deepcopy(s))
             continue
-        sec = sections().get(key[1])
+        sec = None if isinstance(key, (PanelKey, LogicKey)) else sections().get(key.section)
         if sec is None:
             raise SplitError(f"the template has no section for {label(key)}")
-        if kind == "attrs":
+        if isinstance(key, AttrsKey):
             keep = s.attrib if s is not None else {}
             sec.attrib.clear()
             sec.attrib.update(keep)
             continue
-        here = index_section(sec, key[1], by_content)
+        assert isinstance(key, (BeanKey, SettingKey))
+        here = index_section(sec, key.section, by_content)
         if key in here:
             old = here[key]
             idx = list(sec).index(old)
@@ -185,11 +185,13 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
 
 
 
-def _slot(sec: ET.Element, key: tuple) -> int:
+def _slot(sec: ET.Element, key: BeanKey | SettingKey) -> int:
+    """Where an item the template lacks goes in its section: a bean last (jmri_sort orders the beans), a setting
+    after the last setting of its tag, else before the section's first bean."""
     kids = list(sec)
-    if key[0] == "bean":
+    if isinstance(key, BeanKey):
         return len(kids)
-    same = [i for i, el in enumerate(kids) if isinstance(el.tag, str) and el.tag == key[2]]
+    same = [i for i, el in enumerate(kids) if isinstance(el.tag, str) and el.tag == key.tag]
     if same:
         return same[-1] + 1
     named = [i for i, el in enumerate(kids) if isinstance(el.tag, str) and tables.system_name(el)]
@@ -250,14 +252,14 @@ def verify(p: Plan, c: Choices, repo: ET.Element, rebuilt: ET.Element, template:
     return bad
 
 
-def _rebuilt_bean(N: Mapping[tuple, ET.Element], key: tuple, store_el: ET.Element) -> ET.Element | None:
+def _rebuilt_bean(N: Mapping[ItemKey, ET.Element], key: ItemKey, store_el: ET.Element) -> ET.Element | None:
     """A merged bean in the rebuilt tables: by its key, else by the Store's system name in the same section."""
     el = N.get(key)
-    if el is not None:
+    if el is not None or not isinstance(key, BeanKey):
         return el
     want = tables.system_name(store_el)
     for k, cand in N.items():
-        if k[0] == "bean" and k[1:4] == key[1:4] and k[4] == want:
+        if isinstance(k, BeanKey) and (k.section, k.tag, k.group, k.name) == (key.section, key.tag, key.group, want):
             return cand
     return None
 

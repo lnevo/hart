@@ -138,11 +138,12 @@ def level_bean_names(path: Path = DEVICE_MAP, rows: Sequence[MasterRow] | None =
     for r in rows:
         if r.level not in MAIN_UPPER or r.assignment == "none":
             continue
-        out |= {tb.bean_name(r), r.layout_block} - {""}
+        name = tb.bean_name(r.cells())
+        out |= {name, r.layout_block} - {""}
         if r.start:
             action = level_devices.clear_action if r.layer == "occupancy" else level_devices.turnout_action
             try:
-                out.add(action(tb.bean_name(r)))
+                out.add(action(name))
             except ValueError as exc:
                 bad.append(f"{r.layer} {r.user_name!r} (level {r.level}): start {r.start!r}: {exc}")
             out |= {level_devices.CLEAR_LOGIXNG, level_devices.CLEAR_CONDITIONAL, level_devices.CLEAR_MANY}
