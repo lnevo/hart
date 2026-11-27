@@ -136,6 +136,26 @@ const form = (on) => Object.fromEntries(BOXES.map(([n]) => [n, { on: false, v: [
 const w = { no: "1", boxes: { 2: ["Ashby", "Dunmore", "Main"], 10: [] } };
 assert.deepStrictEqual([...wrongBoxes(w, form([[2, { on: true, v: ["Ashby", "Dunmore", "Main"] }], [10, { on: true, v: [] }]]))], []);
 assert.deepStrictEqual([...wrongBoxes(w, form([[2, { on: true, v: ["Ashby", "Cobb", "Main"] }], [15, { on: true, v: [] }]]))], [2, 10, 15]);
+// the TT&TO move check and par on a made-up time-table, 10 minutes a leg: a westward train that meets the extra between
+// stations 0 and 1 is a head-on, one that reaches station 1 less than 5 minutes after it is a margin, and an eastward
+// train due to leave station 0 before the extra is clear at 1 is a Rule 86 miss; the run-ending one sorts first
+{
+  const saved = { tt: X.state.tt, officeOrders: X.state.officeOrders, start: X.state.start, hotDelay: X.state.hotDelay, clearFix: X.state.clearFix };
+  const { LAST } = X.take("exam_run_test.js", ["LAST"]), leg = Array(LAST).fill(10);
+  const margin = { name: "margin", dir: "W", act: [30, 12] }, r86 = { name: "r86", dir: "E", act: [5, 20] }, headon = { name: "headon", dir: "W", act: [15, 5] };
+  X.state.tt = { trains: [margin, r86, headon], leg };
+  assert.deepStrictEqual(Array.from(X.checkMove(0, 1, 0, 10), (p) => [p.kind, p.tr.name, p.by]),
+    [["headon", "headon", undefined], ["margin", "margin", 2], ["r86", "r86", 5]]);
+  // par: with no train in the way the extra runs straight through, a hot box adds the quickest sign-out and a clearance
+  // fix at the order office adds its minutes
+  Object.assign(X.state, { tt: { trains: [], leg }, officeOrders: 2, start: 360, hotDelay: 0, clearFix: 0 });
+  assert.strictEqual(X.solvePar(), 360 + 10 * LAST);
+  X.state.hotDelay = 15;
+  assert.strictEqual(X.solvePar(), 363 + 10 * LAST);
+  Object.assign(X.state, { hotDelay: 0, clearFix: 6 });
+  assert.strictEqual(X.solvePar(), 366 + 10 * LAST);
+  Object.assign(X.state, saved);
+}
 // run.js shares only what it names, and reads back exactly the names it expects from run-modern.js
 assert.strictEqual(X.take("t.js", ["fmt"]).fmt, X.fmt);
 assert.throws(() => X.take("t.js", ["fmt", "nope"]), /t\.js takes nope, which run\.js does not share/);
