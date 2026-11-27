@@ -9,8 +9,10 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from typing import ClassVar
 
-# its folder is on sys.path under discover
+# their folder is on sys.path under discover
+from test_check_docs_only import Scratch
 from test_pipeline_manifest import OWN, scratch_check_sh
 
 # panels-tables is queued first; it waits for the release file the test makes once it has seen the early report, and
@@ -25,6 +27,9 @@ EARLY = re.compile(r"(?ms)^EARLY FAILURE: (\S+) FAILED \(\d+s\), more jobs still
 
 
 class EarlyFailure(unittest.TestCase):
+    tmp: ClassVar[tempfile.TemporaryDirectory[str]]
+    s: ClassVar[Scratch]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.tmp = tempfile.TemporaryDirectory()
