@@ -171,6 +171,34 @@ if [[ -f "$PATCH" ]]; then
   echo "Pi Dispatcher compatibility scripts + preference:jython Start Up updated"
 fi
 
+# The profile's saved panel window sizes take the installed tables' (tools/hosts/panel_window_sizes.py): JMRI opens a
+# panel at the size user-interface.xml saved for it, over the tables'. JMRI rewrites that file while it runs and when
+# it quits, so with JMRI running on the profile the step is skipped; the next deploy with PanelPro quit sets them.
+PI_PROFILE="${HART_PI_PROFILE:-TCS_MQTT}"
+SIZES="$HART/cats/scripts/panel_window_sizes.py"
+if [[ -f "$SIZES" && -f "$UF/tables.xml" ]]; then
+  running=0
+  pgrep -f "[o]rg.jmri.profile=${PI_PROFILE}" >/dev/null 2>&1 || running=$?
+  if [[ "$running" -eq 0 ]]; then
+    echo "Panel window sizes NOT set: JMRI runs on the profile $PI_PROFILE and would overwrite user-interface.xml." \
+      "Quit PanelPro (tools/hosts/pi_quit_panelpro.sh --for-deploy) and deploy again."
+  elif [[ "$running" -ne 1 ]]; then
+    echo "Panel window sizes NOT set: cannot tell whether JMRI runs on the profile $PI_PROFILE (pgrep exited $running)."
+  else
+    shopt -s nullglob
+    windows=("$HOME/.jmri/${PI_PROFILE%%.*}.jmri/profile/"*/user-interface.xml)
+    shopt -u nullglob
+    if [[ ${#windows[@]} -eq 0 ]]; then
+      echo "Panel window sizes: no user-interface.xml in ~/.jmri/${PI_PROFILE%%.*}.jmri; JMRI opens each panel at the tables' size"
+    fi
+    for ui in "${windows[@]}"; do
+      echo "Panel window sizes -> $ui"
+      python3 "$SIZES" "$ui" --tables "$UF/tables.xml" --backup \
+        || echo "WARN: panel window sizes not set in $ui (the reason is above)"
+    done
+  fi
+fi
+
 if [[ -x "$HART/cats/scripts/install_jmri_web_override.sh" ]]; then
   bash "$HART/cats/scripts/install_jmri_web_override.sh"
 fi

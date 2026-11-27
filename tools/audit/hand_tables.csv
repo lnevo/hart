@@ -208,7 +208,7 @@ www/scripts/make_share_cards.py,CARDS,32,unreviewed,"rule: one-word strings only
 www/scripts/provenance.py,_BLOCKS,11,unreviewed,"rule: one-word strings only: no railroad name, number or repo path; first sort: page text"
 www/scripts/provenance.py,_SCHEMA,4,unreviewed,rows of values the rule cannot place; first sort: code setting
 www/scripts/repo_guide_page.py,FOLDERS,10,unreviewed,holds sentences: page or card text?; first sort: page text
-www/scripts/repo_guide_page.py,HARTLIB_OTHER,30,unreviewed,"holds sentences: page or card text?; first sort: page text; raised 29 to 30 for hand_tables, the module this check adds"
+www/scripts/repo_guide_page.py,HARTLIB_OTHER,31,unreviewed,"holds sentences: page or card text?; first sort: page text; raised 29 to 30 for hand_tables, the module this check adds; 31 for jmri_profile, a hartlib module the page must describe"
 www/scripts/repo_guide_page.py,LAYOUT_TREE,8,unreviewed,holds sentences: page or card text?; first sort: page text
 www/scripts/repo_guide_page.py,SUBMODULES,6,unreviewed,holds sentences: page or card text?; first sort: page text
 www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,6 railroad names (occupancy sensor); first sort: per-item tweak

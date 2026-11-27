@@ -30,10 +30,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import tables  # noqa: E402
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "cats/scripts"))
-import patch_jmri_startup  # noqa: E402
+from hartlib import jmri_profile, tables  # noqa: E402
 
 LIVE_PROFILE_ID = "My_JMRI_Railroad.3ef75bfd"
 BACKUP_SUFFIX = ".hart-run.bak"
@@ -101,11 +98,12 @@ def quiet_startup(profile: Path, run_script: str) -> list[str]:
     text = "".join(out) + text[last:]
     text, removed = re.subn(r'\n?[ \t]*<perform\b[^>]*\bname="(?:[^"]*[/:])?' + re.escape(run_base) + r'"[^>]*/>',
                             "", text)
-    loads = [t for t in _TAG.findall(text) if "PerformFileModelXml" in t and (_attr(t, "name") or "").endswith("tables.xml")]
+    loads = [name for t in _TAG.findall(text)
+             if "PerformFileModelXml" in t and (name := _attr(t, "name")) is not None and name.endswith("tables.xml")]
     if len(loads) != 1:
         raise SystemExit(f"{profile}: expected one tables load in Start Up, found {len(loads)}")
     profile.write_text(text, encoding="utf-8")
-    patch_jmri_startup.insert_after(profile, run_script, _attr(loads[0], "name"))
+    jmri_profile.insert_after(profile, run_script, loads[0])
     text = profile.read_text(encoding="utf-8")
     still = [t for t in _TAG.findall(text)
              if 'enabled="no"' not in t and not _allowed(t) and _basename(_attr(t, "name") or "") != run_base]
@@ -373,7 +371,7 @@ def main() -> None:
             ap.error("quiet-startup requires --run")
         try:
             print("\n".join(quiet_startup(args.profile, args.run)))
-        except patch_jmri_startup.StartupPatchError as exc:     # one line, as the profile checks above
+        except jmri_profile.StartupPatchError as exc:     # one line, as the profile checks above
             sys.exit(f"{args.profile}: {exc}")
     elif args.action == "backup":
         print(backup_profile(args.profile))

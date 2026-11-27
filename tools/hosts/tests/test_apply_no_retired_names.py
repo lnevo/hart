@@ -16,7 +16,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pi_drop import PATCH, applied, files_under, start_up  # noqa: E402
+from pi_drop import applied, files_under, profile_scripts, start_up  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 APPLY = (
@@ -42,7 +42,7 @@ class PiKeepsRetiredNames(unittest.TestCase):
     def test_nothing_by_a_retired_name_is_installed_or_deleted(self) -> None:
         planted = {f"{where}/{name}": "retired\n" for name in RETIRED
                    for where in ("JMRI_UserFiles", "JMRI_UserFiles/jython", "JMRI/xml/signals")}
-        package = {"cats/scripts/patch_jmri_startup.py": PATCH.read_text(encoding="utf-8"),
+        package = {**profile_scripts(),
                    **{f"jmri/layouts/hart/scripts/{name}": "retired\n" for name in RETIRED}}
         kept = ("preference:jython/panel_status.py", "preference:jython/signal_coordinator.py",
                 "preference:jython/jmri_cmd_watcher.py")
