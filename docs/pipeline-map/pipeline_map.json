@@ -5937,6 +5937,15 @@
    "path": "docs/ops/session4/out"
   },
   {
+   "id": ".claude/skills/dashboard/sampler.sh",
+   "label": "dashboard sampler.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Live-dashboard sampler: every 2 minutes one JSON line with Mac and Windows load, remote runs, Claude sessions and agents, for the coordinator's dashboard (dashboard skill).",
+   "path": ".claude/skills/dashboard/sampler.sh"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -6054,6 +6063,16 @@
    "domain": "agents",
    "desc": "Use when more than one Claude session works on the repo at once, before merging any PR while another session runs, when a session messages about a merge queue (\"ready",
    "path": ".claude/skills/coordinate/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/dashboard/SKILL.md",
+   "label": "skill: dashboard",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when coordinating more than one lane, agent or session (a wave, a hand-off, a merge queue), when the owner asks for status or an ETA, when a lane, PR, merge, deploy or report card changes state, when the dashboard looks stale, or before a /clear while a wave runs.",
+   "path": ".claude/skills/dashboard/SKILL.md",
    "gen": "agent-docs"
   },
   {
@@ -13938,6 +13957,14 @@
    "gen": "manifest"
   },
   {
+   "from": ".claude/skills/dashboard/sampler.sh",
+   "to": "tools/env/load_env.sh"
+  },
+  {
+   "from": ".claude/skills/dashboard/SKILL.md",
+   "to": ".claude/skills/dashboard/sampler.sh"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -14044,6 +14071,20 @@
   },
   {
    "from": ".claude/skills/coordinate/SKILL.md",
+   "to": ".claude/skills/dashboard/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/coordinate/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": ".claude/skills/dashboard/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
