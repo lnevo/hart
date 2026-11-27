@@ -402,8 +402,8 @@ class DocsUnitTests(unittest.TestCase):
 # ---- changed_kind.py on example path lists, and the light path (light_checks.sh)
 
 MAP = changed_kind.MAP
-# #1275's change: the Start menu's labels shortened and two presets added, nothing else in the map
-PR1275_PRESETS = [
+# The Start menu's labels shortened and two presets added, nothing else in the map
+START_MENU_PRESETS = [
     {"label": "Schematic", "focus": "docs/ops/schematic-system-draft.svg", "up": 3, "down": 1},
     {"label": "Layout Editor", "focus": "tools/schematic/build_layout_le.py", "up": 1, "down": 2},
     {"label": "tables.xml", "focus": "jmri/layouts/hart/output/tables.xml", "up": 2, "down": 1},
@@ -552,7 +552,7 @@ def _glob(path: str, pattern: str) -> bool:
 
 
 class PipelineMap(unittest.TestCase):
-    """The map is light when only its presets change (#1275), compared with the base copy in git."""
+    """The map is light when only its presets change, compared with the base copy in git."""
 
     def setUp(self) -> None:
         tmp = tempfile.TemporaryDirectory()
@@ -573,8 +573,8 @@ class PipelineMap(unittest.TestCase):
         self.map.write_text(json.dumps({**self.graph, **changes}, indent=1), encoding="utf-8")
         return changed_kind.verdict([MAP], root=self.repo, compare="HEAD", load=lambda _r: self.d)
 
-    def test_pr_1275_presets_only_is_light_and_runs_the_map_check(self) -> None:
-        v = self.edit(presets=PR1275_PRESETS + self.graph["presets"][1:])
+    def test_start_menu_presets_only_is_light_and_runs_the_map_check(self) -> None:
+        v = self.edit(presets=START_MENU_PRESETS + self.graph["presets"][1:])
         self.assertEqual("light", v.kind, v.why)
         self.assertIn("pipeline-map", v.jobs)
         self.assertEqual(self.d.static, v.jobs[:len(self.d.static)])

@@ -21,8 +21,8 @@ HOPS_PY=python3
 # Docs-only and light paths, the rule CI uses (tools/ci/changed_kind.py --git: the branch against its merge base with
 # origin/main, plus uncommitted and untracked files). Markdown docs only: the quick docs checks (tools/ci/docs_checks.sh).
 # Light (docs, or data that only static checks read): tools/ci/light_checks.sh (make static's jobs, the static jobs
-# that read the changed files, then the quick docs checks). Neither ends "ALL PASSED": not a pass of check.sh (owner,
-# 2026-11-24, 2026-11-26). CI, FULL=1 and any run that asks for something particular (CHECK_ONLY, CHECK_AUDIT,
+# that read the changed files, then the quick docs checks). Neither ends "ALL PASSED": not a pass of check.sh (the
+# rule: docs/pipeline-map/checks-and-remote.md, "Docs-only changes" and "Light changes"). CI, FULL=1 and any run that asks for something particular (CHECK_ONLY, CHECK_AUDIT,
 # HART_TABLES, PORTAL_CHECK=1, the CI stamp folders) take the normal path, as does one where git cannot say what changed.
 DOCS_ONLY=0 LIGHT=0
 if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AUDIT:-}" && -z "${HART_TABLES:-}" \
