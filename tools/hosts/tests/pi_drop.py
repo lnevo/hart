@@ -2,8 +2,8 @@
 
 The drop holds the files the apply step needs to finish plus the ones a test names; the Pi's JMRI_UserFiles, home
 and JMRI profile are folders in a temporary directory. ssh, scp, sudo, systemctl and loginctl on PATH log their call
-and fail, so nothing reaches a host. install_ops_files.sh and install_roster.sh in the drop only log their call:
-their own tests cover them.
+and fail, so nothing reaches a host. pgrep on PATH answers that JMRI is not running unless a test says it is.
+install_ops_files.sh and install_roster.sh in the drop only log their call: their own tests cover them.
 """
 from __future__ import annotations
 
@@ -19,6 +19,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
 PATCH = ROOT / "cats/scripts/patch_jmri_startup.py"
+WINDOW_SIZES = ROOT / "tools/hosts/panel_window_sizes.py"
+# The hartlib modules the package carries for the two profile scripts (HARTLIB_HOST_MODULES, deploy/common.sh).
+HARTLIB_HOST_MODULES = ("__init__.py", "errors.py", "jmri_profile.py")
 # The Pi's JMRI profile, as the apply step names it under $HOME.
 PROFILE = Path(".jmri/TCS_MQTT.jmri/profile/profile.xml")
 NETWORK = ("ssh", "scp", "sudo", "systemctl", "loginctl")
@@ -42,6 +45,15 @@ START_UP = """<?xml version="1.0" encoding="UTF-8"?>
 """
 PERFORM = ('    <perform name="{name}" type="ScriptFile" enabled="yes" '
            'class="jmri.util.startup.configurexml.PerformScriptModelXml"/>')
+
+
+def profile_scripts() -> dict[str, str]:
+    """The package's two JMRI profile scripts and the part of hartlib they import, at their paths in the package."""
+    hartlib = ROOT / "tools/hartlib/src/hartlib"
+    return {"cats/scripts/patch_jmri_startup.py": PATCH.read_text(encoding="utf-8"),
+            "cats/scripts/panel_window_sizes.py": WINDOW_SIZES.read_text(encoding="utf-8"),
+            **{f"tools/hartlib/src/hartlib/{name}": (hartlib / name).read_text(encoding="utf-8")
+               for name in HARTLIB_HOST_MODULES}}
 
 
 def start_up(*names: str) -> str:
@@ -86,9 +98,11 @@ def _env(drop: Path, home: Path, user_files: Path, bin_dir: Path, log: Path) -> 
 
 @contextmanager
 def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | bytes] | None = None,
-            profile: str | None = None) -> Iterator[PiHost]:
+            profile: str | None = None, jmri_running: bool = False,
+            env: Mapping[str, str] | None = None) -> Iterator[PiHost]:
     """Run the apply step on a drop holding REQUIRED and `package` (paths inside the package). `installed` is what
-    the Pi holds before, by path under its home; `profile`, when given, is its JMRI profile.xml."""
+    the Pi holds before, by path under its home; `profile`, when given, is its JMRI profile.xml. `jmri_running`: pgrep
+    finds a JMRI on the profile. `env`: more variables for the apply step (as ship_pi.sh passes HART_PI_PROFILE)."""
     with tempfile.TemporaryDirectory() as name:
         tmp = Path(name)
         # the apply step refuses a drop outside /tmp/hart-deploy.*, and removes the drop when it ends
@@ -104,8 +118,11 @@ def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | by
             for tool in NETWORK:
                 (bin_dir / tool).write_text(LOGGER + "exit 99\n", encoding="utf-8")
                 (bin_dir / tool).chmod(0o755)
+            (bin_dir / "pgrep").write_text(LOGGER + f"exit {0 if jmri_running else 1}\n", encoding="utf-8")
+            (bin_dir / "pgrep").chmod(0o755)
             log.touch()
-            done = subprocess.run(["bash", str(APPLY)], env=_env(drop, home, user_files, bin_dir, log),
+            done = subprocess.run(["bash", str(APPLY)],
+                                  env={**_env(drop, home, user_files, bin_dir, log), **dict(env or {})},
                                   capture_output=True, text=True, timeout=120)
             yield PiHost(drop, home, user_files, done.returncode, done.stdout + done.stderr,
                          log.read_text(encoding="utf-8").splitlines())

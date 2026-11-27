@@ -62,6 +62,9 @@ JYTHON_SIBLING_MODULES=(
 JYTHON_PANEL_STATUS_PARTS=(
   "$ROOT/jmri/layouts/hart/scripts/panel_status_clicks.py" "$ROOT/jmri/layouts/hart/scripts/panel_status_turnouts.py"
 )
+# The hartlib modules the host packages carry (stage.sh), by name in tools/hartlib/src/hartlib: what
+# cats/scripts/patch_jmri_startup.py and panel_window_sizes.py import there (hartlib.jmri_profile and its errors).
+HARTLIB_HOST_MODULES=(__init__.py errors.py jmri_profile.py)
 
 # load_parked: the features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System,
 # the USS CTC machine). Their files outside tables.xml stay in the repo but are not shipped: the Dispatcher traininfo

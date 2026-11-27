@@ -328,6 +328,46 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
   }
 }
 
+# The profile's saved panel window sizes take the installed tables' (tools/hosts/panel_window_sizes.py): JMRI opens a
+# panel at the size user-interface.xml saved for it, over the tables'. JMRI rewrites that file while it runs and when
+# it quits, so with JMRI running the step is skipped; the next deploy with PanelPro closed sets them.
+$sizesPy = Join-Path $hart 'cats\scripts\panel_window_sizes.py'
+$installedTables = Join-Path $UserFiles 'tables.xml'
+if ((Test-Path $sizesPy) -and (Test-Path $installedTables)) {
+  $idFile = Join-Path $hart 'jmri_profile_id.txt'
+  if (-not $python) {
+    Write-Host 'Panel window sizes NOT set: no Python 3 found (py -3, python, python3)'
+  } elseif (Get-Process java, javaw -ErrorAction SilentlyContinue) {
+    Write-Host 'Panel window sizes NOT set: JMRI is running and would overwrite user-interface.xml. Close PanelPro and deploy again.'
+  } else {
+    & (Join-Path $hart 'cats\scripts\windows\resolve_jmri_profile.ps1') -OutFile $idFile
+    # it writes the file only once it found the profile; it ends with exit 2 when it did not
+    if (-not (Test-Path $idFile)) {
+      Write-Host 'Panel window sizes NOT set: no My JMRI Railroad profile found (resolve_jmri_profile.ps1)'
+    } else {
+      $profileName = ((Get-Content -Raw $idFile).Trim() -split '\.')[0]
+      $uiRoots = @((Join-Path $env:APPDATA 'JMRI'), (Join-Path $env:USERPROFILE 'JMRI'),
+        (Join-Path $env:USERPROFILE 'Documents\JMRI'), (Join-Path $env:USERPROFILE '.jmri'))
+      $uis = @(foreach ($root in $uiRoots) {
+        $dir = Join-Path $root ($profileName + '.jmri\profile')
+        if (Test-Path $dir) {
+          Get-ChildItem $dir -Directory | ForEach-Object { Join-Path $_.FullName 'user-interface.xml' } |
+            Where-Object { Test-Path -LiteralPath $_ }
+        }
+      }) | Select-Object -Unique
+      if (@($uis).Count -eq 0) {
+        Write-Host ("Panel window sizes: no user-interface.xml in the {0} profile; JMRI opens each panel at the tables' size" -f $profileName)
+      }
+      foreach ($ui in @($uis)) {
+        Write-Host ("Panel window sizes -> {0}" -f $ui)
+        $pre = @($python.Pre)
+        & $python.Exe @pre $sizesPy $ui --tables $installedTables --backup
+        if ($LASTEXITCODE -ne 0) { Write-Host ("WARNING panel window sizes not set in {0} (the reason is above)" -f $ui) }
+      }
+    }
+  }
+}
+
 # JMRI's MQTT startup race overlay, loaded by every JMRI app through %USERPROFILE%\JMRI\jmri.conf
 # (ADR-034). It installs only over the JMRI build it was made from; on any other it takes itself out.
 $overlayPy = Join-Path $hart 'jmri\mqtt_overlay\install_overlay.py'

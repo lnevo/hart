@@ -85,7 +85,12 @@ stage_package() {
     "$ROOT/cats/scripts/rewrite_button_icon_paths.py" \
     "$ROOT/cats/scripts/patch_jmri_startup.py" \
     "$ROOT/cats/scripts/install_ops_files.sh" \
+    "$ROOT/tools/hosts/panel_window_sizes.py" \
     "$stage/cats/scripts/"
+  # The part of hartlib the two profile scripts above import (hartlib.jmri_profile), where their own search for
+  # tools/hartlib/src finds it. The rest of hartlib needs a checkout (hartlib.paths) and stays out.
+  mkdir -p "$stage/tools/hartlib/src/hartlib"
+  cp -f "${HARTLIB_HOST_MODULES[@]/#/$ROOT/tools/hartlib/src/hartlib/}" "$stage/tools/hartlib/src/hartlib/"
   # JMRI's MQTT race overlay until JMRI/JMRI#16004 reaches a release the hosts run (ADR-034).
   mkdir -p "$stage/jmri/mqtt_overlay"
   cp -f "$ROOT/tools/jmri/mqtt_overlay/hart-mqtt-race-fix.jar" \
