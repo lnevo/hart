@@ -8,7 +8,6 @@
  "cats/scripts/tests/test_live_desk_levels.py": 6,
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": 5,
  "jmri/layouts/hart/scripts/layout_facts.py": 1,
- "jmri/layouts/hart/scripts/lcc_turnout_contract.py": 1,
  "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py": 10,
  "jmri/layouts/hart/scripts/speedmatch/make_job.py": 1,
  "jmri/layouts/hart/scripts/tests/jmri_fake.py": 3,
