@@ -58,10 +58,11 @@ import json
 import os
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import ModuleType
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
@@ -137,18 +138,18 @@ def cats_le(cats: ModuleType) -> ModuleType:
     return importlib.import_module(cats.__name__.rpartition(".")[0] + ".le")
 
 
+def block_names(blocks: Mapping[str, BlockBinding]) -> set[str]:
+    """The block name each desk block of `blocks` takes: its binding's name, else its panel name."""
+    return {e.get("name", k) for k, e in blocks.items()}
+
+
 def check_apart(staging: Mapping[str, BlockBinding], dark: Mapping[str, BlockBinding]) -> None:
     """Stop when a staging and a main or upper block binding share a panel name or the block name they take (which
     would make them one CATS block)."""
     clash = sorted(set(staging) & set(dark))
     if clash:
         raise CatsPanelError(f"staging and main/upper blocks share panel names {', '.join(clash)}")
-
-    def bound(bs: Mapping[str, BlockBinding]) -> set[str]:
-        """The block name each desk block takes: its binding's name, else its panel name."""
-        return {e.get("name", k) for k, e in bs.items()}
-
-    clash = sorted(bound(staging) & bound(dark))
+    clash = sorted(block_names(staging) & block_names(dark))
     if clash:
         raise CatsPanelError(f"staging and main/upper desk blocks would both be {', '.join(clash)}")
 
@@ -229,12 +230,68 @@ def check_desk_faults(cats: ModuleType, P: object, fit: Cells) -> None:
 def desk_plates() -> list[tuple[str, tuple[str, ...]]]:
     """[(station, its switches)] of stations.csv's desk_plate rows (hartlib.railroad_facts.read_stations): the control
     point plates both desks carry (Brick, Plane, Barn, East End, Princess, as the hand-built desk)."""
-    from hartlib import railroad_facts
+    from hartlib import errors, railroad_facts
     try:
         rows = railroad_facts.read_stations(pd.DATA / "stations.csv")
-    except railroad_facts.FactsError as exc:
+    except errors.FactsError as exc:
         raise CatsPanelError(f"error: {exc}") from exc
     return [(st.name, st.switches) for st in rows if st.desk_plate]
+
+
+class Solved(NamedTuple):
+    """The solved sheet the desks are drawn from: its bands, each loop half named, and its page preferences (the
+    plugin's JSON)."""
+    bands: Bands
+    page: Mapping[str, Any]
+
+
+def solved(sheet: ModuleType, F: Facts) -> Solved:
+    """The sheet solved once (publish_draft.solved_sheet). CatsPanelError when the page's host_screen, which gives
+    the desks' window, does not read."""
+    try:
+        s = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:
+        raise CatsPanelError(f"error: {exc}") from exc
+    return Solved(name_loop_halves(s.bands, F.device), s.opts)
+
+
+def desk_panel(cats: ModuleType, bands: Bands, o: DeskOptions, bound: Mapping[str, Any]) -> Any:
+    """The plugin's panel of `bands` under the bindings `bound` (the bindings file's JSON), held to its window:
+    check_desk_faults stops on a fault, and cats.check_fit is the backstop behind it. Returns the plugin's panel
+    object (untyped). cats.SchematicError as the plugin stops; CatsPanelError on a fault."""
+    fit = o["fit"]
+    P = cats.panel(bands, scale=o["scale"], bindings=bound, max_cols=fit[0], helix_blocks=o["helix_blocks"],
+                   band_gap=o["band_gap"], title_gap=o["title_gap"])
+    check_desk_faults(cats, P, fit)
+    cats.check_fit(P, *fit)
+    return P
+
+
+def write_desks(cats: ModuleType, P: Any, o: DeskOptions, frozen: tuple[list[ET.Element], list[ET.Element]],
+                desks: Mapping[str, Path | None]) -> None:
+    """Write panel P (the plugin's) as each desk of `desks` ({"CTC" or "ABS": its path, None to leave it out}),
+    dressed with the frozen header and plate (`frozen`: frozen_header) and the station plates."""
+    header, plate = frozen
+    for desk, path in desks.items():
+        if path is not None:
+            xml = cats.to_xml(P, "CTC", header, o["window"])
+            path.write_text(dress(cats, xml, header, plate, desk, o["fit"], desk_plates()), encoding="utf-8")
+
+
+def report(cats: ModuleType, P: Any, bands: Bands, o: DeskOptions) -> None:
+    """Print the desk's summary, size and the plugin's log. CatsPanelError when the log has a lost or clashing
+    label: the desks keep few spare rows (cats_band_gap, cats_title_gap)."""
+    cols, rows = cats.shown(P)
+    g = cats.GRID_PX
+    fit, window = o["fit"], o["window"]
+    print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
+          f"; shows {cols} x {rows} cells ({cols * g} x {rows * g} pixels at the {g} pixel grid), "
+          f"fit {fit[0]} x {fit[1]} in a {window[0]} x {window[1]} window")
+    print("\n".join(P.log))
+    clashes = label_clashes(P.log)
+    if clashes:
+        raise CatsPanelError("error: the desk's labels clash; give them room (cats_band_gap, cats_title_gap) or move "
+                             "them:\n  " + "\n  ".join(clashes))
 
 
 def generate(plugin: Path, out: Path, bindings_out: Path, out_abs: Path | None = None) -> None:
@@ -242,38 +299,18 @@ def generate(plugin: Path, out: Path, bindings_out: Path, out_abs: Path | None =
     fact, the window or the labels do not fit."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
-    try:
-        s = pd.solved_sheet(sheet)
-    except pd.host_screen.HostScreenError as exc:       # the desks' window: the page's host_screen
-        raise CatsPanelError(f"error: {exc}") from exc
-    bands = name_loop_halves(s.bands, F.device)
-    o = desk_options(cats, s.opts, bands)
-    window, fit = o["window"], o["fit"]
+    bands, page = solved(sheet, F)
+    o = desk_options(cats, page, bands)
     level_signals(bands, F, bound_index(bands))
-    text = json.dumps(bindings(bands, cats, F, o, s.opts), indent=1, sort_keys=True) + "\n"
+    text = json.dumps(bindings(bands, cats, F, o, page), indent=1, sort_keys=True) + "\n"
     bindings_out.write_text(text, encoding="utf-8")
-    header, plate = frozen_header()
+    frozen = frozen_header()
     try:
-        P = cats.panel(bands, scale=o["scale"], bindings=json.loads(text), max_cols=fit[0],
-                       helix_blocks=o["helix_blocks"], band_gap=o["band_gap"], title_gap=o["title_gap"])
-        check_desk_faults(cats, P, fit)
-        cats.check_fit(P, *fit)  # backstop only: check_desk_faults already stops on a desk too big for its window
-        for desk, path in (("CTC", out), ("ABS", out_abs)):
-            if path is not None:
-                Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit,
-                                            desk_plates()), encoding="utf-8")
+        P = desk_panel(cats, bands, o, json.loads(text))
+        write_desks(cats, P, o, frozen, {"CTC": out, "ABS": out_abs})
     except cats.SchematicError as e:
         raise CatsPanelError(f"error: {e}") from e
-    cols, rows = cats.shown(P)
-    g = cats.GRID_PX
-    print(", ".join(t for t, _, _ in bands) + ": " + cats.summary(P) +
-          f"; shows {cols} x {rows} cells ({cols * g} x {rows * g} pixels at the {g} pixel grid), "
-          f"fit {fit[0]} x {fit[1]} in a {window[0]} x {window[1]} window")
-    print("\n".join(P.log))
-    clashes = label_clashes(P.log)
-    if clashes:     # the desks keep few spare rows (cats_band_gap, cats_title_gap): a lost or clashing label stops
-        raise CatsPanelError("error: the desk's labels clash; give them room (cats_band_gap, cats_title_gap) or move "
-                             "them:\n  " + "\n  ".join(clashes))
+    report(cats, P, bands, o)
 
 
 def compare(fresh: Mapping[Path, Path], check: bool) -> int:
