@@ -3,14 +3,13 @@ staging rows, which give IDs only, are left as they are."""
 from __future__ import annotations
 
 import csv
-import importlib.util
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-SPEC = importlib.util.spec_from_file_location("build_hands", ROOT / "tools/schematic/build_hands.py")
-BH = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(BH)
+sys.path.insert(0, str(ROOT / "tools/schematic"))
+import build_hands as BH  # noqa: E402
 
 # Drawn hands on REV 5 (archive/history/wiki/projects/schematic-maps-handoff.md), in the numbers of 2026-11-19 (121 and 125 crossovers)
 DRAWN_R = "101A 101B 105 107 115 119A 119B 121B 125A 129 131A 131B 211A 211B 221A 221B 223 227 233 231 235 241".split()
@@ -27,7 +26,12 @@ def hands():
 
 class BuildHands(unittest.TestCase):
     def test_unknown_argument_is_refused(self):
-        self.assertEqual(BH.main(["--chek"]), 2)
+        import contextlib
+        import io
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(BH.main(["--chek"]), 2)
+        self.assertIn("build_hands.py [--check]", err.getvalue())
 
     def test_flipped_are_opposite_drawn_rest_equal(self):
         h = hands()
@@ -154,13 +158,46 @@ class Refusals(unittest.TestCase):
         self.build_with(lambda d: d["edits"].append({"op": "move", "switch": "T300", "hand": "R"}))
 
 
+class GraphRead(unittest.TestCase):
+    """A plan graph that does not read stops with a HandsError naming the file, not a traceback."""
+
+    def nodes_of(self, text: str | None) -> dict:
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "main.json"
+            if text is not None:
+                p.write_text(text, encoding="utf-8")
+            return BH.graph_nodes(p)
+
+    def test_a_graph_with_nodes_reads(self):
+        self.assertEqual(self.nodes_of('{"nodes": {"T1": {"kind": "switch"}}}'), {"T1": {"kind": "switch"}})
+
+    def test_a_missing_graph_stops(self):
+        with self.assertRaisesRegex(BH.HandsError, r"^build_hands.py: main.json does not read as the plan graph") as stop:
+            self.nodes_of(None)
+        self.assertIsInstance(stop.exception.__cause__, OSError)
+
+    def test_a_graph_that_is_not_json_stops(self):
+        with self.assertRaisesRegex(BH.HandsError, "main.json does not read as the plan graph"):
+            self.nodes_of("{nodes")
+
+    def test_a_graph_with_no_nodes_object_stops(self):
+        for text in ("[]", '{"edges": []}', '{"nodes": []}', '{"nodes": {"T1": 1}}'):
+            with self.subTest(text=text), self.assertRaisesRegex(BH.HandsError, "main.json has no `nodes` object|"
+                                                                 "main.json does not read as the plan graph"):
+                self.nodes_of(text)
+
+
 class MainExit(unittest.TestCase):
-    def test_main_exits_with_the_hands_error(self):
+    def test_main_prints_the_hands_error_and_exits_1(self):
+        import contextlib
+        import io
         from unittest import mock
+        err = io.StringIO()
         with mock.patch.object(BH, "build", side_effect=BH.HandsError("build_hands.py: bad row")), \
-                self.assertRaises(SystemExit) as stop:
-            BH.main(["--check"])
-        self.assertEqual(stop.exception.code, "build_hands.py: bad row")
+                contextlib.redirect_stderr(err):
+            self.assertEqual(BH.main(["--check"]), 1)
+        self.assertEqual(err.getvalue(), "build_hands.py: bad row\n")
 
 
 if __name__ == "__main__":

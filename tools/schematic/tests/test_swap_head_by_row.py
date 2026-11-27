@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
-from test_swap_by_row import skip_or_fail  # noqa: E402
+from plugin_needed import skip_or_fail  # noqa: E402
 from hartlib import devices, level_masts, paths, railroad, tables, tables_build, wiring  # noqa: E402
 
 TOP, BOTTOM, MAST = ("2", "mast:107:B:west:top"), ("2", "mast:107:B:west:bottom"), ("2", "mast:107:B:west")
