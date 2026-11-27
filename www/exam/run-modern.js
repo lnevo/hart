@@ -28,7 +28,7 @@ const BOXES=[
   [15,"Flag protection not required against following trains on the same track"],
   [16,"Track bulletins in effect"],
   [17,"Other specific instructions: {txt}"]];
-const SAY={3:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,5:v=>`Not in effect until ${v[0]}`,
+const SAY={3:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,4:v=>`Work between ${v[0]} and ${v[1]} on ${v[2]} track`,5:v=>`Not in effect until ${v[0]}`,
   6:v=>`This authority expires at ${v[0]}`,9:v=>`Do not foul limits ahead of ${v[0]}`,
   13:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,
   14:v=>`Do not exceed ${v[0]} MPH between ${v[1]} and ${v[2]}`,
@@ -40,6 +40,7 @@ const SAY={3:v=>`Proceed from ${v[0]} to ${v[1]} on ${v[2]} track`,5:v=>`Not in 
   11:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by train`,
   12:v=>`Between ${v[0]} and ${v[1]} make all movements at restricted speed, limits occupied by men or equipment`,
   17:v=>`Other specific instructions: ${v[0]}`};
+X.warrantForm={BOXES,SAY};   // the form and its spoken lines, for the exam test
 
 function warrantCopy(w){
   return ()=>{

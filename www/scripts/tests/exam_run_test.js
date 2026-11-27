@@ -55,4 +55,8 @@ for (const [i, era] of ERAS.entries()) {
   }
   console.log(`${era}: ${scene.querySelector("#again") ? "ended" : "still running"} after ${steps} clicks, ${X.state.marks} marks`);
 }
+// every box of the track warrant form has a spoken line, so any warrant the exam builds can be read out
+const { BOXES, SAY } = X.warrantForm;
+const said = Array.from(BOXES, ([n]) => n).filter((n) => typeof SAY[n] !== "function");
+assert.deepStrictEqual(said, [], `track warrant boxes with no spoken line: ${said}`);
 console.log("exam run OK");
