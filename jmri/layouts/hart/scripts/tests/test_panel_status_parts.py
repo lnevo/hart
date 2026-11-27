@@ -87,6 +87,16 @@ class Parts(unittest.TestCase):
         self.assertEqual(second["_LAMP_AMBER_MS"], 321)
         self.assertEqual(sys.modules["panel_status_turnouts"]._plant_modes, {})
 
+    def test_the_turnouts_part_prints_a_failure_once_per_run(self) -> None:
+        self.load()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            sys.modules["panel_status_turnouts"]._log_once("panel_status: x")
+            sys.modules["panel_status_turnouts"]._log_once("panel_status: x")
+            self.load()                                 # a re-run reloads the part: a new record
+            sys.modules["panel_status_turnouts"]._log_once("panel_status: x")
+        self.assertEqual(out.getvalue().count("panel_status: x\n"), 2)
+
     def test_a_missing_part_stops_the_script_before_it_starts(self) -> None:
         for name in PARTS:
             with self.subTest(name=name):

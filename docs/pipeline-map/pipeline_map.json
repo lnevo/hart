@@ -3554,6 +3554,15 @@
    "path": "jmri/scripts/jython_siblings.py"
   },
   {
+   "id": "jmri/scripts/sml_lcos.py",
+   "label": "sml_lcos.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: which head system names are LCOS heads. Imports only re, so the Layout Editor build imports it in CPython too (hartlib.coordinator.lcos_rule).",
+   "path": "jmri/scripts/sml_lcos.py"
+  },
+  {
    "id": "jmri/scripts/sml_beans.py",
    "label": "sml_beans.py",
    "kind": "generator",
@@ -8188,6 +8197,26 @@
    "from": "jmri/layouts/hart/scripts/panel_status_clicks.py",
    "to": "jmri/layouts/hart/scripts/panel_status_turnouts.py",
    "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_lcos.py",
+   "to": "jmri/scripts/sml_beans.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_lcos.py",
+   "to": "tools/schematic/le_names.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_lcos.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_lcos.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "jython"
   },
   {
    "from": "jmri/scripts/sml_beans.py",

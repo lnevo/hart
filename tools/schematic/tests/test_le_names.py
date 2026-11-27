@@ -1,5 +1,5 @@
 """le_names on small made-up bands and rows (no plugin, no solve): the track runs through turnbacks, the crossover
-tracks, the staging and main lengths, the LCOS head rule read from signal_coordinator.py, and the device-map names
+tracks, the staging and main lengths, the LCOS head rule from signal_coordinator.py's sml_lcos.py and its guard, and the device-map names
 put in place of the placeholders."""
 import sys
 import unittest
@@ -100,30 +100,50 @@ class SharedTurnouts(unittest.TestCase):
 
 
 class LcosRule(unittest.TestCase):
-    def test_the_rule_runs_from_signal_coordinator(self):
+    def setUp(self):
         le_names.lcos_rule.cache_clear()
+        self.addCleanup(le_names.lcos_rule.cache_clear)
+
+    def test_the_rule_is_signal_coordinators_module(self):
         is_lcos, in_mast = le_names.lcos_rule()
-        self.assertTrue(callable(is_lcos))
-        self.assertEqual(le_names.lcos_named(["IT:HART:1"]), [])
+        self.assertTrue(is_lcos("IH3332"))                  # node 33, signal 32
+        self.assertFalse(is_lcos("IH3348"))                 # signal 48: past the LCOS signal numbers
+        self.assertFalse(is_lcos("IH832"))                  # node 8: not an octal digit
+        self.assertFalse(is_lcos("IH:HART:C3:108LA"))
+        self.assertEqual(in_mast.findall("IF$shsm:basic:one-low(IH3332)(IH:HART:1)"), ["(IH3332)"])
+        self.assertEqual(le_names.lcos_named(["IT:HART:1", "IH3332", "IF$shsm:basic:one-low(IH3332)",
+                                              "IF$shsm:basic:one-low(IH:HART:C3:108LA)"]),
+                         ["IF$shsm:basic:one-low(IH3332)", "IH3332"])
 
-    def test_a_source_without_the_rule_names_what_is_gone(self):
-        le_names.lcos_rule.cache_clear()
-        try:
-            with mock.patch.object(coordinator, "source", return_value="_HEAD_IN_MAST = None\n"), \
-                    self.assertRaisesRegex(BuildError, r"no _LCOS_SIGNAL_UID_MIN, _LCOS_SIGNAL_UID_MAX, "
-                                                       r"_packed_is_lcos_signal, _is_lcos_ih_sys"):
-                le_names.lcos_rule()
-        finally:
-            le_names.lcos_rule.cache_clear()
+    def test_a_rule_that_cannot_be_loaded_is_a_build_error(self):
+        with mock.patch.object(coordinator, "lcos_rule", side_effect=coordinator.CoordinatorError("gone")), \
+                self.assertRaisesRegex(BuildError, "gone"):
+            le_names.lcos_rule()
 
-    def test_a_source_that_cannot_be_read_is_a_build_error(self):
-        le_names.lcos_rule.cache_clear()
-        try:
-            with mock.patch.object(coordinator, "source", side_effect=coordinator.CoordinatorError("gone")), \
-                    self.assertRaisesRegex(BuildError, "gone"):
-                le_names.lcos_rule()
-        finally:
-            le_names.lcos_rule.cache_clear()
+
+class LcosGuard(unittest.TestCase):
+    """read_level_masts stops on a mast or head of an added level that signal_coordinator.py would enrol."""
+
+    ROW = {"mast": "Mast 108LA", "system_name": "IF$shsm:basic:one-low(IH3332)",
+           "device_system_name": "IF$shsm:basic:one-low(IH:HART:C3:108LA)", "heads": [("IH3332", "Head 108LA")]}
+
+    def read(self, row):
+        with mock.patch.object(le_names.level_masts_lib, "read", return_value=[row]):
+            return le_names.read_level_masts(Path("masts.csv"))
+
+    def test_an_lcos_head_before_the_cut_over_stops_the_build(self):
+        with self.assertRaisesRegex(BuildError, r"names signal_coordinator\.py takes for LCOS heads.*"
+                                                r"\['IF\$shsm:basic:one-low\(IH3332\)', 'IH3332'\]"):
+            self.read(self.ROW)
+
+    def test_a_head_swapped_in_by_its_device_row_passes(self):
+        row = dict(self.ROW, device_system_name=self.ROW["system_name"])
+        self.assertEqual(self.read(row), [row])
+
+    def test_internal_names_pass(self):
+        row = dict(self.ROW, system_name="IF$shsm:basic:one-low(IH:HART:C3:108LA)",
+                   heads=[("IH:HART:C3:108LA", "Head 108LA")])
+        self.assertEqual(self.read(row), [row])
 
 
 class LevelNames(unittest.TestCase):
