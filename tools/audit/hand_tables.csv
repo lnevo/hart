@@ -186,7 +186,7 @@ www/play/runs.js,NevilleRuns,7,move,"3 railroad names (industry, station)"
 www/play/runs.js,Q,8,keep,"game text or schema: exam and play are separate rewrites, overlap is rule citations and field names (Fable, pattern 6) (marked by claude (Fable's review))"
 www/play/warrant.js,TW_SEL,7,keep,"the warrant game's form choices; its station list is checked against road-engine.js ST by play_through_test (owner, wave 4); its railroad-name hits are warrant numbers (121, 125), not a switch or sensor"
 www/play/warrant.js,api,12,keep,"shared in code, so already one source: the warrant game's exported functions and tables, read by its tests (review fix after the code review)"
-www/scripts/build_cats_layout_index.py,SIG_LOC,16,move,numbers by item: per-item tweaks or code constants?; the owner marked it move
+www/scripts/build_cats_layout_index.py,SIG_LOC,17,move,"numbers by item: per-item tweaks or code constants?; the owner marked it move; LEFTCENT added by owner ruling 2026-11-27"
 www/scripts/build_exam_answers.js,ENT,6,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/build_exam_answers.js,FRIENDLY,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/build_exam_answers.js,RUN_FILES,5,keep,"the game's script files with the run each one's questions belong to, for the answer key's labels; not railroad data (marked by claude)"

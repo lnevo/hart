@@ -65,13 +65,11 @@ SIG_LOC = {
     # Digicon aliases seen on Master CTC
     "LEFTLOW": (0.18, 0.82),
     "LEFTUP": (0.18, 0.18),
+    "LEFTCENT": (0.18, 0.50),
     "RIGHTLOW": (0.82, 0.82),
     "RIGHTUP": (0.82, 0.18),
 }
 
-# LEFTCENT is not in SIG_LOC: its masts sit at the cell centre on purpose (a place of its own would move those
-# hotspots on the site). Any other SIGLOCATION that SIG_LOC lacks stops the build.
-CENTRED_SIGLOCATION = "LEFTCENT"
 
 # Portal-only pixel nudges when Digicon cell slots still sit on top of the plant.
 # Values are absolute image coords (same space as CELL/PAD in render_cats_panel).
@@ -224,13 +222,11 @@ def surrounding_block(cell: Cell, near_blocks: Mapping[Cell, list[str]]) -> str:
 
 def signal_location(sig: ET.Element, name: str) -> tuple[str, tuple[float, float]]:
     """A SECSIGNAL's SIGLOCATION and its fraction inside the cell; CatsIndexError when it has none, or one SIG_LOC
-    lacks (CENTRED_SIGLOCATION excepted)."""
+    lacks."""
     panel = sig.find("PANELSIGNAL")
     loc = panel.get("SIGLOCATION") if panel is not None else None
     if not loc:
         raise CatsIndexError(f"{paths.rel(PANEL)}: {name} has no PANELSIGNAL SIGLOCATION")
-    if loc.upper() == CENTRED_SIGLOCATION:
-        return loc, SIG_LOC["CENTER"]
     if loc.upper() not in SIG_LOC:
         raise CatsIndexError(f"{paths.rel(PANEL)}: {name} is at SIGLOCATION {loc}, which SIG_LOC does not place")
     return loc, SIG_LOC[loc.upper()]

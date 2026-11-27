@@ -98,11 +98,16 @@ class SignalTest(unittest.TestCase):
         self.assertEqual((it["id"], it["publicName"], it["block"]), ("cats-sig-Mast-12L", "Mast 12L", "OS Switch 11"))
         self.assertEqual(it["comment"], "Digicon SECSIGNAL @ cell (0,0) UPLEFT")
 
-    def test_leftcent_is_the_one_location_placed_at_the_centre(self) -> None:
-        self.assertNotIn(cats_index.CENTRED_SIGLOCATION, cats_index.SIG_LOC)
+    def test_leftcent_is_placed_at_the_left_middle_of_its_cell(self) -> None:
         it = cats_index.signal_item(signal("Mast 12L", "LEFTCENT"), "Mast 12L", (0, 0), (0.0, 0.0), self.by)
-        self.assertEqual((it["x"], it["y"]), (30.0, 30.0))
+        self.assertEqual((it["x"], it["y"]), (10.8, 30.0))
         self.assertTrue(it["comment"].endswith(" LEFTCENT"))
+
+    def test_the_desks_leftcent_masts_sit_at_their_leftcent_place(self) -> None:
+        # Mast 68 and Mast B92 are the desk's LEFTCENT masts: 0.18 of a cell from its left edge, at its middle height
+        items = {it["publicName"]: it for it in cats_index.build()["items"] if it["kind"] == "signal"}
+        self.assertEqual((items["Mast 68"]["x"], items["Mast 68"]["y"]), (3730.8, 300.0))
+        self.assertEqual((items["Mast B92"]["x"], items["Mast B92"]["y"]), (3670.8, 1500.0))
 
     def test_another_location_sig_loc_lacks_stops(self) -> None:
         with self.assertRaisesRegex(cats_index.CatsIndexError, "SIGLOCATION RIGHTCENT, which SIG_LOC does not"):
