@@ -202,21 +202,11 @@
  "tools/jmri/mqtt_overlay/install_overlay.py": {
   "import-exit": 1
  },
- "tools/mqtt-mimic/lcos_mqtt_mimic.py": {
-  "import-exit": 5,
-  "lost-cause": 1
- },
  "tools/ops/status_counts.py": {
   "dated-note": 1
  },
- "tools/schematic/block_layer.py": {
-  "dated-note": 3
- },
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
- },
- "tools/schematic/device_map_inputs.py": {
-  "dated-note": 1
  },
  "tools/schematic/device_map_masts.py": {
   "dated-note": 3
@@ -233,9 +223,6 @@
  },
  "tools/schematic/le_tables.py": {
   "exec-parts": 1
- },
- "tools/schematic/mast_rule.py": {
-  "dated-note": 2
  },
  "tools/schematic/tests/test_band_panels.py": {
   "dated-note": 1

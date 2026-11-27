@@ -34,6 +34,9 @@ jmri/resources/misc
 jmri/resources/jmri-web
 tools/mqtt-mimic/build_mimic_web.py
 tools/mqtt-mimic/lcos_mqtt_mimic.py
+tools/mqtt-mimic/mimic_bus.py
+tools/mqtt-mimic/mimic_http.py
+tools/mqtt-mimic/mimic_records.py
 tools/hartlib/src
 jmri/layouts/hart/output/signal_head_plan.csv
 jmri/layouts/hart/data/devices_generated.csv

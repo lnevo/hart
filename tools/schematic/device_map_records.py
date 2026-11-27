@@ -3,7 +3,7 @@ plugin's shapes it passes on; build_device_map re-exports the names its callers 
 from __future__ import annotations
 
 import sys
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Literal, NamedTuple, TypedDict, cast
 
@@ -12,8 +12,10 @@ import block_layer  # noqa: E402  the block layer
 from device_map_inputs import Places  # noqa: E402
 from device_map_nodes import Nodes  # noqa: E402
 from hartlib import railroad  # noqa: E402
-from mast_plan import Band, Bands, Intermediate, VirtualMast  # noqa: E402  the plugin's solved bands; the plan's masts
-from mast_rule import HomeMast, Joined, Track  # noqa: E402  a home mast; the plugin's connector partners; a named track
+from mast_plan import Intermediate, VirtualMast  # noqa: E402  the plan's masts
+from plan_bands import Bands  # noqa: E402  the plugin's solved bands
+from mast_rule import HomeMast  # noqa: E402
+from plan_tracks import Joined, Runs, Track  # noqa: E402  Runs: le_names.runs over a band
 
 Layer = Literal["turnout", "fb", "block", "occupancy", "mast", "head"]     # a device-map row's layer
 
@@ -45,10 +47,16 @@ class DeviceMapRow(TypedDict):
 
 
 MasterCells = dict[str, str]    # a master row as hartlib.devices.master_row returns it: the master's columns, all text
-# le_names.runs over a band: its tracks joined through turnbacks, in the plugin's shapes
-Runs = Callable[[Band], Sequence[Any]]
 Corners = Mapping[str, Mapping[str, str]]       # dx_corners: {switch number: {schematic leg: Layout Editor corner}}
-VirtualNames = dict[str, tuple[str, str]]       # {mast id: (user name, system name)} of the virtual masts
+
+
+class OldVirtual(NamedTuple):
+    """A virtual mast's names as the builder last wrote them (device_map_level_masts.master_virtual_names)."""
+    user: str
+    system: str
+
+
+VirtualNames = dict[str, OldVirtual]            # {mast id: its old names} of the virtual masts
 
 
 class LineMast(Intermediate):

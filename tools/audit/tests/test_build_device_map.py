@@ -33,7 +33,7 @@ class Pure(unittest.TestCase):
         found = [dict(t, level=3) for t in (track("Track 227-241", "241", "227", trial=["Track e63"]),
                                             track("Track 241 Spur", "241", trial=["Track e64"]),
                                             track("Track 1-2", "1", "2", trial=["Track e1", "Track e2"]))]
-        head = ",".join(BD.mast_rule.OVERRIDE_COLUMNS) + "\n"
+        head = ",".join(BD.block_override_rows.OVERRIDE_COLUMNS) + "\n"
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "split.csv"
             for text, want in ((head + "3,split,227,241,,,,,,\n", {"e63": "Track 227-241"}),
@@ -81,13 +81,14 @@ class Pure(unittest.TestCase):
 
     def test_track_names(self):
         sw, hx, bump = (lambda n: ("sw", n)), (lambda h: ("helix", h)), ("bumper", None)
-        # parallel tracks are numbered by their ends' plan legs (mast_rule.plan_order), not by the drawn row
+        # parallel tracks are numbered by their ends' plan legs (plan_tracks.plan_order), not by the drawn row
         found = [dict(ends=(sw("101"), sw("105")), row=1, plan_ends=("101C", "105A"), trial=["Track e2"]),
                  dict(ends=(sw("105"), sw("101")), row=2, plan_ends=("105B", "101B"), trial=["Track e1"]),
                  dict(ends=(sw("113"), bump), row=0, trial=["Track e3"]),
                  dict(ends=(sw("107"), sw("107")), row=0, trial=["Track e4"]),
                  dict(ends=(sw("135"), hx("H1")), row=0, trial=["Track e5"])]
-        BD.track_names(found)
+        import plan_tracks                      # on sys.path once build_device_map is loaded
+        plan_tracks.track_names(found)
         self.assertEqual([t["name"] for t in found],
                          ["Track 101-105 2", "Track 101-105 1", "Track 113 Spur", "Track 107 Loop", "Track 135-H1"])
 
@@ -375,7 +376,7 @@ class Output(unittest.TestCase):
 
 
 class FacingOnRoute(unittest.TestCase):
-    """mast_rule.facing_on_route: the facing points a home mast's routes meet inside its control point."""
+    """mast_routes.facing_on_route: the facing points a home mast's routes meet inside its control point."""
 
     @staticmethod
     def band(inner_cm=20.0):
@@ -393,30 +394,30 @@ class FacingOnRoute(unittest.TestCase):
         return dict(nodes=nodes, strands=strands)
 
     def test_routes_through_the_interlocking(self):
-        import mast_rule as mr                  # on sys.path once build_device_map is loaded
+        import mast_routes                      # on sys.path once build_device_map is loaded
         one_cp = {"1": "CP 1", "3": "CP 1"}
-        self.assertEqual(mr.facing_on_route(self.band(), "S1", "A", one_cp), ["1", "3"])
-        self.assertEqual(mr.facing_on_route(self.band(), "S3", "B", one_cp), [])           # trailing all the way
-        self.assertEqual(mr.facing_on_route(self.band(), "S1", "A", {"1": "CP 1", "3": "CP 3"}), ["1"])
-        self.assertEqual(mr.facing_on_route(self.band(mr.LONG_CM + 1), "S1", "A", one_cp), ["1"])  # own signals
+        self.assertEqual(mast_routes.facing_on_route(self.band(), "S1", "A", one_cp), ["1", "3"])
+        self.assertEqual(mast_routes.facing_on_route(self.band(), "S3", "B", one_cp), [])           # trailing all the way
+        self.assertEqual(mast_routes.facing_on_route(self.band(), "S1", "A", {"1": "CP 1", "3": "CP 3"}), ["1"])
+        self.assertEqual(mast_routes.facing_on_route(self.band(mast_routes.LONG_CM + 1), "S1", "A", one_cp), ["1"])  # own signals
 
     def test_a_double_crossover_is_facing_from_any_leg(self):
-        import mast_rule as mr
+        import mast_routes
         b = self.band()
         b["nodes"]["S3"]["kind"] = "dx"         # a route into it from its B leg still has a choice
-        self.assertEqual(mr.facing_on_route(b, "S3", "B", {"3": "CP 3"}), ["3"])
+        self.assertEqual(mast_routes.facing_on_route(b, "S3", "B", {"3": "CP 3"}), ["3"])
 
 
 class ReachesSignal(unittest.TestCase):
-    """mast_rule.reaches_signal: a home mast is placed only when a route it governs reaches another signal (owner,
+    """mast_routes.reaches_signal: a home mast is placed only when a route it governs reaches another signal (owner,
     2026-11-19), as Mast 126L into Switch 129's dark spurs is not."""
 
     band = staticmethod(FacingOnRoute.band)      # X - (A) 1 (B) - (A) 3, 1's C and 3's B and C to bumpers
 
     @staticmethod
     def reaches(b, node, leg, posts, joined=None, bands=None):
-        import mast_rule as mr
-        return mr.reaches_signal(bands or [("Main level", b, {})], 0, node, leg, {0: set(posts)}, joined or {})
+        import mast_routes
+        return mast_routes.reaches_signal(bands or [("Main level", b, {})], 0, node, leg, {0: set(posts)}, joined or {})
 
     def test_a_mast_into_dark_spurs_is_not_kept(self):
         # entering 1 at A: on to 3 and its two spurs, or 1's own spur; no mast faces on anywhere
@@ -444,10 +445,10 @@ class ReachesSignal(unittest.TestCase):
                             "S5": dict(kind="switch", label="5", ins={"A": "f0"}, outs={})},
                      strands={"f0": dict(src=("L", "E"), dst=("S5", "A"), cm=50.0)})
         bands = [("Main level", b, {}), ("Upper level", other, {})]
-        import mast_rule as mr
+        import mast_routes
         joined = {(0, "Z"): (1, "L"), (1, "L"): (0, "Z")}
-        self.assertTrue(mr.reaches_signal(bands, 0, "S1", "A", {0: {("S1", "A")}, 1: {("S5", "A")}}, joined))
-        self.assertFalse(mr.reaches_signal(bands, 0, "S1", "A", {0: {("S1", "A")}, 1: set()}, joined))
+        self.assertTrue(mast_routes.reaches_signal(bands, 0, "S1", "A", {0: {("S1", "A")}, 1: {("S5", "A")}}, joined))
+        self.assertFalse(mast_routes.reaches_signal(bands, 0, "S1", "A", {0: {("S1", "A")}, 1: set()}, joined))
 
     def test_a_turnback_is_followed(self):
         b = self.band()
@@ -490,7 +491,7 @@ class MastsLeaveOutDarkMasts(unittest.TestCase):
     def masts(self, tracks, cp_of, ends=None):
         import mast_rule as mr
         bands, found = self.build(tracks, ends)
-        return sorted((m["node"], m["leg"]) for m in mr.masts(bands, None, found, cp_of, joined={}, levels={"Main level": 2}))
+        return sorted((m["node"], m["leg"]) for m in mr.masts(bands, found, cp_of, joined={}, levels={"Main level": 2}))
 
     def test_two_masts_in_a_row_into_dark_track_both_go(self):
         # X (200 cm) - 1 - (200 cm) - 3, 1's C and 3's B and C short spurs to bumpers: 1's mast at A sees 3's mast
@@ -544,7 +545,7 @@ class NoBoardRoomOnly(unittest.TestCase):
 
 
 def track(name, a, b=None, row=0, trial=None, loop=False, legs=("B", "A")):
-    """An in-memory track entry as mast_rule.tracks gives them: between switches a and b, or a spur when b is None;
+    """An in-memory track entry as plan_tracks.tracks gives them: between switches a and b, or a spur when b is None;
     `legs` the legs it leaves a and b by (its plan_ends, which order parallel tracks)."""
     return dict(name=name, ends=(("sw", a), ("sw", b) if b else ("bumper", None)), row=row,
                 plan_ends=(a + legs[0], b + legs[1] if b else "end"), trial=trial or [f"Track e{row}"], loop=loop)
@@ -553,7 +554,7 @@ def track(name, a, b=None, row=0, trial=None, loop=False, legs=("B", "A")):
 class SwitchPairLists(unittest.TestCase):
     """Hand lists (block_overrides.csv) name a track by its end switches, so a renumber does not break them (source
     data row 5). The rows below are level 2 rows; the tracks are level 2 tracks."""
-    HEAD = ",".join(BD.mast_rule.OVERRIDE_COLUMNS) + "\n"
+    HEAD = ",".join(BD.block_override_rows.OVERRIDE_COLUMNS) + "\n"
 
     def names(self, text, found):
         """read_block_splits over block_overrides.csv split rows of level 2, one per line of `text` (switch_a,
@@ -564,7 +565,7 @@ class SwitchPairLists(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "list.csv"
             p.write_text(self.HEAD + text, encoding="utf-8")
-            return BD.mast_rule.read_block_splits(p, found, BD.LEVELS)
+            return BD.block_override_rows.read_block_splits(p, found, BD.LEVELS)
 
     def test_a_pair_names_its_track_whichever_way_the_ends_are_stored(self):
         found = [track("Track 119-121", "121", "119"), track("Track 121-123", "121", "123", row=1)]

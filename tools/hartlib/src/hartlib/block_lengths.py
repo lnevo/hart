@@ -35,7 +35,7 @@ from collections.abc import Container, Iterable, Mapping
 from typing import TYPE_CHECKING
 
 from . import level_devices, paths
-from .railroad_facts import FactsError, read_rows
+from .railroad_facts import FactsError, MasterRow, device_list, read_rows
 
 if TYPE_CHECKING:
     from . import devices as devices_mod
@@ -155,17 +155,18 @@ def _files_beside(path: Path) -> devices_mod.Files | None:
     return devices.Files.under(data) if (data / devices.GENERATED_FILE).is_file() else None
 
 
-def occupancy_sensor(level: str, name: str, part_of: str, detectors: Mapping[tuple[str, str], Mapping[str, str]]
-                     ) -> str:
+def occupancy_sensor(level: str, name: str, part_of: str, detectors: Mapping[tuple[str, str], MasterRow]) -> str:
     """A block's occupancy sensor as the documentation names it: on staging, its detector's node input ("Block 4-4",
     from the occupancy row's wiring text); on main and upper, the occupancy row's user name; with no occupancy row
     (the helix blocks' virtual sensors), level_devices.occupancy_user. A part (part_of) reports on its block's
     detector. `detectors`: {(level, block name): occupancy row}."""
-    row = detectors.get((level, name)) or (detectors.get((level, part_of)) if part_of else None)
+    row = detectors.get((level, name))
+    if row is None and part_of:
+        row = detectors.get((level, part_of))
     if row is None:
         return level_devices.occupancy_user(name)
-    m = DETECTOR_INPUT.search(row["wiring"]) if level == STAGING else None
-    return f"Block {m.group(1)}-{m.group(2)}" if m else row["user_name"]
+    m = DETECTOR_INPUT.search(row.wiring) if level == STAGING else None
+    return f"Block {m.group(1)}-{m.group(2)}" if m else row.user_name
 
 
 def plan_blocks(path: Path = PLAN, files: devices_mod.Files | Path | str | None = None) -> dict[str, Block]:
@@ -176,12 +177,12 @@ def plan_blocks(path: Path = PLAN, files: devices_mod.Files | Path | str | None 
     from . import devices
     rows = read_plan(path)
     master = devices.load(_files_beside(path) if files is None else files)
-    blocks = {(r["level"], r["id"]): r for r in master if r["level"] and r["layer"] == "block"}
-    detectors: dict[tuple[str, str], Mapping[str, str]] = {}
+    blocks = {(r.level_cell, r.id): r for r in master if r.level is not None and r.layer == "block"}
+    detectors: dict[tuple[str, str], MasterRow] = {}
     for r in master:
-        if r["level"] and r["layer"] == "occupancy":
-            for b in filter(None, (x.strip() for x in r["blocks"].split(";"))):
-                detectors.setdefault((r["level"], b), r)
+        if r.level is not None and r.layer == "occupancy":
+            for b in device_list(r.blocks):
+                detectors.setdefault((r.level_cell, b), r)
     out: dict[str, Block] = {}
     bad: list[str] = []
     for p in rows.values():
@@ -189,13 +190,12 @@ def plan_blocks(path: Path = PLAN, files: devices_mod.Files | Path | str | None 
         if row is None:
             bad.append(f"{_where(path, p.line)}: {p.id} is no level {p.level} block row of the device master")
             continue
-        if row["user_name"] in out:
-            bad.append(f"{_where(path, p.line)}: {p.id} is named {row['user_name']!r}, as "
-                       f"{out[row['user_name']].id} is (line {out[row['user_name']].line})")
+        name = row.user_name
+        if name in out:
+            bad.append(f"{_where(path, p.line)}: {p.id} is named {name!r}, as {out[name].id} is (line {out[name].line})")
             continue
-        out[row["user_name"]] = Block(p.line, p.level, p.id, row["user_name"],
-                                      occupancy_sensor(p.level, row["user_name"], row["part_of"], detectors),
-                                      p.plan_in, p.note)
+        out[name] = Block(p.line, p.level, p.id, name, occupancy_sensor(p.level, name, row.part_of, detectors),
+                          p.plan_in, p.note)
     if bad:
         raise FactsError("; ".join(bad))
     return out

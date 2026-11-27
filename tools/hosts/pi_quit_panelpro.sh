@@ -13,14 +13,19 @@
 # pi/panelpro_restart_due.sh). A plain quit (end of a session, before ops-pull) leaves no
 # marker, so PanelPro stays closed. Not running → no marker.
 #
+# What counts as running on the profile: pi/jmri_profile_match.sh, sent to the Pi ahead of
+# the remote part below.
+#
 # Exit: 0 quit (or not running) · 1 still running after the wait · 2 watcher not ready or a
-# command already pending · 3 the dropped Jython failed · 4 another dialog appeared.
+# command already pending · 3 the dropped Jython failed · 4 another dialog appeared ·
+# 5 the Pi's processes could not be listed.
 #
 # Usage: tools/hosts/pi_quit_panelpro.sh            (host from HART_PI_SSH, default "pi")
 #        tools/hosts/pi_quit_panelpro.sh --for-deploy  (quit before a Pi deploy, which restarts it)
 #        tools/hosts/pi_quit_panelpro.sh --print    (print the Jython it would drop, no ssh)
 set -euo pipefail
-source "$(cd "$(dirname "$0")/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
+HOSTS="$(cd "$(dirname "$0")" && pwd)"
+source "$(cd "$HOSTS/../env" && pwd)/load_env.sh"  # hosts: environment, hart.env, default
 PI_HOST="$HART_PI_SSH"
 PROFILE="$HART_PI_PROFILE"
 WAIT_S=120
@@ -112,12 +117,16 @@ if [[ "${1:-}" == "--print" ]]; then
   exit 0
 fi
 
-ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- \
-  "$PROFILE" "$WAIT_S" "$(printf '%s\n' "$JYTHON" | base64 | tr -d '\n')" "$FOR_DEPLOY" <<'REMOTE'
+read -r -d '' REMOTE <<'REMOTE' || true
 set -euo pipefail
 profile="$1"; wait_s="$2"; jython_b64="$3"; for_deploy="$4"
 CMD=/tmp/jmri_cmd.py OUT=/tmp/jmri_cmd.out READY=/tmp/jmri_watcher.ready LOG=/tmp/pi_quit_panelpro.log
-pid=$(pgrep -f "[o]rg.jmri.profile=$profile" | head -1 || true)
+state=0
+pid="$(jmri_profile_panelpro_pid "$profile")" || state=$?
+if [[ "$state" -gt 1 ]]; then
+  echo "Cannot tell whether PanelPro runs on the Pi (ps could not list its processes)." >&2
+  exit 5
+fi
 if [[ -z "$pid" ]]; then
   echo "PanelPro is not running on the Pi; nothing to quit."
   exit 0
@@ -141,7 +150,9 @@ for _ in $(seq 1 "$wait_s"); do
   if [[ -f "$OUT" ]] && head -1 "$OUT" | grep -q '^error'; then status=3; break; fi
   if grep -qs '^QUIT FAILED' "$LOG"; then status=3; break; fi
   if grep -qs '^OTHER DIALOG' "$LOG"; then status=4; break; fi
-  if ! pgrep -f "[o]rg.jmri.profile=$profile" >/dev/null; then status=0; break; fi
+  state=0
+  jmri_profile_running "$profile" || state=$?
+  if [[ "$state" -eq 1 ]]; then status=0; break; fi    # 2 (ps failed) is no proof it quit: wait on
 done
 # Never leave an unread quit behind: the next PanelPro start would run it.
 if [[ -e "$CMD" ]]; then rm -f "$CMD"; echo "removed the unread $CMD" >&2; fi
@@ -159,3 +170,7 @@ case "$status" in
 esac
 exit "$status"
 REMOTE
+
+{ cat "$HOSTS/pi/jmri_profile_match.sh"; printf '%s\n' "$REMOTE"; } \
+  | ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" bash -s -- \
+      "$PROFILE" "$WAIT_S" "$(printf '%s\n' "$JYTHON" | base64 | tr -d '\n')" "$FOR_DEPLOY"

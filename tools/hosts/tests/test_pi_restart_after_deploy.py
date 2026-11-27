@@ -68,6 +68,44 @@ class RestartDueTest(unittest.TestCase):
         self.assertEqual("running", self.due())
         self.assertFalse(self.marker.exists())
 
+    def test_a_pgrep_that_cannot_tell_keeps_the_marker_and_starts_nothing(self) -> None:
+        self.marker.write_text("quit")
+        stub = self.bin / "pgrep"
+        stub.write_text("#!/bin/sh\nexit 2\n")
+        self.assertEqual("unknown", self.due())
+        self.assertTrue(self.marker.exists())
+
+
+class DeploySendsTheHelperTest(unittest.TestCase):
+    """common.sh pi_restart_if_due sends jmri_profile_match.sh ahead of panelpro_restart_due.sh: a stand-in ssh runs
+    what it is sent with bash on this machine (HOME a temporary folder, pgrep a stub), so nothing reaches a host."""
+
+    def restart(self, pgrep_exit: int) -> subprocess.CompletedProcess[str]:
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            stub = tmp / "bin"
+            stub.mkdir()
+            (stub / "ssh").write_text('#!/bin/bash\nexec bash -c "${@: -1}"\n', encoding="utf-8")
+            (stub / "pgrep").write_text(f"#!/bin/sh\nexit {pgrep_exit}\n", encoding="utf-8")
+            for tool in ("ssh", "pgrep"):
+                (stub / tool).chmod(0o755)
+            (tmp / ".hart_panelpro_quit_for_deploy").write_text("quit", encoding="utf-8")
+            env = {"HOME": str(tmp), "PATH": f"{stub}:/usr/bin:/bin", "HART_ENV_FILE": str(tmp / "none"),
+                   "HART_PI_SSH": "pi.example.invalid"}
+            return subprocess.run(["bash", "-c", 'source "$1"; pi_restart_if_due', "x",
+                                   str(HOSTS / "deploy/common.sh")],
+                                  env=env, capture_output=True, text=True, timeout=60)
+
+    def test_a_running_jmri_is_seen_through_the_helper(self) -> None:
+        done = self.restart(0)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("JMRI was running on the Pi during the deploy", done.stderr)
+
+    def test_a_pgrep_that_cannot_tell_starts_nothing(self) -> None:
+        done = self.restart(2)
+        self.assertIn("Could not check whether to start PanelPro on the Pi", done.stderr)
+        self.assertNotIn("Starting PanelPro", done.stdout)
+
 
 class ScriptsAgreeTest(unittest.TestCase):
     def test_deploy_quits_panelpro_only_to_pull(self) -> None:
