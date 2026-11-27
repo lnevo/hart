@@ -3,16 +3,21 @@ counts, the station sensors, a TrainInfo route's order and the marker file's tex
 test_panelpro_smoke_blocks.py takes them; the script itself is never run here."""
 from __future__ import annotations
 
+import json
+import numbers
 import sys
 import types
 import unittest
+from collections import namedtuple
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_panelpro_smoke_blocks import plain_parts  # noqa: E402
 
-STEPS = ("MASTS", "SECTIONS", "TRANSITS", "TRAININFO", "BAND_PANELS", "STATIONS", "station_key", "bean_count",
-         "station_sensor_errors", "count_errors", "ordered_route", "_line", "marker_text")
+STEPS = ("COUNT_KEYS", "PANEL_KEYS", "Expected", "CountsError", "_whole", "_object", "expected_counts", "BAND_PANELS",
+         "STATIONS", "station_key", "bean_count", "station_sensor_errors", "count_errors", "ordered_route", "_line",
+         "marker_text")
+EXPECTED = (98, 197, 187, 374)   # a made-up Expected: masts, sections, transits, traininfo
 
 
 class _Beans:
@@ -32,16 +37,18 @@ class _Sensors:
 
 
 def steps(parked: str = "") -> dict:
-    return plain_parts(STEPS, {"PARKED": set(parked.split()), "unicode": type("unicode", (), {})})
+    return plain_parts(STEPS, {"PARKED": set(parked.split()), "unicode": type("unicode", (), {}), "json": json,
+                               "numbers": numbers, "namedtuple": namedtuple})
 
 
 class SmokeSteps(unittest.TestCase):
     def test_counts_name_each_manager_that_differs(self) -> None:
         ns = steps()
-        ok = (_Beans(ns["MASTS"]), _Beans(ns["SECTIONS"]), _Beans(ns["TRANSITS"]))
-        self.assertEqual(ns["count_errors"](*ok), [])
-        self.assertEqual(ns["count_errors"](_Beans(1), ok[1], _Beans(0)),
-                         [f"signal masts=1 expected={ns['MASTS']}", f"transits=0 expected={ns['TRANSITS']}"])
+        want = ns["Expected"](*EXPECTED)
+        ok = (_Beans(want.masts), _Beans(want.sections), _Beans(want.transits))
+        self.assertEqual(ns["count_errors"](want, *ok), [])
+        self.assertEqual(ns["count_errors"](want, _Beans(1), ok[1], _Beans(0)),
+                         [f"signal masts=1 expected={want.masts}", f"transits=0 expected={want.transits}"])
 
     def test_station_sensors_follow_the_dispatcher_parking(self) -> None:
         live = steps()
@@ -66,11 +73,13 @@ class SmokeSteps(unittest.TestCase):
 
     def test_marker_text(self) -> None:
         live = steps()
-        self.assertEqual(live["marker_text"](["one", "two"], "x"), "fail\none\ntwo")
-        ok = live["marker_text"]([], "LEVEL")
-        self.assertTrue(ok.startswith(f"ok\n{live['MASTS']} masts; LEVEL; 24 station sensors; "))
+        want = live["Expected"](*EXPECTED)
+        self.assertEqual(live["marker_text"](["one", "two"], "x", None), "fail\none\ntwo")
+        ok = live["marker_text"]([], "LEVEL", want)
+        self.assertTrue(ok.startswith("ok\n98 masts; LEVEL; 24 station sensors; 197 sections; 187 transits; "
+                                      "374 ordered TrainInfo routes; "))
         self.assertTrue(ok.endswith("band panels Staging Level, Main Level, Upper Level loaded and hidden\n"))
-        parked = steps("nx dispatcher")["marker_text"]([], "LEVEL")
+        parked = steps("nx dispatcher")["marker_text"]([], "LEVEL", want)
         self.assertIn("; parked dispatcher nx: no section, transit, Dispatcher sensor or parked window; ", parked)
 
 

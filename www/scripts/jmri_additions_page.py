@@ -13,7 +13,8 @@ fill() replaces each region's contents with the value read from the checkout:
   same rule as its _collect_beans, now in sml_beans.py) and their Signal Mast Logic destinations in tables.xml, against the rest;
 - the plant switches panel_status.py flips (M2T/MTT turnouts with both feedback sensors, its
   _included_plant_turnouts);
-- which hosts install each Jython script (tools/hosts/deploy/common.sh for the Mac, the Pi and Windows apply scripts).
+- which hosts install each Jython script (tools/hosts/pi/jython_scripts.txt for the Pi and the Mac, the Windows
+  apply script).
 
 A region the code does not know, or a known one missing from the page, stops the build. The prose around the
 regions is written by hand and checked by the repo audits (www/README.md, "Pages that describe the repo").
@@ -27,6 +28,7 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -47,12 +49,15 @@ SPLIT_SCRIPTS = (COORDINATOR, PANEL_STATUS)   # the Jython scripts whose code is
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
-# Where each host's Jython list lives: (file, the line that opens the list). Each list runs to its closing bracket.
-# The list closes with ")" on a line of its own.
+# The Pi and the Mac install the jython of one list (tools/hosts/pi/jython_scripts.txt, read by jython_list.sh): the
+# rows of these roles are each host's scripts; the sibling and part rows are parts of the split scripts.
+JYTHON_LIST = "tools/hosts/pi/jython_scripts.txt"
+JYTHON_READER = "tools/hosts/pi/jython_list.sh"
+LIST_ROLES = {"Pi": ("startup", "pi"), "Mac": ("startup",)}
+# Where each other host's Jython list lives: (file, the line that opens the list). Each list runs to its closing
+# bracket. The list closes with ")" on a line of its own.
 HOST_LISTS = {
-    "Pi": ("tools/hosts/pi/apply_hart_package_local.sh", "JYTHON=("),
     "Windows": ("tools/hosts/windows/apply_hart_package_local.ps1", "$jythonSrc = @("),
-    "Mac": ("tools/hosts/deploy/common.sh", "JYTHON_STARTUP_SCRIPTS=("),
 }
 HOST_ORDER = ("Pi", "Windows", "Mac")
 HOST_NAMES = {"Pi": "the Pi", "Windows": "Windows", "Mac": "the Mac"}
@@ -108,12 +113,28 @@ def is_lcos_head(packed: str, lo: int, hi: int) -> bool:
     return lo <= n % 100 <= hi and set(str(n // 100)) <= set("01234567")
 
 
+def jython_rows(root: Path = ROOT) -> list[tuple[str, str]]:
+    """The (role, path) rows of JYTHON_LIST as its reader, jython_list.sh, prints them; PageError with the reader's
+    message when it refuses the list."""
+    try:
+        done = subprocess.run(["bash", "-c", 'source "$1" && jython_list "$2"', "jython_list",
+                               str(root / JYTHON_READER), str(root / JYTHON_LIST)],
+                              capture_output=True, text=True, timeout=30, check=False)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise PageError("cannot run %s: %s" % (JYTHON_READER, e)) from e
+    if done.returncode != 0:
+        raise PageError("%s: %s" % (JYTHON_LIST, done.stderr.strip() or "jython_list.sh failed"))
+    return [(role, path) for role, path in (line.split(" ", 1) for line in done.stdout.splitlines())]
+
+
 def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
     """The Jython scripts each host's deploy copies into its profile's jython folder. The modules
     signal_coordinator.py loads and the parts panel_status.py runs are parts of them, not scripts of their own,
     so they are left out."""
     parts = _siblings(root)
-    out = {}
+    rows = jython_rows(root)
+    out = {host: {Path(path).name for role, path in rows if role in roles} - parts
+           for host, roles in LIST_ROLES.items()}
     for host, (rel, opener) in HOST_LISTS.items():
         text = (root / rel).read_text(encoding="utf-8")
         start = text.find(opener)

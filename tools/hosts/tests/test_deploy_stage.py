@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 import unittest.mock
@@ -19,6 +20,8 @@ from pathlib import Path
 from typing import ClassVar
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pi_drop import jython_rows  # noqa: E402
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
 STEPS = ROOT / "tools/hosts/deploy"   # the entry point's steps: gate, stage, ship_mac, ship_pi, ship_win; common.sh is shared
 WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
@@ -187,6 +190,18 @@ class StageOnly(unittest.TestCase):
         self.assertEqual(self.done.returncode, 0, self.done.stderr[-2000:])
         self.assertFalse((self.tmp / "network.log").exists(), "stage-only called ssh or scp")
         self.assertIn("DONE (stage only)", self.done.stdout)
+
+    def test_the_pi_package_holds_every_script_its_jython_list_names(self) -> None:
+        """The Pi apply step reads cats/scripts/pi/jython_scripts.txt from the package and stops on a row whose
+        script the package lacks: a real staged package holds each one, unchanged."""
+        listing = self.out / "pi/cats/scripts/pi/jython_scripts.txt"
+        self.assertTrue(listing.is_file())
+        rows = jython_rows(listing)
+        self.assertGreater(len(rows), 10, rows)
+        for row in rows:
+            staged = self.out / "pi" / row.path
+            self.assertTrue(staged.is_file(), f"pi package lacks {row.path}")
+            self.assertTrue(filecmp.cmp(ROOT / row.path, staged, shallow=False), row.path)
 
     def test_builds_both_packages(self) -> None:
         for host in ("pi", "win"):
@@ -368,6 +383,26 @@ def private_clone(tmp: Path) -> tuple[Path, dict[str, str]]:
     env = stage_env(tmp)
     env["SCHEMATIC_PLUGIN"] = str(ROOT / "external/model-railroad-skills/plugins/schematic-maps")
     return repo, env
+
+
+class JythonListTheStageCannotShip(unittest.TestCase):
+    """A jython_scripts.txt row the package would lack (here a script only a parked feature uses, which the stage
+    leaves out) stops the stage, naming the row, before any host changes: the Pi apply step would stop on it."""
+
+    ROW = "startup jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py"
+
+    def test_the_stage_stops_naming_the_row(self) -> None:
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            repo, env = private_clone(tmp)
+            listing = repo / "tools/hosts/pi/jython_scripts.txt"
+            listing.write_text(listing.read_text(encoding="utf-8") + self.ROW + "\n", encoding="utf-8")
+            done = run(repo / "tools/hosts/sync_hart_package.sh", tmp / "stage", env, cwd=repo)
+            self.assertNotEqual(done.returncode, 0, done.stdout[-2000:])
+            self.assertIn("stage: the package lacks jython that tools/hosts/pi/jython_scripts.txt lists", done.stderr)
+            self.assertIn(self.ROW, done.stderr)
+            self.assertNotIn("DONE (stage only)", done.stdout)
+            self.assertFalse((tmp / "network.log").exists())
 
 
 class StampNamesWhatWasShipped(unittest.TestCase):
