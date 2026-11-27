@@ -30,10 +30,10 @@ TRACK: RGB = (20, 20, 20)
 INK: RGB = (16, 20, 24)
 BADGE: RGB = (15, 71, 97)  # the switch-pill teal of SM-02 to SM-05
 BADGE_INK: RGB = (255, 255, 255)
-COMPASS_GOLD: RGB = (201, 154, 40)
 
-# Repo-relative: the hart-ops folder (present when the docx are written) and the SM-series
+# Repo-relative: the publications folder that holds station_compass, the hart-ops folder (present when the docx are written) and the SM-series
 # landscape docx whose embedded map the renderers swap.
+PUBLICATIONS_REL = "ops/hart-ops/publications"
 HOPS_REL = "ops/hart-ops"
 SM_DOCX_TEMPLATE_REL = "docs/ops/Neville_Island_Station_Map_West_Yard.docx"
 
@@ -74,6 +74,16 @@ def georgia(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont
     """Georgia at ``size``, else Arial of the same weight."""
     name = "Georgia Bold.ttf" if bold else "Georgia.ttf"
     return find_font([name], size, SERIF_DIRS) or arial(size, bold=bold)
+
+
+def load_font(path: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """The font file named like ``path`` (its file name) in the sheet font folders; warns when none is installed.
+
+    This is the ``load_font`` hook station_compass takes, so the compass letters come from the
+    same folders as the rest of the sheet.
+    """
+    names = [Path(path).name]
+    return find_font(names, size, SANS_DIRS) or _default_font(names)
 
 
 def along(origin: Point, dy: float, run: float, rise: float) -> Point:
