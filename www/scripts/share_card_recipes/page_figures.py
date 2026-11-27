@@ -7,19 +7,27 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+from typing import TYPE_CHECKING
 
 import make_share_cards as kit
 from make_share_cards import H, PAPER, PORTAL, REPO, W
 from share_card_recipes import CardError
 
+if TYPE_CHECKING:  # Pillow is imported inside each recipe, so --list runs without it
+    from PIL import Image
+
 
 # ---- Page figures, rendered at card size ----------------------------------------------------
 
 def _page_style(page: str) -> str:
-    return "".join(re.findall(r"<style>(.*?)</style>", (PORTAL / page).read_text(encoding="utf-8"), re.S))
+    """The text of every <style> block in PAGE (a path under www/), joined, so a card draws a figure as the page does."""
+    styles = re.findall(r"<style>(.*?)</style>", (PORTAL / page).read_text(encoding="utf-8"), re.S)
+    if not styles:
+        raise CardError(f"{page} has no <style> block, so its figure would be drawn unstyled")
+    return "".join(styles)
 
 
-def ai_locomotives():
+def ai_locomotives() -> Image.Image:
     """ai-locomotives: the speed-match chart, which lives in the speed-matching article."""
     page = "ai/speed-runs.html"
     style = (_page_style(page) + f"body{{background:var(--card)}}.w{{display:flex;align-items:center;justify-content:center;"
@@ -27,7 +35,7 @@ def ai_locomotives():
     return kit.card(kit.draw("speed", f"<div class=w>{kit._svg(page, 'speed-svg')}</div>", style, ("css/ops.css", "css/ai.css")))
 
 
-def speed_runs():
+def speed_runs() -> Image.Image:
     """ai-speed-runs: the run viewer on the 8-step 2738 forward run, its loco, readings and track strip (needs the ops/car-cards mirror)."""
     rid = "steprun_CSX_2738_forward_20261113_165713"  # the alt text in share-cards.json quotes this run
     runs = json.loads((PORTAL / "data/speedmatch/index.json").read_text(encoding="utf-8"))["runs"]
@@ -39,7 +47,7 @@ def speed_runs():
     return kit.card(im.crop((150 * 2, 550 * 2, 1251 * 2, 1128 * 2)))  # the hero and Track cards (CSS px, x2), 1200:630
 
 
-def repo_guide():
+def repo_guide() -> Image.Image:
     """library-repository-guide: the overview figure from the page, the repository between its submodules and the places it deploys to."""
     page = "library/repository-guide.html"
     style = (_page_style(page) + f"body{{background:{PAPER}}}.w{{display:flex;align-items:center;justify-content:center;"
@@ -47,10 +55,13 @@ def repo_guide():
     return kit.card(kit.draw("repo", f"<div class=w>{kit._svg(page, 'repo-svg')}</div>", style, ("css/ops.css", "css/article.css")))
 
 
-def pipeline_map():
+def pipeline_map() -> Image.Image:
     """library-pipeline-map: the map's own filtered view of run_sml_discover.sh, one step each side (#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1&compact=0, full boxes), drawn by the page with its toolbar and panels hidden."""
     # the page as the site build draws it now (it is not committed, ADR-036), so the card shows the current chain
-    spec = importlib.util.spec_from_file_location("build_pipeline_map", REPO / "tools/ops/build_pipeline_map.py")
+    source = REPO / "tools/ops/build_pipeline_map.py"
+    spec = importlib.util.spec_from_file_location("build_pipeline_map", source)
+    if spec is None or spec.loader is None:
+        raise CardError(f"library-pipeline-map: {source.relative_to(REPO)} cannot be loaded as a module")
     pipeline = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(pipeline)
     try:
@@ -66,14 +77,16 @@ def pipeline_map():
     return kit.card(_fill_band(im))
 
 
-def _fill_band(im):
+def _fill_band(im: Image.Image) -> Image.Image:
     """The pipeline map's one lane band, centred on a card filled with the band's own colour: the drawing is wider
     than a card, so Fit leaves page background above and below it."""
     from PIL import Image
 
     bg = (250, 250, 250)  # the page background, #fafafa (forced by the hide style above)
     rows = [y for y in range(im.height) if im.getpixel((8, y)) != bg]
-    if not rows or rows[0] == 0 and rows[-1] == im.height - 1:
+    if not rows:
+        raise CardError("library-pipeline-map: no lane band at the left edge of the map view; the page drew nothing there")
+    if rows[0] == 0 and rows[-1] == im.height - 1:
         return im  # the band already fills the height
     rule = im.height // 630 + 2  # the band's 1 CSS px top rule, at the shot's scale, and a pixel of anti-aliasing
     top, bottom = rows[0] + rule, rows[-1] + 1
@@ -83,7 +96,7 @@ def _fill_band(im):
     return out
 
 
-def build_story():
+def build_story() -> Image.Image:
     """library-how-it-was-built-article: the homepage's island photo with the Diverging Route drawing over it."""
     island = kit._published("assets/media/birdseye-neville-island.jpg").as_uri()
     style = (
@@ -97,7 +110,7 @@ def build_story():
     return kit.card(kit.draw("journey", body, style, ("css/ops.css", "css/ai.css")))
 
 
-def wiring_node():
+def wiring_node() -> Image.Image:
     """behind-wiring: node C4's card from the wiring viewer. The box is the card's place on a
     1440 px wide page; move it if the page's layout or node order changes."""
     from PIL import Image
@@ -112,24 +125,24 @@ def wiring_node():
     return out
 
 
-def _lineage(page: str):
+def _lineage(page: str) -> Image.Image:
     """The top of a "who became who" chart: the first companies and what they became.
     The box is the chart's place on a 1440 px wide page; move it if the page's text above it changes length."""
     k = 2
     return kit.card(kit.shot(f"{kit._site}{page}", (1440, 1400), k).crop((170 * k, 640 * k, 1270 * k, 1217 * k)))
 
 
-def plants():
+def plants() -> Image.Image:
     """plants-index: the Neville Island plant lineage, from American Steel & Wire to the 1960s break-up."""
     return _lineage("plants/index.html")
 
 
-def railroads():
+def railroads() -> Image.Image:
     """railroads-index: the Chartiers Valley railroads lineage, line by line."""
     return _lineage("railroads/index.html")
 
 
-def coraopolis_record():
+def coraopolis_record() -> Image.Image:
     """library-coraopolis-record-opinion: the top of the Bring Back The Trolleys column, with its Route 23 car."""
     from PIL import Image
 

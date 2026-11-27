@@ -12,10 +12,12 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("build_wiring_json", ROOT / "www/scripts/build_wiring_json.py")
+assert SPEC is not None and SPEC.loader is not None, "www/scripts/build_wiring_json.py cannot be loaded"
 BW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(BW)
 
@@ -132,6 +134,61 @@ class Errors(unittest.TestCase):
             self.assertEqual(list(Path(d).iterdir()), [])
         self.assertEqual(code, 1)
         self.assertIn("'blocks' has no entries", err)
+
+
+class Turnouts(unittest.TestCase):
+    """One TurnoutSummary row against a small inventory: its name, its crossover half and the checks on its pins."""
+
+    def inventory(self) -> Any:  # BW.Inventory; BW is loaded by path
+        inv = BW.Inventory({}, "test.xlsx", BW.BuildLog())
+        inv.device_ports = {"Switch 3 N": ["C1-OU1-1"], "Switch 3 R": ["C1-OU1-2"]}
+        inv.nodes["C1"] = {"id": "C1", "inputs": [{"board": "IN1", "pins": [{"port": "C1-IN1-1", "device": "Switch 3 BTN"}]}]}
+        return inv
+
+    def test_a_crossover_half_names_its_os_block(self):
+        self.assertEqual(BW.crossover_half("Switch 7 (OS Switch 7b)", "Switch 7"), "OS Switch 7b")
+        self.assertEqual(BW.crossover_half("Switch 7", "Switch 7"), "")
+
+    def test_a_label_that_is_not_the_turnout_or_a_half_is_an_error(self):
+        with self.assertRaisesRegex(BW.WiringDataError, "'Switch 8' is not 'Switch 7'"):
+            BW.crossover_half("Switch 8", "Switch 7")
+
+    def test_the_old_workbook_uses_the_label_and_an_empty_name_is_an_error(self):
+        self.assertEqual(BW.turnout_name({}, "Switch 3"), "Switch 3")
+        with self.assertRaisesRegex(BW.WiringDataError, "'Switch 3' has no JMRI Turnout"):
+            BW.turnout_name({"JMRI Turnout": ""}, "Switch 3")
+
+    def test_a_wired_turnout_gives_its_record_and_no_warning(self):
+        inv = self.inventory()
+        t = inv.turnout({"JMRI Turnout": "Switch 3", "Parent Node": "C1", "Button": "C1-IN1-1",
+                         "Entry Signal": "12 upper"}, "Switch 3")
+        self.assertEqual((t["motorN"], t["motorR"], t["half"], t["signals"]), ("C1-OU1-1", "C1-OU1-2", "", {"entry": "12 upper"}))
+        self.assertEqual(inv.log.warnings, [])
+
+    def test_wrong_pins_are_warnings(self):
+        inv = self.inventory()
+        inv.turnout({"JMRI Turnout": "Switch 3", "Parent Node": "C2", "Feedback N": "C1-IN1-1", "Button": "C9-IN1-1"},
+                    "Switch 3")
+        self.assertEqual(inv.log.warnings, [
+            "TurnoutSummary: Switch 3 parent node C2, but its motor is on ['C1']",
+            "TurnoutSummary: Switch 3 button → C9-IN1-1, but DNIN8 has nothing there",
+            "TurnoutSummary: Switch 3 fbN → C1-IN1-1, but DNIN8 has Switch 3 BTN there",
+        ])
+
+    def test_no_motor_pins_is_a_warning(self):
+        inv = self.inventory()
+        inv.turnout({"JMRI Turnout": "Switch 5"}, "Switch 5")
+        self.assertEqual(inv.log.warnings, ["TurnoutSummary: Switch 5 has no motor pins on the DNOU8 sheet"])
+
+
+class OutputKinds(unittest.TestCase):
+    def test_a_lamp_names_its_head_and_colour(self):
+        self.assertEqual(BW.out_kind("Head 12 upper Y", ""), BW.OutKind("lamp", "Y", "12 upper"))
+
+    def test_other_pins_by_device_type(self):
+        self.assertEqual(BW.out_kind("Switch 3 N", "Turnout motor"), BW.OutKind("motor"))
+        self.assertEqual(BW.out_kind("", ""), BW.OutKind("spare"))
+        self.assertEqual(BW.out_kind("Reserved", ""), BW.OutKind("reserved"))
 
 
 class Main(unittest.TestCase):

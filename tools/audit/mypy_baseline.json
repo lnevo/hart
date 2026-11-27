@@ -182,13 +182,11 @@
  "tools/wiring/node_grid_svg.py": 1,
  "tools/wiring/write_inventory.py": 11,
  "www/scripts/build_cats_layout_index.py": 6,
- "www/scripts/build_wiring_json.py": 3,
  "www/scripts/check_portal_build.py": 4,
  "www/scripts/make_share_cards.py": 1,
  "www/scripts/provenance.py": 5,
  "www/scripts/share_cards.py": 2,
  "www/scripts/site_views.py": 4,
  "www/scripts/tests/test_industry_ids.py": 1,
- "www/scripts/tests/test_serve_portal.py": 9,
- "www/scripts/tests/test_wiring_json_check.py": 3
+ "www/scripts/tests/test_serve_portal.py": 9
 }
