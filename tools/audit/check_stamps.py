@@ -180,7 +180,8 @@ SIDECAR_MASTERS = ("docs/wiring/lcos/lcos_signal_logic.csv", "docs/wiring/lcos/l
                    "ops/hart-ops/data/industry_notes.csv", "ops/hart-ops/data/industry_sheet.csv",
                    "ops/hart-ops/data/loco_models.csv", "ops/hart-ops/data/locos.csv", "ops/hart-ops/data/roads.csv",
                    "ops/hart-ops/data/spot_assignments.csv", "ops/hart-ops/data/spot_usages.csv",
-                   "ops/hart-ops/data/trains.csv", "www/scripts/archive_catalogue.csv")
+                   "ops/hart-ops/data/trains.csv", "www/scripts/archive_catalogue.csv",
+                   "www/scripts/layout_docs_labels.csv")
 ENTITY_MASTERS = ("docs/data/entities.csv", "docs/wiring/lcos/lcos_signal_logic.csv",
                   "docs/wiring/lcos/lcos_signal_plan_notes.csv", "ops/hart-ops/data/HART_Spot_Waybills.csv",
                   "ops/hart-ops/data/image_metadata.csv", "ops/hart-ops/data/industries.csv",
