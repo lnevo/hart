@@ -48,7 +48,7 @@ class ExamAnswers(unittest.TestCase):
             self.assertTrue(q["right"] and q["wrong"] and q["why"], q["title"])
             # Values filled in at play time must read as a friendly name, never a raw stub.
             for field in (q["title"], q["body"], q["right"], *(w["t"] for w in q["wrong"])):
-                self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.js line {q['line']}")
+                self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"{q['file']} line {q['line']}")
 
     def files(self, body="", modern="", yard="", pool=""):
         """Minimal scripts for extract: run.js with a figure helper, the pools, and one file per run."""
