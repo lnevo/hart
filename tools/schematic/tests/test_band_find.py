@@ -87,6 +87,25 @@ class BandPlaces(unittest.TestCase):
                 plan_bands.band_places({"levels": {"bands": [{"name": "Lower deck", "level": 2, "below": bad}]}})
 
 
+class PlanPlaces(unittest.TestCase):
+    """le_common.plan_places: each band's section, level and height, as a BandPlace."""
+
+    def test_each_band_has_its_section_level_and_height(self):
+        with Folder(overrides()) as folder:
+            places = le_common.plan_places(folder)
+        self.assertEqual(places["Cellar deck"], le_common.BandPlace(section="staging", level=1, height=None))
+        top = places["Top deck, 4 in"]
+        self.assertEqual((top.section, top.level, top.height), ("main_upper", 3, 99))
+
+    def test_find_band_takes_any_height_or_one_height(self):
+        with Folder(overrides()):
+            self.assertEqual(le_common.find_band(BANDS, 3), 2)                      # ANY: whatever height
+            self.assertEqual(le_common.find_band(BANDS, 2, 5), 1)
+            self.assertEqual(le_common.find_band(BANDS, 1, None), 0)               # None: a band with no height
+            with self.assertRaisesRegex(BuildError, r"no band is at level 2, height 7"):
+                le_common.find_band(BANDS, 2, 7)
+
+
 class FindBand(unittest.TestCase):
     """le_common.find_band: the one drawn band at a level (and height), from every section of the plan overrides."""
 

@@ -390,12 +390,19 @@ class DocsUnitTests(unittest.TestCase):
         for stamps, left_out, why in cases:
             with self.subTest(why), self.assertRaisesRegex(docs_unit_tests.Problem, why):
                 docs_unit_tests.tests(stamps, left_out)
+        self.assertEqual([docs_unit_tests.UnitTest(real, "tools/audit/tests", "test_name_copies.py", "Copies.")],
+                         docs_unit_tests.tests(self.stamps({real: ("docs/x.md",)}, docs_k={real: "Copies."}), {}))
         self.assertEqual(docs_unit_tests.lines(docs_unit_tests.tests(self.stamps({real: ("docs/x.md",)}), {})),
                          ["unit-guards-test_name_copies python3 -m unittest discover -b -q -s tools/audit/tests "
                           "-p test_name_copies.py"])
         with mock.patch.object(docs_unit_tests, "tests", side_effect=docs_unit_tests.Problem("none")), \
                 mock.patch("sys.stderr"):
             self.assertEqual(1, docs_unit_tests.main())
+
+    def test_a_job_that_runs_jobs_with_no_declaration_covers_no_docs(self) -> None:
+        stamps = type("Stamps", (), {"BY_KIND": {}, "EXTRA": {}, "MANIFEST_CHECK": (), "DOCS_K": {},
+                                     "RUNS_JOBS": {"docs-all skipped": ()}, "declared": staticmethod(lambda name: None)})
+        self.assertEqual(set(), docs_unit_tests.on_docs(stamps))
 
     def test_the_probe_reads_patterns_as_the_stamps_do(self) -> None:
         covers = docs_unit_tests.covers_markdown_docs

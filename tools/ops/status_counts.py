@@ -24,6 +24,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -55,34 +56,48 @@ COUNTS_TOKEN = "<!-- counts: the Counts line is computed here when the page is b
 LINK = re.compile(r'(\]\()((?:[^()\s]|\([^()\s]*\))+)((?:\s+"[^"]*")?\))')
 
 
-def counts(tables: Path = TABLES, traininfo: Path = TRAININFO) -> dict:
+class Counts(NamedTuple):
+    """What the Counts line reports, from tables.xml and the traininfo folder."""
+    masts: int                  # real + virtual
+    real: int
+    virtual: int
+    sections: int
+    transits: int
+    nx: int                     # NX pairs
+    sml: int                    # SML sources
+    dest: int                   # their destination masts
+    traininfo: int
+    parked: frozenset[str]      # the parked features these tables leave out (hartlib.parked)
+
+
+def counts(tables: Path = TABLES, traininfo: Path = TRAININFO) -> Counts:
     root = hl_tables.read(tables)
     sml = root.findall("signalmastlogics/signalmastlogic")
     real = len(root.findall("signalmasts/signalmast"))
     virtual = len(root.findall("signalmasts/virtualsignalmast"))
-    return {
-        "masts": real + virtual, "real": real, "virtual": virtual,
-        "sections": len(root.findall("sections/section")),
-        "transits": len(root.findall("transits/transit")),
-        "nx": len(root.findall("entryexitpairs/*/source/destination")),
-        "sml": len(sml),
-        "dest": sum(len(s.findall("destinationMast")) for s in sml),
+    return Counts(
+        masts=real + virtual, real=real, virtual=virtual,
+        sections=len(root.findall("sections/section")),
+        transits=len(root.findall("transits/transit")),
+        nx=len(root.findall("entryexitpairs/*/source/destination")),
+        sml=len(sml),
+        dest=sum(len(s.findall("destinationMast")) for s in sml),
         # Only the XML files Dispatcher writes; Finder's .DS_Store and the like stay out.
-        "traininfo": sum(1 for p in traininfo.glob("*.xml") if p.is_file()),
-        "parked": parked.parked_in(root),       # the parked features these tables leave out (hartlib.parked)
-    }
+        traininfo=sum(1 for p in traininfo.glob("*.xml") if p.is_file()),
+        parked=parked.parked_in(root),
+    )
 
 
-def line(c: dict) -> str:
-    left_out = c.get("parked", ())
+def line(c: Counts) -> str:
+    left_out = c.parked
     graph = ("sections and transits parked" if "dispatcher" in left_out
-             else f"{c['sections']:,} sections, {c['transits']:,} transits")
-    nx = "NX pairs parked" if "nx" in left_out else f"{c['nx']:,} NX pairs"
-    trains = (f"{c['traininfo']:,} traininfo files kept in the repo" if "dispatcher" in left_out
-              else f"{c['traininfo']:,} traininfo files")
+             else f"{c.sections:,} sections, {c.transits:,} transits")
+    nx = "NX pairs parked" if "nx" in left_out else f"{c.nx:,} NX pairs"
+    trains = (f"{c.traininfo:,} traininfo files kept in the repo" if "dispatcher" in left_out
+              else f"{c.traininfo:,} traininfo files")
     uss = ", USS CTC machine parked" if "uss" in left_out else ""
-    return (f"- **Counts:** {c['masts']:,} masts ({c['real']:,} real, {c['virtual']:,} virtual), "
-            f"{graph}, {nx}, {c['sml']:,} SML sources with {c['dest']:,} destinations, {trains}{uss}.")
+    return (f"- **Counts:** {c.masts:,} masts ({c.real:,} real, {c.virtual:,} virtual), "
+            f"{graph}, {nx}, {c.sml:,} SML sources with {c.dest:,} destinations, {trains}{uss}.")
 
 
 def rebase(text: str, src: str, dst: str) -> str:
@@ -105,65 +120,75 @@ def words(text: str) -> int:
     return sum(1 for tok in text.split() if tok != "-")
 
 
-class Entry:
-    def __init__(self, section: str, path: Path, text: str, order: int):
-        self.section, self.path, self.text, self.order = section, path, text, order
+class Entry(NamedTuple):
+    """One entry file: its section folder, its path, its bullet text and its `order:` number."""
+    section: str
+    path: Path
+    text: str
+    order: int
+
+
+def read_entry(section: str, p: Path, problems: list[str]) -> Entry | None:
+    """The entry in file `p` of folder `section`, or None with the reason it is not one added to `problems`. An entry
+    that breaks only a text rule (a blank line, a "- " lead, too many words) is returned with its problems added."""
+    rel = f"wiki/status/{section}/{p.name}"
+    if p.is_dir() or p.suffix != ".md" or p.name == "README.md":
+        problems.append(f"{rel}: not an entry (a section holds <slug>.md files only)")
+        return None
+    first, _, rest = p.read_text(encoding="utf-8").partition("\n")
+    m = ORDER.fullmatch(first)
+    if not m:
+        problems.append(f"{rel}: an entry opens with an `order: N` line (its place in the section)")
+        return None
+    order, text = int(m.group(1)), rest.strip("\n")
+    if not text.strip():
+        problems.append(f"{rel}: empty entry")
+        return None
+    if text == COUNTS_TOKEN:
+        if section != COUNTS_SECTION:
+            problems.append(f"{rel}: the Counts line stands in {COUNTS_SECTION}/ only")
+            return None
+        return Entry(section, p, text, order)
+    if "\n\n" in text:
+        problems.append(f"{rel}: a blank line inside an entry would break the list")
+    if text.startswith("- "):
+        problems.append(f"{rel}: the file holds the bullet's text; the build adds the \"- \"")
+    n = words(text)
+    if n > MAX_WORDS:
+        problems.append(f"{rel}: {n} words, over {MAX_WORDS}; move the detail to the linked page or ADR")
+    return Entry(section, p, text, order)
+
+
+def read_section(folder: Path, section: str, problems: list[str]) -> list[Entry]:
+    """The entries of one section folder by `order:`; a repeated number or a missing or doubled Counts file is added
+    to `problems`."""
+    d = folder / section
+    found = [e for p in (sorted(d.iterdir()) if d.is_dir() else []) if not p.name.startswith(".")
+             if (e := read_entry(section, p, problems)) is not None]
+    found.sort(key=lambda e: (e.order, e.path.name))
+    for x, y in zip(found, found[1:]):
+        if x.order == y.order:
+            problems.append(f"wiki/status/{section}/: {x.path.name} and {y.path.name} have the same order: "
+                            f"{x.order}; give one a number between its neighbours'")
+    tokens = sum(e.text == COUNTS_TOKEN for e in found)
+    if section == COUNTS_SECTION and tokens != 1:
+        problems.append(f"wiki/status/{section}/: needs one file whose text is {COUNTS_TOKEN} (where the Counts "
+                        f"line goes), not {tokens}")
+    return found
 
 
 def read_entries(folder: Path = FOLDER) -> tuple[list[Entry], list[str]]:
     """Every entry file, in page order, and the problems found reading them."""
-    entries, problems = [], []
-    known = {s[0] for s in SECTIONS}
     if not folder.is_dir():
         return [], [f"{folder} is missing"]
+    problems: list[str] = []
+    known = {s[0] for s in SECTIONS}
     for p in sorted(folder.iterdir()):
         if p.name.startswith(".") or p.name == "README.md":
             continue
         if not (p.is_dir() and p.name in known):
             problems.append(f"wiki/status/{p.name}: not a section ({', '.join(s[0] for s in SECTIONS)})")
-    for name, _heading, _intro in SECTIONS:
-        found = []
-        d = folder / name
-        for p in sorted(d.iterdir()) if d.is_dir() else ():
-            rel = f"wiki/status/{name}/{p.name}"
-            if p.name.startswith("."):
-                continue
-            if p.is_dir() or p.suffix != ".md" or p.name == "README.md":
-                problems.append(f"{rel}: not an entry (a section holds <slug>.md files only)")
-                continue
-            body = p.read_text(encoding="utf-8")
-            first, _, rest = body.partition("\n")
-            m = ORDER.fullmatch(first)
-            if not m:
-                problems.append(f"{rel}: an entry opens with an `order: N` line (its place in the section)")
-                continue
-            order, text = int(m.group(1)), rest.strip("\n")
-            if not text.strip():
-                problems.append(f"{rel}: empty entry")
-                continue
-            if text == COUNTS_TOKEN:
-                if name != COUNTS_SECTION:
-                    problems.append(f"{rel}: the Counts line stands in {COUNTS_SECTION}/ only")
-                else:
-                    found.append(Entry(name, p, text, order))
-                continue
-            if "\n\n" in text:
-                problems.append(f"{rel}: a blank line inside an entry would break the list")
-            if text.startswith("- "):
-                problems.append(f"{rel}: the file holds the bullet's text; the build adds the \"- \"")
-            n = words(text)
-            if n > MAX_WORDS:
-                problems.append(f"{rel}: {n} words, over {MAX_WORDS}; move the detail to the linked page or ADR")
-            found.append(Entry(name, p, text, order))
-        found.sort(key=lambda e: (e.order, e.path.name))
-        for x, y in zip(found, found[1:]):
-            if x.order == y.order:
-                problems.append(f"wiki/status/{name}/: {x.path.name} and {y.path.name} have the same order: "
-                                f"{x.order}; give one a number between its neighbours'")
-        if name == COUNTS_SECTION and sum(e.text == COUNTS_TOKEN for e in found) != 1:
-            problems.append(f"wiki/status/{name}/: needs one file whose text is {COUNTS_TOKEN} (where the Counts "
-                            f"line goes), not {sum(e.text == COUNTS_TOKEN for e in found)}")
-        entries += found
+    entries = [e for name, _heading, _intro in SECTIONS for e in read_section(folder, name, problems)]
     return entries, problems
 
 
@@ -193,9 +218,12 @@ def opening(line_: str) -> str | None:
 
 def duplicates(text: str) -> list[str]:
     """Entries the page holds twice: a bullet line repeated, two bullets with the same bold lead ("- **Lead:**"), or two
-    bullets with no bold lead that open with the same words (two files for one entry; before ADR-038 a union merge of
-    the one committed file left such doubles, 2026-11-25 a Future goals entry)."""
-    seen_line, seen_lead, seen_open, out = set(), {}, set(), []
+    bullets with no bold lead that open with the same words (two files for one entry, or a union merge of a page
+    committed from before ADR-038)."""
+    seen_line: set[str] = set()
+    seen_lead: set[str] = set()
+    seen_open: set[str] = set()
+    out: list[str] = []
     for line_ in text.splitlines():
         if not line_.startswith("- "):
             continue
@@ -208,7 +236,7 @@ def duplicates(text: str) -> list[str]:
             lead = m.group(1)
             if lead in seen_lead:
                 out.append(f"two entries for: {lead}")
-            seen_lead[lead] = True
+            seen_lead.add(lead)
         elif (start := opening(line_)) is not None:
             if start in seen_open:
                 out.append(f"two entries opening: {start}")

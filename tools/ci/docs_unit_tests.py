@@ -19,7 +19,9 @@ from __future__ import annotations
 import re
 import shlex
 import sys
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
+from typing import NamedTuple, Protocol
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "audit"))
@@ -35,7 +37,7 @@ LEFT_OUT = {
     # stage 4b
     "manifest checks": "the ones a docs-only change can break are docs_only steps, run from docs_checks.sh's list",
     "public-text": "check_public_text.py is in docs_checks.sh's list",
-    "portal": "the portal build stays with the website deploy, as in CI (owner, 2026-11-24)",
+    "portal": "the portal build stays with the website deploy, as in CI",
     "unit-portal": "whole suite of site builders (39 s); its declaration names docs/INDEX.md, read only for "
                    "the repo guide, which the repo-guide check builds (the wiki it also reads is left off on purpose)",
     "unit-hart-ops": "whole suite (car cards, publications); reads docs only in part",
@@ -64,6 +66,24 @@ class Problem(Exception):
     """The list cannot be made as the declarations stand; the message names each reason."""
 
 
+class UnitTest(NamedTuple):
+    """One test file the docs-only path runs."""
+    stamp: str          # its stamp name, "unit-guards test_name_copies"
+    folder: str         # the test folder, repo-relative (KIND_DIRS)
+    file: str           # the test file in that folder
+    k: str | None       # check_stamps.DOCS_K's -k filter, or None for the whole file
+
+
+class StampDecls(Protocol):
+    """What this reads from check_stamps (tests pass a stand-in)."""
+    BY_KIND: Mapping[str, tuple[str, ...]]
+    EXTRA: Mapping[str, tuple[str, ...]]
+    MANIFEST_CHECK: tuple[str, ...]
+    RUNS_JOBS: Mapping[str, object]
+    DOCS_K: Mapping[str, str]
+    declared: Callable[[str], tuple[str, ...] | None]
+
+
 # Where the Markdown docs are: docs/, wiki/, and the skills and subagents under .claude/ (changed_kind.CLAUDE_DOCS).
 DOCS_ROOTS = ("docs/", "wiki/", ".claude/skills/", ".claude/agents/")
 
@@ -82,23 +102,24 @@ def covers_markdown_docs(patterns: tuple[str, ...]) -> bool:
     return any(check_stamps.ps._glob_match(probe, p) for p in patterns for probe in probes)
 
 
-def on_docs(stamps=check_stamps) -> set[str]:
+def on_docs(stamps: StampDecls = check_stamps) -> set[str]:
     """Every declaration that covers a Markdown doc. A job that runs other jobs (RUNS_JOBS) is declared on theirs
     too: its whole declaration."""
     declared = {**stamps.BY_KIND, **stamps.EXTRA, "manifest checks": stamps.MANIFEST_CHECK,
-                **{k: stamps.declared(k) for k in stamps.RUNS_JOBS}}
+                **{k: stamps.declared(k) or () for k in stamps.RUNS_JOBS}}
     return {k for k, v in declared.items() if covers_markdown_docs(v)}
 
 
-def tests(stamps=check_stamps, left_out=LEFT_OUT, root: Path = ROOT) -> list[tuple[str, str, str, str | None]]:
-    """(stamp name, test folder, test file, -k filter or None) for each test to run, sorted; Problem otherwise."""
+def tests(stamps: StampDecls = check_stamps, left_out: Mapping[str, str] = LEFT_OUT,
+          root: Path = ROOT) -> list[UnitTest]:
+    """Each test to run, sorted by stamp name; Problem otherwise."""
     found, problems = on_docs(stamps), []
     problems += [f"LEFT_OUT names {k!r}, no longer declared on docs/ or wiki/" for k in sorted(set(left_out) - found)]
-    keys = getattr(stamps, "DOCS_K", {})
+    keys = stamps.DOCS_K
     problems += [f"check_stamps.DOCS_K names {k!r}, which this does not run" for k in sorted(set(keys) - found
                                                                                              - set(left_out))]
     problems += [f"check_stamps.DOCS_K names {k!r}, which LEFT_OUT leaves out" for k in sorted(set(keys) & set(left_out))]
-    out = []
+    out: list[UnitTest] = []
     for stamp in sorted(found - set(left_out)):
         kind, _, test = stamp.partition(" ")
         if kind not in KIND_DIRS or not re.fullmatch(r"test\w*", test):
@@ -110,7 +131,7 @@ def tests(stamps=check_stamps, left_out=LEFT_OUT, root: Path = ROOT) -> list[tup
             problems.append(f"{stamp!r}: {folder}/{test}.py is gone; drop its check_stamps.EXTRA line")
         if k is not None and not (isinstance(k, str) and K_RE.fullmatch(k)):
             problems.append(f"{stamp!r}: check_stamps.DOCS_K's -k {k!r} is not a class or test name")
-        out.append((stamp, folder, f"{test}.py", k))
+        out.append(UnitTest(stamp, folder, f"{test}.py", k))
     if not out:
         problems.append("no unit test is declared on docs/ or wiki/ outside LEFT_OUT; a docs-only run would run none")
     if problems:
@@ -118,7 +139,7 @@ def tests(stamps=check_stamps, left_out=LEFT_OUT, root: Path = ROOT) -> list[tup
     return out
 
 
-def lines(chosen) -> list[str]:
+def lines(chosen: Iterable[UnitTest]) -> list[str]:
     """Each test as a docs_checks.sh line: its name, then its command, shell-quoted."""
     out = []
     for stamp, folder, file, k in chosen:

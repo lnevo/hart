@@ -89,9 +89,6 @@ class OpsDataError(HartlibError, ValueError):
     read or is not in its shape; the message names the file, and the line for a bad row."""
 
 
-RoadsError = OpsDataError   # the name the roads readers raised first
-
-
 @dataclass(frozen=True)
 class Roads:
     codes: tuple[str, ...]                                          # every road code, in file order

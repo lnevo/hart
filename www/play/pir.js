@@ -36,7 +36,8 @@ const W114=t=>({no:"114",at:"Duff Junction",boxes:{2:["Duff Junction","Bridgevil
 const W118w={no:"118",at:"Bridgeville",boxes:{2:["Bridgeville","Canonsburg","Main"],7:["Local 2","Bridgeville"],10:[]}};
 const W118h={no:"118",at:"Bridgeville",boxes:{2:["Bridgeville","Canonsburg","Main"],8:[]}};
 const W121a={no:"121",at:"Canonsburg",boxes:{4:["Hills","Canonsburg","Main"],12:["Hills","Canonsburg"]}};
-const W121b={no:"121",at:"Canonsburg",boxes:{4:["Hills","Canonsburg","Main"],11:["Hills","Canonsburg"],17:["Joint with PIR work train between Hills and Canonsburg"]}};
+const W121b={no:"121",at:"Canonsburg",boxes:{4:["Hills","Canonsburg","Main"],11:["Hills","Canonsburg"],
+  17:["Joint with PIR work train between Hills and Canonsburg"]}};
 const W125={no:"125",at:"Canonsburg",boxes:{1:["121"],2:["Canonsburg","Duff Junction","Main"],15:[]}};
 
 /* ---------- questions, in the deck's words ---------- */
@@ -75,16 +76,27 @@ const POOL_3=[Qs.siding,Qs.whole,Qs.box9];
 
 /* ---------- the run ---------- */
 /* Box 5's question is made when it is asked, from the clock; the key lists it with the time left as a blank. */
-const box5Key={sec:"twc",src:"GC · 14.0 form",where:"Duff Junction",title:"Box 5",body:"Warrant 114 has its OK time, and Box 5 reads “Not in effect until [varies].” It is [varies]. May you leave now?",right:"No; wait until [varies], when the warrant takes effect",wrong:[["Yes; the OK time puts it in effect",{end:true,endText:"You took the main before Box 5's time."}],["Yes, at restricted speed until [varies]"],["Yes, if no train is in sight"]],why:"Box 5: Not in effect until the time shown. Box 6 is the other timing box: This authority expires at the time shown."};
+const BOX5_WHY="Box 5: Not in effect until the time shown. Box 6 is the other timing box: This authority expires at the time shown.";
+/* Box 5's question: the warrant takes effect at `until`, the clock reads `now`; `late` is the end text for leaving early. */
+const box5Q=(until,now,late)=>({sec:"twc",src:"GC · 14.0 form",where:"Duff Junction",title:"Box 5",
+  body:`Warrant 114 has its OK time, and Box 5 reads “Not in effect until ${until}.” It is ${now}. May you leave now?`,
+  right:`No; wait until ${until}, when the warrant takes effect`,
+  wrong:[["Yes; the OK time puts it in effect",{end:true,endText:late}],[`Yes, at restricted speed until ${until}`],
+    ["Yes, if no train is in sight"]],
+  why:BOX5_WHY});
+const box5Key=box5Q("[varies]","[varies]","You took the main before Box 5's time.");
 
 const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Local",name:"the south turn",year:"1997",
   dateLine:"a weekday in 1997",start:360,end:840,endPlace:"POV Junction",tieUp:"The cut for CSX is on the interchange track at POV Junction at {t}.",
   coda:`The Pittsburgh Industrial Railroad, a RailTex company, bought about 32.7 miles of the Chartiers industrial track from Conrail and about 16.0 miles from the PC&amp;Y in December 1996, with incidental CSX trackage rights on Neville Island. RailAmerica bought RailTex in February 2000 and sold the PIR that December to Ohio Central, which renamed it the Pittsburgh &amp; Ohio Central. Norfolk Southern took over Conrail's Pittsburgh lines, and the Duff Junction interchange, on 1 June 1999 (${lib("Railroads of the Chartiers Valley")}).`,
   /* The warrants the run can give, for the answer key: a box to a line, as the dispatcher reads it. */
   warrants:[
-    {no:"114",at:"Duff Junction",note:"Box 5 reads the next 5-minute mark at least 12 minutes after the call.",forms:[{label:"",w:W114("[varies]")}]},
-    {no:"118",at:"Bridgeville",note:"Local 2 meets you at Bridgeville, or waits in the Canonsburg siding.",forms:[{label:"Local 2 arrives at Bridgeville",w:W118w},{label:"Local 2 is in the Canonsburg siding",w:W118h}]},
-    {no:"121",at:"Canonsburg",note:"Men and equipment, or the work train.",forms:[{label:"Men and equipment",w:W121a},{label:"Joint with the work train",w:W121b}]},
+    {no:"114",at:"Duff Junction",note:"Box 5 reads the next 5-minute mark at least 12 minutes after the call.",
+      forms:[{label:"",w:W114("[varies]")}]},
+    {no:"118",at:"Bridgeville",note:"Local 2 meets you at Bridgeville, or waits in the Canonsburg siding.",
+      forms:[{label:"Local 2 arrives at Bridgeville",w:W118w},{label:"Local 2 is in the Canonsburg siding",w:W118h}]},
+    {no:"121",at:"Canonsburg",note:"Men and equipment, or the work train.",
+      forms:[{label:"Men and equipment",w:W121a},{label:"Joint with the work train",w:W121b}]},
     {no:"125",at:"Canonsburg",note:"Voids 121 and sends you back to Duff Junction.",forms:[{label:"",w:W125}]}],
   where(S){const G=S.road;return G?G.at:"McKees Rocks"},
   map(S){return map(S)},
@@ -94,7 +106,8 @@ const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Lo
     const S=H.S,rnd=H.rnd,R=()=>H.R();
     const G={pos:MKR,at:POINTS[MKR].n,sig:{},train:null,bag:{},warrants:[],hold:false,box5:0};
     S.road=G;
-    const work=["Interchange with Conrail at Duff Junction","Work Bridgeville and meet Local 2","Work Canonsburg","Return and interchange at Duff Junction","Leave the cut for CSX at POV Junction"];
+    const work=["Interchange with Conrail at Duff Junction","Work Bridgeville and meet Local 2","Work Canonsburg",
+      "Return and interchange at Duff Junction","Leave the cut for CSX at POV Junction"];
 
     /* ----- the draws ----- */
     const meet=R()<.5;                       // M: Local 2 arrives at Bridgeville (Box 7), or waits in the Canonsburg siding (Box 8)
@@ -109,19 +122,33 @@ const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Lo
     const draw=(key,pool,p)=>RE.draw(G,R,H,key,pool,p);
 
     /* ----- moves ----- */
-    const go=(i,min,note)=>()=>{H.addTime(min);G.pos=i;G.at=POINTS[i].n;if(note)H.log(note);H.renderStatus();H.next()};
-    const seen=(k,arms)=>()=>{G.sig[k]=arms;H.renderStatus();H.next()};
-    const train=t=>()=>{G.train=t;H.renderStatus();H.next()};
-    const rel=no=>()=>{TW.release(G,no);H.log("Warrant "+no+" released");H.renderStatus();H.next()};
-    const eff=no=>()=>{TW.effect(G,no);H.renderStatus();H.next()};
+    const show=()=>{H.renderStatus();H.next()};
+    const go=(i,min,note)=>()=>{
+      H.addTime(min);G.pos=i;G.at=POINTS[i].n;
+      if(note)H.log(note);
+      show();
+    };
+    const seen=(k,arms)=>()=>{G.sig[k]=arms;show()};
+    const train=t=>()=>{G.train=t;show()};
+    const rel=no=>()=>{TW.release(G,no);H.log("Warrant "+no+" released");show()};
+    const eff=no=>()=>{TW.effect(G,no);show()};
     const copy=w=>TW.copy(H,G,Object.assign({to:"PIR Local 1"},w));
     const info=(where,title,html,btn)=>H.info(where,title,html,btn);
     // Box 5: the next 5-minute mark at least 12 minutes after the call
     TW.resetTimes();
     const W114x=W114("");
-    const setBox5=()=>{const t=Math.ceil((S.clock+12)/5)*5;G.box5=t;W114x.boxes[5]=[fmt(t)];TW.addTime(fmt(t));H.next()};
-    const q7=()=>{const t=G.box5;if(S.clock>=t){H.next();return} // wrong read-backs can use up the wait: nothing to ask
-      return H.ask({sec:"twc",src:"GC · 14.0 form",where:"Duff Junction",title:"Box 5",body:`Warrant 114 has its OK time, and Box 5 reads “Not in effect until ${fmt(t)}.” It is ${fmt(S.clock)}. May you leave now?`,right:`No; wait until ${fmt(t)}, when the warrant takes effect`,wrong:[["Yes; the OK time puts it in effect",{end:true,endText:`You took the main before ${fmt(t)}. Box 5 kept warrant 114 out of effect until then.`}],[`Yes, at restricted speed until ${fmt(t)}`],["Yes, if no train is in sight"]],why:box5Key.why,after:()=>{if(S.clock<t){H.log("Waited for "+fmt(t));H.addTime(t-S.clock)}}})()};
+    const setBox5=()=>{
+      const t=Math.ceil((S.clock+12)/5)*5;
+      G.box5=t;W114x.boxes[5]=[fmt(t)];TW.addTime(fmt(t));
+      H.next();
+    };
+    const q7=()=>{
+      const t=G.box5;
+      if(S.clock>=t){H.next();return}   // wrong read-backs can use up the wait: nothing to ask
+      const late=`You took the main before ${fmt(t)}. Box 5 kept warrant 114 out of effect until then.`;
+      const wait=()=>{if(S.clock<t){H.log("Waited for "+fmt(t));H.addTime(t-S.clock)}};
+      return H.ask(Object.assign(box5Q(fmt(t),fmt(S.clock),late),{after:wait}))();
+    };
 
     const steps=[
       info("McKees Rocks","Called for 6:00",`<p>You are the conductor of PIR Local 1, the south turn, called at the McKees Rocks office with two road switchers and a cut of loads and empties. You run to Duff Junction and swap cars with Conrail. You work the mills at Bridgeville and the transformer plant at Canonsburg on the Chartiers track, then come back and leave a cut for CSX at POV Junction. There is no caboose: a rear-end device marks the train (${lib("Railroads of the Chartiers Valley")}).</p><p>The special instructions are on the sheet.</p>`,"Go to the yard"),
@@ -154,7 +181,9 @@ const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Lo
       info("Bridgeville","Warrant 118",`<p>You report clear of 114 and ask the dispatcher for the main to Canonsburg.${meet?" Local 2 is on its way up from Arden and will meet you here.":" Local 2 is waiting in the siding at Canonsburg."}</p>`,"Copy the warrant"),
       copy(w118),
       ...(meet
-        ?[H.ask(Qs.box7),H.wait(waitL,"Waited at Bridgeville for Local 2"),info("Bridgeville","Local 2 arrives",`<p>Local 2 comes in on the main and clears into the siding.</p>`),H.ask(Qs.other),eff("118")]
+        ?[H.ask(Qs.box7),H.wait(waitL,"Waited at Bridgeville for Local 2"),
+          info("Bridgeville","Local 2 arrives",`<p>Local 2 comes in on the main and clears into the siding.</p>`),
+          H.ask(Qs.other),eff("118")]
         :[eff("118"),H.ask(Qs.box8),H.ask(Qs.farSwitch)]),
       H.done(1),
       go(HIL,16,"At Hills"),
@@ -193,40 +222,81 @@ const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Lo
 };
 
 /* ---------- the map ---------- */
+/* An SVG element: attrs in order, self-closed with no inner text. */
+const tag=(name,attrs,inner)=>{
+  const at=Object.entries(attrs).map(([k,v])=>` ${k}="${v}"`).join("");
+  return inner===undefined?`<${name}${at}/>`:`<${name}${at}>${inner}</${name}>`;
+};
+/* The bar over the track for a warrant in effect, between its points; Box 8 stops short of the last siding switch. */
+function authorityBar(G,w){
+  const X=i=>POINTS[i].x,[a,b]=AUTH[w.no];
+  const x1=X(a),x2=X(b)+(b===CAN&&G.hold&&w.no==="118"?-8:0),xa=Math.min(x1,x2),xb=Math.max(x1,x2);
+  return tag("rect",{x:xa,y:78,width:xb-xa,height:3,fill:"var(--rust)"})+
+    tag("text",{x:(xa+xb)/2,y:73,"font-size":"5.8","text-anchor":"middle",fill:"var(--rust)","font-weight":700},w.no);
+}
 function map(S){
   const G=S.road,W=600,P=POINTS[G.pos],X=i=>POINTS[i].x;
-  let s=`<svg viewBox="0 0 ${W} 122" role="img" aria-label="Line sketch of the PIR south turn from McKees Rocks to Canonsburg and POV Junction, ${esc(S.def.code)} at ${esc(G.at)}">`;
-  s+=`<rect x="0" y="0" width="${W}" height="122" fill="var(--land)"/>`;
-  s+=`<path d="M0 36 Q110 24 230 34 T420 30 T600 34" fill="none" stroke="var(--river)" stroke-width="3" opacity=".55"/><text x="8" y="12" font-size="6.5" class="water" style="fill:var(--muted)">CHARTIERS CREEK</text><text x="${W-8}" y="12" font-size="6.5" text-anchor="end" class="water" style="fill:var(--muted)">${esc(S.def.year)}</text>`;
-  // yard limits shaded, McKees Rocks to Duff Junction; the dark territory outlined
-  s+=`<rect x="380" y="46" width="96" height="52" fill="var(--sheet-2)"/><rect x="16" y="76" width="362" height="20" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/>`;
-  // track: the Chartiers track, the 45 degree climb at Duff Junction, the PIR main to the diamond, the CSX main (heavier), the siding stubs, Conrail
-  s+=`<g fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.2" d="M${X(CAN)-12} 88 H385 L413 60 H482"/><path stroke-width="3.4" d="M498 60 H${X(POV)+14}"/><path stroke-width="3.4" stroke="var(--muted)" d="M474 76 L506 44"/>`;
-  s+=`<g stroke-width="1.4">`;
-  [CAN,HIL,BRV].forEach(i=>{const x=X(i);s+=`<path d="M${x-12} 88 L${x-6} 82 H${x+6} L${x+12} 88"/>`});
-  s+=`<path stroke="var(--muted)" d="M385 88 L371 74 H356"/></g></g>`;
-  // the authority of each warrant in effect, a bar above the track between its points; Box 8 stops short of the last siding switch
-  G.warrants.filter(w=>w.eff&&!w.released).forEach(w=>{
-    const [a,b]=AUTH[w.no],x1=X(a),x2=X(b)+(b===CAN&&G.hold&&w.no==="118"?-8:0),xa=Math.min(x1,x2),xb=Math.max(x1,x2);
-    s+=`<rect x="${xa}" y="78" width="${xb-xa}" height="3" fill="var(--rust)"/><text x="${(xa+xb)/2}" y="73" font-size="5.8" text-anchor="middle" fill="var(--rust)" font-weight="700">${w.no}</text>`;
-  });
-  s+=`<path d="M490 55 L495 60 L490 65 L485 60 Z" fill="var(--rust)" opacity=".85" stroke="var(--ink)" stroke-width=".8"/>`;
-  SIGS.forEach(sg=>{s+=RE.sigDots(G,sg)});
-  if(G.train){s+=`<rect x="470" y="55" width="40" height="10" rx="2" fill="var(--muted)" stroke="#fff" stroke-width=".8" transform="rotate(-45 490 60)"/>`}
-  // labels, clear of track
-  s+=`<g class="lbl" font-size="6.3" text-anchor="middle"><text x="198" y="66">DARK TERRITORY · TRACK WARRANTS</text>`;
-  [[CAN,"CANONSBURG",108],[HIL,"HILLS",118],[BRV,"BRIDGEVILLE",108],[CAR,"CARNEGIE",118],[DUFF,"DUFF JUNCTION",108]].forEach(([i,t,y])=>{s+=`<text x="${X(i)}" y="${y}" font-weight="${G.pos===i?700:400}">${t}</text>`});
-  s+=`<text x="350" y="68" text-anchor="end">CONRAIL</text><text x="440" y="76" font-weight="${G.pos===MKR?700:400}">MCKEES ROCKS</text><text x="490" y="86" font-weight="${G.pos===DIA?700:400}">DIAMOND · P&amp;LE MP 3.75</text><text x="${W-8}" y="76" text-anchor="end" font-weight="${G.pos===POV?700:400}">POV JCT · P&amp;LE MP 5.7</text><text x="522" y="36">CSX</text></g>`;
-  s+=`<g transform="translate(${P.x} ${P.y-1})"><rect x="-13" y="-5" width="26" height="10" rx="2" fill="var(--green)" stroke="var(--glow)" stroke-width="1.4"/><text x="0" y="2.4" font-size="6.4" text-anchor="middle" fill="#fff" font-weight="700">PIR</text></g>`;
-  return s+`</svg>`;
+  const weight=i=>G.pos===i?700:400;   // a place's label is bold while the engine stands there
+  const aria=`Line sketch of the PIR south turn from McKees Rocks to Canonsburg and POV Junction, ${esc(S.def.code)} at ${esc(G.at)}`;
+  const water={"font-size":"6.5"};
+  const out=[
+    `<svg viewBox="0 0 ${W} 122" role="img" aria-label="${aria}">`,
+    tag("rect",{x:0,y:0,width:W,height:122,fill:"var(--land)"}),
+    tag("path",{d:"M0 36 Q110 24 230 34 T420 30 T600 34",fill:"none",stroke:"var(--river)","stroke-width":3,opacity:".55"}),
+    tag("text",{x:8,y:12,...water,class:"water",style:"fill:var(--muted)"},"CHARTIERS CREEK"),
+    tag("text",{x:W-8,y:12,...water,"text-anchor":"end",class:"water",style:"fill:var(--muted)"},esc(S.def.year)),
+    // yard limits shaded, McKees Rocks to Duff Junction; the dark territory outlined
+    tag("rect",{x:380,y:46,width:96,height:52,fill:"var(--sheet-2)"}),
+    tag("rect",{x:16,y:76,width:362,height:20,fill:"none",stroke:"var(--muted)","stroke-width":1,"stroke-dasharray":"4 3"}),
+    // track: the Chartiers track, the 45 degree climb at Duff Junction, the PIR main to the diamond, the CSX main
+    // (heavier), the siding stubs, Conrail
+    `<g fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round">`,
+    tag("path",{"stroke-width":"2.2",d:`M${X(CAN)-12} 88 H385 L413 60 H482`}),
+    tag("path",{"stroke-width":"3.4",d:`M498 60 H${X(POV)+14}`}),
+    tag("path",{"stroke-width":"3.4",stroke:"var(--muted)",d:"M474 76 L506 44"}),
+    `<g stroke-width="1.4">`,
+    ...[CAN,HIL,BRV].map(i=>{const x=X(i);return tag("path",{d:`M${x-12} 88 L${x-6} 82 H${x+6} L${x+12} 88`})}),
+    tag("path",{stroke:"var(--muted)",d:"M385 88 L371 74 H356"}),
+    `</g></g>`,
+    ...G.warrants.filter(w=>w.eff&&!w.released).map(w=>authorityBar(G,w)),
+    tag("path",{d:"M490 55 L495 60 L490 65 L485 60 Z",fill:"var(--rust)",opacity:".85",stroke:"var(--ink)","stroke-width":".8"}),
+    ...SIGS.map(sg=>RE.sigDots(G,sg)),
+    G.train?tag("rect",{x:470,y:55,width:40,height:10,rx:2,fill:"var(--muted)",stroke:"#fff","stroke-width":".8",
+      transform:"rotate(-45 490 60)"}):"",
+    // labels, clear of track
+    `<g class="lbl" font-size="6.3" text-anchor="middle">`,
+    tag("text",{x:198,y:66},"DARK TERRITORY · TRACK WARRANTS"),
+    ...[[CAN,"CANONSBURG",108],[HIL,"HILLS",118],[BRV,"BRIDGEVILLE",108],[CAR,"CARNEGIE",118],[DUFF,"DUFF JUNCTION",108]]
+      .map(([i,t,y])=>tag("text",{x:X(i),y,"font-weight":weight(i)},t)),
+    tag("text",{x:350,y:68,"text-anchor":"end"},"CONRAIL"),
+    tag("text",{x:440,y:76,"font-weight":weight(MKR)},"MCKEES ROCKS"),
+    tag("text",{x:490,y:86,"font-weight":weight(DIA)},"DIAMOND · P&amp;LE MP 3.75"),
+    tag("text",{x:W-8,y:76,"text-anchor":"end","font-weight":weight(POV)},"POV JCT · P&amp;LE MP 5.7"),
+    tag("text",{x:522,y:36},"CSX"),
+    `</g>`,
+    // the engine
+    `<g transform="translate(${P.x} ${P.y-1})">`,
+    tag("rect",{x:-13,y:-5,width:26,height:10,rx:2,fill:"var(--green)",stroke:"var(--glow)","stroke-width":"1.4"}),
+    tag("text",{x:0,y:"2.4","font-size":"6.4","text-anchor":"middle",fill:"#fff","font-weight":700},"PIR"),
+    `</g></svg>`];
+  return out.join("");
 }
 
 /* ---------- the sheet ---------- */
+/* The special instructions, as the sheet lists them. */
+const SPECIAL_INSTRUCTIONS=`<ul>${[
+  `Rules: yard limits, warrants and crew duties by the GCOR; the boxes of the warrant form by the track warrant guide; the plates on signals by the Signals guide.`,
+  `McKees Rocks to Duff Junction: yard limits, no signals.`,
+  `Duff Junction to Arden: track warrant control, no signals. Sidings at Bridgeville, Hills, Canonsburg, Houston and Arden.`,
+  `Mileposts from Carnegie: Bridgeville 4.0, Hills 8.6, Canonsburg 11.8, Houston 15.3, Arden 20.0.`,
+  `McKees Rocks, about P&amp;LE MP 3.75: crossing of the CSX main, an interlocking with a distant signal.`,
+  `Neville, POV Junction, about P&amp;LE MP 5.7: interchange with CSX. Interchange with Conrail at Duff Junction.`,
+].map(t=>`<li>${t}</li>`).join("")}</ul>`;
 /* The special instructions, the warrants held, and the work. */
 function sheet(S){
   const G=S.road;if(!G)return "";
   let h=`<h3>PIR Chartiers Subdivision</h3><div class="sub">Special instructions · McKees Rocks to Canonsburg · ${esc(S.def.dateLine)}</div>`;
-  h+=`<div class="xw-si"><b>Special instructions</b><ul><li>Rules: yard limits, warrants and crew duties by the GCOR; the boxes of the warrant form by the track warrant guide; the plates on signals by the Signals guide.</li><li>McKees Rocks to Duff Junction: yard limits, no signals.</li><li>Duff Junction to Arden: track warrant control, no signals. Sidings at Bridgeville, Hills, Canonsburg, Houston and Arden.</li><li>Mileposts from Carnegie: Bridgeville 4.0, Hills 8.6, Canonsburg 11.8, Houston 15.3, Arden 20.0.</li><li>McKees Rocks, about P&amp;LE MP 3.75: crossing of the CSX main, an interlocking with a distant signal.</li><li>Neville, POV Junction, about P&amp;LE MP 5.7: interchange with CSX. Interchange with Conrail at Duff Junction.</li></ul></div>`;
+  h+=`<div class="xw-si"><b>Special instructions</b>${SPECIAL_INSTRUCTIONS}</div>`;
   h+=TW.held(G);
   h+=`<div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>`;
   return h;
