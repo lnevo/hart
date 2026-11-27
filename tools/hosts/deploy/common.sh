@@ -43,25 +43,24 @@ LIVE_PANELS=(
   HART_ABS.xml
 )
 
-JYTHON_STARTUP_SCRIPTS=(
-  "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$ROOT/jmri/layouts/hart/scripts/hide_band_panels.py"
-  "$ROOT/jmri/layouts/hart/scripts/panel_status.py"
-  "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
-  "$ROOT/jmri/layouts/hart/scripts/sts_car_sync.py"
-  "$ROOT/jmri/scripts/signal_coordinator.py"
-)
+# The jython the Mac and the Pi install (tools/hosts/pi/jython_scripts.txt; the Pi apply step reads the same file
+# from the package): the Start Up scripts, then what signal_coordinator.py and panel_status.py load, in order
+# (SIBLING_MODULES after the loader jython_siblings.py, and PARTS), beside them and not Start Up items. A "pi" row is
+# a Start Up script on the Pi only; the package carries it through HART_JYTHON_SCRIPTS (load_parked).
+source "$ROOT/tools/hosts/pi/jython_list.sh"
+JYTHON_STARTUP_SCRIPTS=()
+JYTHON_SIBLING_MODULES=()
+JYTHON_PANEL_STATUS_PARTS=()
+_jython_rows="$(jython_list "$ROOT/tools/hosts/pi/jython_scripts.txt")" || exit 1
+while read -r _role _rel; do
+  case "$_role" in
+    startup) JYTHON_STARTUP_SCRIPTS+=("$ROOT/$_rel") ;;
+    sibling) JYTHON_SIBLING_MODULES+=("$ROOT/$_rel") ;;
+    part) JYTHON_PANEL_STATUS_PARTS+=("$ROOT/$_rel") ;;
+  esac
+done <<<"$_jython_rows"
+unset _jython_rows _role _rel
 
-# What signal_coordinator.py and panel_status.py load, in order (SIBLING_MODULES, PARTS): beside them, not Start Up.
-# jython_siblings.py is the loader both import their siblings with.
-JYTHON_SIBLING_MODULES=(
-  "$ROOT/jmri/scripts/jython_siblings.py"
-  "$ROOT/jmri/scripts/sml_beans.py" "$ROOT/jmri/scripts/sml_quit.py" "$ROOT/jmri/scripts/sml_ui.py"
-  "$ROOT/jmri/scripts/sml_claims.py" "$ROOT/jmri/scripts/sml_handoff.py" "$ROOT/jmri/scripts/sml_events.py"
-)
-JYTHON_PANEL_STATUS_PARTS=(
-  "$ROOT/jmri/layouts/hart/scripts/panel_status_clicks.py" "$ROOT/jmri/layouts/hart/scripts/panel_status_turnouts.py"
-)
 # The hartlib modules the host packages carry (stage.sh), by name in tools/hartlib/src/hartlib: what
 # cats/scripts/patch_jmri_startup.py and panel_window_sizes.py import there (hartlib.jmri_profile, its errors and
 # hartlib.files for the atomic write). The tests read this line: tools/hosts/tests/pi_drop.py.

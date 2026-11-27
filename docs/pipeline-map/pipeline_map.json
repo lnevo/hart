@@ -6621,6 +6621,33 @@
    "desc": "The status entries, one file each (ADR-038); make status builds wiki/STATUS.md from them.",
    "path": "wiki/status",
    "gen": "agent-docs"
+  },
+  {
+   "id": "tools/hosts/pi/jython_scripts.txt",
+   "label": "jython_scripts.txt",
+   "kind": "structured",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The one list of the jython the Mac and the Pi install into preference:jython, by role (startup, pi, sibling, part).",
+   "path": "tools/hosts/pi/jython_scripts.txt"
+  },
+  {
+   "id": "tools/hosts/pi/jython_list.sh",
+   "label": "jython_list.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The reader of jython_scripts.txt: its rows, or a stop naming the line it cannot read.",
+   "path": "tools/hosts/pi/jython_list.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/panel_counts.json",
+   "label": "panel_counts.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The masts, SML destinations, sections, transits and traininfo files the stored tables hold; read by the panel audit and the PanelPro smoke test.",
+   "path": "jmri/layouts/hart/scripts/panel_counts.json"
   }
  ],
  "edges": [
@@ -15467,6 +15494,31 @@
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
+  },
+  {
+   "from": "tools/hosts/pi/jython_scripts.txt",
+   "to": "tools/hosts/pi/jython_list.sh",
+   "label": "the list it reads"
+  },
+  {
+   "from": "tools/hosts/pi/jython_list.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "jython list"
+  },
+  {
+   "from": "tools/hosts/pi/jython_list.sh",
+   "to": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "jython list"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_counts.json",
+   "to": "jmri/layouts/hart/scripts/audit_panel_graph.py",
+   "label": "expected counts"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_counts.json",
+   "to": "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
+   "label": "expected counts (HART_PANEL_COUNTS)"
   }
  ]
 }

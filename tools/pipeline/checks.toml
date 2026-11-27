@@ -346,6 +346,7 @@ label = "audit_panel_contracts.py"
 desc = "Audits tables.xml panel contracts; also run at deploy."
 inputs = [
   { path = "jmri/layouts/hart/dispatcher/traininfo", label = "audit", side = "check" },
+  { path = "jmri/layouts/hart/scripts/panel_counts.json", label = "expected counts", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "audit", side = "check" },
 ]
 # read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
@@ -503,6 +504,7 @@ domain = "extras"
 label = "check_sml_invariants"
 desc = "Audit of signal mast logic invariants in tables.xml."
 inputs = [
+  { path = "jmri/layouts/hart/scripts/panel_counts.json", label = "expected counts", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
 ]
 

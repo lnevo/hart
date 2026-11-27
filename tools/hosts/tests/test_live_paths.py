@@ -210,6 +210,9 @@ class RealList(unittest.TestCase):
         for f in ("sync_hart_package.sh", "live_paths.py", "profile_tables_guard.sh"):
             shutil.copy(ROOT / "tools/hosts" / f, hosts / f)
         shutil.copytree(STEPS, hosts / "deploy")
+        (hosts / "pi").mkdir()
+        for f in ("jython_list.sh", "jython_scripts.txt"):   # the jython list the steps' shared file reads
+            shutil.copy(ROOT / "tools/hosts/pi" / f, hosts / "pi" / f)
         (hosts / "live_paths.txt").write_text(listing, encoding="utf-8")
         args = [flag] + ([str(tmp / "stage")] if flag == "--stage-only" else [])
         env = {k: v for k, v in os.environ.items() if not k.startswith("HART_") and k != "PI_HOST"}

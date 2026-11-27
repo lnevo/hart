@@ -3,8 +3,9 @@ makes one a Start Up item.
 
 The script loads the modules named in its SIBLING_MODULES from the jython folder it runs in, and stops with an
 error naming the one that is missing. So each list that installs the script into preference:jython must name
-exactly those modules beside it: the Mac (common.sh and ship_mac.sh), the package (stage.sh), the Pi and Windows
-apply scripts, and live_paths.txt. Both scripts import their siblings through jython_siblings.py (LOADER), which
+exactly those modules beside it: the Mac (common.sh and ship_mac.sh) and the package (stage.sh), from
+tools/hosts/pi/jython_scripts.txt, the Pi apply step, from the same file in the package, the Windows apply script,
+and live_paths.txt. Both scripts import their siblings through jython_siblings.py (LOADER), which
 ships in the same lists. A module is imported, not run: no Start Up item or retarget may name one.
 """
 from __future__ import annotations
@@ -19,6 +20,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import coordinator  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pi_drop import applied  # noqa: E402
 
 DEPLOY = ROOT / "tools/hosts/deploy"
 PI_APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
@@ -35,6 +39,26 @@ MAC_LOOP = ('for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def common_array(name: str) -> list[str]:
+    """The bash array `name` (a shell name) as tools/hosts/deploy/common.sh sets it when a deploy step sources it."""
+    if not re.fullmatch(r"[A-Z_][A-Z0-9_]*", name):
+        raise ValueError(f"not a bash array name: {name!r}")
+    script = f'source "$1" && printf "%s\\n" "${{{name}[@]}}"'
+    done = subprocess.run(["bash", "-c", script, "common", str(DEPLOY / "common.sh")],
+                          capture_output=True, text=True, timeout=60, check=False)
+    if done.returncode != 0:
+        raise AssertionError(f"sourcing common.sh failed ({done.returncode}): {done.stderr.strip()}")
+    return done.stdout.splitlines()
+
+
+def pi_jython() -> list[str]:
+    """The module names the Pi apply step installs into JMRI_UserFiles/jython from a package built to its list."""
+    with applied({}) as pi:
+        if pi.code != 0:
+            raise AssertionError(f"Pi apply failed ({pi.code}): {pi.out[-2000:]}")
+        return sorted(p.stem for p in (pi.user_files / "jython").glob("*.py"))
 
 
 def block(text: str, opener: str, where: str) -> str:
@@ -58,9 +82,8 @@ class CoordinatorShipping(unittest.TestCase):
                          f"{where} must list exactly the script's SIBLING_MODULES and {LOADER}.py")
 
     def test_mac_and_package_lists(self) -> None:
-        common = read(DEPLOY / "common.sh")
-        startup = named_modules(block(common, "JYTHON_STARTUP_SCRIPTS=(", "common.sh"), "/")
-        siblings = named_modules(block(common, "JYTHON_SIBLING_MODULES=(", "common.sh"), "/")
+        startup = named_modules("\n".join(common_array("JYTHON_STARTUP_SCRIPTS")), "/")
+        siblings = named_modules("\n".join(common_array("JYTHON_SIBLING_MODULES")), "/")
         self.assertEqual(siblings, list(SHIPPED), "common.sh JYTHON_SIBLING_MODULES: the loader, then load order")
         self.assertFalse(set(startup) & set(SHIPPED), "a sibling module is in JYTHON_STARTUP_SCRIPTS")
         self.assertIn(MAC_LOOP, read(DEPLOY / "ship_mac.sh"))
@@ -68,7 +91,8 @@ class CoordinatorShipping(unittest.TestCase):
                       '"$stage/jmri/scripts/"', read(DEPLOY / "stage.sh"))
 
     def test_pi_list(self) -> None:
-        self.assert_lists_siblings(named_modules(block(read(PI_APPLY), "JYTHON=(", "Pi apply"), "/"), "Pi apply")
+        names = [n for n in pi_jython() if n == "signal_coordinator" or n in SHIPPED or n.startswith("sml_")]
+        self.assert_lists_siblings(names, "Pi apply")
 
     def test_windows_list(self) -> None:
         text = block(read(WIN_APPLY), "$jythonSrc = @(", "Windows apply")
@@ -103,12 +127,17 @@ class CoordinatorShipping(unittest.TestCase):
     def test_each_site_deletes_the_compiled_class_of_what_it_copies(self) -> None:
         mac = self.copy_loop(read(DEPLOY / "ship_mac.sh"), MAC_LOOP, "ship_mac.sh")
         self.assertIn(self.MAC_RM, mac)
-        pi = self.copy_loop(read(PI_APPLY), 'for f in "${JYTHON[@]}"; do', "Pi apply")
-        self.assertIn(self.PI_RM, pi)
         win = read(WIN_APPLY)
         loop = win[win.index("foreach ($src in $jythonSrc) {"):win.index("Write-Host (\"preference:jython scripts")]
         self.assertIn(self.WIN_RM, loop)
         self.assertIn("Remove-Item -LiteralPath $compiled -Force", loop)
+
+    def test_the_pi_deletes_the_compiled_class_of_each_module_it_installs(self) -> None:
+        stale = {f"JMRI_UserFiles/jython/{n}$py.class": "stale" for n in ("signal_coordinator", *SHIPPED)}
+        with applied({}, installed={**stale, "JMRI_UserFiles/jython/other$py.class": "keep"}) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertEqual(sorted(p.name for p in (pi.user_files / "jython").glob("*$py.class")),
+                             ["other$py.class"])
 
     def test_the_bash_deletes_remove_each_modules_class_only(self) -> None:
         names = ["signal_coordinator", *SHIPPED]
@@ -152,9 +181,8 @@ class PanelStatusShipping(unittest.TestCase):
         self.assertGreater(len(PARTS), 0)
 
     def test_mac_and_package_lists(self) -> None:
-        common = read(DEPLOY / "common.sh")
-        startup = named_parts(block(common, "JYTHON_STARTUP_SCRIPTS=(", "common.sh"), "/")
-        parts = named_parts(block(common, "JYTHON_PANEL_STATUS_PARTS=(", "common.sh"), "/")
+        startup = named_parts("\n".join(common_array("JYTHON_STARTUP_SCRIPTS")), "/")
+        parts = named_parts("\n".join(common_array("JYTHON_PANEL_STATUS_PARTS")), "/")
         self.assertEqual(parts, list(PARTS), "common.sh JYTHON_PANEL_STATUS_PARTS, in PARTS order")
         self.assertEqual(startup, ["panel_status"], "only the script itself is a Start Up item")
         self.assertIn(MAC_LOOP, read(DEPLOY / "ship_mac.sh"))
@@ -162,7 +190,7 @@ class PanelStatusShipping(unittest.TestCase):
                       read(DEPLOY / "stage.sh"))
 
     def test_pi_list(self) -> None:
-        self.assert_lists_parts(named_parts(block(read(PI_APPLY), "JYTHON=(", "Pi apply"), "/"), "Pi apply")
+        self.assert_lists_parts([n for n in pi_jython() if n.startswith("panel_status")], "Pi apply")
 
     def test_windows_list(self) -> None:
         text = block(read(WIN_APPLY), "$jythonSrc = @(", "Windows apply")

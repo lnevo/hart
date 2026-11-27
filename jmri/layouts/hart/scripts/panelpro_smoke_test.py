@@ -3,21 +3,66 @@
 # Run through run_panelpro_smoke_test.sh. This file intentionally uses
 # Python-2-compatible syntax because JMRI's embedded Jython requires it.
 
+import json
+import numbers
 import os
 import time
 import traceback
+from collections import namedtuple
 
 import java.lang
 import jmri
 
 
+# The counts the loaded tables must hold come from panel_counts.json, the file audit_panel_contracts.py reads them
+# from (audit_panel_graph.PanelCounts; Jython cannot import it): run_panelpro_smoke_test.sh passes its path in
+# HART_PANEL_COUNTS. The smoke test takes the masts, the generated panel's sections and transits, and the traininfo.
+COUNT_KEYS = ("generated", "hand_drawn", "masts", "traininfo")
+PANEL_KEYS = ("sections", "sml", "transits")
+Expected = namedtuple("Expected", "masts sections transits traininfo")
+
+
+class CountsError(Exception):
+    """The panel counts file is not named, cannot be read, or does not hold PanelCounts' keys and whole numbers."""
+
+
+def _whole(value, where):
+    if isinstance(value, bool) or not isinstance(value, numbers.Integral) or value < 0:
+        raise CountsError("%s: expected a whole number of 0 or more, found %r" % (where, value))
+    return int(value)
+
+
+def _object(value, keys, where):
+    if not isinstance(value, dict) or sorted(value) != sorted(keys):
+        found = sorted(value) if isinstance(value, dict) else type(value).__name__
+        raise CountsError("%s: expected the keys %s, found %s" % (where, sorted(keys), found))
+    return value
+
+
+def expected_counts(path, parked):
+    """The counts at `path` (HART_PANEL_COUNTS) the loaded tables must hold; no section or transit while the
+    Dispatcher System is in `parked`. CountsError naming the file and the key when they cannot be read."""
+    if not path:
+        raise CountsError("HART_PANEL_COUNTS names no panel counts file (run_panelpro_smoke_test.sh sets it)")
+    try:
+        handle = open(path)
+        try:
+            data = json.load(handle)
+        finally:
+            handle.close()
+    except (IOError, OSError, ValueError) as exc:
+        raise CountsError("%s: cannot read the panel counts: %s" % (path, exc))
+    top = _object(data, COUNT_KEYS, path)
+    panels = {}
+    for kind in ("generated", "hand_drawn"):
+        counts = _object(top[kind], PANEL_KEYS, "%s %s" % (path, kind))
+        panels[kind] = dict((key, _whole(counts[key], "%s %s.%s" % (path, kind, key))) for key in PANEL_KEYS)
+    graph = "dispatcher" not in parked
+    return Expected(_whole(top["masts"], path + " masts"), panels["generated"]["sections"] if graph else 0,
+                    panels["generated"]["transits"] if graph else 0, _whole(top["traininfo"], path + " traininfo"))
+
+
 # Matches reconcile_dispatcher_stations.STATIONS (Jython 2 cannot import it).
-# The cut-over panel (2026-11-16): 49 staging masts plus the 41 main and upper control-point masts; staging's sections
-# less the 8 head-on pairs Discover drops, plus the main and upper sections (audit_panel_contracts EXPECTED_GRAPH).
-MASTS = 98                  # staging 25 visible and 5 virtual, main and upper 44 visible and 24 virtual (one mast process, 2026-11-20)
-SECTIONS = 197
-TRANSITS = 187
-TRAININFO = 374
 # The parked features (hartlib.parked.PARKED; run_panelpro_smoke_test.sh passes them, Jython cannot import hartlib).
 # While the Dispatcher System is parked the tables hold no section, transit or Dispatcher sensor and the traininfo
 # files are not read; while the USS CTC machine or the Dispatcher System is parked its window must not open; while
@@ -27,17 +72,14 @@ PARKED_WINDOWS = {"uss": u"USS CTC", "dispatcher": u"Dispatcher System"}
 # The hidden band panels (hartlib.tables.BAND_PANEL_NAMES; Jython cannot import hartlib, test_band_panels.py holds the
 # two lists equal): each loads as a Layout Editor panel and the "Hide windows on start" LogixNG hides its window.
 BAND_PANELS = (u"Staging Level", u"Main Level", u"Upper Level")
-if "dispatcher" in PARKED:
-    SECTIONS = 0
-    TRANSITS = 0
 
 # The main and upper blocks (internal IB:C3: blocks, hartlib.tables_build.master_beans) and their virtual occupancy
 # sensors (their detector rows), which the LogixNG "Main and upper block sensors clear on start" sets INACTIVE when the
-# tables load (owner, 2026-11-17). The prefixes are hartlib.level_devices' (Jython cannot import hartlib;
+# tables load. The prefixes are hartlib.level_devices' (Jython cannot import hartlib;
 # tools/hosts/tests/test_panelpro_wrappers.py checks they agree).
 LEVEL_BLOCK_PREFIX = "IB:C3:"
 LEVEL_SENSOR_PREFIX = "IS:HART:C3:B:"
-LEVEL_TURNOUT_PREFIX = "IT:HART:C3:"      # the same LogixNG sets each to its startup position (owner, 2026-11-19)
+LEVEL_TURNOUT_PREFIX = "IT:HART:C3:"      # the same LogixNG sets each to its startup position
 # The prefix is the virtual turnouts' (hartlib.level_devices.TURNOUT_PREFIX), the ones the startup LogixNG sets: a
 # main or upper turnout swapped to a physical one (ADR-028) leaves the startup LogixNG and this check with it, as it
 # should, since a field turnout reports its own state (naming-layers step 11).
@@ -206,11 +248,12 @@ def station_sensor_errors(sensor_manager):
     return errors
 
 
-def count_errors(mast_manager, section_manager, transit_manager):
-    """The mast, section and transit counts against MASTS, SECTIONS and TRANSITS."""
+def count_errors(expected, mast_manager, section_manager, transit_manager):
+    """The mast, section and transit counts against `expected` (an Expected)."""
     errors = []
-    for what, manager, want in (("signal masts", mast_manager, MASTS), ("sections", section_manager, SECTIONS),
-                                ("transits", transit_manager, TRANSITS)):
+    for what, manager, want in (("signal masts", mast_manager, expected.masts),
+                                ("sections", section_manager, expected.sections),
+                                ("transits", transit_manager, expected.transits)):
         got = bean_count(manager)
         if got != want:
             errors.append("%s=%s expected=%s" % (what, got, want))
@@ -225,14 +268,14 @@ def ordered_route(internal_names, start_name, destination_name):
     return False
 
 
-def traininfo_errors(transit_manager):
-    """Every runtime TrainInfo file: TRAININFO of them, each readable, on a transit that exists, with its start
+def traininfo_errors(transit_manager, want):
+    """Every runtime TrainInfo file: `want` of them, each readable, on a transit that exists, with its start
     block before its destination and its block sequence inside the transit."""
     errors = []
     traininfo_dir = jmri.util.FileUtil.getExternalFilename("preference:dispatcher/traininfo/")
     traininfo_files = sorted(name for name in os.listdir(traininfo_dir) if name.endswith(".xml"))
-    if len(traininfo_files) != TRAININFO:
-        errors.append("runtime TrainInfo files=%s expected=%s" % (len(traininfo_files), TRAININFO))
+    if len(traininfo_files) != want:
+        errors.append("runtime TrainInfo files=%s expected=%s" % (len(traininfo_files), want))
     for name in traininfo_files:
         info = jmri.jmrit.dispatcher.TrainInfoFile().readTrainInfo(name)
         if info is None:
@@ -266,17 +309,19 @@ def _line(text):
     return str(text)
 
 
-def marker_text(errors, level_line):
-    """What the marker file says: "fail" and each error, or "ok" and what was checked."""
+def marker_text(errors, level_line, expected):
+    """What the marker file says: "fail" and each error, or "ok" and what was checked against `expected` (an
+    Expected; None when the counts could not be read, which is an error)."""
     if errors:
         return "fail\n" + "\n".join(_line(item) for item in errors)
     if "dispatcher" in PARKED:
         return ("ok\n%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window; "
                 "band panels %s loaded and hidden\n"
-                % (MASTS, level_line, " ".join(sorted(PARKED)), ", ".join(BAND_PANELS)))
+                % (expected.masts, level_line, " ".join(sorted(PARKED)), ", ".join(BAND_PANELS)))
     return ("ok\n%s masts; %s; 24 station sensors; %s sections; %s transits; "
             "%s ordered TrainInfo routes; band panels %s loaded and hidden\n"
-            % (MASTS, level_line, SECTIONS, TRANSITS, TRAININFO, ", ".join(BAND_PANELS)))
+            % (expected.masts, level_line, expected.sections, expected.transits, expected.traininfo,
+               ", ".join(BAND_PANELS)))
 
 
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
@@ -286,41 +331,45 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
             "HART_PANELPRO_SMOKE_MARKER", "/tmp/hart_panelpro_smoke.done"
         )
         errors = []
+        expected = None
         deadline = time.time() + 90
         try:
+            expected = expected_counts(os.environ.get("HART_PANEL_COUNTS", ""), PARKED)
             sensor_manager = jmri.InstanceManager.getDefault(jmri.SensorManager)
             mast_manager = jmri.InstanceManager.getDefault(jmri.SignalMastManager)
             section_manager = jmri.InstanceManager.getDefault(jmri.SectionManager)
             transit_manager = jmri.InstanceManager.getDefault(jmri.TransitManager)
-            self._wait_for_load(mast_manager, section_manager, transit_manager, deadline)
+            self._wait_for_load(expected, mast_manager, section_manager, transit_manager, deadline)
             errors.extend(station_sensor_errors(sensor_manager))
-            errors.extend(count_errors(mast_manager, section_manager, transit_manager))
+            errors.extend(count_errors(expected, mast_manager, section_manager, transit_manager))
             errors.extend(parked_errors())
             errors.extend(band_panel_errors(self.waitMsec))
             errors.extend(self._level_errors(sensor_manager, deadline))
             if "dispatcher" not in PARKED:
-                errors.extend(traininfo_errors(transit_manager))
+                errors.extend(traininfo_errors(transit_manager, expected.traininfo))
+        except CountsError as exc:
+            errors.append(str(exc))
         except Exception:
             errors.append(traceback.format_exc())
 
         handle = open(marker, "w")
         try:
-            handle.write(marker_text(errors, self.level_line))
+            handle.write(marker_text(errors, self.level_line, expected))
         finally:
             handle.close()
 
         java.lang.System.exit(1 if errors else 0)
         return False
 
-    def _wait_for_load(self, mast_manager, section_manager, transit_manager, deadline):
-        """Until `deadline`: wait for every mast, section and transit (each transit with its blocks) and the HART
-        Railroad panel, then 2 s more."""
+    def _wait_for_load(self, expected, mast_manager, section_manager, transit_manager, deadline):
+        """Until `deadline`: wait for the `expected` masts, sections and transits (each transit with its blocks)
+        and the HART Railroad panel, then 2 s more."""
         while time.time() < deadline:
             transits = list(transit_manager.getNamedBeanSet())
             if (
-                bean_count(mast_manager) == MASTS
-                and bean_count(section_manager) == SECTIONS
-                and len(transits) == TRANSITS
+                bean_count(mast_manager) == expected.masts
+                and bean_count(section_manager) == expected.sections
+                and len(transits) == expected.transits
                 and all(
                     len(transit.getInternalBlocksList()) > 0
                     for transit in transits
