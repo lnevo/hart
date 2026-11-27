@@ -7,7 +7,7 @@ What it makes, for each level drawn on a band:
 - an OS block per switch, "OS Switch <n>". A single crossover is one OS block, unless its halves have their own
   detectors: then each half is an OS block of its own, given in block_overrides.csv (kind crossover_half; staging 7,
   23 and 35) and named OS Switch <n><its letter> (the owner's name, by its ID, wins in the device master). A double
-  crossover's corners are build_device_map.xover_corners' (main and upper), not this module's; its node keeps
+  crossover's corners are device_map_schematic.xover_corners' (main and upper), not this module's; its node keeps
   "OS Switch <n>" here, as mast_plan reads it.
 - a block per track, named by name_tracks: the name store's name when it gives its strands one ("Track <name>";
   hartlib.track_names, looked up by each strand's ID, store_names, never read off the drawing; a helix track its
@@ -451,7 +451,7 @@ def layer(bands, runs, found: list[Track], levels: dict, split: dict, exceptions
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
     `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits), `exceptions`
     (read_exceptions) and `corners` ({switch number: {schematic leg: corner block}} of each double crossover,
-    build_device_map.xover_corners) and `posts` ({(band index, switch node, leg): mast name} of the home masts,
+    device_map_schematic.corner_blocks_of) and `posts` ({(band index, switch node, leg): mast name} of the home masts,
     mast_plan.home_posts: a link a mast faces from its own switch joins the OS block at its other end, masted_block).
     BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""
     b = _Build(exceptions, overrides_file, corners or {}, posts or {})
