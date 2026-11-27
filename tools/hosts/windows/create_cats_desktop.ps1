@@ -15,6 +15,7 @@ foreach ($helper in @(
   'resolve_jmri_profile.ps1',
   'patch_windows_mqtt.ps1',
   'kill_cats.ps1',
+  'jmri_processes.ps1',
   'launch_cats_ctc.bat',
   'launch_cats_abs.bat',
   'launch_cats_desktop.bat',

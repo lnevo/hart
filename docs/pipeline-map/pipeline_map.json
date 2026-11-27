@@ -3628,7 +3628,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "hosts",
-   "desc": "Adds or removes a Start Up script entry in a JMRI profile, used by the deploy to register the shipped jython.",
+   "desc": "Adds or removes a Start Up script entry in a JMRI profile (hartlib.jmri_profile), used by the deploy to register the shipped jython.",
    "path": "cats/scripts/patch_jmri_startup.py"
   },
   {
@@ -3976,17 +3976,8 @@
    "kind": "generator",
    "status": "live",
    "domain": "hosts",
-   "desc": "Sets each Layout Editor panel window size a JMRI profile remembers (user-interface.xml) to the size tables.xml gives it; run by hand with JMRI closed, not part of make panels or a deploy.",
+   "desc": "Sets each Layout Editor panel window size a JMRI profile remembers (user-interface.xml) to the size tables.xml gives it (hartlib.jmri_profile); every Pi and Windows deploy runs it after installing tables.xml, with JMRI closed.",
    "path": "tools/hosts/panel_window_sizes.py"
-  },
-  {
-   "id": "tools/hosts/pi_panel_window_sizes.sh",
-   "label": "pi_panel_window_sizes.sh",
-   "kind": "generator",
-   "status": "live",
-   "domain": "hosts",
-   "desc": "Runs panel_window_sizes.py on the Pi's profile: checks first, quits PanelPro, sets the sizes, keeps a backup and starts PanelPro again.",
-   "path": "tools/hosts/pi_panel_window_sizes.sh"
   },
   {
    "id": "tools/hosts/pi-os",
@@ -10328,16 +10319,6 @@
    "label": "reads"
   },
   {
-   "from": "tools/hosts/pi_panel_window_sizes.sh",
-   "to": "tools/hosts/panel_window_sizes.py",
-   "label": "runs"
-  },
-  {
-   "from": "tools/hosts/pi_panel_window_sizes.sh",
-   "to": "host:pi",
-   "label": "sets saved panel sizes"
-  },
-  {
    "from": "tools/hosts/pi-os",
    "to": "host:pi",
    "label": "SD card image"
@@ -11615,14 +11596,9 @@
    "label": "installs, enables, restarts"
   },
   {
-   "from": "cats/scripts/patch_jmri_startup.py",
-   "to": "tools/hosts/panelpro_profile.py",
-   "label": "imports"
-  },
-  {
    "from": "ext:hartlib",
    "to": "tools/hosts/panelpro_profile.py",
-   "label": "imports hartlib.tables (jmri-running)"
+   "label": "imports hartlib.tables (jmri-running), hartlib.jmri_profile (Start Up)"
   },
   {
    "from": "tools/hosts/panelpro_profile.py",
@@ -13820,6 +13796,36 @@
    "from": "jmri/layouts/hart/scripts/speedmatch/speed_table.py",
    "to": "jmri/layouts/hart/data/speed_by_step_2026-11-08.csv",
    "label": "--out"
+  },
+  {
+   "from": "ext:hartlib",
+   "to": "cats/scripts/patch_jmri_startup.py",
+   "label": "imports hartlib.jmri_profile"
+  },
+  {
+   "from": "ext:hartlib",
+   "to": "tools/hosts/panel_window_sizes.py",
+   "label": "imports hartlib.jmri_profile"
+  },
+  {
+   "from": "tools/hosts/panel_window_sizes.py",
+   "to": "tools/hosts/deploy/stage.sh",
+   "label": "cats/scripts"
+  },
+  {
+   "from": "tools/hosts/pi/apply_hart_package_local.sh",
+   "to": "tools/hosts/panel_window_sizes.py",
+   "label": "runs (panel window sizes)"
+  },
+  {
+   "from": "tools/hosts/windows",
+   "to": "tools/hosts/panel_window_sizes.py",
+   "label": "apply_hart_package_local.ps1 runs (panel window sizes)"
+  },
+  {
+   "from": "tools/hosts/panel_window_sizes.py",
+   "to": "host:panelpro",
+   "label": "saved panel window sizes"
   },
   {
    "from": "tools/audit/hand_tables.csv",

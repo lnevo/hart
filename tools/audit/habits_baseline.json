@@ -199,10 +199,6 @@
  "tools/hartlib/tests/test_wiring.py": {
   "dated-note": 1
  },
- "tools/hosts/panel_window_sizes.py": {
-  "dated-note": 1,
-  "lost-cause": 2
- },
  "tools/hosts/panelpro_profile.py": {
   "import-exit": 22
  },
