@@ -186,16 +186,26 @@
   },
   {
    "label": "Agent docs",
-   "focus": "wiki/decisions",
-   "up": 1,
+   "focus": "AGENTS.md",
+   "up": 0,
    "down": 1,
    "line": [
-    "AGENTS.md",
-    "wiki/decisions",
-    "docs/INDEX.md"
+    "AGENTS.md"
    ],
    "also": [
-    "tools/ops/pipeline_query.py"
+    ".claude/agents/finding-verifier.md",
+    ".claude/commands/done.md",
+    ".claude/skills/coordinate/SKILL.md",
+    ".claude/skills/deploy/SKILL.md",
+    ".claude/skills/handoff/SKILL.md",
+    ".cursor",
+    "docs/pipeline-map/pipeline_map.json",
+    "wiki/AGENTS_GIT.md",
+    "wiki/decisions",
+    "wiki/home.md",
+    "wiki/not-pending.md",
+    "wiki/pipelines",
+    "wiki/projects"
    ]
   }
  ],
