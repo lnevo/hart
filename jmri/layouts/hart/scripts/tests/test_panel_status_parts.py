@@ -404,6 +404,58 @@ class TurnoutsHeadCalls(unittest.TestCase):
         self.assertEqual(set_to, [self.turnouts.TURNOUT_FB_HEAD])
 
 
+class TurnoutsRepeatedFailures(unittest.TestCase):
+    """A failure that repeats on every turnout event or lamp paint is printed once."""
+
+    def setUp(self) -> None:
+        self.layout = jf.Layout(mqtt=False)
+        jf.load_script(coordinator.PANEL_STATUS, self.layout)
+        self.turnouts = sys.modules["panel_status_turnouts"]
+        running = jf.running(self.layout)
+        running.__enter__()
+        self.addCleanup(running.__exit__, None, None, None)
+
+    def test_a_turnout_scan_that_fails_is_printed_once(self) -> None:
+        def fail():
+            raise RuntimeError("manager gone")
+        self.layout.turnouts.getNamedBeanSet = fail
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            for _ in range(3):
+                self.turnouts.sync_turnout_fb_lamp()
+        self.assertEqual(out.getvalue().count("scan turnouts failed: manager gone"), 1)
+        self.assertEqual(self.layout.heads.beans[self.turnouts.TURNOUT_FB_HEAD].appearance, jf.SignalHead.YELLOW)
+
+    def test_a_turnout_event_that_fails_is_printed_once(self) -> None:
+        class Broken:
+            def getSystemName(self): raise RuntimeError("name gone")
+
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            for _ in range(3):
+                self.turnouts._note_plant(Broken())
+        self.assertEqual(out.getvalue().count("plant update failed: name gone"), 1)
+
+    def test_an_icon_that_refuses_both_rebinds_is_printed_once_and_tried_again(self) -> None:
+        icon_class: Any = sys.modules["jmri.jmrit.display"].SignalHeadIcon
+        tries = []
+
+        class Lamp(icon_class):
+            def getSignalHead(self): return None
+            def getToolTip(self): return types.SimpleNamespace(getText=lambda: sys.modules[
+                "panel_status_turnouts"].TURNOUT_FB_TOOLTIP)
+            def setSignalHead(self, value):
+                tries.append(value)
+                raise RuntimeError("icon locked")
+
+        self.layout.editors.append(types.SimpleNamespace(getContents=lambda: [Lamp()]))
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            for _ in range(3):
+                self.turnouts._rebind_turnout_fb_icons(object())
+        self.assertEqual(len(tries), 6)                      # by name, then the head itself, on each scan
+        self.assertEqual(out.getvalue().count("rebind by name failed (icon locked)"), 1)
+        self.assertEqual(out.getvalue().count("Turnouts icon rebind failed on"), 1)
+        self.assertFalse(self.turnouts._icon_rebound)
+
+
 class PartText(unittest.TestCase):
     """The rules the script keeps (no plant turnout commands, no yard-ladder paint) hold for each part too."""
 
