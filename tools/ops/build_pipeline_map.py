@@ -302,7 +302,13 @@ def validate(data: Graph, tracked: bool = True) -> Graph:
     if not isinstance(presets, list):
         problems.append("presets must be a list")
         presets = []
+    lined: dict[str, str] = {}  # the page finds a preset's line by its focus, so two lines may not share one
     for i, pr in enumerate(presets):
+        focus = pr.get("focus") if isinstance(pr, dict) else None
+        if isinstance(pr, dict) and "line" in pr and isinstance(focus, str):
+            if focus in lined:
+                problems.append(f"preset {pr.get('label')!r}: focus {focus!r} already has a line in preset {lined[focus]!r}")
+            lined.setdefault(focus, str(pr.get("label")))
         if not isinstance(pr, dict):
             problems.append(f"preset {i + 1} must be an object: {pr!r}")
             continue
@@ -312,9 +318,44 @@ def validate(data: Graph, tracked: bool = True) -> Graph:
             v = pr.get(side)
             if not (v == "all" or isinstance(v, int) and not isinstance(v, bool) and v >= 0):
                 problems.append(f"preset {pr.get('label')!r}: {side} must be a step count or \"all\"")
+        if "line" in pr:
+            problems.extend(f"preset {pr.get('label')!r}: {p}" for p in line_problems(pr["line"], pr.get("focus"), ids, seen_edges))
+        if "also" in pr:
+            problems.extend(f"preset {pr.get('label')!r}: {p}" for p in also_problems(pr["also"], pr.get("line"), ids, seen_edges))
     if problems:
         raise GraphError("\n".join(problems))
     return data
+
+
+def line_problems(line: object, focus: object, ids: set[str], edges: set[tuple[str, str]]) -> list[str]:
+    """What is wrong with a preset's main line ("line": the box ids in order, which a Start button lights): each id a
+    node, the focus among them, no id twice, and each id linked to the next by an edge in that direction (any kind,
+    side links included)."""
+    if not isinstance(line, list) or not line or not all(isinstance(v, str) for v in line):
+        return ["line must be a list of node ids"]
+    problems = [f"line: {v!r} is not a node" for v in line if v not in ids]
+    if focus not in line:
+        problems.append(f"line does not hold the focus {focus!r}")
+    problems.extend(f"line: {v!r} is listed twice" for v in sorted({v for v in line if line.count(v) > 1}))
+    problems.extend(f"line: no link from {a!r} to {b!r}" for a, b in zip(line, line[1:])
+                    if a in ids and b in ids and (a, b) not in edges)
+    return problems
+
+
+def also_problems(also: object, line: object, ids: set[str], edges: set[tuple[str, str]]) -> list[str]:
+    """What is wrong with the boxes a preset lights beside its line ("also"): a line to sit beside, each id a node, not
+    on the line, not listed twice, and linked to or from a line box."""
+    if not isinstance(also, list) or not all(isinstance(v, str) for v in also):
+        return ["also must be a list of node ids"]
+    if not isinstance(line, list) or not line:
+        return ["also needs a line"]
+    on = set(line)
+    problems = [f"also: {v!r} is not a node" for v in also if v not in ids]
+    problems.extend(f"also: {v!r} is on the line" for v in also if v in on)
+    problems.extend(f"also: {v!r} is listed twice" for v in sorted({v for v in also if also.count(v) > 1}))
+    problems.extend(f"also: {v!r} has no link to or from the line" for v in also
+                    if v in ids and v not in on and not any((v, w) in edges or (w, v) in edges for w in on))
+    return problems
 
 
 def esc(s: str) -> str:

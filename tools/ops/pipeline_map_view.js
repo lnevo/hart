@@ -26,7 +26,7 @@ function app() {
   // f: the ticked filter values (pipeline_map_facets.js); hide: Hide the rest (left out, not faded)
   const view = { f: emptyFacets(), hide: false, focus: null, up: Infinity, down: Infinity, trim: false,
                  compact: true, group: false, open: new Set(), hover: true, near: false, steps: 0, spread: 1,
-                 overview: true, laneOpen: new Set(), eff: false };  // overview: the lane cards; laneOpen: the lanes drawn open
+                 overview: true, laneOpen: new Set(), eff: false, line: false };  // overview: the lane cards; laneOpen: the lanes drawn open; line: a Start button's main line
   const boxVals = {};  // each box's filter values
   DATA.nodes.forEach(n => (boxVals[n.id] = boxValues(n)));
   let groups = { members: {}, groupOf: {} }, gNodes = {}, lastBox = null;  // folder boxes in the current drawing; the last file box picked
@@ -107,6 +107,8 @@ function app() {
     const ids = new Set(nodes.map(n => n.id));
     const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
     let edges = g.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus));
+    const line = view.line && view.focus && presetLine(DATA.presets, view.focus);  // a Start button's own line: all of it drawn
+    if (line) ({ nodes, edges } = withLine(nodes, edges, { nodes: g.nodes.concat(DATA.nodes), edges: g.edges.concat(DATA.edges) }, line, presetAlso(DATA.presets, view.focus)));
     if (view.laneOpen.size && !view.focus) {  // lanes opened from the overview: the others closed to one box each
       groups = collapseLanes(nodes, edges, view.laneOpen, closedLaneName);
       ({ nodes, edges } = groups);
@@ -173,6 +175,16 @@ function app() {
         return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
       });
       lit.forEach((n, i) => { if (n.id === hoverId) boxes[i] = clearOf(boxes[i], blocked, area); });  // the hovered box always shows
+      // a Start button's main line: each card moved up or down clear of the line's cards before it, so all of them show
+      // and of the corner overview, which sits over the map's bottom right where a line's last cards often fall
+      const line = [], q = nav.hidden ? null : nav.getBoundingClientRect();
+      const corner = q && q.width ? [{ x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top }] : [];
+      lit.forEach((n, i) => {
+        if (n.id === hoverId) { line.push(boxes[i]); return; }  // placed first and already clear: the line's cards clear it
+        if (!nodeEl[n.id].classList.contains("ml")) return;
+        boxes[i] = clearOf(boxes[i], blocked.concat(corner, line), area);
+        line.push(boxes[i]);
+      });
       for (const i of placeTags(boxes, blocked)) want.push([lit[i], kk, boxes[i].dx / s, boxes[i].dy / s]);
     }
     const now = new Set(want.map(([n]) => n.id));
@@ -423,7 +435,9 @@ function app() {
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
     if (!old && !asked && !settled && Math.abs(fitAspect() - screen) > 0.01) { render(false, undefined, true); return; }  // the panel changed the area
-    if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
+    const line = view.line && view.focus && !selected ? showLine() : null;  // a Start button's main line
+    if (!old && line) fitBoxes(line);  // fitted to the main line, not the whole chain
+    else if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
     else setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again against the panel as it is now
     updateNav();
     announce();
