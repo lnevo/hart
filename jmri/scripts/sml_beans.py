@@ -233,7 +233,8 @@ class SmlBeans(object):
         """Every destination of one source logic whose Enabled box could be read (DestState).
 
         A destination, or a destination list, that cannot be read is left out and printed
-        once (_dest_read_failed): the callers then count it as off, so the field owns it.
+        once (_dest_read_failed): the callers then count it as off, so the field owns it. A
+        read that works again clears its failure, so a later failure prints again.
         """
         out = []
         if sml is None:
@@ -249,9 +250,20 @@ class SmlBeans(object):
                     out.append(DestState(dest.getSystemName(), dest, bool(sml.isEnabled(dest))))
                 except Exception as exc:
                     self._dest_read_failed(sml, _bean_label(dest), exc)
+                else:
+                    self._dest_read_recovered(sml, dest)
         except Exception as exc:
             self._dest_read_failed(sml, "its destination list", exc)
+        else:
+            self._dest_read_recovered(sml, None)
         return out
+
+    def _dest_read_recovered(self, sml, dest):
+        """Forget a printed failure of this read (dest None: the destination list)."""
+        seen = getattr(self, "_dest_read_failures", None)
+        if seen:
+            what = "its destination list" if dest is None else _bean_label(dest)
+            seen.discard((_logic_label(sml), what))
 
     def _dest_read_failed(self, sml, what, exc):
         """Print a Signal Mast Logic read that failed, once per source and destination: the

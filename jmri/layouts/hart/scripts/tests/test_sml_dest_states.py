@@ -84,6 +84,27 @@ class DestStates(unittest.TestCase):
         self.assertEqual(lines, ["mqtt_signalhead: cannot read SML Mast 6LB -> Mast 8RA "
                                  "(left out, counted as off): bean gone"])
 
+    def test_a_failure_after_a_recovery_prints_again(self) -> None:
+        out = self.capture()
+        logic = self.two_dests()
+        real = logic.isEnabled
+        broken = [True]
+
+        def is_enabled(dest: object) -> bool:
+            if broken[0] and dest.getSystemName() == "Mast 8RA":  # type: ignore[attr-defined]
+                raise RuntimeError("bean gone")
+            return real(dest)
+
+        logic.isEnabled = is_enabled  # type: ignore[method-assign]
+        c = self.c
+        c._enabled_dest_count(self.mast)
+        c._enabled_dest_count(self.mast)
+        broken[0] = False
+        self.assertEqual(c._enabled_dest_count(self.mast), 2)
+        broken[0] = True
+        c._enabled_dest_count(self.mast)
+        self.assertEqual(out.getvalue().count("cannot read SML Mast 6LB -> Mast 8RA"), 2)
+
     def test_an_unreadable_list_counts_as_off_and_is_printed_once(self) -> None:
         out = self.capture()
         logic = self.two_dests()
