@@ -390,6 +390,8 @@ class DocsUnitTests(unittest.TestCase):
         for stamps, left_out, why in cases:
             with self.subTest(why), self.assertRaisesRegex(docs_unit_tests.Problem, why):
                 docs_unit_tests.tests(stamps, left_out)
+        self.assertEqual([docs_unit_tests.UnitTest(real, "tools/audit/tests", "test_name_copies.py", "Copies.")],
+                         docs_unit_tests.tests(self.stamps({real: ("docs/x.md",)}, docs_k={real: "Copies."}), {}))
         self.assertEqual(docs_unit_tests.lines(docs_unit_tests.tests(self.stamps({real: ("docs/x.md",)}), {})),
                          ["unit-guards-test_name_copies python3 -m unittest discover -b -q -s tools/audit/tests "
                           "-p test_name_copies.py"])
