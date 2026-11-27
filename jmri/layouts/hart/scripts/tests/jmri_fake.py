@@ -505,7 +505,13 @@ def _modules(layout):
                util=mod("jmri.util", ThreadingUtil=types.SimpleNamespace(),
                         FileUtil=types.SimpleNamespace(getExternalFilename=external_filename),
                         swing=mod("jmri.util.swing", JmriJOptionPane=types.SimpleNamespace())))
-    lang = mod("java.lang", Runnable=iface("Runnable"), Thread=Thread)
+    # A fake bean or Swing call fails with RuntimeError: here it is java.lang.RuntimeException, which the scripts
+    # catch for a Java failure.
+    lang = mod("java.lang", Runnable=iface("Runnable"), Thread=Thread, RuntimeException=RuntimeError,
+               InterruptedException=type("InterruptedException", (Exception,), {}))
+    reflect = mod("java.lang.reflect",
+                  InvocationTargetException=type("InvocationTargetException", (Exception,), {}))
+    lang.reflect = reflect
     awt_event = mod("java.awt.event", ActionListener=iface("ActionListener"), MouseAdapter=iface("MouseAdapter"),
                     MouseEvent=types.SimpleNamespace(BUTTON1=1), WindowAdapter=iface("WindowAdapter"))
     beans = mod("java.beans", PropertyChangeListener=iface("PropertyChangeListener"))
@@ -515,7 +521,8 @@ def _modules(layout):
     return {
         "jmri": jmri, "jmri.jmrix": jmri.jmrix, "jmri.jmrix.mqtt": mqtt, "jmri.jmrit": jmri.jmrit,
         "jmri.jmrit.display": display, "jmri.implementation": implementation, "jmri.util": jmri.util,
-        "jmri.util.swing": jmri.util.swing, "java": java, "java.lang": lang, "java.beans": beans,
+        "jmri.util.swing": jmri.util.swing, "java": java, "java.lang": lang, "java.lang.reflect": reflect,
+        "java.beans": beans,
         "java.awt": java.awt, "java.awt.event": awt_event, "javax": mod("javax", swing=swing),
         "javax.swing": swing, "apps": mod("apps", Apps=types.SimpleNamespace(buttonSpace=lambda: layout.button_space)),
     }
