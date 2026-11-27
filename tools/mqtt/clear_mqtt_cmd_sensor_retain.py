@@ -13,12 +13,12 @@ track/signalhead/<digits> status/set retain.
 
     python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
 
-Broker: HART_MQTT_BROKER (hartlib.hosts), default the Pi.
+Broker: HART_MQTT_BROKER (hartlib.hosts), default the Pi. Exits 1 when junk is left after the clear, or when
+mosquitto_sub or mosquitto_pub cannot be started or fails (the broker cannot be reached), naming the topic.
 """
 
 from __future__ import annotations
 
-import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -28,37 +28,19 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib.hosts import mqtt_broker  # noqa: E402
 
+import mosquitto_cli  # noqa: E402  (sibling module; the script's folder is on sys.path)
+
 MQTT_HOST = mqtt_broker()
 
 
-def _sub(topic: str, wait: str = "1") -> list[tuple[str, str]]:
-    try:
-        out = subprocess.check_output(
-            ["mosquitto_sub", "-h", MQTT_HOST, "-t", topic, "-v", "-W", wait],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        )
-    except subprocess.CalledProcessError as e:
-        out = e.output or ""
-    rows: list[tuple[str, str]] = []
-    for line in out.splitlines():
-        line = line.strip()
-        if not line or " " not in line:
-            continue
-        if line.lower().startswith("timed out"):
-            continue
-        t, p = line.split(" ", 1)
-        rows.append((t, p.strip()))
-    return rows
+def _sub(topic: str, wait: int = 1) -> list[tuple[str, str]]:
+    """The retained (topic, payload) pairs under the filter `topic`. MosquittoError when the broker cannot be read."""
+    return [(m.topic, m.payload) for m in mosquitto_cli.subscribe(MQTT_HOST, topic, wait=wait)]
 
 
 def _clear(topic: str) -> None:
-    subprocess.run(
-        ["mosquitto_pub", "-h", MQTT_HOST, "-t", topic, "-n", "-r"],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    """Clear the retained message of `topic`. MosquittoError when mosquitto_pub fails."""
+    mosquitto_cli.set_retained(MQTT_HOST, topic, None)
 
 
 def _under(prefix: str) -> Callable[[str, str], bool]:
@@ -112,12 +94,15 @@ def _junk_topics(kind: Junk) -> list[str]:
 
 def main() -> int:
     cleared: list[str] = []
-    for kind in JUNK:
-        for t in _junk_topics(kind):
-            _clear(t)
-            cleared.append(t)
-
-    left = {kind.name: len(_junk_topics(kind)) for kind in JUNK}
+    try:
+        for kind in JUNK:
+            for t in _junk_topics(kind):
+                _clear(t)
+                cleared.append(t)
+        left = {kind.name: len(_junk_topics(kind)) for kind in JUNK}
+    except mosquitto_cli.MosquittoError as exc:
+        print(f"cleared={len(cleared)} then stopped: {exc} host={MQTT_HOST}", file=sys.stderr)
+        return 1
     print(
         "cleared=%d remaining_cmd=%d remaining_root_numeric=%d remaining_discard=%d remaining_ih_leaf=%d remaining_nondigit_sensor=%d host=%s"
         % (

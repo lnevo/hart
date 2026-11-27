@@ -14,7 +14,7 @@
  "jmri/layouts/hart/scripts/speedmatch/make_job.py": 1,
  "jmri/layouts/hart/scripts/tests/jmri_fake.py": 3,
  "jmri/layouts/hart/scripts/tests/test_apply_nx_layer.py": 3,
- "jmri/layouts/hart/scripts/tests/test_audit_bindings.py": 27,
+ "jmri/layouts/hart/scripts/tests/test_audit_bindings.py": 1,
  "jmri/layouts/hart/scripts/tests/test_bean_comment_format.py": 20,
  "jmri/layouts/hart/scripts/tests/test_build_hart_signal_heads.py": 22,
  "jmri/layouts/hart/scripts/tests/test_ctc_signal_heads.py": 7,
