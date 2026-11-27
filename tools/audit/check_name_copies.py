@@ -259,13 +259,13 @@ def main(argv: list[str] | None = None) -> int:
     unused = unused_allow(ALLOW, used)
     for msg in unused:
         print(msg)
-    if len(counts) < MIN_NAME_FILES:
-        print(f"FAIL: only {len(counts)} files hold a name (at least {MIN_NAME_FILES} expected): the scan read "
-              "almost nothing; is the file list right?")
-        return 1
     if hits or unused:
         print(f"FAIL: {len(hits)} stale name copies. Change each to the current name, look it up from "
               "the data, or (dated records only) add it to ALLOW with its reason.")
+        return 1
+    if len(counts) < MIN_NAME_FILES:
+        print(f"FAIL: only {len(counts)} files hold a name (at least {MIN_NAME_FILES} expected): the scan read "
+              "almost nothing; is the file list right?")
         return 1
     print(f"OK: every track, OS block and mast name in {len(counts)} hand-kept files is current")
     return 0

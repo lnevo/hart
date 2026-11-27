@@ -9,6 +9,7 @@ device master, tables.xml and code (tools/audit/check_stamps.py declares nothing
 from __future__ import annotations
 
 import io
+import os
 import shutil
 import subprocess
 import sys
@@ -92,12 +93,15 @@ class NameCopiesTest(unittest.TestCase):
                     "wiki/x.md": f"{mast} was renamed.\n"}
         for rel, text in (*hand.items(), *not_read.items()):
             self.write(rel, text)
-        subprocess.run(["git", "init", "-q", str(self.tmp)], check=True)
-        subprocess.run(["git", "-C", str(self.tmp), "add", "--", *hand, *not_read, check.TABLES_REL], check=True)
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}  # a hook's GIT_DIR must not leak in
+        subprocess.run(["git", "init", "-q", str(self.tmp)], check=True, env=env)
+        subprocess.run(["git", "-C", str(self.tmp), "add", "--", *hand, *not_read, check.TABLES_REL],
+                       check=True, env=env)
         self.write("tools/untracked.py", f'M = "{mast}"\n')        # not in git: never read
 
         def stale() -> list[str]:
-            hits, _counts, _used = check.run(self.tmp, devices_csv=self.map)
+            with mock.patch.dict(os.environ, env, clear=True):   # tracked_files' git ls-files too
+                hits, _counts, _used = check.run(self.tmp, devices_csv=self.map)
             return sorted(str(h) for h in hits)
 
         self.assertEqual([], stale(), "both names are current before the rename")
@@ -147,7 +151,8 @@ class NameCopiesTest(unittest.TestCase):
         many = {f"tools/f{i}.py": 1 for i in range(check.MIN_NAME_FILES)}
         used = {(k, n) for k, (names, _r) in check.ALLOW.items() for n in (names or {"x"})}
         cases = (([], many, 0, "OK: every track"), ([hit], many, 1, "1 stale name copies"),
-                 ([], dict(list(many.items())[:-1]), 1, "the scan read almost nothing"))
+                 ([], dict(list(many.items())[:-1]), 1, "the scan read almost nothing"),
+                 ([hit], {"tools/x.py": 1}, 1, "1 stale name copies"))   # a stale copy is named first
         for hits, counts, code, line in cases:
             with self.subTest(line), mock.patch.object(check, "run", return_value=(hits, counts, used)), \
                     mock.patch("sys.stdout", new_callable=io.StringIO) as out:
