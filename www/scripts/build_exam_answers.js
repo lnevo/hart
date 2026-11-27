@@ -16,9 +16,22 @@ const EXAM = path.join(__dirname, "..", "exam");
 const DATA = require(path.join(EXAM, "run-data.js"));
 /* The game's scripts in run.html's order, each with the run its questions belong to. A question in one of the event
    pools (POOLS) takes the pool's place instead. */
-const RUN_FILES = { "run.js": "1949 run", "run-1949.js": "1949 run", "run-modern.js": "Modern run", "run-signals.js": "Signals run", "run-yard.js": "Yard job" };
+const RUN_FILES = { "run-tto.js": "1949 run", "run-1949.js": "1949 run", "run-modern.js": "Modern run", "run-signals.js": "Signals run", "run-yard.js": "Yard job" };
+/* The game's other scripts, which hold no questions: an ask({ in one of them, or a run file in neither list, stops
+   the build, so no question is left out of the key unseen. */
+const NO_QUESTIONS = ["run.js", "run-data.js", "run-title.js"];
+function checkRunFiles(dir = EXAM) {
+  for (const file of fs.readdirSync(dir).filter(f => /^run.*\.js$/.test(f)).sort()) {
+    if (file in RUN_FILES) continue;
+    if (!NO_QUESTIONS.includes(file)) throw new Error(`${file}: a run file the answer key does not know; add it to RUN_FILES or NO_QUESTIONS`);
+    if (fs.readFileSync(path.join(dir, file), "utf8").includes("ask({")) throw new Error(`${file} asks a question; add it to RUN_FILES`);
+  }
+}
 /* The scripts as [{file, where, src}]. */
-const readRun = () => Object.entries(RUN_FILES).map(([file, where]) => ({ file, where, src: fs.readFileSync(path.join(EXAM, file), "utf8") }));
+const readRun = () => {
+  checkRunFiles();
+  return Object.entries(RUN_FILES).map(([file, where]) => ({ file, where, src: fs.readFileSync(path.join(EXAM, file), "utf8") }));
+};
 const OUT = path.join(EXAM, "answers.html");
 const TRACK_WARRANT = path.join(EXAM, "..", "js", "track-warrant.js");
 
@@ -697,4 +710,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { DATA, readRun, extract, render, references, specialInstructions, warrant, warrantHtml, loadSignals, generatedHtml };
+module.exports = { DATA, readRun, checkRunFiles, extract, render, references, specialInstructions, warrant, warrantHtml, loadSignals, generatedHtml };
