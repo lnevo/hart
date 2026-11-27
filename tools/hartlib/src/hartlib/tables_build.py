@@ -24,12 +24,12 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       (tables_sml.disable_digicon)
 
 The envelope is fixed: PROLOG and EPILOG around the root, jmriversion as the template has it, and none of what a
-Store writes each time (ENVELOPE_DROPS: the file history, the "Written by" comment, the clock's time, the memory
-values). strip_envelope takes those out of a Store.
+Store writes each time (tables_normal.ENVELOPE_DROPS: the file history, the "Written by" comment, the clock's time,
+the memory values). tables_normal.strip_envelope takes those out of a Store.
 
 Order. Every section's beans, the template's and the master's together, stand in the
 order a JMRI 5.16 Store writes them (tables_sections.jmri_sort: by system name, AlphanumComparator), so a load and
-Store gives the same bytes after normalise_store. The discovered logic keeps the order discovery wrote.
+Store gives the same bytes after tables_normal.normalise_store. The discovered logic keeps the order discovery wrote.
 
 Every failure is a TablesBuildError naming the file, section or row.
 """
@@ -50,24 +50,6 @@ from .tables_sections import (BLOCKS, HEADS, LAYOUT_BLOCKS, MASTER_SECTIONS, MAS
                               TURNOUT_SECTIONS, BeanKey, SectionKey, TablesBuildError, alphanum_key, bean_names, finish,
                               section_key, sub)
 
-# Names of the modules split out of this one, still read here by callers that import them from tables_build
-# (store_*.py, devices.py, build_tables.py, sync_signals.py and their tests, which other open work changes). New code
-# imports them from their own module.
-from .jmri_bean import bean_json as bean_json, row_beans as row_beans
-from .tables_sections import (CONDITIONALNGS as CONDITIONALNGS, DIGITAL_ACTIONS as DIGITAL_ACTIONS,
-                              INTERNAL_SENSORS as INTERNAL_SENSORS, INTERNAL_TURNOUTS as INTERNAL_TURNOUTS,
-                              LCC_TURNOUTS as LCC_TURNOUTS, LOGIXNGS as LOGIXNGS, MQTT_SENSORS as MQTT_SENSORS,
-                              MQTT_TURNOUTS as MQTT_TURNOUTS, jmri_order as jmri_order, jmri_sort as jmri_sort,
-                              sort_group as sort_group)
-from .tables_normal import (ENVELOPE_DROPS as ENVELOPE_DROPS, normalise_store as normalise_store,
-                            strip_envelope as strip_envelope)
-from .tables_roundtrip import roundtrip_differences as roundtrip_differences, roundtrip_report as roundtrip_report
-from .tables_sml import (DISCOVERED as DISCOVERED, digicon_masts as digicon_masts, disable_digicon as disable_digicon,
-                         discovered_from_store as discovered_from_store, enabled_digicon as enabled_digicon,
-                         merge_discovered as merge_discovered, missing_logic as missing_logic,
-                         read_discovered as read_discovered, read_discovered_root as read_discovered_root,
-                         write_discovered as write_discovered)
-
 TEMPLATE = paths.LAYOUT_DATA / "tables_template.xml"
 BLOCK_LENGTHS = paths.LAYOUT_DATA / "block_lengths.csv"
 MM_PER_INCH = 25.4
@@ -85,18 +67,23 @@ GENERATED_NOTE = ("tables.xml is generated (ADR-029): change the device master, 
                   "or the other sources, then run python3 tools/schematic/build_tables.py")
 
 
+class GeneratedTablesError(TablesBuildError):
+    """A script was about to write the repo's generated tables.xml (refuse_generated); its main prints the message
+    and exits 1."""
+
+
 def refuse_generated(target: Path | str, script: str) -> None:
-    """Stop `script` (SystemExit) before it writes the repo's generated tables.xml, by path or through a link; a
+    """GeneratedTablesError before `script` writes the repo's generated tables.xml, by path or through a link; a
     script that edited tables.xml by hand may still write another tables file it is pointed at."""
     if os.path.realpath(target) == os.path.realpath(paths.REPO_TABLES_XML):
-        raise SystemExit(f"{script}: not writing {paths.rel(Path(target))}: {GENERATED_NOTE}")
+        raise GeneratedTablesError(f"{script}: not writing {paths.rel(Path(target))}: {GENERATED_NOTE}")
 
 
 # ---------------------------------------------------------------- the template
 
 def read_template(path: Path = TEMPLATE) -> tables.Tables:
     """The template, checked: the fixed envelope (PROLOG, EPILOG, ROOT_ATTRS), exactly the SECTIONS in their order,
-    and none of what a Store writes each time (ENVELOPE_DROPS), no panel and no Signal Mast Logic."""
+    and none of what a Store writes each time (tables_normal.ENVELOPE_DROPS), no panel and no Signal Mast Logic."""
     try:
         doc = tables.load(path)
     except OSError as exc:

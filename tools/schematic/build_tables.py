@@ -50,7 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_layout_le as ble  # noqa: E402  the Layout Editor build (and hartlib on the path)
 import band_panels  # noqa: E402  the three band panels copied from the built panel
 import publish_draft as pd  # noqa: E402  the plugin's cache
-from hartlib import devices, paths, tables  # noqa: E402
+from hartlib import devices, paths, tables, tables_normal, tables_sections, tables_sml  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 OUT = paths.REPO_TABLES_XML
@@ -64,22 +64,22 @@ def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[
     data, P, _names, bands = ble.build(levels="all", as_live=True)
     doc = tables.loads(data)
     root = doc.root
-    if doc.prolog != tb.PROLOG or doc.epilog != tb.EPILOG:
+    if doc.prolog != tables_normal.PROLOG or doc.epilog != tables_normal.EPILOG:
         raise tb.TablesBuildError("the Layout Editor build changed the envelope")
     band_panels.add(root, P, bands, ble.plugin()[1].CHROME)
     if with_logic:
-        logics, props = discovered if discovered is not None else tb.read_discovered(tb.DISCOVERED)
+        logics, props = discovered if discovered is not None else tables_sml.read_discovered(tables_sml.DISCOVERED)
     else:
         logics, props = [], {}
-    tb.merge_discovered(root, logics, props)
+    tables_sml.merge_discovered(root, logics, props)
     if with_logic:
-        gaps = tb.missing_logic(root)
+        gaps = tables_sml.missing_logic(root)
         if gaps:
             raise tb.TablesBuildError(f"{len(gaps)} mast(s) with no discovered logic they need ({', '.join(gaps)}): "
                                       "run jmri/layouts/hart/scripts/run_sml_discover.sh")
-    digicon = tb.digicon_masts(root)
-    flipped, already = tb.disable_digicon(root, digicon)
-    tb.jmri_sort(root)          # the order a Store writes (ADR-029 gate 2)
+    digicon = tables_sml.digicon_masts(root)
+    flipped, already = tables_sml.disable_digicon(root, digicon)
+    tables_sections.jmri_sort(root)          # the order a Store writes (ADR-029 gate 2)
     tb.finish(root)
     check(root)
     out = doc.tobytes()
@@ -142,7 +142,7 @@ def check(root) -> None:
     """The output's invariants: the envelope is the fixed one, no name is given twice, every row of the master that
     gives a bean (any level, assignment not none) has it in the output by its bean name (tb.bean_name), and every
     Digicon destination is disabled."""
-    held = tb.envelope_items(root)
+    held = tables_normal.envelope_items(root)
     if held:
         raise tb.TablesBuildError(f"the output holds {', '.join(held)}")
     tb.check_names(root)
@@ -151,7 +151,7 @@ def check(root) -> None:
     lost = sorted(want - names)
     if lost:
         raise tb.TablesBuildError(f"beans of the device master missing from the output: {', '.join(lost[:8])}")
-    still = tb.enabled_digicon(root, tb.digicon_masts(root))
+    still = tables_sml.enabled_digicon(root, tables_sml.digicon_masts(root))
     if still:
         raise tb.TablesBuildError(f"Digicon destinations still enabled: {still[:4]}")
 
@@ -169,7 +169,7 @@ def main(argv=None) -> int:
                         "the stamp of data/schematic/discovered_sml.stamp")
     g.add_argument("--discovered-from", type=Path, metavar="STORE",
                    help="a PanelPro Store after SML discovery: its logic and mast properties replace "
-                        f"{paths.rel(tb.DISCOVERED)}, then tables.xml is written")
+                        f"{paths.rel(tables_sml.DISCOVERED)}, then tables.xml is written")
     args = ap.parse_args(argv)
     if not (args.check or args.base_hash):
         message = paths.check_only_message(Path(__file__).name)
@@ -189,8 +189,8 @@ def main(argv=None) -> int:
         try:
             discovered = new_doc = None
             if args.discovered_from:
-                new_doc = tb.discovered_from_store(tables.load(args.discovered_from).root)
-                discovered = tb.read_discovered_root(new_doc, str(args.discovered_from))
+                new_doc = tables_sml.discovered_from_store(tables.load(args.discovered_from).root)
+                discovered = tables_sml.read_discovered_root(new_doc, str(args.discovered_from))
             data, counts = generate(discovered, with_logic=not (args.discovery_base or args.base_hash))
         except (tb.TablesBuildError, ble.BuildError, devices.DevicesError) as exc:
             print(f"build_tables.py: {exc}", file=sys.stderr)
@@ -209,8 +209,8 @@ def main(argv=None) -> int:
             return 1
         print(f"ok: {paths.rel(OUT)} current ({summary})")
         return 0
-    if new_doc is not None and tb.write_discovered(new_doc, tb.DISCOVERED):
-        print(f"wrote {paths.rel(tb.DISCOVERED)} from {args.discovered_from}")
+    if new_doc is not None and tables_sml.write_discovered(new_doc, tables_sml.DISCOVERED):
+        print(f"wrote {paths.rel(tables_sml.DISCOVERED)} from {args.discovered_from}")
     wrote = tables.loads(data, path=OUT).save(OUT)
     print(f"{'wrote' if wrote else 'unchanged'} {paths.rel(OUT)} ({summary})")
     if args.discovery_base:

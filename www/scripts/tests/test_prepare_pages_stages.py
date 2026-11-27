@@ -496,6 +496,11 @@ class RefillFailures(unittest.TestCase):
         with self.assertRaises(OSError):
             self.run_refresh(tables=OSError("no tables.xml"))
 
+    def test_a_tables_page_that_disagrees_stops_the_build_with_its_message(self):
+        with self.assertRaisesRegex(build.PortalBuildError, "^tables.xml: no <jmriversion>$") as raised:
+            self.run_refresh(tables=build.build_tables_browser.BrowserDataError("tables.xml: no <jmriversion>"))
+        self.assertIsInstance(raised.exception.__cause__, build.build_tables_browser.BrowserDataError)
+
     def test_other_errors_in_the_guide_or_additions_stop_the_build(self):
         with self.assertRaises(KeyError):
             self.run_refresh(guide=KeyError("x"))

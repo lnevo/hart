@@ -80,10 +80,12 @@ class StartupActions(unittest.TestCase):
 class StartupThrown(unittest.TestCase):
     def test_227_and_229_line_the_peninsula_loop(self):
         import build_device_map as bdm
+        import build_layout_le as ble
         try:
-            bands, _joined, _runs, _corners = bdm.solve()
-        except Exception as exc:        # the schematic-maps plugin is not checked out here
+            ble.plugin()
+        except ble.BuildError as exc:   # the schematic-maps plugin is not checked out here, or not at its pin
             self.skipTest(f"no schematic: {exc}")
+        bands, _joined, _runs, _corners = bdm.solve()
         self.assertEqual(bdm.startup_thrown(bands), {"227", "229"})
 
 
