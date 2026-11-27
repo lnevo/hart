@@ -1,0 +1,6 @@
+{
+  "masts": 98,
+  "hand_drawn": {"sml": 100, "sections": 107, "transits": 187},
+  "generated": {"sml": 177, "sections": 197, "transits": 187},
+  "traininfo": 374
+}

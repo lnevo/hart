@@ -14,10 +14,11 @@ import shlex
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parents[3]
 APPLY = ROOT / "tools/hosts/pi/apply_hart_package_local.sh"
@@ -47,9 +48,35 @@ PS = LOGGER + ('[ "${PI_DROP_PS_FAILS:-0}" = 1 ] && exit 1\n'
                'n=1000; while IFS= read -r line; do n=$((n + 1)); echo "$n $line"; done <"$PI_DROP_PROCESSES"\n')
 # The helper the apply step sources from the drop, as the deploy stages it (tools/hosts/pi -> cats/scripts/pi).
 PROFILE_MATCH = ROOT / "tools/hosts/pi/jmri_profile_match.sh"
+# The list of the jython the hosts install and its reader, which the apply step sources from the drop.
+JYTHON_LIST = ROOT / "tools/hosts/pi/jython_scripts.txt"
+JYTHON_READER = ROOT / "tools/hosts/pi/jython_list.sh"
+
+
+class JythonRow(NamedTuple):
+    """One row of jython_scripts.txt: its role (startup, pi, sibling, part) and its path in the repo and package."""
+    role: str
+    path: str
+
+
+def jython_rows(listing: Path = JYTHON_LIST) -> tuple[JythonRow, ...]:
+    """The rows of `listing` as jython_list.sh reads them (the reader runs in bash); ValueError with its message
+    when it refuses the file."""
+    done = subprocess.run(["bash", "-c", 'source "$1" && jython_list "$2"', "jython_list", str(JYTHON_READER),
+                           str(listing)], capture_output=True, text=True, timeout=30, check=False)
+    if done.returncode != 0:
+        raise ValueError(f"jython_list.sh refused {listing}: {done.stderr.strip()}")
+    return tuple(JythonRow(*line.split(" ", 1)) for line in done.stdout.splitlines())
+
+
+JYTHON = jython_rows()
 # The drop's files the apply step reads on every run, whatever a test adds.
 REQUIRED: dict[str, str] = {
     "cats/scripts/pi/jmri_profile_match.sh": PROFILE_MATCH.read_text(encoding="utf-8"),
+    "cats/scripts/pi/jython_scripts.txt": JYTHON_LIST.read_text(encoding="utf-8"),
+    "cats/scripts/pi/jython_list.sh": JYTHON_READER.read_text(encoding="utf-8"),
+    # each script the list names, as a one-line stand-in: the apply step stops on a package without one
+    **{row.path: f"# {row.role}\n" for row in JYTHON},
     "cats/scripts/install_ops_files.sh": LOGGER,
     "cats/scripts/pi/install_roster.sh": LOGGER,
     "cats/scripts/pi/launch_cats.sh": "#!/bin/bash\n",
@@ -122,10 +149,14 @@ def _env(drop: Path, home: Path, user_files: Path, bin_dir: Path, log: Path) -> 
 @contextmanager
 def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | bytes] | None = None,
             profile: str | None = None, processes: Sequence[str] = (),
-            env: Mapping[str, str] | None = None) -> Iterator[PiHost]:
+            env: Mapping[str, str] | None = None, omit: Collection[str] = ()) -> Iterator[PiHost]:
     """Run the apply step on a drop holding REQUIRED and `package` (paths inside the package). `installed` is what
     the Pi holds before, by path under its home; `profile`, when given, is its JMRI profile.xml. `processes`: the command
-    lines of the processes running, which pgrep searches. `env`: more variables for the apply step (as ship_pi.sh passes HART_PI_PROFILE)."""
+    lines of the processes running, which pgrep searches. `env`: more variables for the apply step (as ship_pi.sh passes HART_PI_PROFILE).
+    `omit`: paths of REQUIRED the drop leaves out (KeyError for a path REQUIRED does not hold)."""
+    unknown = sorted(set(omit) - set(REQUIRED))
+    if unknown:
+        raise KeyError(f"not in REQUIRED, nothing to omit: {unknown}")
     with tempfile.TemporaryDirectory() as name:
         tmp = Path(name)
         # the apply step refuses a drop outside /tmp/hart-deploy.*, and removes the drop when it ends
@@ -133,7 +164,7 @@ def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | by
         try:
             home, bin_dir, log = tmp / "home", tmp / "bin", tmp / "calls.log"
             user_files = home / "JMRI_UserFiles"
-            _write(drop, {**REQUIRED, **package})
+            _write(drop, {**{k: v for k, v in REQUIRED.items() if k not in omit}, **package})
             _write(home, dict(installed or {}))
             if profile is not None:
                 _write(home, {str(PROFILE): profile})
