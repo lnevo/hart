@@ -308,9 +308,9 @@ class SignalsCheck(unittest.TestCase):
             bad = [dict(m) for m in masts]
             bad[i][field] = value
             with self.subTest(field=field, mast=bad[i]["signal"]):
-                with self.assertRaises(SystemExit) as e:
-                    self.run_with({"signals": []}, bad)
-                self.assertIn(why, str(e.exception.code))
+                with contextlib.redirect_stderr(io.StringIO()) as err:
+                    self.assertEqual(self.run_with({"signals": []}, bad), 1)
+                self.assertIn(why, err.getvalue())
 
 
 class NamedErrors(unittest.TestCase):
