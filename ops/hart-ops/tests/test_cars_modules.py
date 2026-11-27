@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
@@ -14,7 +15,7 @@ import cars  # noqa: E402
 import locos  # noqa: E402
 import site_gallery  # noqa: E402
 from car_paths import CardPipelineError  # noqa: E402
-from car_records import FieldDiff  # noqa: E402
+from car_records import FieldDiff, QueueItem  # noqa: E402
 
 URL = "http://sts.example.invalid/sts/api/v1"
 
@@ -45,7 +46,7 @@ class LiveCarTests(unittest.TestCase):
         api = Api()
         live = [car_live_sts.LiveCar(None, "NW2", "Flatcar 50ft")]
         with self.assertRaises(car_live_sts.LiveStsError) as ctx:
-            car_live_sts.write_live_cars(api, live, [FieldDiff("NW2", "remarks", "Flatcar 52ft", "Flatcar 50ft")])
+            car_live_sts.write_live_cars(cast(car_live_sts.StsApi, api), live, [FieldDiff("NW2", "remarks", "Flatcar 52ft", "Flatcar 50ft")])
         self.assertIn("has no id", str(ctx.exception))
         self.assertEqual(api.calls, [])
 
@@ -99,7 +100,7 @@ class RosterErrorTests(unittest.TestCase):
 
 class QueueChoiceTests(unittest.TestCase):
     def test_only_limits_the_queue(self) -> None:
-        item = {"roster_id": "NW2", "reason": "", "queued": "", "card_built": "", "card_printed": "",
+        item: QueueItem = {"roster_id": "NW2", "reason": "", "queued": "", "card_built": "", "card_printed": "",
                 "sts": "", "ops": ""}
         self.assertTrue(cars.is_chosen(item, None))
         self.assertTrue(cars.is_chosen(item, ["NW2"]))
