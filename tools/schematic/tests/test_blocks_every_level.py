@@ -369,7 +369,7 @@ STAGING_LAYER = {
 # commas, one row a line, in file order. Main and upper changed in naming-layers step 8 (each block row gained its
 # jmri_name and layout_block from block_numbering.csv, assignment virtual); staging did not. Staging changed on
 # 2026-11-25: its two spare detectors gained detector none (owner)
-DIGESTS = {"1": (90, '13524895795db40f896526a17529683fecfc34cceabffe91310db5d52087c72c'), "2": (76, '27639cbd8556d60fcc7bfc2c43bc6826ce3bbcff34d86e7d1151bf91fbddca44'), "3": (118, 'a27b641b432813ec8f05a6fe45da42212679a7759b0a029a0015ebde17495cf6')}
+DIGESTS = {"1": (90, '13524895795db40f896526a17529683fecfc34cceabffe91310db5d52087c72c'), "2": (76, '11ec552cde7611930d48ca4862f85672735dfd547527fc2deb44290a02d32200'), "3": (118, '98683379569be6ee2435fa4c9f7836562d3efa094475658862da5628703dec3d')}
 # cats_discipline: the owner's CATS cell on 45 staging blocks (lane L12); the pins hold what the builders make
 SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean", "id", "start", "bean_comment", "cats_discipline")
         for level in "123"}

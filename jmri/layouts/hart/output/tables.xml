@@ -484,7 +484,7 @@
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:107_Loop_2</systemName>
       <userName>BS 107 Loop 2</userName>
-      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:113_Spur_1</systemName>
@@ -864,17 +864,17 @@
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225b</systemName>
       <userName>BS Switch 225b</userName>
-      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225c</systemName>
       <userName>BS Switch 225c</userName>
-      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS225d</systemName>
       <userName>BS Switch 225d</userName>
-      <comment>internal, not wired | detector planned, not wired yet: no node or input (owner, 2026-11-16)</comment>
+      <comment>internal, not wired | detector planned, not wired yet: no node or input</comment>
     </sensor>
     <sensor inverted="false">
       <systemName>IS:HART:C3:B:OS227</systemName>

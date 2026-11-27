@@ -22,7 +22,7 @@ from hartlib import device_ids, devices, level_masts, railroad  # noqa: E402
 from mast_plan import Intermediate, MastPlan, VirtualMast  # noqa: E402
 from mast_rule import HomeMast, MapError  # noqa: E402
 
-HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
+HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked"
 LEVELS = ("2", "3")     # the main and upper levels, as the master writes them
 
 

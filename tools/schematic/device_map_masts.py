@@ -56,8 +56,8 @@ STATIONS = sdm.STATIONS
 INTERLOCKINGS = pd.DATA / "interlockings.csv"   # the signal rule's control points, every level
 FACTS = railroad.DEVICE_FACTS               # the device map's fact columns; a mast row fills switch, facing, protects, dir
 WIRED_HEAD = level_masts.WIRED_HEAD         # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
-# the note of a head on its internal name (no field head drives it), with the owner's decision (2026-11-19)
-INTERNAL_HEAD_NOTE = "internal, not wired (owner, 2026-11-19)"
+# the note of a head on its internal name (no field head drives it)
+INTERNAL_HEAD_NOTE = "internal, not wired"
 WIRING_TEXT = devices._NODE_TEXT            # a wired head's comment is its wiring (Node: ...), as the master tells it
 VIRTUAL_KIND = "one-low"
 LAYERS = ("mast", "head")
