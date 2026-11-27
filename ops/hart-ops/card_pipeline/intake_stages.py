@@ -310,7 +310,7 @@ def apply_ai_notes(rows: list[ReviewRow], notes: dict[str, dict[str, object]]) -
         n = notes.get(r["photo"])
         if n is None:
             continue
-        r["ai_marks"], r["ai_number"] = _text(n.get("marks")), str(n.get("number", ""))
+        r["ai_marks"], r["ai_number"] = _text(n.get("marks")), _text(n.get("number"))
         r["ai_type"], r["ai_note"] = _text(n.get("type")), str(n.get("note", "") or "reviewed")
         flags = [f for f in r["flags"].split(";") if f and f not in ("ai-disagrees", "ai-says-loco", "ai-says-car")]
         ai_loco = r["ai_type"].lower() in LOCO_TYPES

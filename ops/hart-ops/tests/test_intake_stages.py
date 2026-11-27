@@ -198,6 +198,11 @@ class AiNotesTests(unittest.TestCase):
         self.assertEqual((rows[0]["ai_marks"], rows[0]["ai_type"], rows[0]["ai_note"]), ("", "", "reviewed"))
         self.assertEqual(rows[0]["flags"], "ai-disagrees")
 
+    def test_a_null_number_reads_as_blank_not_none(self):
+        rows = [review_row(photo="a.png")]
+        st.apply_ai_notes(rows, {"a.png": {"marks": None, "number": None, "type": None, "note": None}})
+        self.assertEqual(rows[0]["ai_number"], "")
+
 
 class ReviewStageTests(unittest.TestCase):
     def test_a_photo_that_fails_is_flagged_and_the_batch_goes_on(self):
