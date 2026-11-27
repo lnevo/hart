@@ -1,11 +1,6 @@
 $ErrorActionPreference = 'Continue'
-$rx = 'cats\.apps\.Crandic|apps\.PanelPro|jmri\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro|[\\/]cats\.jar|LaunchJMRI|designer\.gui'
-$hits = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-  Where-Object {
-    $_.Name -match '^(java|javaw|javaws)\.exe$' -and
-    $_.CommandLine -and
-    $_.CommandLine -match $rx
-  }
+. (Join-Path $PSScriptRoot 'jmri_processes.ps1')
+$hits = Get-JmriProcesses
 
 if (-not $hits) {
   Write-Host 'No CATS/Crandic/PanelPro Java processes found.'
@@ -28,12 +23,7 @@ foreach ($p in $hits) {
   }
 }
 
-$left = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-  Where-Object {
-    $_.Name -match '^(java|javaw)\.exe$' -and
-    $_.CommandLine -and
-    $_.CommandLine -match $rx
-  }
+$left = Get-JmriProcesses -Names '^(java|javaw)\.exe$'
 if ($left) {
   Write-Host 'WARNING: still running:'
   $left | ForEach-Object { Write-Host ("  PID {0}" -f $_.ProcessId) }

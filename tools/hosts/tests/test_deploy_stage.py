@@ -240,10 +240,36 @@ class StageOnly(unittest.TestCase):
                 for name in tree(src):
                     if (src / name).is_file():
                         self.assertTrue(filecmp.cmp(src / name, staged / name, shallow=False), name)
-            for name in ("install_ops_files.sh", "patch_jmri_startup.py",
+            for name in ("install_ops_files.sh", "patch_jmri_startup.py", "panel_window_sizes.py",
                          "rewrite_button_icon_paths.py", "install_jmri_web_override.sh"):
                 self.assertTrue((self.out / host / "cats/scripts" / name).is_file(), name)
         self.assertTrue(os.access(self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh", os.X_OK))
+
+    def test_the_profile_scripts_run_from_the_package_on_the_hartlib_it_carries(self) -> None:
+        """patch_jmri_startup.py and panel_window_sizes.py find hartlib in the package (no checkout there), which
+        holds only the modules they import, unchanged."""
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from pi_drop import HARTLIB_HOST_MODULES
+        for host in ("pi", "win"):
+            pkg = self.out / host
+            staged = pkg / "tools/hartlib/src/hartlib"
+            self.assertEqual(tree(staged), sorted(HARTLIB_HOST_MODULES), host)
+            for name in HARTLIB_HOST_MODULES:
+                self.assertTrue(filecmp.cmp(ROOT / "tools/hartlib/src/hartlib" / name, staged / name,
+                                            shallow=False), f"{host}: {name}")
+            profile = self.tmp / f"{host}-profile.xml"
+            profile.write_text('<startup><perform class="jmri.util.startup.configurexml.PerformFileModelXml" '
+                               'name="preference:tables.xml"/></startup>', encoding="utf-8")
+            for argv in (["patch_jmri_startup.py", "load-tables", "--profile", str(profile),
+                          "--tables", "preference:tables.xml"],
+                         ["panel_window_sizes.py", "--help"]):
+                with self.subTest(host=host, script=argv[0]):
+                    # -B: no __pycache__ left in the package the other tests read
+                    done = subprocess.run([sys.executable, "-I", "-B", str(pkg / "cats/scripts" / argv[0]),
+                                           *argv[1:]], cwd=self.tmp, capture_output=True, text=True, timeout=60)
+                    self.assertEqual(done.returncode, 0, done.stderr)
+            self.assertIn('name="preference:tables.xml"', profile.read_text(encoding="utf-8"))
 
     def test_parked_features_stay_out_of_the_package(self) -> None:
         """A parked feature's files outside tables.xml are not shipped (hartlib.parked), so the host apply scripts

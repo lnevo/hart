@@ -35,6 +35,8 @@ function Find-Python {
   return $null
 }
 $python = Find-Python
+# Get-JmriProcesses: the JMRI and CATS Java processes by command line, as kill_cats.ps1 finds them
+. (Join-Path $hart 'cats\scripts\windows\jmri_processes.ps1')
 
 $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
@@ -54,8 +56,9 @@ if (Test-Path $src) {
 $opsSrc = Join-Path $hart 'operations'
 if (Test-Path $opsSrc) {
   $opsDest = Join-Path $UserFiles 'operations'
-  if ($OverwriteOps -ne '1' -and (Get-Process java -ErrorAction SilentlyContinue)) {
-    Write-Host 'SKIP Operations files: JMRI is running and would overwrite them. Deploy again with it closed.'
+  $jmriNow = if ($OverwriteOps -ne '1') { @(Get-JmriProcesses) } else { @() }
+  if ($jmriNow.Count -gt 0) {
+    Write-Host ('SKIP Operations files: JMRI is running ({0}) and would overwrite them. Deploy again with it closed.' -f (Format-JmriProcesses $jmriNow))
   } else {
     New-Item -ItemType Directory -Force -Path $opsDest | Out-Null
     Get-ChildItem $opsDest -Filter 'Operations*.xml' -File -ErrorAction SilentlyContinue |
@@ -324,6 +327,46 @@ foreach ($r in ($profileRoots | Select-Object -Unique)) {
       & $python.Exe @pyArgs
       if ($LASTEXITCODE -ne 0) { throw ("Start Up retarget failed: {0} exited {1} ({2})" -f $python.Exe, $LASTEXITCODE, $prof) }
       Write-Host ("Start Up retargeted -> preference:jython ({0})" -f $prof)
+    }
+  }
+}
+
+# The profile's saved panel window sizes take the installed tables' (tools/hosts/panel_window_sizes.py): JMRI opens a
+# panel at the size user-interface.xml saved for it, over the tables'. JMRI rewrites that file while it runs and when
+# it quits, so with JMRI running the step is skipped; the next deploy with PanelPro closed sets them.
+$sizesPy = Join-Path $hart 'cats\scripts\panel_window_sizes.py'
+$installedTables = Join-Path $UserFiles 'tables.xml'
+if ((Test-Path $sizesPy) -and (Test-Path $installedTables)) {
+  $idFile = Join-Path $hart 'jmri_profile_id.txt'
+  if (-not $python) {
+    Write-Host 'Panel window sizes NOT set: no Python 3 found (py -3, python, python3)'
+  } elseif (@(Get-JmriProcesses).Count -gt 0) {
+    Write-Host ('Panel window sizes NOT set: JMRI is running ({0}) and would overwrite user-interface.xml. Close PanelPro and deploy again.' -f (Format-JmriProcesses (Get-JmriProcesses)))
+  } else {
+    & (Join-Path $hart 'cats\scripts\windows\resolve_jmri_profile.ps1') -OutFile $idFile
+    # it writes the file only once it found the profile; it ends with exit 2 when it did not
+    if (-not (Test-Path $idFile)) {
+      Write-Host 'Panel window sizes NOT set: no My JMRI Railroad profile found (resolve_jmri_profile.ps1)'
+    } else {
+      $profileName = ((Get-Content -Raw $idFile).Trim() -split '\.')[0]
+      $uiRoots = @((Join-Path $env:APPDATA 'JMRI'), (Join-Path $env:USERPROFILE 'JMRI'),
+        (Join-Path $env:USERPROFILE 'Documents\JMRI'), (Join-Path $env:USERPROFILE '.jmri'))
+      $uis = @(@(foreach ($root in $uiRoots) {
+        $dir = Join-Path $root ($profileName + '.jmri\profile')
+        if (Test-Path $dir) {
+          Get-ChildItem $dir -Directory | ForEach-Object { Join-Path $_.FullName 'user-interface.xml' } |
+            Where-Object { Test-Path -LiteralPath $_ }
+        }
+      }) | Select-Object -Unique)
+      if (@($uis).Count -eq 0) {
+        Write-Host ("Panel window sizes: no user-interface.xml in the {0} profile; JMRI opens each panel at the tables' size" -f $profileName)
+      }
+      foreach ($ui in @($uis)) {
+        Write-Host ("Panel window sizes -> {0}" -f $ui)
+        $pre = @($python.Pre)
+        & $python.Exe @pre $sizesPy $ui --tables $installedTables --backup
+        if ($LASTEXITCODE -ne 0) { Write-Host ("WARNING panel window sizes not set in {0} (the reason is above)" -f $ui) }
+      }
     }
   }
 }
