@@ -76,7 +76,7 @@ if ! limactl list -q 2>/dev/null | grep -x "$VM" >/dev/null; then
   limactl create --tty=false --name="$VM" --vm-type=vz --arch=aarch64 \
     --cpus=4 --memory=6 --disk=40 --mount-only="$WORK:w" template:debian-13
 fi
-limactl list --format '{{.Status}}' "$VM" 2>/dev/null | grep -q Running || { log "starting $VM"; limactl start --tty=false "$VM"; }
+limactl list --format '{{.Status}}' "$VM" 2>/dev/null | grep Running >/dev/null || { log "starting $VM"; limactl start --tty=false "$VM"; }
 
 log "building in $VM (sdm customize, then burnfile with the hostname)"
 limactl shell --workdir / "$VM" sudo bash "$STAGE/os/inside_vm.sh" "$STAGE" "$WORK"

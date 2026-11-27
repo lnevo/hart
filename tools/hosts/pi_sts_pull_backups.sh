@@ -38,7 +38,7 @@ ssh "${SSH_OPTS[@]}" "$HOST" \
   'docker exec sts-docker-db-1 sh -c '\''MYSQL_PWD="$MYSQL_PASSWORD" exec mariadb-dump -u"$MYSQL_USER" --single-transaction --routines "$MYSQL_DATABASE"'\''' \
   | gzip -9 > "$dump.part"
 # A dump that did not finish has no trailer line; refuse it.
-if ! gzip -dc "$dump.part" | tail -1 | grep -q '^-- Dump completed'; then
+if ! last=$(gzip -dc "$dump.part" | tail -1) || ! grep -q '^-- Dump completed' <<<"$last"; then
   echo "database dump incomplete; nothing kept" >&2
   exit 1
 fi
