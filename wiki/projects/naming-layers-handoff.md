@@ -2,7 +2,7 @@
 
 Status: done (2026-11-25)
 
-The plan for [ADR-033](../decisions/ADR-033-generated-then-owner.md): one flow for every level, where the generator names every device, the owner's values always win, and frozen wiring stays fixed. It takes in the parked [builder merge](builder-merge.md) (one bean, row and mast process), which no longer waits for main and upper wiring, and puts every name and every read of layout data behind `hartlib`. About 14 PRs and 13 to 16 agent-days.
+The plan for [ADR-033](../decisions/ADR-033-generated-then-owner.md): one flow for every level, where the generator names every device, the owner's values always win, and frozen wiring stays fixed. It takes in the parked [builder merge](../../archive/history/wiki/projects/builder-merge.md) (one bean, row and mast process), which no longer waits for main and upper wiring, and puts every name and every read of layout data behind `hartlib`. About 14 PRs and 13 to 16 agent-days.
 
 ## What the generator does today (checked 2026-11-24 at 33abbf05; the pipeline review that closed after it changed `make panels` steps, not these)
 

@@ -1,10 +1,12 @@
 # MQTT startup race upstream: hand-off (2026-11-23)
 
-Status: active
+Status: done (2026-11-26)
 
 Watch JMRI/JMRI pull request [#16004](https://github.com/JMRI/JMRI/pull/16004) and issue [#16003](https://github.com/JMRI/JMRI/issues/16003) until the pull request is merged; the owner closes the topic only then (2026-11-23).
 
 ## Where it stands
+
+- **Merged** on 2026-11-26 at 15:19 UTC (merge commit `af43e4d6`, milestone 5.19.2, due 2026-12-11); issue #16003 closed with it. The hosts keep the overlay until they run a JMRI release with the fix that CATS supports (ADR-034).
 
 - The startup MQTT drop is a stock JMRI bug in `MqttAdapter`, reproduced on bare profiles and fixed by the diff in [`docs/jmri/MQTT_STARTUP_RACE.md`](../../docs/jmri/MQTT_STARTUP_RACE.md).
 - #16003 (issue) has the cause, the results and the diff, plus a comment that the fix targets the 5.19 series and `master`, not 5.18 or the 5.17.6 pre-release.
