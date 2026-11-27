@@ -165,6 +165,12 @@ class PresetLineCheckTest(unittest.TestCase):
         with self.assertRaisesRegex(MAP.GraphError, f"preset {pr['label']!r}: line: no link from"):
             MAP.validate(data, tracked=False)
 
+    def test_two_lines_may_not_share_a_focus(self) -> None:
+        data = json.loads(MAP.GRAPH.read_text(encoding="utf-8"))
+        data["presets"].append(dict(data["presets"][0], label="Copy"))
+        with self.assertRaisesRegex(MAP.GraphError, "preset 'Copy': focus .* already has a line in preset"):
+            MAP.validate(data, tracked=False)
+
     def test_every_preset_on_the_real_map_names_a_valid_line(self) -> None:
         data = json.loads(MAP.GRAPH.read_text(encoding="utf-8"))
         ids = {n["id"] for n in data["nodes"]}

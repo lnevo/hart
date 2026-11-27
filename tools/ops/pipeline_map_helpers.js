@@ -300,8 +300,8 @@ function presetAlso(presets, focus) {
 }
 /* A drawing (nodes, edges) with a preset's line joined to it: each line box and each link from one line box to the
    next that the drawing left out (steps, hub stops, filters) is added from all (the whole map's nodes and edges), so
-   the whole line is drawn; also (presetAlso) joins the same way, with its links to line boxes. What the drawing already holds is kept as it is, in its order; where all holds a box or a
-   link twice, the first copy is taken. */
+   the whole line is drawn; also (presetAlso) joins the same way, with its links to line boxes. What the drawing
+   already holds is kept as it is, in its order; where all holds a box or a link twice, the first copy is taken. */
 function withLine(nodes, edges, all, line, also = []) {
   const key = e => e.from + "\u0000" + e.to, ids = new Set(nodes.map(n => n.id)), byId = new Map();
   all.nodes.forEach(n => { if (!byId.has(n.id)) byId.set(n.id, n); });

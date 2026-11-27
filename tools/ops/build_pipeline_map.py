@@ -302,7 +302,13 @@ def validate(data: Graph, tracked: bool = True) -> Graph:
     if not isinstance(presets, list):
         problems.append("presets must be a list")
         presets = []
+    lined: dict[str, str] = {}  # the page finds a preset's line by its focus, so two lines may not share one
     for i, pr in enumerate(presets):
+        if isinstance(pr, dict) and "line" in pr and isinstance(pr.get("focus"), str):
+            if pr["focus"] in lined:
+                problems.append(f"preset {pr.get('label')!r}: focus {pr['focus']!r} already has a line"
+                                f" in preset {lined[pr['focus']]!r}")
+            lined.setdefault(pr["focus"], str(pr.get("label")))
         if not isinstance(pr, dict):
             problems.append(f"preset {i + 1} must be an object: {pr!r}")
             continue

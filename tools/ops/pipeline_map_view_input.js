@@ -60,7 +60,7 @@
   /* Select a box the user picked; with "highlighted only" the drawing is redone around its chain. */
   function pick(id, centre) {
     if (!view.trim) { select(id); if (centre) centreOn(id, centre === "zoom"); return; }
-    selected = id; render(false); writeHash();
+    selected = id; view.line = false; render(false); writeHash();  // a picked box ends a Start button's line
     if (centre) centreOn(id, centre === "zoom");
   }
   // a box the user can pick in place: with "highlighted only" it may be off the drawn chain but inside the filters
