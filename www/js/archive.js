@@ -423,10 +423,12 @@
 
   // Save changes to item id; the saved item the server sends back replaces the page's copy.
   async function save(pg, id, changes) {
-    var idx = itemIndex(pg, id);
+    itemIndex(pg, id);
     var payload = await HARTViewer.postJson(API_ITEM, Object.assign({ id: id }, changes));
     if (!payload.item || payload.item.id !== id) throw new Error("the review server sent back no item " + JSON.stringify(id));
-    pg.items[idx] = payload.item;
+    // Looked up again: a move that finished during the wait may have shifted the list or taken the item out.
+    var idx = pg.items.findIndex(function (it) { return it.id === id; });
+    if (idx !== -1) pg.items[idx] = payload.item;
     return payload.item;
   }
 

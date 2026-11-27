@@ -150,6 +150,28 @@ async function main() {
   await press();
   assert.strictEqual(toast.textContent, 'Not saved: the page has no archive item "gone"');
 
+  // A move to the layout that finishes while a save waits: the save lands on its own item, not on the slot it had
+  // (a1 was at 1 when the save started; after p1 leaves, d1 is there).
+  const pending = [];
+  const overlap = loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS, json: { "data/archive.json": DATA }, hash: "#discard",
+    fetch: (url, init) => (init.method === "POST" ? new Promise((resolve) => pending.push(resolve)) : Promise.resolve({ ok: true })) });
+  const saveA1 = new StubEl("button", "");
+  Object.assign(saveA1.attrs, { "data-move": "review", "data-id": "a1" });
+  const leaveP1 = new StubEl("button", "");
+  Object.assign(leaveP1.attrs, { "data-to-layout": "p1" });
+  overlap.els["archive-grid"].all["[data-move]"] = [saveA1];
+  overlap.els["archive-grid"].all["[data-to-layout]"] = [leaveP1];
+  await overlap.ctx.HARTArchive.mount({ site: { public: false } });
+  const saving = saveA1.listeners.click[0]({ stopPropagation() {} });
+  const leaving = leaveP1.listeners.click[0]({ stopPropagation() {} });
+  while (pending.length < 2) await new Promise((r) => setImmediate(r));
+  pending[1]({ ok: true, json: async () => ({ ok: true }) });
+  await leaving;
+  pending[0]({ ok: true, json: async () => ({ item: Object.assign({}, DATA.items[1], { bucket: "review" }) }) });
+  await saving;
+  assert.strictEqual(overlap.els["archive-toast"].textContent, "Moved “Ad” to To review");
+  assert.match(overlap.els["archive-grid"].innerHTML, /alt="Dup"/, "d1 is still in Discard");
+
   // A page without one of its elements is an error naming it.
   const broken = loadPage(ARCHIVE_JS, { before: BEFORE, ids: IDS.filter((i) => i !== "archive-toast"), json: { "data/archive.json": DATA } });
   await assert.rejects(broken.ctx.HARTArchive.mount({ site: { public: true } }), /the archive page has no #archive-toast/);
