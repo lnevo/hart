@@ -15,6 +15,8 @@ import unittest
 import xml.etree.ElementTree as ET
 from unittest import mock
 from pathlib import Path
+from types import ModuleType
+from typing import Any, ClassVar
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -22,16 +24,19 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables  # noqa: E402
 
 
-def load(name: str):
+def load(name: str) -> ModuleType:
     spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
 class AuditBindings(unittest.TestCase):
+    apc: ClassVar[ModuleType]
+    staging: ClassVar[Any]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.apc = load("audit_panel_contracts")
@@ -126,6 +131,9 @@ class AuditBindings(unittest.TestCase):
 
 
 class AuditSettings(unittest.TestCase):
+    apc: ClassVar[ModuleType]
+    root: ClassVar[ET.Element]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.apc = load("audit_panel_contracts")
@@ -144,6 +152,29 @@ class AuditSettings(unittest.TestCase):
         t = next(t for t in root.iter("layoutturnout") if t.get("ident") == "TOL29")
         t.set("continuing", "1")
         self.assertTrue(any("TOL29" in e for e in self.errors(root)))
+
+    def test_the_continuing_turnouts_are_switches_csvs_idents(self) -> None:
+        self.assertEqual(self.apc.continuing_closed_idents(), ("TOL29", "TOR36", "TO111", "TO113", "TO117"))
+
+    def test_a_continuing_switch_without_an_ident_is_an_audit_error(self) -> None:
+        source = self.apc.railroad_facts.Sources.under().switches
+        lines = source.read_text(encoding="utf-8").splitlines(keepends=True)
+        header = lines[0].rstrip("\n").split(",")
+        col, sw = header.index("le_ident"), header.index("switch")
+        out = []
+        for line in lines:
+            cells = line.rstrip("\n").split(",")
+            if cells[sw] == "39" and cells[col]:
+                cells[col] = ""
+            out.append(",".join(cells) + "\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            copy_path = Path(tmp) / source.name
+            copy_path.write_text("".join(out), encoding="utf-8")
+            with self.assertRaisesRegex(self.apc.railroad_facts.FactsError, "no staging le_ident for Switch 39"):
+                self.apc.continuing_closed_idents(copy_path)
+            audit = self.apc.Audit("t", Path("t"))
+            self.apc.audit_generated_settings(self.root, audit, switches=copy_path)
+        self.assertEqual(audit.errors, ["continuing turnouts: switches.csv gives no staging le_ident for Switch 39"])
 
     def test_blockrouting_off_is_an_error(self) -> None:
         root = copy.deepcopy(self.root)

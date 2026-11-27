@@ -19,6 +19,11 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import (devices, level_devices, level_masts, occupancy_bindings, parked, paths,  # noqa: E402
                      levels, railroad_facts, tables, tables_build)
 
+# Sibling modules in this script's folder (paths.LAYOUT_SCRIPTS), also when another tool loads this file by path.
+sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+from lcc_turnout_contract import contract_violations  # noqa: E402
+from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML  # noqa: E402
+
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
 MASTS = level_masts.PATH      # masts.csv, every level's masts (build_masts.py)
@@ -31,16 +36,15 @@ PANEL_NAMES = {"HART", "HART Railroad"}
 # Packed MQTT 467–469 are not JMRI beans. Do not create them in tables.xml.
 FORBIDDEN_MQTT_SENSORS = ("M2S467", "M2S468", "M2S469")
 MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
-sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
-from lcc_turnout_contract import contract_violations
-from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
+# How many items of a long list a message names before " ..."
+SHOWN = 8
 
 
 def station_comments(rows: Iterable[railroad_facts.MasterRow] | None = None) -> dict[str, str]:
-    """{block: its JMRI comment} of the Dispatcher stations: the device master's staging block rows marked `stop` (the
-    Dispatcher stations are parked with the stations topic since 2026-11-22, so the master marks none and the audit
-    holds tables.xml to no block comment marking a stop; the 12 former stations are in docs/parked/UNPARK.md). The master is the one copy of the station list and the comments (the parked scripts' own copies are listed in
-    docs/parked/UNPARK.md)."""
+    """{block: its JMRI comment} of the Dispatcher stations: the device master's staging block rows marked `stop`.
+    The master is the one copy of the station list and the comments. While the Dispatcher stations are parked the
+    master marks none, so the audit holds tables.xml to no block comment marking a stop (the former stations and
+    the parked scripts' own copies are listed in docs/parked/UNPARK.md)."""
     out: dict[str, str] = {}
     for row in devices.load() if rows is None else rows:
         if row.level != levels.STAGING or row.layer != "block" or row.stop != "yes":
@@ -54,6 +58,11 @@ def station_comments(rows: Iterable[railroad_facts.MasterRow] | None = None) -> 
             raise devices.DevicesError(f"station {name!r} has two comments in the device master: "
                                        f"{out[name]!r} and {comment!r}")
     return out
+
+
+def first_items(items: list[str], sep: str = "; ") -> str:
+    """The first SHOWN items joined by sep, with " ..." when there are more."""
+    return sep.join(items[:SHOWN]) + (" ..." if len(items) > SHOWN else "")
 
 
 def text(element: ET.Element | None, child: str) -> str:
@@ -289,21 +298,40 @@ def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Mast],
                                            for ms in placed.values() for m in ms))
 
 
-# What apply_le_sml_facing.py (retired 2026-11-20, a no-op on the generated panel) used to ensure: Layout Editor
-# continuingSense is the JMRI constant (CLOSED=2, THROWN=4, UNKNOWN=1), and "1" draws both legs and ignores the
-# table's Closed/Thrown. Closed is the continuing (through) leg for the Princess turnouts 114/115 and for the
-# crossovers 111/113/117 (MQTT CLOSED = through mains).
-CONTINUING_CLOSED = ("TOL29", "TOR36", "TO111", "TO113", "TO117")      # 115, 114, 111, 113, 117
+# Layout Editor stores continuingSense as the JMRI constant (CLOSED=2, THROWN=4, UNKNOWN=1); "1" draws both legs and
+# ignores the table's Closed/Thrown. CLOSED is the continuing (through) leg of the Princess turnouts (Switch 37 and
+# 39, DCC 114 and 115) and of the crossovers of Switch 7, 23 and 35 (MQTT CLOSED = through mains). The staging
+# switch numbers; their Layout Editor idents are switches.csv's le_ident (continuing_closed_idents).
+CONTINUING_CLOSED_SWITCHES = (39, 37, 23, 35, 7)
 AAR_2_HEAD = "IF$shsm:AAR-1946:SL-2-high-abs"
 AAR_2_HEAD_DISABLED = ("Clear Alt", "Advance Approach Medium", "Approach Medium", "Advance Approach", "Medium Clear",
                        "Medium Approach", "Restricting")
 
 
-def audit_generated_settings(root: ET.Element, audit: Audit) -> None:
-    """The settings the facing script used to write and nothing now guards: continuing="2" on the Princess turnouts,
-    Layout Block advanced routing on (SML Discover needs it), and the disabled aspects of AAR 2-head masts."""
+def continuing_closed_idents(path: Path | None = None) -> tuple[str, ...]:
+    """The Layout Editor idents of CONTINUING_CLOSED_SWITCHES: their staging rows' le_ident in switches.csv (`path`,
+    default this checkout's). FactsError when one of them has no staging row with an le_ident."""
+    rows = railroad_facts.read_switch_rows(railroad_facts.Sources.under().switches if path is None else path)
+    ident = {r.switch: r.le_ident for r in rows
+             if r.level == levels.STAGING and r.switch in CONTINUING_CLOSED_SWITCHES and r.le_ident}
+    missing = [n for n in CONTINUING_CLOSED_SWITCHES if n not in ident]
+    if missing:
+        raise railroad_facts.FactsError(f"switches.csv gives no staging le_ident for Switch "
+                                        f"{', '.join(map(str, missing))}")
+    return tuple(ident[n] for n in CONTINUING_CLOSED_SWITCHES)
+
+
+def audit_generated_settings(root: ET.Element, audit: Audit, switches: Path | None = None) -> None:
+    """The settings nothing else guards: continuing="2" on the Princess turnouts and the crossovers
+    (continuing_closed_idents, from switches.csv `switches`), Layout Block advanced routing on (SML Discover needs
+    it), and the disabled aspects of AAR 2-head masts."""
+    try:
+        closed = continuing_closed_idents(switches)
+    except (railroad_facts.FactsError, OSError) as exc:
+        audit.error(f"continuing turnouts: {exc}")
+        closed = ()
     for turnout in root.iter("layoutturnout"):
-        if turnout.get("ident") in CONTINUING_CLOSED and turnout.get("continuing") != "2":
+        if turnout.get("ident") in closed and turnout.get("continuing") != "2":
             audit.error(f"layoutturnout {turnout.get('ident')} has continuing={turnout.get('continuing')!r}, not "
                         "'2' (CLOSED = through; '1' is UNKNOWN and draws both legs)")
     blocks = next(root.iter("layoutblocks"), None)
@@ -352,7 +380,7 @@ def audit_nx(root: ET.Element, audit: Audit, *, required: bool) -> None:
         extra = sorted(set(sensors) - set(expected_user))
         problem(
             f"ISNX sensors expected {len(expected_user)} frozen CTC ids; "
-            f"missing={missing[:8]} extra={extra[:8]}"
+            f"missing={missing[:SHOWN]} extra={extra[:SHOWN]}"
         )
     for sysn, user in expected_user.items():
         actual = sensors.get(sysn)
@@ -386,7 +414,7 @@ def audit_nx(root: ET.Element, audit: Audit, *, required: bool) -> None:
 
 def audit_nx_slots(root: ET.Element, problem) -> None:
     """Each NX sensor sits in the slot of its own mast. A sensor left behind when its mast moves is not at a
-    block boundary, and Discover walks past the mast into false pairs (NX Mast 8RA on TO117 A, 2026-11-15)."""
+    block boundary, and Discover walks past the mast into false pairs (NX Mast 8RA on TO117 A did)."""
     def check(where: str, sensor: str | None, mast: str | None) -> None:
         if sensor and sensor.startswith("NX ") and sensor != f"NX {mast}":
             problem(f"{sensor} is on {where}, whose mast is {mast or 'none'}; bind it in the slot of {sensor[3:]}")
@@ -403,24 +431,19 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
                       point.get(f"{bound}boundsignalmast"))
 
 
-# What stock Discover and Dispatcher System Stage 1 store, per panel. The hand-drawn panel: staging only. The generated
-# three-level panel (build_layout_le.build, written by build_tables.py): unjoined (2026-11-16 cut-over) staging kept its NX and transits but
-# lost the 8 head-on pairs 10RA/10RB/12R/14R -> 22L/26L, and the main and upper control points added 71 SML destinations
-# and 98 sections of their own (163 SML, 197 sections). Joined at the helix (the helix-join release, owner 2026-11-17),
-# stock SML discovery in a sandbox stored 171: staging gains 10RA/10RB/12R/14R -> 16L and loses 36RB -> 40RB
-# (accepted), the 107 Loop and Switch 225 splits give 108LB -> 110LA and drop the false 226RA/226RB -> 224LB/224LA,
-# and the helix adds 130LA/130LB -> 38LA/40LA, 38RA -> 136RB and 40RA -> 136RA. Staging from its device map (the
-# device-map switch-over, owner 2026-11-17): stock discovery in a sandbox stored 180, every earlier pair kept and 9
-# gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
-# (hartlib.parked): no section or transit while it is.
-EXPECTED_SML = {False: 100, True: 177}    # True: stock discovery from an empty list on the 2026-11-20 one-mast-process candidate (virtual masts only as destinations on every level: staging 5, main 10, upper 14; Scale running track)
-# A generated panel before stock discovery (the three-level build as built, build_layout_le.build) carries the
-# Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
-# names a main or upper object: exactly the live tables' destinations between staging masts
-# (carried_destinations), allowed with a warning that discovery is still to run. Since the device-map switch-over
-# that is 104 of the 180 then, but the audit reads it from the live tables, so a later discovery moves it too. A
-# generated panel before its Stage 1 with the Dispatcher System unparked still carries the hand-drawn panel's graph
-# (EXPECTED_GRAPH[False]): allowed, with the same kind of warning.
+# What stock Discover and Dispatcher System Stage 1 store, per panel kind (False: the hand-drawn staging panel;
+# True: the generated three-level panel, build_layout_le.build written by build_tables.py).
+# SML destinations: 100 on the hand-drawn panel. 177 on the generated panel: stock discovery from an empty list,
+# with virtual masts only as destinations on every level (staging 5, main 10, upper 14) and the Scale running track.
+# tools/audit/check_sml_invariants.py reads the generated count from here.
+EXPECTED_SML = {False: 100, True: 177}
+# A generated panel before stock discovery carries the Signal Mast Logic of the live tables.xml it was built on,
+# less every logic and destination that names a main or upper object: exactly the live tables' destinations between
+# staging masts (carried_destinations), allowed with a warning that discovery is still to run. The audit reads that
+# set from the live tables, so a later discovery moves it too.
+# (sections, transits): the hand-drawn panel's graph and the generated panel's. A generated panel before its
+# Stage 1, with the Dispatcher System unparked, still carries the hand-drawn graph: allowed, with the same kind of
+# warning. While the Dispatcher graph is parked (hartlib.parked) the tables hold no section or transit.
 EXPECTED_GRAPH = {False: (107, 187), True: (197, 187)}
 EXPECTED_TRAININFO = 374
 
@@ -452,14 +475,14 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool
     auto = sum(use_le == "yes" for _, _, use_le in destinations)
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
-    # Every destination comes from Discover: the two manual Princess pairs were retired on 2026-11-15.
+    # Every destination comes from Discover: no manual pair is kept.
     want = EXPECTED_SML[generated]
     before = generated and len(carried_destinations(found)) == len(found)       # nothing on main or upper yet
     carried = carried_destinations(sml_destinations(live if live is not None else tables.read(paths.TABLES_XML))) \
         if before else []
     if generated and not found:
-        # a cut-over candidate since R9c (ADR-029): the generator's base and the panel, no logic; the released
-        # tables.xml takes the discovered logic (tools/schematic/build_tables.py, data/schematic/discovered_sml.xml)
+        # a cut-over candidate (ADR-029): the generator's base and the panel, no logic; the released tables.xml
+        # takes the discovered logic (tools/schematic/build_tables.py, data/schematic/discovered_sml.xml)
         audit.warn(f"the generated panel's tables hold no Signal Mast Logic: tools/schematic/build_tables.py adds "
                    f"the discovered logic (expect {want})")
     elif before and sorted(destinations) == sorted(carried) and (auto, manual, unknown) == (len(carried), 0, 0):
@@ -504,11 +527,7 @@ def audit_occupancy_bindings(root: ET.Element, audit: Audit, *, required: bool) 
         if actual != {sensor}:
             mismatches.append(f"{name}: master {sensor!r}, xml {sorted(actual)}")
     if mismatches:
-        problem(
-            "the device master's CATS bindings disagree with block occupancysensor: "
-            + "; ".join(mismatches[:8])
-            + (" ..." if len(mismatches) > 8 else "")
-        )
+        problem("the device master's CATS bindings disagree with block occupancysensor: " + first_items(mismatches))
     audit.facts["occupancy_bindings"] = tuple(sorted(expected.items()))
 
 
@@ -536,23 +555,13 @@ def audit_turnout_feedback_sensors(root: ET.Element, audit: Audit, *, required: 
             if name not in sensor_names:
                 missing.append(f"{ident} {attr}={name}")
     if stale_old:
-        problem(
-            "turnout feedback still uses pre-convert FB userNames: "
-            + "; ".join(stale_old[:8])
-            + (" ..." if len(stale_old) > 8 else "")
-        )
+        problem("turnout feedback still uses pre-convert FB userNames: " + first_items(stale_old))
     elif missing:
-        problem(
-            "turnout feedback sensors are not sensor userNames: "
-            + "; ".join(missing[:8])
-            + (" ..." if len(missing) > 8 else "")
-        )
+        problem("turnout feedback sensors are not sensor userNames: " + first_items(missing))
     audit.facts["turnout_feedback"] = tuple(sorted(missing or stale_old))
 
 
-def audit_turnout_systemname_lookups(
-    root: ET.Element, audit: Audit, *, required: bool
-) -> None:
+def audit_turnout_systemname_lookups(root: ET.Element, audit: Audit, *, required: bool) -> None:
     """Block-path and route turnout lookups must resolve to a live turnout.
 
     JMRI may store M2T* or the public userName (Switch 13). Old convert names
@@ -582,39 +591,38 @@ def audit_turnout_systemname_lookups(
         if sn and sn not in real_sys and sn not in real_user:
             missing.append(f"route {sn}")
     if missing:
-        problem(
-            "turnout lookups do not resolve to a turnout systemName or userName: "
-            + "; ".join(missing[:8])
-            + (" ..." if len(missing) > 8 else "")
-        )
+        problem("turnout lookups do not resolve to a turnout systemName or userName: " + first_items(missing))
     audit.facts["turnout_lookups"] = tuple(sorted(missing))
 
 
-def audit_lcc_mqtt_turnout_aliases(
-    root: ET.Element, audit: Audit, *, required: bool
-) -> None:
+def audit_lcc_mqtt_turnout_aliases(root: ET.Element, audit: Audit, *, required: bool) -> None:
     """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
     problem = audit.error if required else audit.warn
     csv_path = devices.MASTER
     issues = contract_violations(root, csv_path)
     if issues:
-        problem(
-            "LCC turnout aliases do not match MQTT plants / device map: "
-            + "; ".join(issues[:8])
-            + (" ..." if len(issues) > 8 else "")
-        )
+        problem("LCC turnout aliases do not match MQTT plants / device map: " + first_items(issues))
     audit.facts["lcc_turnout_aliases"] = tuple(issues)
 
 
-def audit_stations(
-    root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
-) -> None:
-    problem = audit.error if required else audit.warn
-    try:
-        expected_comments = station_comments()
-    except devices.DevicesError as e:
-        audit.error(f"Dispatcher stations: {e}")
-        return
+def _pair_problem(what: str, expected: set[str], found: list[str]) -> str | None:
+    """The message when `found` (names, in file order) is not `expected` once each: missing, extra and duplicates."""
+    have = set(found)
+    if have == expected and len(found) == len(expected):
+        return None
+    return (f"{what}; missing={sorted(expected - have) or 'none'}, extra={sorted(have - expected) or 'none'}, "
+            f"duplicates={sorted(name for name in have if found.count(name) > 1) or 'none'}")
+
+
+def is_station_name(name: str) -> bool:
+    """Whether a sensor or icon name is a Dispatcher station's MoveTo or move-in-progress sensor."""
+    return name.startswith("MoveTo") or name.startswith("MoveInProgress")
+
+
+def _station_comment_problems(root: ET.Element, expected_comments: dict[str, str]) -> tuple[list[str],
+                                                                                           list[tuple[str, str]]]:
+    """(problems, (station, its comment or "") per expected station) for the block comments that mark a stop."""
+    problems: list[str] = []
     definitions = block_definitions(root)
     station_names = {
         name
@@ -623,64 +631,55 @@ def audit_stations(
     }
     expected_names = set(expected_comments)
     if station_names != expected_names:
-        problem(
+        problems.append(
             "Dispatcher station block names differ; "
             f"missing={sorted(expected_names - station_names) or 'none'}, "
             f"extra={sorted(station_names - expected_names) or 'none'}"
         )
-    station_snapshot: list[tuple[str, str]] = []
+    snapshot: list[tuple[str, str]] = []
     for name, expected_comment in expected_comments.items():
         comments = definitions.get(name, [])
         if expected_comment not in comments:
-            problem(
+            problems.append(
                 f"Dispatcher station {name!r}: expected block comment "
                 f"{expected_comment!r}, found {comments or ['<missing block>']}"
             )
-        station_snapshot.append((name, expected_comment if expected_comment in comments else ""))
+        snapshot.append((name, expected_comment if expected_comment in comments else ""))
+    return problems, snapshot
 
-    sensors: list[str] = []
-    for sensor in root.findall("./sensors/sensor"):
-        name = text(sensor, "userName")
-        if name.startswith("MoveTo") or name.startswith("MoveInProgress"):
-            sensors.append(name)
-    sensor_set = set(sensors)
-    expected_sensors: set[str] = set()
-    expected_icons: set[str] = set()
+
+def audit_stations(root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool) -> None:
+    """The Dispatcher stations (station_comments): their block comments, and one MoveTo and one move-in-progress
+    sensor and icon each, none while the Dispatcher System is parked."""
+    problem = audit.error if required else audit.warn
+    try:
+        expected_comments = station_comments()
+    except devices.DevicesError as e:
+        audit.error(f"Dispatcher stations: {e}")
+        return
+    problems, station_snapshot = _station_comment_problems(root, expected_comments)
+
+    sensors = [name for name in (text(sensor, "userName") for sensor in root.findall("./sensors/sensor"))
+               if is_station_name(name)]
     # the Dispatcher System parked (hartlib.parked): the station blocks keep their comments, but no MoveTo or
     # move-in-progress sensor or icon is left in the tables
+    expected: set[str] = set()
     for name in (() if "dispatcher" in parked.parked_in(root) else expected_comments):
         key = sensor_key(name)
-        expected_sensors.update(
-            {f"MoveTo{key}_stored", f"MoveInProgress{key}"}
-        )
-        expected_icons.update(
-            {f"MoveTo{key}_stored", f"MoveInProgress{key}"}
-        )
-    if sensor_set != expected_sensors or len(sensors) != len(expected_sensors):
-        problem(
-            "Dispatcher station sensor pairs differ; "
-            f"missing={sorted(expected_sensors - sensor_set) or 'none'}, "
-            f"extra={sorted(sensor_set - expected_sensors) or 'none'}, "
-            f"duplicates={sorted(name for name in sensor_set if sensors.count(name) > 1) or 'none'}"
-        )
-
-    icon_sensors: list[str] = []
-    if panel is not None:
-        for icon in panel.iter("sensoricon"):
-            name = (icon.get("sensor") or "").strip()
-            if name.startswith("MoveTo") or name.startswith("MoveInProgress"):
-                icon_sensors.append(name)
-    icon_set = set(icon_sensors)
-    if icon_set != expected_icons or len(icon_sensors) != len(expected_icons):
-        problem(
-            "Dispatcher station sensor icons are not exactly one paired icon per station; "
-            f"missing={sorted(expected_icons - icon_set) or 'none'}, "
-            f"extra={sorted(icon_set - expected_icons) or 'none'}, "
-            f"duplicates={sorted(name for name in icon_set if icon_sensors.count(name) > 1) or 'none'}"
-        )
+        expected.update({f"MoveTo{key}_stored", f"MoveInProgress{key}"})
+    icons = [] if panel is None else [
+        name for name in ((icon.get("sensor") or "").strip() for icon in panel.iter("sensoricon"))
+        if is_station_name(name)]
+    for message in (_pair_problem("Dispatcher station sensor pairs differ", expected, sensors),
+                    _pair_problem("Dispatcher station sensor icons are not exactly one paired icon per station",
+                                  expected, icons)):
+        if message:
+            problems.append(message)
+    for message in problems:
+        problem(message)
     audit.facts["stations"] = tuple(sorted(station_snapshot))
-    audit.facts["station_sensors"] = tuple(sorted(sensor_set))
-    audit.facts["station_icons"] = tuple(sorted(icon_set))
+    audit.facts["station_sensors"] = tuple(sorted(set(sensors)))
+    audit.facts["station_icons"] = tuple(sorted(set(icons)))
 
 
 def audit_block_contents_visible(panel: ET.Element | None, audit: Audit) -> None:
@@ -751,7 +750,7 @@ def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
 
 def expected_bundle(parked_features=None, band_panels: bool = True) -> tuple[int, int, int]:
     """(ctcdata, Panel Editor panels, Layout Editor panels) the deployment tables hold: the USS CTC machine's data and
-    panel, the main panel, its band panels (tables.BAND_PANEL_NAMES, 2026-11-22; `band_panels` False for the Layout
+    panel, the main panel, its band panels (tables.BAND_PANEL_NAMES; `band_panels` False for the Layout
     Editor build alone, before build_tables.py adds them) and the Dispatcher System's, less those parked
     (hartlib.parked)."""
     parked_features = parked.PARKED if parked_features is None else parked_features
@@ -828,11 +827,7 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
     if len(files) != EXPECTED_TRAININFO:
         audit.error(f"expected {EXPECTED_TRAININFO} generated traininfo files, found {len(files)}")
     if bad_detection:
-        audit.error(
-            "traininfo not HEAD_AND_TAIL: "
-            + ", ".join(bad_detection[:8])
-            + (" ..." if len(bad_detection) > 8 else "")
-        )
+        audit.error("traininfo not HEAD_AND_TAIL: " + first_items(bad_detection, ", "))
     audit.facts["dispatcher_generated"] = (
         *ctc_bundle,
         sections,
@@ -910,7 +905,7 @@ def concise_delta(reference: object, current: object) -> str:
     return f"expected={reference!r}, found={current!r}"
 
 
-def short_items(items: list[object], limit: int = 8) -> object:
+def short_items(items: list[object], limit: int = SHOWN) -> object:
     if not items:
         return "none"
     if len(items) <= limit:

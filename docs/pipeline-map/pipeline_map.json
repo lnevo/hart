@@ -3591,6 +3591,15 @@
    "path": "tools/mqtt/sync_mqtt_turnouts_from_fb.py"
   },
   {
+   "id": "tools/mqtt/mosquitto_cli.py",
+   "label": "mosquitto_cli.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Shared mosquitto_sub and mosquitto_pub runner for the MQTT tools: reads retained topics, sets or clears one retained topic, and raises MosquittoError when a client fails or the broker cannot be read.",
+   "path": "tools/mqtt/mosquitto_cli.py"
+  },
+  {
    "id": "tools/mqtt/turnout_feedback.py",
    "label": "turnout_feedback.py",
    "kind": "generator",
@@ -6862,6 +6871,26 @@
    "from": "host:panelpro",
    "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
    "label": "FB sensors via JSON"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "tools/mqtt/turnout_feedback.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "tools/mqtt/clear_mqtt_cmd_sensor_retain.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/mqtt/mosquitto_cli.py",
+   "to": "jmri/layouts/hart/scripts/diagnose_turnout_states.py",
+   "label": "imports"
   },
   {
    "from": "tools/mqtt/turnout_feedback.py",
