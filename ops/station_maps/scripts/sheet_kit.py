@@ -77,12 +77,13 @@ def georgia(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont
 
 
 def load_font(path: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """The font file named like ``path`` (its file name) in the sheet font folders; warns when none is installed.
+    """The font file named like ``path`` (its file name) in the sheet font folders, else Arial Regular, as
+    ``arial`` falls back; warns when neither is installed.
 
     This is the ``load_font`` hook station_compass takes, so the compass letters come from the
     same folders as the rest of the sheet.
     """
-    names = [Path(path).name]
+    names = list(dict.fromkeys([Path(path).name, "Arial.ttf"]))
     return find_font(names, size, SANS_DIRS) or _default_font(names)
 
 

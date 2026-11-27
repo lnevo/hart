@@ -124,11 +124,13 @@ class StationMap:
     png: Path
     subtitle: str = ""
     sheet: SheetKind = "8x5"
-    minimal_chrome: bool = True
+    minimal_chrome: bool | None = None  # unset: True on the 8x5 desk sheet, False (with the footer) on letter
     rotate180: bool = False
     drawn_elsewhere: bool = False
 
     def __post_init__(self) -> None:
+        if self.minimal_chrome is None:
+            object.__setattr__(self, "minimal_chrome", self.sheet == "8x5")
         if self.key not in get_args(DrawerKey):
             raise StationMapError(f"{self.pub_id} {self.title}: no drawer {self.key!r}; one of {get_args(DrawerKey)}")
         if self.sheet not in get_args(SheetKind):

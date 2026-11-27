@@ -90,7 +90,18 @@ class SheetKitLoadFont(unittest.TestCase):
             with mock.patch.object(sheet_kit, "SANS_DIRS", (Path(tmp),)), \
                     mock.patch.object(sheet_kit, "find_font", return_value=None) as find, quiet():
                 sheet_kit.load_font("/elsewhere/Arial Bold.ttf", 14)
-        find.assert_called_once_with(["Arial Bold.ttf"], 14, (Path(tmp),))
+        find.assert_called_once_with(["Arial Bold.ttf", "Arial.ttf"], 14, (Path(tmp),))
+
+    def test_bold_missing_falls_back_to_arial_regular(self) -> None:
+        regular = object()
+        with mock.patch.object(sheet_kit, "find_font",
+                               side_effect=lambda names, size, dirs: regular if "Arial.ttf" in names else None):
+            self.assertIs(sheet_kit.load_font("/x/Arial Bold.ttf", 14), regular)
+
+    def test_regular_is_looked_up_once(self) -> None:
+        with mock.patch.object(sheet_kit, "find_font", return_value=None) as find, quiet():
+            sheet_kit.load_font("/x/Arial.ttf", 14)
+        self.assertEqual(find.call_args.args[0], ["Arial.ttf"])
 
     def test_missing_font_warns_with_the_name(self) -> None:
         err = io.StringIO()

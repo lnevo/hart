@@ -296,6 +296,17 @@ def station_map(**fields):
     return rlsm.StationMap(**{**base, **fields})
 
 
+class StationMapDefaults(unittest.TestCase):
+    def test_desk_sheet_defaults_to_minimal_chrome(self):
+        self.assertIs(station_map().minimal_chrome, True)
+
+    def test_letter_sheet_defaults_to_the_publication_footer(self):
+        self.assertIs(station_map(sheet="letter").minimal_chrome, False)
+
+    def test_stated_value_is_kept(self):
+        self.assertIs(station_map(sheet="letter", minimal_chrome=True).minimal_chrome, True)
+
+
 class DocxOutput(unittest.TestCase):
     def build(self, meta):
         with tempfile.TemporaryDirectory() as tmp:
