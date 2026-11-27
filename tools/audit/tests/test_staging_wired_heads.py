@@ -98,7 +98,7 @@ class Rebuild(unittest.TestCase):
             wf = Path(d) / "wiring.csv"
             wf.write_text(wiring_edit(text) if wiring_edit else text, encoding="utf-8")
             with unittest.mock.patch.object(dmm.wiring, "PATH", wf):
-                return dmm.staging_masts(*cls.solved, list(devices.load(files)), files)
+                return dmm.staging_masts(*cls.solved, [r.cells() for r in devices.load(files)], files)
 
     @staticmethod
     def wire(user, node, index, notes="wired (test)", ident=None):

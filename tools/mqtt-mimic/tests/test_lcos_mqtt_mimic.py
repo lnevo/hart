@@ -130,7 +130,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
         row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, added)], row)
         with tempfile.TemporaryDirectory() as tmp:
             master = Path(tmp) / self.m.devices.ONE_FILE
-            master.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
+            master.write_text(D.master_text([r.cells() for r in D.load()] + [row]), encoding="utf-8")
             doc = ET.parse(self.m.TABLES)
             root = doc.getroot()
             sensors = next(s for s in root.iter("sensors") if "Mqtt" in (s.get("class") or ""))
