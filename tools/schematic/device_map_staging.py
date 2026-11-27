@@ -350,10 +350,16 @@ class StagingWiring(NamedTuple):
     on_helix: dict[str, tuple[int, int]]
 
 
+class StagingRows(NamedTuple):
+    """staging_rows' result: the block and occupancy rows, and `drawn`, {block id: the block's generated name} (a
+    row may hold the owner's name in its place; parts are not in it)."""
+    rows: list[MasterRow]
+    drawn: dict[str, str]
+
+
 def staging_rows(bands: Bands, joined: Joined, runs: Runs, files: devices.Files | None = None,
                  exceptions: Path | None = None, pins: Path | None = None,
-                 places: Places | None = None, part_names: NameMemory | None = None,
-                 drawn: dict[str, str] | None = None) -> list[MasterRow]:
+                 places: Places | None = None, part_names: NameMemory | None = None) -> StagingRows:
     """Staging's block and occupancy rows of the master: the one block process's blocks and parts of the staging
     band (staging_layer), each block row and its occupancy row generated (device_map_rows.device_row: its role from
     its id or its track's ends, an OS block's cp its interlocking's, a comment marking its detector, a detector's
@@ -367,7 +373,7 @@ def staging_rows(bands: Bands, joined: Joined, runs: Runs, files: devices.Files 
     or a block that is now a part), each row "unused Block <n>-<k>" (new_spare); `pins` (default the committed file).
     A helix block's occupancy row is the level of its helix switch's (main or upper), not staging's: the block is one
     across levels. A part's beans keep the numbers this script gave them (`part_names`, default staging_part_names),
-    and so does a block whose field row gives no bean names. `drawn`, when given, gets {block id: generated name}.
+    and so does a block whose field row gives no bean names. The result is a StagingRows: the rows and `drawn`.
     MapError on a field row the drawing has no block for, a block that is now
     a part while its field rows stand (the owner's cells would be lost: remove them), a detector block with no pin, or
     a pin whose block staging does not
@@ -379,7 +385,7 @@ def staging_rows(bands: Bands, joined: Joined, runs: Runs, files: devices.Files 
     beans = _bean_names(s, _unnamed_blocks(s), staging_part_names(f) if part_names is None else part_names)
     wired = _staging_wiring(pins, f)
     _check_pins(s, wired.pins)
-    named = _block_and_part_rows(s, beans, staging_cps(), wired, drawn)
+    named, drawn = _block_and_part_rows(s, beans, staging_cps(), wired)
     _part_comments(s, named)
     _line_cps(s, named, read_places() if places is None else places)
     occupancy = _occupancy_rows(s, named, beans, wired.pin_of)
@@ -392,7 +398,7 @@ def staging_rows(bands: Bands, joined: Joined, runs: Runs, files: devices.Files 
         raise MapError("; ".join(s.bad))
     out = list(named.values()) + sorted(occupancy + spares, key=lambda r: natural(r["user_name"]))
     check_unique(out, "staging's block and occupancy rows")
-    return out
+    return StagingRows(out, drawn)
 
 
 def _staging_wiring(pins: Path | None, files: devices.Files) -> StagingWiring:
@@ -493,10 +499,11 @@ def _drop(prior: dict[FieldKey, MasterRow], layer: str, name: str, did: str = ""
 
 
 def _block_and_part_rows(s: StagingBlocks, beans: Mapping[str, Beans], cp_of: Mapping[str, str],
-                         wired: StagingWiring, drawn: dict[str, str] | None) -> dict[str, MasterRow]:
-    """{drawn name: row} of staging's blocks and parts, in name order; a row may hold the owner's name. `drawn`, when
-    given, gets {block id: generated name}."""
+                         wired: StagingWiring) -> tuple[dict[str, MasterRow], dict[str, str]]:
+    """{drawn name: row} of staging's blocks and parts, in name order (a row may hold the owner's name), and
+    {block id: generated name} of the blocks."""
     named: dict[str, MasterRow] = {}
+    drawn: dict[str, str] = {}
     for name in sorted(s.blocks | set(s.lay.parts), key=natural):
         if name in s.lay.parts:
             named[name] = _part_block_row(s, beans, name)
@@ -508,9 +515,8 @@ def _block_and_part_rows(s: StagingBlocks, beans: Mapping[str, Beans], cp_of: Ma
             continue
         did = s.ids[name]
         named[name] = _block_row(s, beans, name, did, cp_of, wired)
-        if drawn is not None:
-            drawn[did] = name           # its generated name: the caller follows the owner's rename on every level
-    return named
+        drawn[did] = name               # its generated name: the caller follows the owner's rename on every level
+    return named, drawn
 
 
 def _part_block_row(s: StagingBlocks, beans: Mapping[str, Beans], name: str) -> MasterRow:

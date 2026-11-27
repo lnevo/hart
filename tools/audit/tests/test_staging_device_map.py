@@ -307,13 +307,13 @@ class Files(unittest.TestCase):
     def test_a_missing_block_of_a_split_track_stops(self):
         # a row left with no key stops the one reader (hartlib.drawing_keys); a k/n key moved off its row stops load
         with self.assertRaisesRegex(sdm.StagingMapError, r"Track 1-3 at 1 \(level 1, block\) has no trial_name"):
-            sdm.load(self.band, device_map=self._without("Track 1B-3A 1/2"))
+            sdm.load(self.band, sdm.LoadOptions(device_map=self._without("Track 1B-3A 1/2")))
 
         def edit(rows):
             hit = next(r for r in rows if r["user_name"] == "Track 1-3 at 1" and r["layer"] == "block")
             hit["trial_name"] = "Track 1B-3A 3/3"
         with self.assertRaisesRegex(sdm.StagingMapError, "track 1B-3A: blocks .* are not 1/n to n/n"):
-            sdm.load(self.band, device_map=self._copy(edit)[0])
+            sdm.load(self.band, sdm.LoadOptions(device_map=self._copy(edit)[0]))
 
     def test_a_part_is_a_block_of_its_own_inside_the_block_it_names(self):
         """A part row (part_of) carries its pieces' trial names; load() draws them as the part's own JMRI block, and
@@ -332,7 +332,7 @@ class Files(unittest.TestCase):
         def edit(rows):         # the part row of 35B-37A gone
             rows[:] = [r for r in rows if not (r["user_name"] == "Track 35-37" and r["layer"] == "block")]
         with self.assertRaisesRegex(sdm.StagingMapError, r"track 35B-37A \(e\d+\) is on no block row"):
-            sdm.load(self.band, device_map=self._copy(edit)[0])
+            sdm.load(self.band, sdm.LoadOptions(device_map=self._copy(edit)[0]))
 
     def test_a_piece_on_two_rows_stops(self):
         def edit(rows):
@@ -341,18 +341,18 @@ class Files(unittest.TestCase):
         with self.assertRaisesRegex(sdm.StagingMapError,
                                     r"trial_name Track 35B-37A is given to OS Switch 37 \(level 1, block\) and "
                                     r"Track 35-37 \(level 1, block\)"):
-            sdm.load(self.band, device_map=self._copy(edit)[0])
+            sdm.load(self.band, sdm.LoadOptions(device_map=self._copy(edit)[0]))
 
     def test_a_missing_turnout_placeholder_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, r"Switch 1 \(level 1, turnout\) has no trial_name"):
-            sdm.load(self.band, device_map=self._without("Switch 1"))
+            sdm.load(self.band, sdm.LoadOptions(device_map=self._without("Switch 1")))
 
         def edit(rows):         # Switch 1's key on its LCC alias, which holds no piece
             for r in rows:
                 if r["level"] == "1" and r["layer"] == "turnout" and r["user_name"] == "Switch 1":
                     r["trial_name"] = "Switch 999"
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
-            sdm.load(self.band, device_map=self._copy(edit)[0])
+            sdm.load(self.band, sdm.LoadOptions(device_map=self._copy(edit)[0]))
 
     def test_a_device_not_in_tables_stops(self):
         from hartlib import railroad
@@ -371,7 +371,7 @@ class Files(unittest.TestCase):
         bad.write_text(sdm.MASTS.read_text(encoding="utf-8").replace("Mast 2L,st:brick,1,", "Mast 2L,st:brick,99,"),
                        encoding="utf-8")
         with self.assertRaisesRegex(sdm.StagingMapError, "Mast 2L is on switch '99', which no turnout row"):
-            sdm.load(self.band, masts_path=bad)
+            sdm.load(self.band, sdm.LoadOptions(masts_path=bad))
 
     def test_the_run_walk_counts_a_block_through_a_turnback_once(self):
         runs = sdm.run_blocks(self.band, self.names)
