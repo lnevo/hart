@@ -20,7 +20,7 @@ Scope: the paths your brief names, with their tests. Other agents own other area
 Rules for a split or move:
 - It changes no behaviour. Every output stays byte-identical, and the tests that cover the moved code pass unchanged before and after. Where a moved function has no test, add one first.
 - One move per commit-sized step, and say what each step moved.
-- The new files go under the limits in `tools/audit/py_sizes.csv` (`python3 tools/audit/check_py_sizes.py`). Lower a file's limit when it shrinks; never raise one to make room.
+- The new files go under the limits in `tools/audit/py_sizes.csv` (`python3 tools/audit/check_py_sizes.py`). Never raise a limit to make room, and leave the row of a file that shrank: limits are lowered only in the wave-end sweep (`make baselines`).
 - A file that ships to a host must still ship: check `tools/hosts/live_paths.txt` and the host lists the deploy reads, and name every new file the deploy must copy.
 - Jython scripts that run inside JMRI never import `hartlib`. A sibling module of a Jython script is listed where the script loads its parts.
 - Update `docs/pipeline-map/pipeline_map.json` for new or moved files (`python3 tools/ops/build_pipeline_map.py --check`).
