@@ -1,13 +1,12 @@
 """Starts tools/audit/traced.py's hook in a Python process when HART_TRACE_LOG is set (the traced stamps of make panels
 and tools/check.sh put this folder on PYTHONPATH for that), then runs the next sitecustomize on sys.path (Homebrew's,
-a venv's, tools/audit/stamp_audit's), which this file would otherwise hide, through tools/audit/hook_chain.py."""
+a venv's, tools/audit/stamp_audit's), which this file would otherwise hide, through hook_chain.py beside it."""
 import importlib.util
 import os
 import sys
 
 _here = os.path.dirname(os.path.abspath(__file__))
-_chain_spec = importlib.util.spec_from_file_location("_hart_hook_chain",
-                                                     os.path.join(os.path.dirname(_here), "hook_chain.py"))
+_chain_spec = importlib.util.spec_from_file_location("_hart_hook_chain", os.path.join(_here, "hook_chain.py"))
 if _chain_spec is None or _chain_spec.loader is None:
     raise ImportError("hook_chain.py has no loader")
 _chain = importlib.util.module_from_spec(_chain_spec)

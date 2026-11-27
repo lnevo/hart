@@ -1,7 +1,7 @@
 """tools/audit/stamp_audit/sitecustomize.py, the CHECK_AUDIT hook: it logs the repo files a Python process reads, then
-runs the next sitecustomize on sys.path through tools/audit/hook_chain.py, as tools/audit/trace_hook's does. Homebrew's
-Python adds its site-packages from its own sitecustomize, so a hook that hid it left an audited job without Pillow
-(test_check_stamps.AuditTest on the Mac)."""
+runs the next sitecustomize on sys.path through tools/audit/trace_hook/hook_chain.py, as tools/audit/trace_hook's
+does. Homebrew's Python adds its site-packages from its own sitecustomize, so a hook that hid it left an audited job
+without Pillow (test_check_stamps.AuditTest on the Mac)."""
 from __future__ import annotations
 
 import importlib.util
@@ -111,7 +111,7 @@ class RunNextTest(unittest.TestCase):
     """hook_chain.run_next in this process, loaded by path as the hooks load it."""
 
     def setUp(self) -> None:
-        spec = importlib.util.spec_from_file_location("_hart_hook_chain_test", AUDIT / "hook_chain.py")
+        spec = importlib.util.spec_from_file_location("_hart_hook_chain_test", TRACE_HOOK / "hook_chain.py")
         assert spec is not None and spec.loader is not None
         self.chain = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(self.chain)

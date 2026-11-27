@@ -1,8 +1,9 @@
 """Runs the next sitecustomize on sys.path after a repo hook (tools/audit/trace_hook, tools/audit/stamp_audit).
 
 Python imports only the first sitecustomize it finds, so a hook folder put on PYTHONPATH hides the interpreter's own
-(Homebrew's adds its site-packages there; a venv may have one). Each hook loads this file by path from its parent
-folder, with nothing of the repo on sys.path, and calls run_next with its own folder.
+(Homebrew's adds its site-packages there; a venv may have one). Each hook loads this file by path (stamp_audit's from
+../trace_hook, so tools/ci/stamp_gate.MACHINERY's trace_hook/ entry covers it), with nothing of the repo on sys.path,
+and calls run_next with its own folder.
 """
 import importlib.util
 import os

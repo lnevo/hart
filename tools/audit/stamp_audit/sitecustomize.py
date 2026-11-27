@@ -3,15 +3,15 @@
 tools/check.sh puts this folder on PYTHONPATH for a job only when CHECK_AUDIT names a folder; any other run never
 imports it. Each line is "<kind><TAB><path relative to CHECK_AUDIT_ROOT>": r (opened for reading), d (a folder listed).
 It then runs the next sitecustomize on sys.path (Homebrew's, which adds its site-packages; a venv's), which this file
-would otherwise hide, through tools/audit/hook_chain.py, loaded before the hook so the audit never logs it.
+would otherwise hide, through tools/audit/trace_hook/hook_chain.py, loaded before the hook so the audit never logs it.
 """
 import importlib.util
 import os
 import sys
 
 _here = os.path.dirname(os.path.abspath(__file__))
-_chain_spec = importlib.util.spec_from_file_location("_hart_hook_chain",
-                                                     os.path.join(os.path.dirname(_here), "hook_chain.py"))
+_chain_path = os.path.join(os.path.dirname(_here), "trace_hook", "hook_chain.py")
+_chain_spec = importlib.util.spec_from_file_location("_hart_hook_chain", _chain_path)
 if _chain_spec is None or _chain_spec.loader is None:
     raise ImportError("hook_chain.py has no loader")
 _chain = importlib.util.module_from_spec(_chain_spec)

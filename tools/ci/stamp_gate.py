@@ -65,7 +65,6 @@ MACHINERY = (
     "tools/audit/traced.py",
     "tools/audit/traced_read.py",           # its parts (traced.HOOK_FILES)
     "tools/audit/trace_hook/",
-    "tools/audit/hook_chain.py",            # both hooks run the next sitecustomize through it
     "tools/schematic/panel_stamps.py",
     "tools/hosts/profile_tables_guard.sh",
     "tools/hartlib/src/hartlib/paths.py",     # check_stamps: the stamp folder and main_checkout (what counts as traced)
