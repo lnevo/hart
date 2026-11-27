@@ -1,6 +1,6 @@
 # Done
 
-Run the definition of done in `.claude/commands/done.md`, every step, then report as it says (commit hash, pushed?, PanelPro test result, hosts deployed). The guard in `.cursor/hooks.json` blocks commits and pushes on `main`, so branch first.
+Run the definition of done in `.claude/commands/done.md`, every step, then report as it says (commit hash, pushed?, main's push run after a merge, PanelPro test result, hosts deployed). The guard in `.cursor/hooks.json` blocks commits and pushes on `main`, so branch first.
 
 In step 1, keep the docs findable by AI:
 

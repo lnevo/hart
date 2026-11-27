@@ -43,5 +43,6 @@
 | [039](ADR-039-data-masters-in-git.md) | One master per kind of record, kept in git | Accepted |
 | [040](ADR-040-site-deploys-recorded-current-one-at-a-time.md) | Website deploys are recorded, current and one at a time | Accepted |
 | [041](ADR-041-baselines-lowered-at-wave-end.md) | Baselines are lowered at the end of each wave | Accepted |
+| [042](ADR-042-strict-off-main-push-run-watched.md) | Main no longer requires branches to be up to date | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
