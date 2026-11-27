@@ -23,4 +23,4 @@ The text lives in the `handoff` skill (Merge, step 2), the `coordinate` skill (B
 
 - Between sweeps the lists run high, and the notes say how many files are below their baseline. A rise is still caught against the higher count.
 - Like the other merge drivers, the union merge runs in local merges only, not on GitHub's merge button.
-- Dropping the strict up-to-date rule is a separate step (owner), and the wording about merging `main` changes with it.
+- Dropping the strict up-to-date rule is a separate step (owner), and the wording about merging `main` changes with it ([ADR-042](ADR-042-strict-off-main-push-run-watched.md)).
