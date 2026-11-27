@@ -5,7 +5,7 @@ A column sidecar describes a CSV; these files are nested JSON, so each has a sch
 states only what the readers depend on: the keys they need, the types they take and the values they allow. Each
 reader still makes its own deeper checks (an XML snippet that parses, a track ID the name store has).
 
-    jmri/layouts/hart/data/schematic/plan_overrides.json   hartlib.layer_files, mast_rule.band_places, track_names,
+    jmri/layouts/hart/data/schematic/plan_overrides.json   hartlib.layer_files, plan_bands.band_places, track_names,
                                                            build_layout_docs.py (staging scale_ratio)
     jmri/layouts/hart/data/schematic/preferences.json      hartlib.layer_files, map_revision (revision, date),
                                                            host_screen.py, track_names.pref_section, build_staging_sets
@@ -224,7 +224,7 @@ BAND = obj({"name": text(nonempty=True), "level": whole(1, 3), "below": number(a
 PLAN_SECTION_KEYS = {
     "_layer": whole(),
     "edits": arr(PLAN_EDIT),                     # track_names, store_split, build_signals: each edit's op
-    "level": whole(1, 3),                         # mast_rule.band_places: a one-band input's level
+    "level": whole(1, 3),                         # plan_bands.band_places: a one-band input's level
     "level_title": text(nonempty=True),           # and its band title
     "levels": obj({"bands": arr(BAND, min=1, unique="name"), "assign": obj(other=number())}, other=ANY),
     "helix": obj(other=text(pattern=r"block:.+")),  # {helix junction: its helix track's block ID} (device_map_inputs)

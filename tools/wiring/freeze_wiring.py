@@ -61,20 +61,20 @@ def device_rows(path: Path | None = None) -> list[dict]:
 
 def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
     """{block name: {switch_a, switch_b, parallel, half}} of every main and upper track block, as
-    build_device_map.read_pins resolves them: the track's end switches (mast_rule.track_key, lower first), `parallel`
-    when two tracks share them (1, 2 in mast_rule.plan_order, as resolve_track reads them back), `half` for a
+    build_device_map.read_pins resolves them: the track's end switches (plan_tracks.track_key, lower first), `parallel`
+    when two tracks share them (1, 2 in plan_tracks.plan_order, as resolve_track reads them back), `half` for a
     balloon loop's or a split track's halves."""
-    import mast_rule
+    import plan_tracks                  # on sys.path once build_device_map is loaded
     found = bdm.named_tracks() if found is None else found
     split = bdm.split_tracks(found=found)
     by_key: dict[tuple, list[dict]] = {}
     for t in found:
-        key = mast_rule.track_key(t)
+        key = plan_tracks.track_key(t)
         if key:
             by_key.setdefault((t["level"], key), []).append(t)
     out = {}
     for (_lv, (a, b)), same in by_key.items():
-        same.sort(key=mast_rule.plan_order)
+        same.sort(key=plan_tracks.plan_order)
         for i, t in enumerate(same, 1):
             halves = (1, 2) if (t["loop"] or t["name"] in split) else (None,)
             for half in halves:

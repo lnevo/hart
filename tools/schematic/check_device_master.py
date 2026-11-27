@@ -55,7 +55,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common as lc  # noqa: E402  the plugin
-import mast_rule as mr  # noqa: E402  MapError of the helix tracks file
+from map_error import MapError  # noqa: E402
+import plan_bands  # noqa: E402
 import publish_draft as pd  # noqa: E402  the plugin cache
 import staging_device_map as sdm  # noqa: E402  staging's rows, band and mast files
 from hartlib import devices, layer_files, level_devices, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402,E501
@@ -250,7 +251,7 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
 def check_rows(lines: list[tuple[int, dict]], helix_blocks: set[str], where: str = DEVICE_MAP.name) -> list[str]:
     """The rules between rows (hartlib.railroad_invariants.device_row_problems, which the device-map invariant of
     `python3 -m hartlib.railroad check` also runs before tables.xml is built)."""
-    return railroad_invariants.device_row_problems(lines, helix_blocks, where, mr.HELIX_SOURCE.name)
+    return railroad_invariants.device_row_problems(lines, helix_blocks, where, plan_bands.HELIX_SOURCE.name)
 
 
 def bound_name(r: dict) -> str:
@@ -387,7 +388,7 @@ def check_drawing(band, lines: list[tuple[int, dict]], data: Path) -> list[str]:
     return sdm.check_helix(band, sdm.load(band), sdm.staging_names(band, data))
 
 
-ERRORS = (DeviceMasterError, sdm.StagingMapError, railroad.FactsError, mr.MapError, lc.BuildError)
+ERRORS = (DeviceMasterError, sdm.StagingMapError, railroad.FactsError, MapError, lc.BuildError)
 
 
 def _part(bad: list[str], fn) -> None:
