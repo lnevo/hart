@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-/* Builds www/exam/answers.html, the answer key for the Extra East game, from the ask({...}) calls in www/exam/run.js.
-   Each call is evaluated with every unknown name stubbed, so values the game fills in at play time (station, train,
-   clock time) show as [station], [train] or […]. `--check` exits 1 when answers.html is out of date. */
+/* Builds www/exam/answers.html, the answer key for the Extra East game, from the ask({...}) calls in the game's scripts
+   (www/exam/run.js and the run files). Each call is evaluated with every unknown name stubbed, so values the game fills
+   in at play time (station, train, clock time) show as [station], [train] or […]. The reference panels come from the
+   game's data literals (STATIONS, REGULARS, TIME_ORDER, TWC_PLAN) and the track warrant form (js/track-warrant.js).
+   `--check` exits 1 when answers.html is out of date. */
 "use strict";
 const fs = require("fs");
 const path = require("path");
@@ -10,17 +12,29 @@ const vm = require("vm");
 const ENGINE = require(path.join(__dirname, "..", "js", "game-engine.js"));
 
 const EXAM = path.join(__dirname, "..", "exam");
-/* The game's scripts, read as one text: the runs in run.html's order, then the track warrant form the modern run shares
-   with play (js/track-warrant.js: BOXES, SAY). The form comes last so it falls inside modernRange, after const TW_SEL=. */
-const RUN_FILES = ["run.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js"].map(f => path.join(EXAM, f))
-  .concat(path.join(EXAM, "..", "js", "track-warrant.js"));
-const readRun = () => RUN_FILES.map(f => fs.readFileSync(f, "utf8")).join("\n");
+/* The game's scripts in run.html's order, each with the run its questions belong to. A question in one of the event
+   pools (POOLS) takes the pool's place instead. */
+const RUN_FILES = { "run.js": "1949 run", "run-1949.js": "1949 run", "run-modern.js": "Modern run", "run-signals.js": "Signals run", "run-yard.js": "Yard job" };
+/* The scripts as [{file, where, src}]. */
+const readRun = () => Object.entries(RUN_FILES).map(([file, where]) => ({ file, where, src: fs.readFileSync(path.join(EXAM, file), "utf8") }));
 const OUT = path.join(EXAM, "answers.html");
+const TRACK_WARRANT = path.join(EXAM, "..", "js", "track-warrant.js");
+
+/* The script named `file` among those read. */
+function fileOf(files, file) {
+  const f = files.find(x => x.file === file);
+  if (!f) throw new Error(`${file} is not among the game's scripts`);
+  return f;
+}
+/* "run-modern.js line 12": where index `at` falls in a script. */
+const lineOf = (f, at) => `${f.file} line ${f.src.slice(0, at).split("\n").length}`;
 
 /* Scans from the bracket at `open` to the one that closes it. Skips strings, comments and template text, and follows
    ${...} inside templates, nested to any depth. Returns the closing index and the code outside strings and comments.
-   Regex literals are not followed; an ask({...}) holding one stops the build with an unbalanced-bracket error. */
-function scan(src, open) {
+   Regex literals are not followed; an ask({...}) holding one stops the build with an unbalanced-bracket error.
+   f is the script, {file, src}. */
+function scan(f, open) {
+  const src = f.src;
   const pair = { "{": "}", "[": "]", "(": ")" };
   const stack = []; // closers; "T" closes a ${...} and returns to template text
   let mode = "code";
@@ -48,24 +62,25 @@ function scan(src, open) {
     else if (c === "}" || c === "]" || c === ")") {
       const want = stack.pop();
       if (want === "T" && c === "}") { mode = "`"; continue; }
-      if (want !== c) throw new Error(`run.js line ${src.slice(0, j).split("\n").length}: unbalanced ${c}`);
+      if (want !== c) throw new Error(`${lineOf(f, j)}: unbalanced ${c}`);
       if (!stack.length) return { end: j, code };
     }
   }
-  throw new Error(`run.js line ${src.slice(0, open).split("\n").length}: no closing bracket`);
+  throw new Error(`${lineOf(f, open)}: no closing bracket`);
 }
-const closing = (src, open) => scan(src, open).end;
+const closing = (f, open) => scan(f, open).end;
 
-/* The one way this script evaluates code from run.js: the text from `from` through the bracket that closes `open`. */
-const evalSlice = (src, from, open) => Function(`return (${src.slice(from, closing(src, open) + 1)})`)();
+/* The one way this script evaluates the game's code: the text from `from` through the bracket that closes `open`. */
+const evalSlice = (f, from, open) => Function(`return (${f.src.slice(from, closing(f, open) + 1)})`)();
 
-/* The value of a declaration such as "const STATIONS=" (an object or array literal), searched for from `after`. */
-function literal(src, decl, after = 0) {
-  const at = src.indexOf(decl, after);
-  if (at < 0) throw new Error(`run.js: ${decl.trim()} not found`);
+/* The value of a declaration such as "const STATIONS=" (an object or array literal) in script f. There must be one. */
+function literal(f, decl) {
+  const at = f.src.indexOf(decl);
+  if (at < 0) throw new Error(`${f.file}: ${decl.trim()} not found`);
+  if (f.src.indexOf(decl, at + 1) >= 0) throw new Error(`${f.file}: ${decl.trim()} is declared twice`);
   const open = at + decl.length;
-  if (!"{[".includes(src[open])) throw new Error(`run.js: ${decl.trim()} is not followed by a literal`);
-  return evalSlice(src, open, open);
+  if (!"{[".includes(f.src[open])) throw new Error(`${f.file}: ${decl.trim()} is not followed by a literal`);
+  return evalSlice(f, open, open);
 }
 
 /* A stand-in for any name the game defines at play time; prints as [name]. */
@@ -77,12 +92,13 @@ function stub(name) {
 }
 /* Helpers the key runs for real, read from run.js: the figures a question may show under its text. */
 const FIGURES = ["semSvg"];
-function figures(src) {
+function figures(files) {
+  const f = fileOf(files, "run.js");
   const out = {};
   for (const name of FIGURES) {
-    const at = src.indexOf(`function ${name}(`);
+    const at = f.src.indexOf(`function ${name}(`);
     if (at < 0) throw new Error(`run.js: figure helper ${name} not found`);
-    out[name] = evalSlice(src, at, src.indexOf("{", at));
+    out[name] = evalSlice(f, at, f.src.indexOf("{", at));
   }
   return out;
 }
@@ -110,15 +126,16 @@ const plain = s => s.replace(/<[^>]+>/g, " ").replace(/&(?:amp|lt|gt|quot|#39|nb
 
 /* Where in the game a question is asked: inside one of the event pools, or fixed in a scene. */
 const POOLS = { ROAD_TTO: "1949 run, on the road", STN_TTO: "1949 run, at a station", ROAD_TWC: "Modern run, on the road" };
-function poolRanges(src) {
-  const out = [];
-  for (const name of Object.keys(POOLS)) {
-    const at = src.indexOf(`const ${name}=[`);
-    if (at < 0) throw new Error(`run.js: pool ${name} not found`);
-    const open = src.indexOf("[", at);
-    out.push({ name, from: open, to: closing(src, open) });
-  }
-  return out;
+/* Each pool's script and the span of its array there; each pool is declared in exactly one script. */
+function poolRanges(files) {
+  return Object.keys(POOLS).map(name => {
+    const decl = `const ${name}=[`;
+    const hits = files.filter(f => f.src.includes(decl));
+    if (hits.length !== 1) throw new Error(`pool ${name} is declared in ${hits.length} scripts, not one`);
+    const f = hits[0];
+    const open = f.src.indexOf(decl) + decl.length - 1;
+    return { name, file: f.file, from: open, to: closing(f, open) };
+  });
 }
 
 /* Fields the key shows. Others (ok, okText, note, after, miss) only matter during a run. */
@@ -139,59 +156,57 @@ function fieldCode(code, key) {
 }
 
 
-/* The modern run's code starts at its warrant tables in run-modern.js. Everything after it in readRun()'s text is
-   modern, but for the runs in FUNC_RUNS, which are checked first; any other question before TW_SEL is 1949. */
-function modernRange(src) {
-  const from = src.indexOf("const TW_SEL=");
-  if (from < 0) throw new Error("run-modern.js: const TW_SEL not found");
-  return { from, to: src.length };
-}
-
-/* Runs whose questions all sit inside one start function: the yard job. */
-const FUNC_RUNS = { startYARD: "Yard job", startSIG: "Signals run" };
-function funcRanges(src) {
-  return Object.entries(FUNC_RUNS).map(([fn, label]) => {
-    const at = src.indexOf(`function ${fn}(`);
-    if (at < 0) throw new Error(`run.js: function ${fn} not found`);
-    return { label, from: at, to: closing(src, src.indexOf("{", at)) };
-  });
-}
-
-function extract(src) {
-  const pools = poolRanges(src);
-  const modern = modernRange(src);
-  const runs = funcRanges(src);
-  const scope = scopeWith(figures(src));
-  const qs = [];
-  let generated = 0;
+/* The ask({...}) calls in script f, as [{at, end, code}]: the call's index, its closing brace and its code outside
+   strings and comments. */
+function asks(f) {
+  const out = [];
   const re = /\bask\(\{/g;
   let m;
-  while ((m = re.exec(src))) {
+  while ((m = re.exec(f.src))) {
     const open = m.index + 4;
-    const line = src.slice(0, m.index).split("\n").length;
-    const { end, code } = scan(src, open);
-    // A question drawn at a signal (gen:"speed", "route" or "plate") is built at play time from signals.js; the key lists
-    // those from the tables (generatedHtml) instead of reading the call.
-    if (/[{,]\s*gen\s*:/.test(code)) { generated++; continue; } // its value is a string, which scan() leaves out of code
-    // Stubs are always truthy, so a shown field chosen at play time would show one branch as the only answer.
-    const chosen = SHOWN.filter(k => /\?|&&|\|\|/.test(fieldCode(code, k)));
-    if (chosen.length) throw new Error(`run.js line ${line}: ${chosen.join(", ")} chosen at play time (?, && or ||); write one ask per case, or put a situational sentence in note`);
-    const lit = src.slice(open, end + 1);
-    let o;
-    try {
-      o = Function("P", `with(P){return (${lit})}`)(scope);
-    } catch (e) {
-      throw new Error(`run.js line ${line}: cannot read question (${e.message})`);
+    out.push({ at: m.index, open, ...scan(f, open) });
+  }
+  return out;
+}
+
+/* One question as the key shows it, from the call at `call` in script f; the scope stubs every play-time name. */
+function question(f, call, scope, where) {
+  const at = lineOf(f, call.at);
+  // Stubs are always truthy, so a shown field chosen at play time would show one branch as the only answer.
+  const chosen = SHOWN.filter(k => /\?|&&|\|\|/.test(fieldCode(call.code, k)));
+  if (chosen.length) throw new Error(`${at}: ${chosen.join(", ")} chosen at play time (?, && or ||); write one ask per case, or put a situational sentence in note`);
+  let o;
+  try {
+    o = Function("P", `with(P){return (${f.src.slice(call.open, call.end + 1)})}`)(scope);
+  } catch (e) {
+    throw new Error(`${at}: cannot read question (${e.message})`, { cause: e });
+  }
+  if (o.extra && /\[\w/.test(String(o.extra))) throw new Error(`${at}: the figure under the question uses play-time values the key cannot draw`);
+  for (const k of ["title", "body", "right", "why"]) if (!o[k]) throw new Error(`${at}: question has no ${k}`);
+  if (!Array.isArray(o.wrong) || !o.wrong.length) throw new Error(`${at}: question has no wrong answers`);
+  return {
+    file: f.file, line: f.src.slice(0, call.at).split("\n").length, sec: o.sec, src: text(srcLabel(String(o.src || ""))),
+    extra: o.extra ? String(o.extra) : "", title: text(o.title), body: text(o.body), right: text(o.right),
+    wrong: o.wrong.map(w => ({ t: text(w[0]), why: text(w[2] || "") })),
+    ref: o.ref ? String(o.ref) : "", why: text(o.why), where,
+  };
+}
+
+/* Every question in the scripts (readRun()'s list), in order. qs.generated counts the calls drawn at a signal, which
+   the key lists from signals.js instead (generatedHtml). */
+function extract(files) {
+  const pools = poolRanges(files);
+  const scope = scopeWith(figures(files));
+  const qs = [];
+  let generated = 0;
+  for (const f of files) {
+    if (!f.where) throw new Error(`${f.file}: no run named for its questions`);
+    for (const call of asks(f)) {
+      // gen:"speed", "route" or "plate": its value is a string, which scan() leaves out of code
+      if (/[{,]\s*gen\s*:/.test(call.code)) { generated++; continue; }
+      const pool = pools.find(p => p.file === f.file && call.at > p.from && call.at < p.to);
+      qs.push(question(f, call, scope, pool ? POOLS[pool.name] : f.where));
     }
-    if (o.extra && /\[\w/.test(String(o.extra))) throw new Error(`run.js line ${line}: the figure under the question uses play-time values the key cannot draw`);
-    for (const k of ["title", "body", "right", "why"]) if (!o[k]) throw new Error(`run.js line ${line}: question has no ${k}`);
-    if (!Array.isArray(o.wrong) || !o.wrong.length) throw new Error(`run.js line ${line}: question has no wrong answers`);
-    const pool = pools.find(p => m.index > p.from && m.index < p.to);
-    qs.push({
-      line, sec: o.sec, src: text(srcLabel(String(o.src || ""))), extra: o.extra ? String(o.extra) : "", title: text(o.title), body: text(o.body), right: text(o.right),
-      wrong: o.wrong.map(w => ({ t: text(w[0]), why: text(w[2] || "") })),
-      ref: o.ref ? String(o.ref) : "", why: text(o.why), where: pool ? POOLS[pool.name] : (runs.find(r => m.index > r.from && m.index < r.to) || {}).label || (m.index > modern.from && m.index < modern.to ? "Modern run" : "1949 run"),
-    });
   }
   qs.generated = generated;
   return qs;
@@ -250,7 +265,9 @@ ${plates.join("\n")}
 
 /* The special instructions on the 1949 train sheet: renderSheet's state.era==="tto" branch, up to its }else{. */
 function specialInstructions(src) {
-  const from = src.indexOf('if(state.era==="tto"){', src.indexOf("function renderSheet("));
+  const sheet = src.indexOf("function renderSheet(");
+  if (sheet < 0) throw new Error("run.js: function renderSheet not found");
+  const from = src.indexOf('if(state.era==="tto"){', sheet);
   const to = src.indexOf("}else{", from);
   if (from < 0 || to < 0) throw new Error('run.js: renderSheet\'s state.era==="tto" branch not found');
   const branch = src.slice(from, to).replace(/`\+\n\s*`/g, ""); // run.js wraps a long template as `…`+`…`
@@ -259,26 +276,22 @@ function specialInstructions(src) {
   return m[1];
 }
 
-/* A warrant as the game fills it. Starts from the `const wN={…}` literal in startTWC, then applies every later
-   `wN.boxes[n]=[…]` there: a value set at play time (not a literal) shows as its slot, such as [time], and a box set
-   under if/else is marked as appearing in some runs only. */
-function warrant(src, name) {
-  const from = src.indexOf("function startTWC(");
-  if (from < 0) throw new Error("run.js: function startTWC not found");
-  const body = src.slice(from, closing(src, src.indexOf("{", from)) + 1);
-  const w = literal(body, `const ${name}=`);
-  if (!w.no || !w.boxes) throw new Error(`run.js: ${name} in startTWC has no no or boxes`);
-  const boxes = Object.fromEntries(Object.entries(w.boxes).map(([n, v]) => [n, { vals: v, some: false }]));
-  const re = new RegExp(`\\b${name}\\.boxes\\[(\\d+)\\]=`, "g");
-  let m;
-  while ((m = re.exec(body))) {
-    const open = m.index + m[0].length;
-    if (body[open] !== "[") throw new Error(`run.js: ${name}.boxes[${m[1]}] is not set to an array`);
-    let vals;
-    try { vals = evalSlice(body, open, open); } catch (e) { vals = null; } // built at play time, e.g. [fmt(t)]
-    const lineStart = body.lastIndexOf("\n", m.index) + 1;
-    const some = /^\s*(if\s*\(|else\b|}\s*else\b)/.test(body.slice(lineStart, m.index));
-    boxes[m[1]] = { vals, some };
+/* A warrant of the modern run's TWC_PLAN (run-modern.js) as the key shows it: {no, at, boxes: {n: {vals, some}}}.
+   A box that is null in the plan is set at play time and shows as its slot, such as [time]; a box of a draw is on the
+   warrant in some runs only. A box may appear only once across the boxes and the draws. */
+function warrant(plan, name) {
+  const w = plan.warrants && plan.warrants[name];
+  if (!w || !w.no || !w.boxes) throw new Error(`run-modern.js: TWC_PLAN has no warrant ${name} with a no and boxes`);
+  const boxes = {};
+  const put = (n, vals, some) => {
+    if (boxes[n]) throw new Error(`run-modern.js: warrant ${w.no} sets box ${n} twice`);
+    if (vals !== null && !Array.isArray(vals)) throw new Error(`run-modern.js: warrant ${w.no} box ${n} is not a list or null`);
+    boxes[n] = { vals, some };
+  };
+  for (const [n, vals] of Object.entries(w.boxes)) put(n, vals, false);
+  for (const [draw, sets] of Object.entries(w.draws || {})) {
+    if (!Array.isArray(sets) || sets.length !== 2) throw new Error(`run-modern.js: warrant ${w.no} draw ${draw} is not a pair of box sets`);
+    for (const set of sets) for (const [n, vals] of Object.entries(set)) put(n, vals, true);
   }
   return { no: w.no, at: w.at, boxes };
 }
@@ -298,44 +311,50 @@ function warrantHtml(w, BOXES) {
 }
 const SLOT = { s: "station", t: "track", time: "time", train: "train", w: "warrant", mph: "mph", txt: "instructions" };
 
-/* The time order the game writes at an open office, filled with the first of each choice it makes. */
-function timeOrder(src) {
-  const nums = /const n1=rnd\((\d+),(\d+),randOrders\)/.exec(src);
-  const mins = /L=pick\(\[([\d,\s]+)\],randOrders\)/.exec(src);
-  const words = /text:`\$\{tr\.name\} run \$\{L\} mins late ([^`]+)`/.exec(src);
-  const tt = src.slice(src.indexOf("function makeTT("));
-  const train = /name:"([^"]+)",dir:"W",cls:"(?:First|Second) class"/.exec(tt);
-  if (!nums || !mins || !words || !train) throw new Error("run.js: the time order's number, minutes, wording or westward train not found");
-  return { no: nums[1], train: train[1], L: mins[1].split(",")[0].trim(), rest: words[1] };
+/* The time order the game writes at an open office (run.js TIME_ORDER), filled with the first of each choice it makes,
+   on the first westward regular train (REGULARS). */
+function timeOrder(core) {
+  const T = literal(core, "const TIME_ORDER=");
+  const train = literal(core, "const REGULARS=").find(tr => tr.dir === "W");
+  if (!Array.isArray(T.no) || !Array.isArray(T.late) || !T.late.length || typeof T.words !== "function")
+    throw new Error("run.js: TIME_ORDER needs no, late and words");
+  if (!train) throw new Error("run.js: REGULARS has no westward train");
+  return { no: String(T.no[0]), train: train.name, L: String(T.late[0]), words: T.words(train.name, T.late[0]) };
 }
 
-/* How far ahead Box 5 is set when the crew calls the dispatcher (setBox5: rounded up to 5 minutes). */
-function box5Lead(src) {
-  const m = /Math\.ceil\(\(state\.clock\+(\d+)\)\/5\)\*5/.exec(src);
-  if (!m) throw new Error("run.js: setBox5's lead time not found");
-  return +m[1];
+/* The track warrant form's boxes (js/track-warrant.js), loaded as the page loads it. */
+function warrantBoxes() {
+  const ctx = { window: {} };
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(TRACK_WARRANT, "utf8"), ctx, { filename: TRACK_WARRANT });
+  const TW = ctx.window.TrackWarrant;
+  if (!TW || !Array.isArray(TW.BOXES) || !TW.BOXES.length) throw new Error("js/track-warrant.js: no BOXES on window.TrackWarrant");
+  return TW.BOXES;
 }
 
-function references(src) {
-  const ST = literal(src, "const STATIONS=");
-  const BOXES = literal(src, "const BOXES=");
+function references(files) {
+  const core = fileOf(files, "run.js");
+  const ST = literal(core, "const STATIONS=");
+  const BOXES = warrantBoxes();
+  const plan = literal(fileOf(files, "run-modern.js"), "const TWC_PLAN=");
+  if (typeof plan.box5Lead !== "number") throw new Error("run-modern.js: TWC_PLAN has no box5Lead");
   const stations = `<table class="xa-tt"><thead><tr><th>Station</th><th>MP</th><th>Siding</th><th>Notes</th></tr></thead><tbody>${ST.map(st =>
     `<tr><td>${esc(st.n)}</td><td>${st.mp.toFixed(1)}</td><td>${st.sd ? "yes" : "no"}</td><td>${[st.off ? "open office (D)" : "", st.yl ? "yard limits" : ""].filter(Boolean).join(", ")}</td></tr>`).join("")}</tbody></table>`;
-  const ord = timeOrder(src);
-  const lead = box5Lead(src);
-  const w1 = warrant(src, "w1"), w2 = warrant(src, "w2");
+  const ord = timeOrder(core);
+  const lead = plan.box5Lead;
+  const w1 = warrant(plan, "w1"), w2 = warrant(plan, "w2");
   const some = "Rows marked <i>some runs</i> are on the warrant in only some runs.";
   return {
     tt: {
       label: "Show the time-table",
       title: "Time-table No 12, Kestrel Valley Second Subdivision",
-      html: `<p>Ashby to Ironton: single track, with double track from Hollis to Ironton. The train columns change from run to run, so they are left out here.</p>${stations}<p><b>Special instructions</b></p><ul>${specialInstructions(src)}</ul>`,
+      html: `<p>Ashby to Ironton: single track, with double track from Hollis to Ironton. The train columns change from run to run, so they are left out here.</p>${stations}<p><b>Special instructions</b></p><ul>${specialInstructions(core.src)}</ul>`,
     },
     order: {
       label: "Show the order",
       title: "The time order",
       html: `<p>At an open office the operator hands up a time order (Form E) on a westward regular train, for example:</p>
-<div class="xa-order"><b>Order No ${esc(ord.no)}</b><br>${esc(ord.train)} run ${esc(ord.L)} mins late ${esc(ord.rest)}</div>
+<div class="xa-order"><b>Order No ${esc(ord.no)}</b><br>${esc(ord.words)}</div>
 <p>In the question, [train] is the train the order names and [n] its minutes: here ${esc(ord.train)} and ${esc(ord.L)}.</p>`,
     },
     w101: {
@@ -354,9 +373,9 @@ function references(src) {
 function render(qs, SEC, REFS = {}, GEN = { n: 0, html: "" }) {
   const order = Object.keys(SEC);
   const badRef = qs.find(q => q.ref && !REFS[q.ref]);
-  if (badRef) throw new Error(`run.js line ${badRef.line}: unknown reference "${badRef.ref}" (known: ${Object.keys(REFS).join(", ")})`);
+  if (badRef) throw new Error(`${badRef.file} line ${badRef.line}: unknown reference "${badRef.ref}" (known: ${Object.keys(REFS).join(", ")})`);
   const unknown = qs.filter(q => !order.includes(q.sec));
-  if (unknown.length) throw new Error(`run.js line ${unknown[0].line}: unknown section "${unknown[0].sec}"`);
+  if (unknown.length) throw new Error(`${unknown[0].file} line ${unknown[0].line}: unknown section "${unknown[0].sec}"`);
   let n = 0;
   const groups = order.map(sec => {
     const list = qs.filter(q => q.sec === sec);
@@ -466,12 +485,12 @@ ${Object.entries(REFS).map(([id, r]) => `<dialog class="xa-dlg" id="ref-${id}" a
 }
 
 function main() {
-  const src = readRun();
-  const qs = extract(src);
-  const calls = (src.match(/\bask\(\{/g) || []).length;
-  if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.js has ${calls} ask({ calls`);
+  const files = readRun();
+  const qs = extract(files);
+  const calls = files.reduce((n, f) => n + (f.src.match(/\bask\(\{/g) || []).length, 0);
+  if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but the game's scripts have ${calls} ask({ calls`);
   const GEN = qs.generated ? generatedHtml(loadSignals()) : { n: 0, html: "" };
-  const html = render(qs, ENGINE.DECK_SECTIONS, references(src), GEN);
+  const html = render(qs, ENGINE.DECK_SECTIONS, references(files), GEN);
   if (process.argv.includes("--check")) {
     const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
     if (cur !== html) {
@@ -488,4 +507,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { readRun, extract, render, references, warrantHtml, loadSignals, generatedHtml };
+module.exports = { readRun, extract, render, references, warrant, warrantHtml, loadSignals, generatedHtml };
