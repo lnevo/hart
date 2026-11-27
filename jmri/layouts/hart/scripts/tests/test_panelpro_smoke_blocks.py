@@ -23,11 +23,11 @@ PLAIN = ("LEVEL_BLOCK_PREFIX", "LEVEL_SENSOR_PREFIX", "field_detected", "block_s
 
 
 def plain_parts(names: tuple[str, ...] = PLAIN, ns: dict | None = None) -> dict:
-    """The script's named constants and plain functions, run in a namespace of their own (`ns`, which may hold
-    what they use: Jython's builtins or the script's other globals)."""
+    """The script's named constants, plain functions and classes, run in a namespace of their own (`ns`, which may
+    hold what they use: Jython's builtins or the script's other globals)."""
     tree = ast.parse(SCRIPT.read_text(encoding="utf-8"))
     keep = [n for n in tree.body
-            if (isinstance(n, ast.FunctionDef) and n.name in names)
+            if (isinstance(n, (ast.FunctionDef, ast.ClassDef)) and n.name in names)
             or (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") in names)]
     ns = {"os": os, **(ns or {})}
     exec(compile(ast.Module(body=keep, type_ignores=[]), str(SCRIPT), "exec"), ns)

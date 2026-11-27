@@ -7,11 +7,14 @@ audit_source.
 
 from __future__ import annotations
 
+import json
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import NamedTuple
 
 from audit_panel_base import Audit, Problem, attr_or_child, first_items, text, SHOWN
 from hartlib import level_devices, parked, paths, tables
+from hartlib.errors import FactsError
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
 
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
@@ -108,12 +111,58 @@ class StoredCounts(NamedTuple):
     transits: int
 
 
+class PanelCounts(NamedTuple):
+    """The counts in PANEL_COUNTS, the one file the audit and panelpro_smoke_test.py read them from (the smoke test
+    is Jython: run_panelpro_smoke_test.sh passes it the path)."""
+    masts: int                  # the signal masts the tables hold; only the smoke test checks this one
+    hand_drawn: StoredCounts    # the hand-drawn staging panel
+    generated: StoredCounts     # the generated three-level panel (build_layout_le.build written by build_tables.py)
+    traininfo: int              # the traininfo files in TRAININFO
+
+
+PANEL_COUNTS = paths.LAYOUT_SCRIPTS / "panel_counts.json"
+
+
+def _count(value: object, where: str) -> int:
+    """`value` when it is a whole number of 0 or more (not a bool); FactsError naming `where` otherwise."""
+    if type(value) is not int or value < 0:
+        raise FactsError(f"{where}: expected a whole number of 0 or more, found {value!r}")
+    return value
+
+
+def _keys(value: object, keys: tuple[str, ...], where: str) -> dict[str, object]:
+    """`value` when it is an object with exactly `keys`; FactsError naming `where` and what it holds otherwise."""
+    if not isinstance(value, dict) or sorted(value) != sorted(keys):
+        found = sorted(value) if isinstance(value, dict) else type(value).__name__
+        raise FactsError(f"{where}: expected the keys {sorted(keys)}, found {found}")
+    return value
+
+
+def _stored(value: object, where: str) -> StoredCounts:
+    counts = _keys(value, StoredCounts._fields, where)
+    return StoredCounts(*(_count(counts[k], f"{where}.{k}") for k in StoredCounts._fields))
+
+
+def load_panel_counts(path: Path = PANEL_COUNTS) -> PanelCounts:
+    """The counts in `path`; FactsError naming the file and the key when it is missing or not JSON, or holds a key
+    more or fewer than PanelCounts or a count that is not a whole number."""
+    where = paths.rel(path)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise FactsError(f"{where}: cannot read the panel counts: {exc}") from exc
+    top = _keys(data, PanelCounts._fields, where)
+    return PanelCounts(_count(top["masts"], f"{where} masts"), _stored(top["hand_drawn"], f"{where} hand_drawn"),
+                       _stored(top["generated"], f"{where} generated"),
+                       _count(top["traininfo"], f"{where} traininfo"))
+
+
+COUNTS = load_panel_counts()
 # The hand-drawn staging panel: 100 destinations.
-HAND_DRAWN = StoredCounts(sml=100, sections=107, transits=187)
-# The generated three-level panel (build_layout_le.build written by build_tables.py): 177 destinations from stock
-# discovery from an empty list, with virtual masts only as destinations on every level (staging 5, main 10, upper
-# 14) and the Scale running track.
-GENERATED = StoredCounts(sml=177, sections=197, transits=187)
+HAND_DRAWN = COUNTS.hand_drawn
+# The generated three-level panel: 177 destinations from stock discovery from an empty list, with virtual masts only
+# as destinations on every level (staging 5, main 10, upper 14) and the Scale running track.
+GENERATED = COUNTS.generated
 # The same counts by panel kind (True: generated). tools/audit/check_sml_invariants.py reads EXPECTED_SML[True].
 # A generated panel before stock discovery carries the Signal Mast Logic of the live tables.xml it was built on,
 # less every logic and destination that names a main or upper object: exactly the live tables' destinations between
@@ -125,7 +174,7 @@ EXPECTED_SML = {False: HAND_DRAWN.sml, True: GENERATED.sml}
 # section or transit.
 EXPECTED_GRAPH = {False: (HAND_DRAWN.sections, HAND_DRAWN.transits), True: (GENERATED.sections, GENERATED.transits)}
 # The traininfo files in TRAININFO (panelpro_smoke_test.py holds the runtime copies to the same count).
-EXPECTED_TRAININFO = 374
+EXPECTED_TRAININFO = COUNTS.traininfo
 
 
 class SmlPair(NamedTuple):

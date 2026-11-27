@@ -57,6 +57,15 @@ class SiteInputs(unittest.TestCase):
             self.assertEqual([path], portal_inputs.site_inputs([path], set()))
         self.assertEqual([], portal_inputs.site_inputs(["tools/ops/pipeline_query.py"], set()))
 
+    def test_every_renderer_part_is_a_site_input(self) -> None:
+        # the schematic PNG on the site is drawn by render_le_layout.py and the parts it imports
+        parts = ["jmri/layouts/hart/scripts/render_le_layout.py", "jmri/layouts/hart/scripts/render_le_geometry.py",
+                 "jmri/layouts/hart/scripts/render_le_draw.py"]
+        self.assertEqual(parts, portal_inputs.site_inputs(parts, set()))
+        for path in parts:
+            self.assertTrue((ROOT / path).is_file(), path)
+        self.assertEqual([], portal_inputs.site_inputs(["jmri/layouts/hart/scripts/tests/test_render_le_layout.py"], set()))
+
     def test_a_tables_or_cats_change_is_not_a_site_input(self) -> None:
         paths = ["jmri/layouts/hart/output/tables.xml", "cats/scripts/digicon_trace.py", "tools/check.sh"]
         self.assertEqual([], portal_inputs.site_inputs(paths, set()))

@@ -180,14 +180,15 @@ outputs = [
   "www/behind/jmri-additions.html",
 ]
 # read as text, seen in the 2026-11-25 traced run (ADR-037 stage 4c): the modules signal_coordinator.py loads
-# and the parts panel_status.py runs (hartlib.coordinator), and each host's Jython install list (HOSTS in the script)
+# and the parts panel_status.py runs (hartlib.coordinator), and each host's Jython install list (LIST_ROLES and
+# HOST_LISTS in the script; the Pi and the Mac share jython_scripts.txt)
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/schematic/stations.csv",
                 "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py", "jmri/scripts/sml_handoff.py",
                 "jmri/scripts/sml_events.py", "jmri/scripts/sml_quit.py", "jmri/scripts/sml_ui.py",
                 "jmri/layouts/hart/scripts/panel_status.py", "jmri/layouts/hart/scripts/panel_status_turnouts.py",
                 "jmri/layouts/hart/scripts/panel_status_clicks.py",
-                "tools/hosts/deploy/common.sh", "tools/hosts/pi/apply_hart_package_local.sh",
+                "tools/hosts/pi/jython_scripts.txt", "tools/hosts/pi/jython_list.sh",
                 "tools/hosts/windows/apply_hart_package_local.ps1"]
 
 [[step]]
@@ -212,7 +213,8 @@ outputs = [
 # and runs to draw the PNG, hashed for the PNG's stamp (read as bytes, stage 4c)
 quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "jmri/layouts/hart/data/devices_field.csv", "jmri/layouts/hart/data/devices_generated.csv",
-                "jmri/layouts/hart/data/schematic/block_overrides.csv", "jmri/layouts/hart/scripts/render_le_layout.py"]
+                "jmri/layouts/hart/data/schematic/block_overrides.csv", "jmri/layouts/hart/scripts/render_le_layout.py",
+                "jmri/layouts/hart/scripts/render_le_geometry.py", "jmri/layouts/hart/scripts/render_le_draw.py"]
 
 [[step]]
 name = "layout-docs"
@@ -265,7 +267,8 @@ quiet_inputs = ["jmri/layouts/hart/data/schematic/interlockings.csv",
                 "cats/scripts/render_cats_panel.py", "jmri/layouts/hart/data/schematic/stations.csv",
                 "jmri/layouts/hart/data/switches.csv", "jmri/layouts/hart/data/devices_field.csv",
                 "jmri/layouts/hart/data/devices_generated.csv", "jmri/layouts/hart/data/schematic/block_overrides.csv",
-                "jmri/layouts/hart/scripts/render_le_layout.py"]
+                "jmri/layouts/hart/scripts/render_le_layout.py",
+                "jmri/layouts/hart/scripts/render_le_geometry.py", "jmri/layouts/hart/scripts/render_le_draw.py"]
 
 [[step]]
 name = "wiring-json"
@@ -346,6 +349,7 @@ label = "audit_panel_contracts.py"
 desc = "Audits tables.xml panel contracts; also run at deploy."
 inputs = [
   { path = "jmri/layouts/hart/dispatcher/traininfo", label = "audit", side = "check" },
+  { path = "jmri/layouts/hart/scripts/panel_counts.json", label = "expected counts", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "audit", side = "check" },
 ]
 # read through hartlib, seen in the 2026-11-25 traced full run (ADR-037 stage 4a)
@@ -503,6 +507,7 @@ domain = "extras"
 label = "check_sml_invariants"
 desc = "Audit of signal mast logic invariants in tables.xml."
 inputs = [
+  { path = "jmri/layouts/hart/scripts/panel_counts.json", label = "expected counts", side = "check" },
   { path = "jmri/layouts/hart/output/tables.xml", label = "check", side = "check" },
 ]
 
@@ -1130,8 +1135,8 @@ quiet_inputs = ["www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.p
                 "jmri/scripts/sml_beans.py", "jmri/scripts/sml_claims.py", "jmri/scripts/sml_handoff.py",
                 "jmri/scripts/sml_events.py", "jmri/scripts/sml_quit.py", "jmri/scripts/sml_ui.py",
                 "jmri/layouts/hart/scripts/panel_status.py", "jmri/layouts/hart/scripts/panel_status_turnouts.py",
-                "jmri/layouts/hart/scripts/panel_status_clicks.py", "tools/hosts/deploy/common.sh",
-                "tools/hosts/pi/apply_hart_package_local.sh", "tools/hosts/windows/apply_hart_package_local.ps1",
+                "jmri/layouts/hart/scripts/panel_status_clicks.py", "tools/hosts/pi/jython_scripts.txt",
+                "tools/hosts/pi/jython_list.sh", "tools/hosts/windows/apply_hart_package_local.ps1",
                 "docs/pipeline-map/pipeline_map.json", "docs/pipeline-map/timings.json",
                 "tools/ops/pipeline_map_page.html",
                 "tools/ops/pipeline_map_layout.js", "tools/ops/pipeline_map_helpers.js",
@@ -1144,7 +1149,9 @@ quiet_inputs = ["www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.p
                 "wiki/status/**", ".cursor/**", ".claude/skills/*/SKILL.md", ".claude/agents/*.md",
                 ".claude/commands/*.md", "*/AGENTS.md", "*/*/AGENTS.md", ".gitmodules",
                 "jmri/layouts/hart/data/schematic/block_overrides.csv",
-                "jmri/layouts/hart/scripts/render_le_layout.py", "cats/panels/HART_CTC.xml",
+                "jmri/layouts/hart/scripts/render_le_layout.py",
+                "jmri/layouts/hart/scripts/render_le_geometry.py", "jmri/layouts/hart/scripts/render_le_draw.py",
+                "cats/panels/HART_CTC.xml",
                 "cats/scripts/render_cats_panel.py", "tools/wiring/write_inventory.py",
                 "jmri/layouts/hart/data/schematic/lcos_nodes.csv", "jmri/layouts/hart/data/wiring.csv",
                 "jmri/layouts/hart/output/signal_head_plan.csv"]
