@@ -110,7 +110,7 @@ stage_package() {
   done <<<"$jython_rows"
   if [[ ${#jython_missing[@]} -gt 0 ]]; then
     echo "stage: the package lacks jython that tools/hosts/pi/jython_scripts.txt lists (a parked, missing or" \
-      "unstaged script; HART_JYTHON_SCRIPTS in tools/hosts/deploy/common.sh ships the startup and pi rows):" \
+      "unstaged script; HART_JYTHON_SCRIPTS in common.sh ships the startup and pi rows):" \
       "${jython_missing[*]}" >&2
     exit 1
   fi
