@@ -428,7 +428,8 @@ class DocsUnitTests(unittest.TestCase):
             with self.subTest(path):
                 code = any(_glob(path, pat) for pat in check_stamps.CODE)
                 doc = any(_glob(path, pat) for pat in check_stamps.AGENT_DOCS)
-                self.assertNotEqual(code, doc, "in both or in neither of check_stamps.CLAUDE_CODE and AGENT_DOCS")
+                self.assertNotEqual(code, doc, "in both or in neither of check_stamps.CLAUDE_CODE and AGENT_DOCS: "
+                                    "add its kind to CLAUDE_CODE, or name it so changed_kind.is_docs agrees")
                 self.assertEqual(doc, changed_kind.is_docs(path))
 
     def test_a_skill_doc_reruns_no_whole_suite_and_a_hook_reruns_them_all(self) -> None:

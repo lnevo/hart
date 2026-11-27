@@ -162,7 +162,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
                                                "docs/INDEX.md", "ops/hart-ops/AGENTS.md", *AGENT_DOCS),
     # the step manifest's loader checks domains, edge sides and local nodes against the map (manifest.repo())
     "unit-guards test_pipeline_manifest": ("docs/pipeline-map/pipeline_map.json",),
-    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
+    # and its DocsUnitTests list every tracked file under .claude/ (CLAUDE_CODE or AGENT_DOCS, never neither)
+    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json", ".claude/**/*"),
     # check_sh_problems takes the steps' scripts from manifest.repo(), which reads the map
     "unit-guards test_stamp_gate": ("docs/pipeline-map/pipeline_map.json",),
     # SkipConditionTest reads every tracked tests/test*.py (git ls-files), ops/ and www/ included: .py files only
@@ -207,7 +208,9 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-jmri test_speedmatch_site_export": ("docs/jmri/**/*", "www/ai/**/*"),
 }
 # "kind test" of EXTRA -> the -k filter tools/ci/docs_unit_tests.py runs it with: the one class that reads docs
-DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource."}  # RUNBOOK.md's log tags
+DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource.",
+                          "unit-guards test_check_docs_only": "DocsUnitTests.",
+                          "unit-guards test_agent_docs_map": "AgentFrontMatter."}  # RUNBOOK.md's log tags
 
 
 # "kind test" -> folders the job only lists (a bare exists-or-not look; no file in them is read), left out of the stamp.

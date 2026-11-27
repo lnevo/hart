@@ -47,11 +47,7 @@ LEFT_OUT = {
     "unit-guards test_jmri_process_patterns": "reads the .sh, .ps1 and .py files git lists, docs/ included; no Markdown",
     "unit-guards test_pipeline_map": "its real-map tests read the graph and the pages, which only a full-path change "
                                      "(docs/pipeline-map/) alters; both pages are the pipeline-map check",
-    "unit-guards test_pipeline_map_coverage": "its real-repo test fails on an agent doc with no box, which the "
-                                              "pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_docs_index": "builds fake docs trees; the real index is the docs-index check",
-    "unit-guards test_agent_docs_map": "its one test on the real wiki (the committed graph is current) is what the "
-                                       "pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_map_lane": "its tests on the real map (the committed graph is current, a hand edit fails) are "
                                  "what the pipeline-map check's build_pipeline_map.py --check also fails on",
     "unit-guards test_agent_docs_cells": "its runs of check_agent_docs.py on the real wiki and AGENTS.md are what "
