@@ -135,8 +135,6 @@
  "tools/schematic/device_map_staging.py": 14,
  "tools/schematic/le_checks.py": 3,
  "tools/schematic/le_common.py": 3,
- "tools/schematic/le_names.py": 2,
- "tools/schematic/le_tables.py": 1,
  "tools/schematic/panel_items.py": 7,
  "tools/schematic/plan_lengths.py": 7,
  "tools/schematic/split_store.py": 3,
