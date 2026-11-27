@@ -153,7 +153,7 @@ class Errors(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_insert_after_a_missing_entry(self) -> None:
-        with self.assertRaisesRegex(self.mod.StartupPatchError, "no Start Up entry containing 'nope.py'"):
+        with self.assertRaisesRegex(self.mod.StartupPatchError, "no Start Up entry named 'nope.py'"):
             self.mod.insert_after(self.profile, "panel_status.py", "nope.py")
 
     def test_load_tables_with_no_tables_load(self) -> None:

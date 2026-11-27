@@ -3,7 +3,7 @@
 The drop holds the files the apply step needs to finish plus the ones a test names; the Pi's JMRI_UserFiles, home
 and JMRI profile are folders in a temporary directory. ssh, scp, sudo, systemctl and loginctl on PATH log their call
 and fail, so nothing reaches a host. pgrep on PATH matches its pattern (grep -E) against the process command lines a
-test gives; with none, nothing runs.
+test gives, and ps lists them with made-up pids; with none, nothing runs.
 install_ops_files.sh and install_roster.sh in the drop only log their call: their own tests cover them.
 """
 from __future__ import annotations
@@ -42,8 +42,14 @@ NETWORK = ("ssh", "scp", "sudo", "systemctl", "loginctl")
 LOGGER = '#!/bin/bash\necho "$(basename "$0") $*" >>"$PI_DROP_LOG"\n'
 # pgrep [options] PATTERN: exit 0 when a line of the process list matches PATTERN, 1 when none does.
 PGREP = LOGGER + 'grep -Eq -- "${@: -1}" "$PI_DROP_PROCESSES"\n'
+# ps (any options): the process list as "<pid> <command line>", pids from 1001; PI_DROP_PS_FAILS=1 makes it fail.
+PS = LOGGER + ('[ "${PI_DROP_PS_FAILS:-0}" = 1 ] && exit 1\n'
+               'n=1000; while IFS= read -r line; do n=$((n + 1)); echo "$n $line"; done <"$PI_DROP_PROCESSES"\n')
+# The helper the apply step sources from the drop, as the deploy stages it (tools/hosts/pi -> cats/scripts/pi).
+PROFILE_MATCH = ROOT / "tools/hosts/pi/jmri_profile_match.sh"
 # The drop's files the apply step reads on every run, whatever a test adds.
 REQUIRED: dict[str, str] = {
+    "cats/scripts/pi/jmri_profile_match.sh": PROFILE_MATCH.read_text(encoding="utf-8"),
     "cats/scripts/install_ops_files.sh": LOGGER,
     "cats/scripts/pi/install_roster.sh": LOGGER,
     "cats/scripts/pi/launch_cats.sh": "#!/bin/bash\n",
@@ -135,8 +141,9 @@ def applied(package: Mapping[str, str | bytes], installed: Mapping[str, str | by
             for tool in NETWORK:
                 (bin_dir / tool).write_text(LOGGER + "exit 99\n", encoding="utf-8")
                 (bin_dir / tool).chmod(0o755)
-            (bin_dir / "pgrep").write_text(PGREP, encoding="utf-8")
-            (bin_dir / "pgrep").chmod(0o755)
+            for tool, body in (("pgrep", PGREP), ("ps", PS)):
+                (bin_dir / tool).write_text(body, encoding="utf-8")
+                (bin_dir / tool).chmod(0o755)
             log.touch()
             procs = tmp / "processes.txt"
             procs.write_text("".join(f"{line}\n" for line in processes), encoding="utf-8")

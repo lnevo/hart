@@ -101,6 +101,7 @@ class Sandbox:
         self.root = tmp / "checkout"
         for rel in [f"{SCRIPTS}/{w}" for w in WRAPPERS] + [
                 "tools/hosts/profile_tables_guard.sh", "tools/hosts/panelpro_session.sh",
+                "tools/hosts/pi/jmri_profile_match.sh",
                 "tools/hosts/panelpro_profile.py", "cats/scripts/patch_jmri_startup.py"]:
             dest = self.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
