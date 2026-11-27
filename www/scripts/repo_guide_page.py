@@ -93,7 +93,9 @@ SUBMODULES = {
 # and store_items and store_plan of store_split.
 HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
 HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad", "device_rows": "railroad",
-                 "store_items": "store_split", "store_plan": "store_split"}
+                 "store_items": "store_split", "store_plan": "store_split",
+                 "tables_sections": "tables_build", "tables_normal": "tables_build", "jmri_bean": "tables_build",
+                 "startup_logixng": "tables_build", "tables_sml": "tables_build", "tables_roundtrip": "tables_build"}
 HARTLIB_OTHER = {
     "names": "the DCC group of a JMRI comment",
     "devices": "the device master, its dictionary and its checks",
