@@ -12,7 +12,8 @@
 
 The job file is plain Jython 2.7. liverule.py (the stop rule and span arithmetic the tests
 check) is pasted in front of step_runner.py, so the runner on the Pi runs exactly that code.
-Nothing is sent: use drop_job.sh to copy a job to the Pi.
+Nothing is sent: use drop_job.sh to copy a job to the Pi. An option or payload the job cannot
+be built from raises JobError, which main() turns into the exit message (status 1).
 """
 from __future__ import annotations
 
@@ -21,17 +22,20 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+_HARTLIB = [p / "tools/hartlib/src" for p in HERE.parents if (p / "tools/hartlib/src").is_dir()]
+if not _HARTLIB:
+    raise ImportError(f"no tools/hartlib/src above {__file__}")
+sys.path.insert(0, str(_HARTLIB[0]))
 from hartlib import paths, tables as tables_lib  # noqa: E402
 import analyze  # noqa: E402
 import liverule as lr  # noqa: E402
 import preflight_compare as pc  # noqa: E402
 
-# Creep steps, the 2026-11-08 steps, and a repeat of 126 at the end to measure drift.
+# Creep steps, the profile steps, and a repeat of 126 at the end to measure drift.
 DEFAULT_STEPS = [2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 80, 96, 112, 126, 126]
 DEFAULT_WARM_STEP = 64
 DEFAULT_WARM_LAPS = 3
@@ -40,12 +44,24 @@ DEFAULT_WARM_LAPS = 3
 # any other decoder before trusting them.
 BACKEMF = {"tsunami2": [209, 210, 211, 212, 213], "tcs": [49, 56, 57], "none": []}
 BASE_CVS = pc.BASE_CVS
-
+MUTE_FN = 8                  # --mute-sound also switches this function on (2121's mute)
+MAX_STEP = 126
 
 TABLES = paths.TABLES_XML
+RUNNER_MARK = "# ---- runner ----\n"
+
+Settings = dict[str, Any]    # one job's settings, written in this order as `NAME = repr` lines
+Lengths = dict[str, Any]     # analyze.load_lengths: block sensor to its trusted length, or None
 
 
-def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
+class JobError(Exception):
+    """An option or payload the job cannot be built from; the message names it."""
+
+
+_GUARD_CACHE: dict[tuple[str, str], list[str]] = {}
+
+
+def guard_for(route: str = analyze.DEFAULT_ROUTE, tables: Path = TABLES) -> list[str]:
     """Every block sensor ("BS ..." user name) in tables.xml that is not on the route, in the
     order tables.xml lists them: what --guard default stands for. Computed, not hand-listed, so a
     new block sensor is guarded at once. McKees Rocks and McKeesport share the Switch 37 and 39
@@ -53,7 +69,7 @@ def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
     on_route = set(analyze.route_order(route))
     key = (route, str(tables))
     if key not in _GUARD_CACHE:
-        out = []
+        out: list[str] = []
         for el in tables_lib.read(tables).iter("userName"):  # ElementTree unescapes entities
             n = (el.text or "").strip()
             if n.startswith("BS ") and n not in on_route and n not in out:
@@ -62,31 +78,25 @@ def guard_for(route=analyze.DEFAULT_ROUTE, tables=TABLES):
     return list(_GUARD_CACHE[key])
 
 
-_GUARD_CACHE = {}
-
-
-def __getattr__(name):
+def __getattr__(name: str) -> list[str]:
     """DEFAULT_GUARD (loop1's guard) is computed on first use: importing this module reads nothing."""
     if name == "DEFAULT_GUARD":
         return guard_for(analyze.DEFAULT_ROUTE)
     raise AttributeError(name)
 
 
-RUNNER_MARK = "# ---- runner ----\n"
-
-
-def step_value(text):
+def step_value(text: str) -> int:
     """One throttle step: an integer 1..126 (argparse type)."""
     try:
         n = int(text)
-    except ValueError:
-        raise argparse.ArgumentTypeError("%r is not a whole number" % text)
-    if not 1 <= n <= 126:
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("%r is not a whole number" % text) from exc
+    if not 1 <= n <= MAX_STEP:
         raise argparse.ArgumentTypeError("step %d is outside 1..126" % n)
     return n
 
 
-def lineup_text(route):
+def lineup_text(route: str) -> str:
     """The switch positions to set by hand for a route, as printed by the lineup job. Nothing
     here is ever sent anywhere."""
     lines = ["Line up for %s by hand (tools never command turnouts):" % route]
@@ -95,19 +105,20 @@ def lineup_text(route):
     return "\n".join(lines)
 
 
-def step_list(text):
+def step_list(text: str) -> list[int]:
+    """Whole steps, comma separated (argparse type)."""
     return [step_value(x) for x in text.split(",")]
 
 
-def guards(values, route=analyze.DEFAULT_ROUTE):
+def guards(values: list[str], route: str = analyze.DEFAULT_ROUTE) -> list[str]:
     """--guard values: sensor names, or the single word none to run without a guard on purpose
     (the runner then logs NO GUARD). The word default stands for guard_for(route), every block
     sensor off that route, and may be combined with more names."""
     if "none" in values:
         if len(values) > 1:
-            raise SystemExit("--guard none cannot be combined with sensor names")
+            raise JobError("--guard none cannot be combined with sensor names")
         return []
-    out = []
+    out: list[str] = []
     for v in values:
         for n in (guard_for(route) if v == "default" else [v]):
             if n not in out:
@@ -115,21 +126,39 @@ def guards(values, route=analyze.DEFAULT_ROUTE):
     return out
 
 
-def runner_text(name):
+def runner_text(name: str) -> str:
     """The runner part of a job: the mark, the shared jobkit.py, then the runner itself. The
     three movers (steps, move, stoptest) share jobkit.py, so none keeps its own copy."""
     return RUNNER_MARK + (HERE / "jython" / "jobkit.py").read_text() + "\n" + (HERE / "jython" / name).read_text()
 
 
-def settings_text(d):
+def settings_text(d: Settings) -> str:
+    """The settings as Jython assignments, one per line, in the dict's order."""
     return "".join("%s = %r\n" % (k, v) for k, v in d.items())
 
 
-def build_steps(a, lengths):
+def with_rule(s: Settings, runner: str) -> str:
+    """liverule.py first (its defaults), then the settings (they override those defaults), then
+    the runner. The marker line lets a test run everything before the runner."""
+    return (HERE / "liverule.py").read_text() + "\n" + settings_text(s) + runner_text(runner)
+
+
+def funcs(a: argparse.Namespace) -> list[int]:
+    """The functions the job switches on: F0, and the mute with --mute-sound."""
+    return [0] + ([MUTE_FN] if a.mute_sound else [])
+
+
+def forward(a: argparse.Namespace) -> bool:
+    """True for --direction forward."""
+    return bool(a.direction == "forward")
+
+
+def build_steps(a: argparse.Namespace, lengths: Lengths) -> str:
+    """steps --mode laps: readings per step until the stop rule settles it."""
     order = analyze.route_order(a.route)
     s = {
-        "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
-        "FUNCS": [0] + ([8] if a.mute_sound else []),
+        "LOGF": a.log, "P_ID": a.loco, "P_FWD": forward(a),
+        "FUNCS": funcs(a),
         "GUARD": guards(a.guard, a.route), "REF": order[0], "MID": analyze.route_mid(a.route),
         "ROUTE": a.route, "ORDER": order, "LENGTHS": lengths,
         "STEPS_LIST": a.steps, "WARM_STEP": a.warm_step, "WARM_LAPS": a.warm_laps,
@@ -138,18 +167,15 @@ def build_steps(a, lengths):
         "STALL0": a.stall, "STALL_CAP": a.stall_cap, "STALL_SKIP_BELOW": a.stall_skip_below,
         "STEP_MAX_S": a.step_max,
     }
-    # liverule.py first (its defaults), then the settings (they override those defaults),
-    # then the runner. The marker line lets a test run everything before the runner.
-    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
-            + runner_text("step_runner.py"))
+    return with_rule(s, "step_runner.py")
 
 
-def build_distance(a, lengths):
+def build_distance(a: argparse.Namespace, lengths: Lengths) -> str:
     """steps --mode distance: one continuous pass, each step measured over a distance."""
     order = analyze.route_order(a.route)
     s = {
-        "LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward",
-        "FUNCS": [0] + ([8] if a.mute_sound else []),
+        "LOGF": a.log, "P_ID": a.loco, "P_FWD": forward(a),
+        "FUNCS": funcs(a),
         "GUARD": guards(a.guard, a.route), "MID": analyze.route_mid(a.route),
         "ROUTE": a.route, "ORDER": order, "LENGTHS": lengths,
         "STEPS_LIST": a.steps, "WARM_S": a.warm_s, "WARM_STEP": a.warm_step,
@@ -157,76 +183,97 @@ def build_distance(a, lengths):
         "CV3": a.cv3, "CV4": a.cv4,
         "STALL0": a.stall, "STALL_CAP": a.stall_cap, "STALL_SKIP_BELOW": a.stall_skip_below,
     }
-    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
-            + runner_text("distance_runner.py"))
+    return with_rule(s, "distance_runner.py")
 
 
-def build_pass(a):
+def build_pass(a: argparse.Namespace) -> str:
+    """pass: one timed pass from --from through --to, ending one sensor later."""
     order = analyze.route_order(a.route)
     g = guards(a.guard, a.route)
     for n in (a.frm, a.to):
         if n not in order:
-            raise SystemExit("%r is not a %s sensor user name; give one of: %s" % (n, a.route, ", ".join(order)))
+            raise JobError("%r is not a %s sensor user name; give one of: %s" % (n, a.route, ", ".join(order)))
     if a.frm == a.to:
-        raise SystemExit("--from and --to are the same sensor")
+        raise JobError("--from and --to are the same sensor")
     after = lr.next_after(order, a.frm, a.to)
     if after == a.frm:
-        raise SystemExit("no sensor between --to and --from to end the pass on")
-    for n in lr.path_between(order, a.frm, a.to) + [after]:
+        raise JobError("no sensor between --to and --from to end the pass on")
+    path = lr.path_between(order, a.frm, a.to)
+    for n in path + [after]:
         if n in g:
-            raise SystemExit("%r is also a guard: the run would end before the pass is done" % n)
-    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
-         "FUNCS": [0] + ([8] if a.mute_sound else []), "GUARD": g, "ROUTE": a.route, "ORDER": order,
-         "FROM_S": a.frm, "TO_S": a.to, "AFTER_S": after, "PATH": lr.path_between(order, a.frm, a.to), "MAX_S": a.max_s, "STALL": a.stall}
-    return ((HERE / "liverule.py").read_text() + "\n" + settings_text(s)
-            + runner_text("pass_runner.py"))
+            raise JobError("%r is also a guard: the run would end before the pass is done" % n)
+    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": forward(a), "P_STEP": a.step,
+         "FUNCS": funcs(a), "GUARD": g, "ROUTE": a.route, "ORDER": order,
+         "FROM_S": a.frm, "TO_S": a.to, "AFTER_S": after, "PATH": path, "MAX_S": a.max_s, "STALL": a.stall}
+    return with_rule(s, "pass_runner.py")
 
 
-def build_move(a):
-    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
-         "UNTIL": list(a.until), "GUARD": guards(a.guard, a.route), "FUNCS": [0] + ([8] if a.mute_sound else []),
+def build_move(a: argparse.Namespace) -> str:
+    """move: run at one step until one of the --until sensors lights."""
+    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": forward(a), "P_STEP": a.step,
+         "UNTIL": list(a.until), "GUARD": guards(a.guard, a.route), "FUNCS": funcs(a),
          "MAX_S": a.max_s}
     return settings_text(s) + runner_text("move_to.py")
 
 
-def build_stoptest(a):
+def build_stoptest(a: argparse.Namespace) -> str:
+    """stoptest: speed 0 when --trigger lights, then log the stop."""
     g = guards(a.guard, a.route)
     order = analyze.route_order(a.route)
     if a.trigger in g:
-        raise SystemExit("--trigger %r is also a guard: the run would end before it stops the loco" % a.trigger)
+        raise JobError("--trigger %r is also a guard: the run would end before it stops the loco" % a.trigger)
     if a.trigger not in order:
-        raise SystemExit("--trigger %r is not a %s sensor user name; give one of: %s (system names are refused so "
-                         "the off-loop check is reliable)" % (a.trigger, a.route, ", ".join(order)))
-    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": a.direction == "forward", "P_STEP": a.step,
-         "TRIGGER": a.trigger, "GUARD": g, "FUNCS": [0] + ([8] if a.mute_sound else []),
+        raise JobError("--trigger %r is not a %s sensor user name; give one of: %s (system names are refused so "
+                       "the off-loop check is reliable)" % (a.trigger, a.route, ", ".join(order)))
+    s = {"LOGF": a.log, "P_ID": a.loco, "P_FWD": forward(a), "P_STEP": a.step,
+         "TRIGGER": a.trigger, "GUARD": g, "FUNCS": funcs(a),
          "MAX_S": a.max_s, "SETTLE_S": a.settle_s, "QUIET_S": a.quiet_s}
     return settings_text(s) + runner_text("stop_test.py")
 
 
-def build_profile(a):
-    payload = json.loads(Path(a.payload).read_text())
-    pts = payload.get("points") or []
-    if not payload.get("roster_id") or not pts:
-        raise SystemExit("payload has no roster_id or no points")
-    points = []
-    if not isinstance(pts, list):
-        raise SystemExit("payload points is not a list")
-    for p in pts:
-        if not isinstance(p, dict):
-            raise SystemExit("payload point %r is not an object with step, forward_mm_s and reverse_mm_s" % (p,))
-        fw, rv = p.get("forward_mm_s"), p.get("reverse_mm_s")
-        if not isinstance(fw, (int, float)) or not isinstance(rv, (int, float)) or fw <= 0 or rv <= 0:
-            raise SystemExit("point for step %r needs a forward and a reverse speed above 0" % p.get("step"))
-        step = step_value(str(p["step"]))
-        points.append({"key": int(round(step / 126.0 * 1000)), "step": step,
-                       "forward": float(fw), "reverse": float(rv)})
+def read_payload(path: str) -> dict[str, Any]:
+    """profile_to_roster.py's JSON: an object with a roster_id and a list of points."""
+    try:
+        payload = json.loads(Path(path).read_text())
+    except OSError as exc:
+        raise JobError(f"cannot read the payload {path}: {exc.strerror}") from exc
+    except json.JSONDecodeError as exc:
+        raise JobError(f"the payload {path} is not JSON: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise JobError("payload is not an object with roster_id and points")
+    if not payload.get("roster_id") or not payload.get("points"):
+        raise JobError("payload has no roster_id or no points")
+    if not isinstance(payload["points"], list):
+        raise JobError("payload points is not a list")
+    return payload
+
+
+def profile_point(p: object) -> dict[str, Any]:
+    """One payload point as the job holds it: its throttle key (the step in thousandths of 126), step and speeds."""
+    if not isinstance(p, dict):
+        raise JobError("payload point %r is not an object with step, forward_mm_s and reverse_mm_s" % (p,))
+    fw, rv = p.get("forward_mm_s"), p.get("reverse_mm_s")
+    if not isinstance(fw, (int, float)) or not isinstance(rv, (int, float)) or fw <= 0 or rv <= 0:
+        raise JobError("point for step %r needs a forward and a reverse speed above 0" % p.get("step"))
+    try:
+        step = step_value(str(p.get("step")))
+    except argparse.ArgumentTypeError as exc:
+        raise JobError(f"payload point {p!r}: {exc}") from exc
+    return {"key": int(round(step / float(MAX_STEP) * 1000)), "step": step, "forward": float(fw), "reverse": float(rv)}
+
+
+def build_profile(a: argparse.Namespace) -> str:
+    """profile: write the payload's speeds into the roster entry's speed profile (a dry run unless --apply)."""
+    payload = read_payload(a.payload)
+    points = [profile_point(p) for p in payload["points"]]
     if len({p["key"] for p in points}) != len(points):
-        raise SystemExit("two points share a throttle key")
+        raise JobError("two points share a throttle key")
     s = {"LOGF": a.log, "P_ID": payload["roster_id"], "POINTS": points, "APPLY": bool(a.apply)}
     return settings_text(s) + (HERE / "jython" / "write_profile.py").read_text()
 
 
-def build_preflight(a):
+def build_preflight(a: argparse.Namespace) -> str:
+    """preflight: read the base CVs and the decoder family's back-EMF CVs."""
     cvs = BASE_CVS + BACKEMF[a.backemf]
     s = {"LOGF": a.log, "P_ID": a.loco, "CVS": cvs, "CV_WAIT": a.cv_wait}
     return settings_text(s) + (HERE / "jython" / "preflight.py").read_text()
@@ -358,6 +405,8 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
+
+
 def _steps_job(a: argparse.Namespace, tag: str, stamp: str) -> str:
     """The steps job text, after the mode's defaults and limits are applied to a."""
     dist = a.mode == "distance"
@@ -367,15 +416,38 @@ def _steps_job(a: argparse.Namespace, tag: str, stamp: str) -> str:
         a.warm_step = lr.DIST_WARM_STEP if dist else DEFAULT_WARM_STEP
     if a.rel is None:
         a.rel = lr.DIST_REL if dist else lr.STOP_REL
-    if (a.warm_s > 0 if dist else a.warm_laps > 0) and not 1 <= a.warm_step <= 126:
-        sys.exit("--warm-step %d is outside 1..126" % a.warm_step)
+    if (a.warm_s > 0 if dist else a.warm_laps > 0) and not 1 <= a.warm_step <= MAX_STEP:
+        raise JobError("--warm-step %d is outside 1..126" % a.warm_step)
     if dist and (a.target_mm <= 0 or a.min_blocks < 1 or a.max_s <= 0 or a.warm_s < 0):
-        sys.exit("distance mode needs --target-mm and --max-s above 0, --min-blocks 1 or more, --warm-s 0 or more")
+        raise JobError("distance mode needs --target-mm and --max-s above 0, --min-blocks 1 or more, --warm-s 0 or more")
     a.log = a.log or "/tmp/steprun_%s_%s_%s.log" % (tag, a.direction, stamp)
     lengths = analyze.load_lengths(a.lengths, tuple(a.trusted.split(",")), analyze.route_loop(a.route))
     if sum(v is not None for v in lengths.values()) == 0:
-        sys.exit("no trusted block lengths: nothing to measure over (see --trusted)")
+        raise JobError("no trusted block lengths: nothing to measure over (see --trusted)")
     return build_distance(a, lengths) if dist else build_steps(a, lengths)
+
+
+def job_text(a: argparse.Namespace, stamp: str) -> str:
+    """The job file for a parsed command line (not lineup), with --log defaulted to a /tmp name on the Pi."""
+    tag = a.loco.replace(" ", "_") if getattr(a, "loco", None) else "profile"
+    if a.job == "steps":
+        return _steps_job(a, tag, stamp)
+    if a.job == "pass":
+        a.log = a.log or "/tmp/pass_%s_%s_step%d_%s.log" % (tag, a.direction, a.step, stamp)
+        return build_pass(a)
+    if a.job == "move":
+        a.log = a.log or "/tmp/moveto_%s_%s.log" % (tag, stamp)
+        return build_move(a)
+    if a.job == "stoptest":
+        a.log = a.log or "/tmp/stoptest_%s_%s_%s.log" % (tag, a.direction, stamp)
+        return build_stoptest(a)
+    if a.job == "profile":
+        a.log = a.log or "/tmp/writeprofile_%s.log" % stamp
+        return build_profile(a)
+    if a.job == "preflight":
+        a.log = a.log or "/tmp/preflight_%s_%s.log" % (tag, stamp)
+        return build_preflight(a)
+    raise JobError(f"no job {a.job!r}")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -384,24 +456,10 @@ def main(argv: list[str] | None = None) -> None:
     if a.job == "lineup":
         print(lineup_text(a.route))
         return
-    tag = a.loco.replace(" ", "_") if getattr(a, "loco", None) else "profile"
-    if a.job == "steps":
-        text = _steps_job(a, tag, stamp)
-    elif a.job == "pass":
-        a.log = a.log or "/tmp/pass_%s_%s_step%d_%s.log" % (tag, a.direction, a.step, stamp)
-        text = build_pass(a)
-    elif a.job == "move":
-        a.log = a.log or "/tmp/moveto_%s_%s.log" % (tag, stamp)
-        text = build_move(a)
-    elif a.job == "stoptest":
-        a.log = a.log or "/tmp/stoptest_%s_%s_%s.log" % (tag, a.direction, stamp)
-        text = build_stoptest(a)
-    elif a.job == "profile":
-        a.log = a.log or "/tmp/writeprofile_%s.log" % stamp
-        text = build_profile(a)
-    else:
-        a.log = a.log or "/tmp/preflight_%s_%s.log" % (tag, stamp)
-        text = build_preflight(a)
+    try:
+        text = job_text(a, stamp)
+    except JobError as exc:
+        raise SystemExit(str(exc)) from exc
     Path(a.out).write_text(text)
     print("wrote %s (log on the Pi: %s)" % (a.out, a.log))
 

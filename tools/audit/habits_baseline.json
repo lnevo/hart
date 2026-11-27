@@ -52,9 +52,6 @@
  "jmri/layouts/hart/scripts/speedmatch/dashboard/publish_live.py": {
   "import-exit": 1
  },
- "jmri/layouts/hart/scripts/speedmatch/make_job.py": {
-  "import-exit": 15
- },
  "jmri/layouts/hart/scripts/speedmatch/speedmatch.py": {
   "import-exit": 1
  },
@@ -240,9 +237,6 @@
   "dated-note": 1
  },
  "tools/schematic/tests/test_masts_file.py": {
-  "dated-note": 1
- },
- "tools/wiring/freeze_wiring.py": {
   "dated-note": 1
  },
  "tools/wiring/write_inventory.py": {

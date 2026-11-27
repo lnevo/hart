@@ -37,7 +37,9 @@ class TheArticleIsWhatTheGeneratorBuilds(unittest.TestCase):
         meta = json.loads((LEVELS / "levels_meta.json").read_text())
         html = PAGE.read_text()
         for level, name in LP.LEVEL_NAMES.items():
-            sec = re.search(r'<section id="%s">(.*?)</section>' % level, html, re.S).group(1)
+            found = re.search(r'<section id="%s">(.*?)</section>' % level, html, re.S)
+            assert found is not None, f"the article has no {level} section"
+            sec = found.group(1)
             self.assertEqual(len(re.findall(r'<text class="tl"', sec)), meta["levels"][level]["switches"])
             self.assertIn("%d switch parts" % meta["levels"][level]["switches"], sec)
 
@@ -75,7 +77,7 @@ class TheTablesComeFromTheData(unittest.TestCase):
     def test_the_run_passes_come_from_the_block_notes(self) -> None:
         notes = {"Track Scale": "timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): ...",
                  "Track Barn": "timed passes of 2026-11-13: ..."}
-        rows = [("Track Scale",), ("Track Barn",)]
+        rows = ["Track Scale", "Track Barn"]
         self.assertEqual(LP.run_passes(rows, notes), ("CSX 2121", "24", "48"))
         self.assertIn("CSX 2121 timed the Switch 5 to Switch 15 run on two passes at different speeds (steps 24 and 48)",
                       text_of(PAGE.read_text()))
@@ -87,10 +89,10 @@ class TheTablesComeFromTheData(unittest.TestCase):
         notes["Track Barn"] = "timed passes (P&CV 2121, Switch 5 to 15, steps 32 and 64)"
         with self.assertRaisesRegex(LP.LevelsPageError, "Track Barn's note names passes as"):
             LP.run_passes(rows, notes)
-        self.assertEqual(LP.run_passes([("x",)], {"x": "(P&CV 2121, Switch 5 to Switch 15, steps 48 and 24)"}),
+        self.assertEqual(LP.run_passes(["x"], {"x": "(P&CV 2121, Switch 5 to Switch 15, steps 48 and 24)"}),
                          ("P&CV 2121", "48", "24"))
         with self.assertRaisesRegex(LP.LevelsPageError, "both at step 24"):
-            LP.run_passes([("x",)], {"x": "(CSX 2121, Switch 5 to Switch 15, steps 24 and 24)"})
+            LP.run_passes(["x"], {"x": "(CSX 2121, Switch 5 to Switch 15, steps 24 and 24)"})
 
     def test_a_timed_block_on_neither_route_stops(self) -> None:
         blocks, measured = LP.block_rows()
@@ -115,22 +117,25 @@ class TheTablesComeFromTheData(unittest.TestCase):
 
     def test_the_loop_fit_plan_comes_from_the_notes(self) -> None:
         blocks, measured = LP.block_rows()
-        rows = LP.timed_rows(blocks, measured, LP.loop_names())
+        names = [r.name for r in LP.timed_rows(blocks, measured, LP.loop_names())]
         notes = {name: m.note for name, m in measured.items()}
-        self.assertEqual(LP.loop_fit_plan(rows, notes), "5.3b")
+        self.assertEqual(LP.loop_fit_plan(names, notes), "5.3b")
         mixed = dict(notes, **{"Track K-1": notes["Track K-1"].replace("5.3b", "5.3c")})
         with self.assertRaisesRegex(LP.LevelsPageError, "expected one"):
-            LP.loop_fit_plan(rows, mixed)
+            LP.loop_fit_plan(names, mixed)
 
     def test_laps_are_the_common_count_and_the_exceptions(self) -> None:
-        rows = [("Track A", 1, 1, 0.5, 33), ("Track East Ext", 1, 1, 0.5, 16), ("OS B", 1, 1, 0.5, 33)]
+        rows = [LP.TimedRow("Track A", 1, 1, 0.5, 33), LP.TimedRow("Track East Ext", 1, 1, 0.5, 16),
+                LP.TimedRow("OS B", 1, 1, 0.5, 33)]
         self.assertEqual(LP.laps_note(rows), "33 laps (16 for East Ext)")
+        with self.assertRaisesRegex(LP.LevelsPageError, "gives its laps"):
+            LP.laps_note([LP.TimedRow("Track A", 1, 1, None, None)])
 
     def test_a_helix_run_that_differs_from_its_block_stops(self) -> None:
         meta = LP.read_meta(LEVELS)
         blocks, _ = LP.block_rows()
         rows = LP.helix_rows(meta, blocks)
-        self.assertEqual(sorted(r[0] for r in rows), ["McKees Rocks", "McKeesport"])
+        self.assertEqual(sorted(r.shown for r in rows), ["McKees Rocks", "McKeesport"])
         meta["helix"][0]["cm"] += 100
         with self.assertRaisesRegex(LP.LevelsPageError, "block_lengths.csv has"):
             LP.helix_rows(meta, blocks)
@@ -152,6 +157,60 @@ class TheInputsAreChecked(unittest.TestCase):
             (Path(tmp) / "levels_meta.json").write_text(json.dumps(meta))
             with self.assertRaisesRegex(LP.LevelsPageError, "no 'helix'"):
                 LP.read_meta(Path(tmp))
+
+    def test_a_missing_or_broken_meta_file_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(LP.LevelsPageError, "cannot read .*levels_meta.json"):
+                LP.read_meta(Path(tmp))
+            (Path(tmp) / "levels_meta.json").write_text("{")
+            with self.assertRaisesRegex(LP.LevelsPageError, "is not JSON"):
+                LP.read_meta(Path(tmp))
+            (Path(tmp) / "levels_meta.json").write_text("[]")
+            with self.assertRaisesRegex(LP.LevelsPageError, "is not an object"):
+                LP.read_meta(Path(tmp))
+
+    def test_a_level_without_its_counts_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(LEVELS, tmp, dirs_exist_ok=True)
+            meta = json.loads((Path(tmp) / "levels_meta.json").read_text())
+            del meta["levels"]["upper"]["ramp_m"]
+            del meta["levels"]["main"]
+            (Path(tmp) / "levels_meta.json").write_text(json.dumps(meta))
+            with self.assertRaisesRegex(LP.LevelsPageError, "no main level"):
+                LP.read_meta(Path(tmp))
+            meta["levels"]["main"] = meta["levels"]["staging"]
+            (Path(tmp) / "levels_meta.json").write_text(json.dumps(meta))
+            with self.assertRaisesRegex(LP.LevelsPageError, "the upper level has no ramp_m"):
+                LP.read_meta(Path(tmp))
+
+    def test_a_missing_drawing_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copytree(LEVELS, tmp, dirs_exist_ok=True)
+            (Path(tmp) / "upper.svg").unlink()
+            with self.assertRaisesRegex(LP.LevelsPageError, "cannot read .*upper.svg"):
+                LP.render(Path(tmp))
+
+    def test_a_timed_or_helix_block_without_a_plan_length_stops(self) -> None:
+        blocks, measured = LP.block_rows()
+        name = LP.loop_names()[0]
+        fewer = {k: v for k, v in blocks.items() if k != name}
+        with self.assertRaisesRegex(LP.LevelsPageError, f"no plan length for the timed block {name}"):
+            LP.timed_rows(fewer, measured, [name])
+        helix = {r.block for r in LP.railroad.read_helix_tracks(LP.HELIX_SOURCE).values()}
+        with self.assertRaisesRegex(LP.LevelsPageError, "no plan length for the helix block"):
+            LP.helix_rows(LP.read_meta(LEVELS), {k: v for k, v in blocks.items() if k not in helix})
+
+    def test_the_artifact_copy_embeds_the_panel_picture(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            png, site, art = Path(tmp) / "p.png", Path(tmp) / "site.html", Path(tmp) / "art.html"
+            png.write_bytes(b"\x89PNG")
+            LP.main(["--site", str(site), "--artifact", str(art), "--panel", str(png)])
+            self.assertEqual(site.read_text(), PAGE.read_text())
+            self.assertIn('src="data:image/png;base64,iVBORw=="', art.read_text())
+            self.assertNotIn("@PANEL@", art.read_text())
+            with self.assertRaises(SystemExit) as cm:
+                LP.main(["--site", str(site), "--artifact", str(art), "--panel", str(Path(tmp) / "none.png")])
+            self.assertIn("cannot read the panel picture", str(cm.exception))
 
     def test_a_plan_version_that_is_not_one_stops(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
