@@ -300,17 +300,20 @@
     // the links as laid out, less those drawn back to an earlier step, so the line runs left to right
     const ids = (presetLine(DATA.presets, view.focus) || mainLine(lay.edges.filter(e => !e.back && !overHub(e)), view.focus,
       { stops: endsHover, up: side(ins1, "from", view.up), down: side(outs1, "to", view.down) })).filter(id => nodeEl[id]);
-    const on = new Set(ids);
+    const also = presetAlso(DATA.presets, view.focus).filter(id => nodeEl[id]), beside = new Set(also), onLine = new Set(ids);
+    const on = new Set(ids.concat(also));
     const pairs = new Set(ids.slice(1).map((id, i) => ids[i] + "\u0000" + id));
     svg.classList.add("mline");
-    ids.forEach(id => nodeEl[id].classList.add("ml"));
+    on.forEach(id => nodeEl[id].classList.add("ml"));
     if (nodeEl[view.focus]) nodeEl[view.focus].classList.add("mlf");
     const at = ids.indexOf(view.focus);
     edgeEls.forEach(el => {
       const f = el.dataset.from, t = el.dataset.to;
-      if (!pairs.has(f + "\u0000" + t)) return;
+      const toSide = onLine.has(f) && beside.has(t), fromSide = beside.has(f) && onLine.has(t);
+      if (!pairs.has(f + "\u0000" + t) && !toSide && !fromSide) return;
       el.classList.add("ml");
-      if (ids.indexOf(t) <= at) el.classList.add("upstream");  // what feeds the file, amber as a click shows it
+      // what feeds the file, amber as a click shows it; a box beside the line takes the side of the line box it joins
+      if (toSide ? ids.indexOf(f) < at : ids.indexOf(t) <= at) el.classList.add("upstream");
     });
     updateFar();
     return on;

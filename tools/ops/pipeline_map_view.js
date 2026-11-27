@@ -108,7 +108,7 @@ function app() {
     const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
     let edges = g.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus));
     const line = view.line && view.focus && presetLine(DATA.presets, view.focus);  // a Start button's own line: all of it drawn
-    if (line) ({ nodes, edges } = withLine(nodes, edges, { nodes: g.nodes.concat(DATA.nodes), edges: g.edges.concat(DATA.edges) }, line));
+    if (line) ({ nodes, edges } = withLine(nodes, edges, { nodes: g.nodes.concat(DATA.nodes), edges: g.edges.concat(DATA.edges) }, line, presetAlso(DATA.presets, view.focus)));
     if (view.laneOpen.size && !view.focus) {  // lanes opened from the overview: the others closed to one box each
       groups = collapseLanes(nodes, edges, view.laneOpen, closedLaneName);
       ({ nodes, edges } = groups);

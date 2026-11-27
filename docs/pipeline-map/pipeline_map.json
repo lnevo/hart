@@ -193,6 +193,9 @@
     "AGENTS.md",
     "wiki/decisions",
     "docs/INDEX.md"
+   ],
+   "also": [
+    "tools/ops/pipeline_query.py"
    ]
   }
  ],

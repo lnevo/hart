@@ -120,10 +120,10 @@ class MainLineTest(unittest.TestCase):
         self.assertEqual(lines[[p["label"] for p in data["presets"]].index("Car cards")][-1], "ops/car-cards/print")
 
 
-# presetLine and withLine under node: a.presets, a.focus; a.drawn and a.all as {nodes, edges}
+# presetLine, presetAlso and withLine under node: a.presets, a.focus; a.drawn and a.all as {nodes, edges}
 NAMED = """const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]);
-const line = m.presetLine(a.presets, a.focus);
-process.stdout.write(JSON.stringify({ line, drawn: line && m.withLine(a.drawn.nodes, a.drawn.edges, a.all, line) }));"""
+const line = m.presetLine(a.presets, a.focus), also = m.presetAlso(a.presets, a.focus);
+process.stdout.write(JSON.stringify({ line, also, drawn: line && m.withLine(a.drawn.nodes, a.drawn.edges, a.all, line, also) }));"""
 
 
 def named(presets: list[dict], focus: str, drawn: dict, every: dict) -> dict:
@@ -173,6 +173,29 @@ class PresetLineCheckTest(unittest.TestCase):
             with self.subTest(preset=pr["label"]):
                 self.assertIn("line", pr)
                 self.assertEqual(MAP.line_problems(pr["line"], pr["focus"], ids, edges), [])
+                self.assertEqual(MAP.also_problems(pr.get("also", []), pr["line"], ids, edges), [])
+
+
+class PresetAlsoCheckTest(unittest.TestCase):
+    """also_problems: the boxes a preset lights beside its line."""
+    IDS = {"a", "f", "d", "s", "t"}
+    EDGES = {("a", "f"), ("f", "d"), ("f", "s")}
+
+    def problems(self, also: object, line: object = ("a", "f", "d")) -> list[str]:
+        return MAP.also_problems(also, list(line) if isinstance(line, tuple) else line, self.IDS, self.EDGES)
+
+    def test_a_box_linked_to_the_line_passes(self) -> None:
+        self.assertEqual(self.problems(["s"]), [])
+        self.assertEqual(self.problems([]), [])
+
+    def test_each_box_needs_a_link_to_the_line_and_must_be_off_it(self) -> None:
+        self.assertEqual(self.problems(["t"]), ["also: 't' has no link to or from the line"])
+        self.assertEqual(self.problems(["d"]), ["also: 'd' is on the line"])
+        self.assertEqual(self.problems(["x", "s", "s"]), ["also: 'x' is not a node", "also: 's' is listed twice"])
+
+    def test_a_bad_shape_or_no_line(self) -> None:
+        self.assertEqual(self.problems("s"), ["also must be a list of node ids"])
+        self.assertEqual(self.problems(["s"], line=None), ["also needs a line"])
 
 
 @unittest.skipUnless(NODE, "node is not installed")
@@ -192,6 +215,13 @@ class NamedLineDrawTest(unittest.TestCase):
         drawn = {"nodes": [{"id": "b"}, {"id": "f"}], "edges": links("b>f")}
         got = named([{"focus": "f", "line": ["b", "f", "d"]}], "f", drawn, every)
         self.assertEqual([(e["from"], e["to"]) for e in got["drawn"]["edges"]], [("b", "f"), ("f", "d")])
+
+    def test_boxes_beside_the_line_join_with_their_links(self) -> None:
+        drawn = {"nodes": [{"id": "f"}], "edges": []}
+        got = named([{"focus": "f", "line": ["b", "f"], "also": ["x"]}], "f", drawn, self.EVERY)
+        self.assertEqual(got["also"], ["x"])
+        self.assertEqual([n["id"] for n in got["drawn"]["nodes"]], ["f", "b", "x"])
+        self.assertEqual([(e["from"], e["to"]) for e in got["drawn"]["edges"]], [("b", "f"), ("x", "f")])
 
     def test_no_line_named_falls_back(self) -> None:
         empty = {"nodes": [], "edges": []}
