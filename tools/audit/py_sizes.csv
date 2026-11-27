@@ -6,7 +6,6 @@ jmri/layouts/hart/scripts/gen_ctc_track_plan.py,1375
 jmri/layouts/hart/scripts/tests/test_pom_guard.py,976
 jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py,2059
 jmri/layouts/hart/scripts/tests/test_speedmatch_distance.py,971
-ops/hart-ops/card_pipeline/crop_car_image.py,994
 tools/audit/check_layout_facts.py,895
 tools/audit/tests/test_build_layout_le.py,1119
 tools/audit/tests/test_pipeline_map.py,861

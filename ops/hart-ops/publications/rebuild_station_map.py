@@ -43,7 +43,7 @@ from hart_pub_helpers import (  # noqa: E402
     add_publication_footer,
     set_page_size,
 )
-from pub_fonts import ARIAL, ARIAL_BOLD, GEORGIA, GEORGIA_BOLD, font  # noqa: E402, F401
+from pub_fonts import ARIAL_BOLD, GEORGIA, GEORGIA_BOLD, font  # noqa: E402
 from station_compass import compass_rose, paste_compass  # noqa: E402
 
 CANONICAL = DOCS / "Neville_Island_Station_Map.docx"
@@ -59,7 +59,6 @@ Point = tuple[float, float]
 BG: RGB = (255, 255, 255)
 INK: RGB = (0x16, 0x16, 0x16)
 RULE: RGB = (0x16, 0x16, 0x16)
-ACCENT_RED: RGB = (0x5C, 0x16, 0x16)
 
 SPINE_KEYS = ("east_upper", "brick", "plane", "barn", "east_lower", "princess", "interchange")
 LABEL_KEYS = ("to_princess", "brick", "west_yard", "plane", "barn", "scale", "south_yard",
@@ -110,15 +109,8 @@ PUBLICATION: Publication = TEXT["publication"]
 
 
 def _font(path: str, size: int) -> ImageFont.FreeTypeFont:
+    """pub_fonts.font, looked up here on every call so the tests can stand in a font."""
     return font(path, size)
-
-
-def _compass_rose_n_right(size: int = 180) -> Image.Image:
-    return compass_rose(size, "right")
-
-
-def _paste_compass(base: Image.Image, *, cx: float, cy: float, size: int, north: str = "right") -> None:
-    paste_compass(base, cx=cx, cy=cy, size=size, north=north)
 
 
 def _line(draw: ImageDraw.ImageDraw, a: Point, b: Point, *, w: int = 3) -> None:
@@ -376,7 +368,7 @@ def _draw_compass(img: Image.Image, f: Frame, sp: Spine) -> None:
     compass_cy = (sp.y["barn"] + sp.y["east_lower"]) * 0.5
     compass_cx = max(f.margin_x + rose_size * 0.52, min(compass_cx, sp.mx - rose_size * 0.55))
     compass_cy = max(f.header_bottom + rose_size * 0.55, min(compass_cy, f.footer_top - rose_size * 0.55))
-    _paste_compass(img, cx=compass_cx, cy=compass_cy, size=rose_size)
+    paste_compass(img, cx=compass_cx, cy=compass_cy, size=rose_size, north="right")
 
 
 def _draw_footer(draw: ImageDraw.ImageDraw, f: Frame, fonts: Fonts) -> None:
@@ -424,19 +416,21 @@ def draw_subdivision_map(
     return img
 
 
-def rebuild_png(out: Path = PNG_OUT) -> Path:
-    """Write the SM-01 PNG, its white-ground and diagram-only variants and the compass asset."""
-    out.parent.mkdir(parents=True, exist_ok=True)
+def rebuild_png(out: Path = PNG_OUT, *, plain: Path = PNG_PLAIN, diagram: Path = PNG_DIAGRAM,
+                compass: Path = PNG_COMPASS) -> Path:
+    """Write the SM-01 PNG, its white-ground and diagram-only variants and the compass asset; return ``out``."""
+    for path in (out, plain, diagram, compass):
+        path.parent.mkdir(parents=True, exist_ok=True)
     draw_subdivision_map().save(out, "PNG")
-    draw_subdivision_map(bg=(255, 255, 255)).save(PNG_PLAIN, "PNG")
+    draw_subdivision_map(bg=BG).save(plain, "PNG")
     # Diagram only, without the title and footer, for desk embeds.
     draw_subdivision_map(
-        width=1000, height=2400, include_title=False, include_footer=False, fill=True, bg=(255, 255, 255)
-    ).save(PNG_DIAGRAM, "PNG")
-    rose = _compass_rose_n_right(220)
+        width=1000, height=2400, include_title=False, include_footer=False, fill=True, bg=BG
+    ).save(diagram, "PNG")
+    rose = compass_rose(220, "right")
     rose_rgb = Image.new("RGB", rose.size, BG)
     rose_rgb.paste(rose, (0, 0), rose)
-    rose_rgb.save(PNG_COMPASS)
+    rose_rgb.save(compass)
     return out
 
 

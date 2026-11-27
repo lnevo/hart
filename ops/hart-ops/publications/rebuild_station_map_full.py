@@ -23,7 +23,8 @@ PUB = Path(__file__).resolve().parent
 sys.path.insert(0, str(PUB))
 
 import crew_master  # noqa: E402
-from rebuild_local_station_maps import (  # noqa: E402
+from local_station_maps.east_end import TRACK_INDUSTRIES  # noqa: E402
+from local_station_maps.kit import (  # noqa: E402
     ARIAL_BOLD,
     BG,
     GEORGIA,
@@ -34,10 +35,9 @@ from rebuild_local_station_maps import (  # noqa: E402
     _font,
     _label,
     _line,
+    Point,
     _sw_badge,
 )
-from local_station_maps.east_end import TRACK_INDUSTRIES  # noqa: E402
-from local_station_maps.kit import Point  # noqa: E402
 
 OUT = PUB / "assets" / "station_map_full.png"
 
@@ -52,6 +52,10 @@ W0 = Y0 + R1  # West Lead row, west of the jog before 103
 G = 120  # row pitch in the yard
 S = [Y0 + P_GAP + i * G for i in range(5)]  # S-R, S-1 .. S-4 (yard, east of the jog)
 ME_LOW = S[4] + 85  # Main East under the yard
+
+
+class FullMapError(ValueError):
+    """The map's anchors or industry colours do not fit together."""
 
 
 class Fonts(NamedTuple):
@@ -173,7 +177,7 @@ def _draw_west_yard(pen: _Pen, a: Anchors) -> None:
     f = pen.fonts
     plane = (a.xb, Y0 + 2 * S_LEG + VERT)
     if plane[1] != W0:
-        raise ValueError(f"the Brick lead ends at y {plane[1]}, not on the West Lead row {W0}")
+        raise FullMapError(f"the Brick lead ends at y {plane[1]}, not on the West Lead row {W0}")
     p1 = (a.xb - S_LEG, Y0 + S_LEG)
     p2 = (p1[0], p1[1] + VERT)
     t101 = (a.x101, Y0)
@@ -271,10 +275,30 @@ def _draw_sw111(pen: _Pen, a: Anchors) -> None:
     pen.badge((mid111[0] - 60, mid111[1]), str(SWNUM[111]))
 
 
-def _industry_parts() -> list[tuple[str, list[tuple[str, str]], str]]:
-    """(track, [(fill, industry)], loads) per East End industry track, names and fills from the crew master."""
-    swatch = crew_master.swatches(crew_master.load())
-    return [(track, [(swatch[c].fill, swatch[c].dest) for c in ids], loads) for track, ids, loads in TRACK_INDUSTRIES]
+class Industry(NamedTuple):
+    fill: str  # RRGGBB chip colour
+    name: str
+
+
+class IndustryTrack(NamedTuple):
+    track: str
+    industries: list[Industry]
+    loads: str
+
+
+def _industry_parts(master: dict | None = None) -> list[IndustryTrack]:
+    """The East End industry tracks with their industries' names and fills from the crew master.
+
+    Raises FullMapError naming the track when a colour id is not in the master.
+    """
+    swatch = crew_master.swatches(crew_master.load() if master is None else master)
+    parts = []
+    for track, ids, loads in TRACK_INDUSTRIES:
+        unknown = [c for c in ids if c not in swatch]
+        if unknown:
+            raise FullMapError(f"{track}: colour {', '.join(unknown)} is not in {crew_master.MASTER.name}")
+        parts.append(IndustryTrack(track, [Industry(swatch[c].fill, swatch[c].dest) for c in ids], loads))
+    return parts
 
 
 def _draw_yard_tracks(pen: _Pen, a: Anchors, west: _Ladder, east: _Ladder) -> None:

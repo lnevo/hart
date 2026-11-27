@@ -63,6 +63,20 @@ class CommandLine(unittest.TestCase):
         self.assertEqual(car_paths.CARD_FILL_DIR, car_paths.ROOT / "CarImagesCardFill")
         self.assertEqual(car_paths.CARD_FILL_PRINT_DIR, car_paths.ROOT / "CarImagesCardFillPrint")
 
+    def test_unknown_option_or_two_images_are_refused_before_any_write(self):
+        for argv in (["--sharpen"], ["IMG_0001", "IMG_0002"], ["--all", "IMG_0001"]):
+            with self.subTest(argv=argv), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as cm:
+                    scf.main(argv, self.src, self.out)
+                self.assertEqual(cm.exception.code, 2)
+        self.assertFalse(self.out.exists())
+
+    def test_unsharp_settings_reach_the_filter(self):
+        img = Image.new("RGB", (8, 6), (120, 80, 40))
+        with mock.patch.object(scf.ImageFilter, "UnsharpMask", wraps=scf.ImageFilter.UnsharpMask) as mask:
+            scf.sharpen_for_print(img)
+        mask.assert_called_once_with(0.9, 115, 2)
+
     def test_empty_source_exits_1(self):
         empty = self.src.parent / "empty"
         empty.mkdir()
