@@ -8,6 +8,7 @@ from __future__ import annotations
 import importlib.util
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -118,7 +119,7 @@ class QuietStartup(HomeCase):
         odd = ('<perform class="jmri.util.startup.configurexml.PerformScriptModelXml" '
                "enabled='yes' name=\"preference:jython/panel_status.py\"/>")
         xml.write_text(STARTUP.replace("<startup>", "<startup>\n" + odd), encoding="utf-8")
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.quiet_startup(xml, "/repo/x.py")
         self.assertIn("could not be switched off", str(caught.exception))
 
@@ -139,20 +140,20 @@ class BackupSealRestore(HomeCase):
         self.assertFalse(MOD.seal_path(self.xml).exists())
 
     def test_a_second_backup_refuses_with_the_recovery_command(self) -> None:
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.backup_profile(self.xml)
         self.assertIn(f"restore --profile {self.xml}", str(caught.exception))
 
     def test_restore_refuses_while_jmri_runs(self) -> None:
         with mock.patch.dict(os.environ, {"HART_GUARD_JMRI_RUNNING": "1"}):
-            with self.assertRaises(SystemExit) as caught:
+            with self.assertRaises(MOD.ProfileError) as caught:
                 MOD.restore_profile(self.xml)
         self.assertIn("running", str(caught.exception))
         self.assertTrue(MOD.backup_path(self.xml).exists())
 
     def test_restore_refuses_a_profile_changed_since_the_seal_unless_forced(self) -> None:
         self.xml.write_text(self.xml.read_text(encoding="utf-8") + "<!-- edited -->", encoding="utf-8")
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.restore_profile(self.xml)
         self.assertIn("changed since the run patched it", str(caught.exception))
         self.assertIn("overwrote changes", MOD.restore_profile(self.xml, force=True))
@@ -160,7 +161,7 @@ class BackupSealRestore(HomeCase):
 
     def test_restore_without_a_seal_needs_force(self) -> None:
         MOD.seal_path(self.xml).unlink()
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.restore_profile(self.xml)
         self.assertIn("is missing", str(caught.exception))
         MOD.restore_profile(self.xml, force=True)
@@ -174,13 +175,13 @@ class CheckProfile(HomeCase):
     def test_a_copy_on_the_live_user_files_is_refused(self) -> None:
         self.live()
         clone = self.profile(self.tmp / "scratch", "Rehearsal", LIVE_ID, r"home\:JMRI_UserFiles/")
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.check_profile(clone, str(clone.parent.parent), None)
         self.assertIn("uses the live user files folder", str(caught.exception))
-        with self.assertRaises(SystemExit) as caught:   # and a given value cannot paper over it
+        with self.assertRaises(MOD.ProfileError) as caught:   # and a given value cannot paper over it
             MOD.check_profile(clone, str(clone.parent.parent), str(self.tmp / "home/JMRI_UserFiles"))
         self.assertIn("uses the live user files folder", str(caught.exception))
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.check_profile(clone, LIVE_ID, None)
         self.assertIn("carries the live profile's id", str(caught.exception))
 
@@ -189,10 +190,10 @@ class CheckProfile(HomeCase):
         clone = self.profile(self.tmp / "scratch", "Rehearsal", "Rehearsal.1", f"{uf}/")
         self.assertEqual(uf, MOD.check_profile(clone, str(clone.parent.parent), None))
         self.assertEqual(uf, MOD.check_profile(clone, "Rehearsal.1", str(uf)))
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.check_profile(clone, "Rehearsal.1", str(self.tmp / "other"))
         self.assertIn("is not the user files folder", str(caught.exception))
-        with self.assertRaises(SystemExit) as caught:
+        with self.assertRaises(MOD.ProfileError) as caught:
             MOD.check_profile(clone, "Other.2", None)
         self.assertIn("would patch one profile and start another", str(caught.exception))
 
@@ -203,7 +204,7 @@ class CheckProfile(HomeCase):
         for name, shared, nodes, message in cases:
             with self.subTest(name=name):
                 xml = self.profile(self.tmp / "scratch", name, f"{name}.1", shared, nodes)
-                with self.assertRaises(SystemExit) as caught:
+                with self.assertRaises(MOD.ProfileError) as caught:
                     MOD.check_profile(xml, f"{name}.1", str(self.tmp / "given"))
                 self.assertIn(message, str(caught.exception))
 
@@ -219,7 +220,7 @@ class CheckProfile(HomeCase):
                                     (good, "Good.1", f"{self.tmp}/u f"),
                                     (good, "$(id)", None)):
             with self.subTest(launch=launch, uf=uf):
-                with self.assertRaises(SystemExit) as caught:
+                with self.assertRaises(MOD.ProfileError) as caught:
                     MOD.check_profile(profile, launch, uf)
                 self.assertIn("holds a space or a shell character", str(caught.exception))
 
@@ -243,7 +244,7 @@ class Properties(unittest.TestCase):
             self.assertEqual({"a:b": "home:JMRI_UserFiles/", "spaced": "value", "cont": "onetwo\\",
                               "uni": "A\tzq", "empty": "", "colon": "x", "esc key": "v"}, props)
             p.write_text("bad=\\u12G4\n", encoding="utf-8")
-            with self.assertRaises(SystemExit) as caught:
+            with self.assertRaises(MOD.ProfileError) as caught:
                 MOD.read_properties(p)
             self.assertIn("malformed \\u escape", str(caught.exception))
 
@@ -272,10 +273,37 @@ class JmriRunningProbe(unittest.TestCase):
             profile.write_text("<p/>", encoding="utf-8")
             MOD.backup_path(profile).write_text("<p/>", encoding="utf-8")
             with mock.patch.object(MOD.tables, "jmri_state", return_value=MOD.tables.JmriState.UNKNOWN), \
-                    self.assertRaises(SystemExit) as got:
+                    self.assertRaises(MOD.ProfileError) as got:
                 MOD.restore_profile(profile)
-            self.assertIn("cannot tell", str(got.exception.code))
+            self.assertIn("cannot tell", str(got.exception))
             self.assertTrue(MOD.backup_path(profile).is_file())
+
+
+
+class CommandLine(unittest.TestCase):
+    """A refusal reaches the shell callers as its message on stderr and exit code 1."""
+
+    def run_cli(self, *argv: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run([sys.executable, str(SCRIPT), *argv], capture_output=True, text=True, check=False)
+
+    def test_refusals_print_the_message_and_exit_1(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            xml = Path(tmp) / "a/profile/profile.xml"
+            xml.parent.mkdir(parents=True)
+            xml.write_text("<x/>", encoding="utf-8")
+            cases = ((("seal", "--profile", str(xml)),
+                      f"no backup for {xml}; seal comes after backup and patching\n"),
+                     (("restore", "--profile", str(xml)), f"no backup to restore: {xml}.hart-run.bak\n"),
+                     (("check-profile", "--profile", str(xml.parent.parent / "profile.xml"), "--launch", "X"),
+                      "not a JMRI profile.xml (want <name>.jmri/profile/profile.xml): "
+                      f"{xml.parent.parent / 'profile.xml'}\n"),
+                     (("quiet-startup", "--profile", str(xml), "--run", "/r/x.py"),
+                      f"{xml}: expected one tables load in Start Up, found 0\n"))
+            for argv, message in cases:
+                with self.subTest(action=argv[0]):
+                    got = self.run_cli(*argv)
+                    self.assertEqual((1, "", message), (got.returncode, got.stdout, got.stderr))
+                    self.assertEqual("<x/>", xml.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
