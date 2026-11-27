@@ -12,6 +12,7 @@ import sys
 import types
 import unittest
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import jmri_fake as jf  # noqa: E402
@@ -62,7 +63,7 @@ class SmlUi(unittest.TestCase):
         self.labels: list[int] = []
         c._set_button_label = lambda: self.labels.append(1)
         self.c = c
-        self.ui = sys.modules["sml_ui"]
+        self.ui: Any = sys.modules["sml_ui"]
         jf.Thread.started.clear()
 
     def run_attach(self) -> list[str]:
@@ -100,7 +101,7 @@ class SmlUi(unittest.TestCase):
             tries.append(1)
             return space if len(tries) == 3 else None
 
-        apps = sys.modules["apps"]
+        apps: Any = sys.modules["apps"]
         saved = apps.Apps
         apps.Apps = types.SimpleNamespace(buttonSpace=button_space)
         self.addCleanup(setattr, apps, "Apps", saved)
@@ -157,13 +158,18 @@ class SmlUi(unittest.TestCase):
         self.assertIn(": bean gone", out.getvalue())
 
     def test_a_missing_jmri_dialog_falls_back_to_the_plain_one(self) -> None:
-        shown = []
-        swing = sys.modules["javax.swing"]
+        shown: list[str] = []
+
+        def confirm(parent: object, msg: str, title: str, opts: int, kind: int) -> int:
+            shown.append(title)
+            return 0
+
+        swing: Any = sys.modules["javax.swing"]
         saved = swing.JOptionPane
         swing.JOptionPane = types.SimpleNamespace(
             WARNING_MESSAGE=2, YES_NO_OPTION=0, YES_OPTION=0, NO_OPTION=1,
             showMessageDialog=lambda parent, msg, title, kind: shown.append(title),
-            showConfirmDialog=lambda parent, msg, title, opts, kind: shown.append(title) or 0)
+            showConfirmDialog=confirm)
         self.addCleanup(setattr, swing, "JOptionPane", saved)
         self.ui.JOptionPane = swing.JOptionPane
         self.addCleanup(setattr, self.ui, "JOptionPane", saved)
@@ -175,7 +181,7 @@ class SmlUi(unittest.TestCase):
         self.assertEqual(out.getvalue().count("JMRI dialog failed"), 2)
 
     def test_an_override_dialog_that_fails_counts_as_no(self) -> None:
-        swing = sys.modules["jmri.util.swing"]
+        swing: Any = sys.modules["jmri.util.swing"]
         saved = swing.JmriJOptionPane
         swing.JmriJOptionPane = types.SimpleNamespace(
             YES_NO_OPTION=0, WARNING_MESSAGE=2,
