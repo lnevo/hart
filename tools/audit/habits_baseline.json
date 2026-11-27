@@ -222,7 +222,7 @@
   "dated-note": 3
  },
  "tools/schematic/build_device_map.py": {
-  "dated-note": 8
+  "dated-note": 1
  },
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
@@ -230,8 +230,14 @@
  "tools/schematic/device_map_inputs.py": {
   "dated-note": 1
  },
+ "tools/schematic/device_map_level_masts.py": {
+  "dated-note": 1
+ },
  "tools/schematic/device_map_masts.py": {
   "dated-note": 4
+ },
+ "tools/schematic/device_map_plant.py": {
+  "dated-note": 1
  },
  "tools/schematic/device_map_rows.py": {
   "dated-note": 1
