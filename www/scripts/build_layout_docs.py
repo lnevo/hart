@@ -7,8 +7,8 @@ submitted and is frozen; the page is a live document that follows the layout's d
 layout_docs_template.html, and its drawings and photos are files under www/assets/behind/layout-docs/, edited in
 place. This script fills in the list of detected sections (lengths
 and detectors from jmri/layouts/hart/data/block_lengths.csv by level and ID, names from the device master,
-where the owner's name wins), the track names the template gives by block ID ({{name:<id>}}), the switch names
-and DCC addresses it gives by turnout ID ({{turnout:switch:3}}, {{turnouts:switch:9,switch:11}}, {{dcc:switch:3}}),
+where the owner's name wins, labels from layout_docs_labels.csv by block ID), the track names the template gives
+by block ID ({{name:<id>}}), the switch names and DCC addresses it gives by turnout ID ({{turnout:switch:3}}, {{turnouts:switch:9,switch:11}}, {{dcc:switch:3}}),
 the station names it gives by a switch of the station ({{station:switch:5}}: stations.csv's level 1 station holding
 that switch, the smallest when two do) and the figures its text states (section count, RS-1, siding and yard
 lengths, the siding's 50 ft cars at the plan's scale, the crossovers), and checks that drawing D2 states the same
@@ -21,6 +21,7 @@ labels (data-station) the names stations.csv gives.
 from __future__ import annotations
 
 import argparse
+import csv
 import html
 import re
 import sys
@@ -52,10 +53,13 @@ LEVEL = "1"          # the template's {{name:...}} blocks are on the staging lev
 Master = dict[tuple[str, str], DeviceRow]      # master_rows: {(level cell, id): row}
 
 # The page's labels for the layout's sections, by block ID (naming-layers step 5: a rename in devices_field.csv keeps
-# the ID, so the label stays and the name beside it follows). A new section needs its label here; a switch
-# renumbered in the plan changes its blocks' IDs, and the build stops on the old ones.
+# the ID, so the label stays and the name beside it follows); layout_docs_labels.columns.csv describes the file. A new
+# section needs its row there; a switch renumbered in the plan changes its blocks' IDs, and the build stops on the
+# old ones (check_labels).
+LABELS_CSV = PORTAL / "scripts/layout_docs_labels.csv"
+LABEL_COLUMNS = ["id", "label"]
+# The sections whose lengths the page's text states (facts)
 YARD = ("block:15B-23B", "block:17C-29C", "block:19C-27C", "block:21C-25C", "block:21B-25B")     # Y1 to Y5
-ENGINE = ("block:11B-end", "block:9B-end", "block:9C-end")                                      # E1 to E3
 RS1, SIDING = "block:1A-23A", "block:5C-7B"
 PLANS = sorted(DRAWINGS.glob("P*.svg"))    # the plans, each labelled with every staging switch number
 # A switch label on the plans: "Sw <n>" on P0; on P1 to P5 a number in the labels' bold grey, which no other number has
@@ -67,14 +71,6 @@ LABEL_STYLE = ('font-weight="bold"', 'fill="#5f6e7a"')
 SVG_TEXT = re.compile(r"<(text|tspan|title|desc)\b([^>]*)>(.*?)</\1>", re.S)
 TSPAN = re.compile(r"<tspan\b[^>]*>(.*?)</tspan>", re.S)    # a line of a <text>, checked on its own too
 DATA_STATION = re.compile(r'\bdata-station="([^"]*)"')
-LABELS = {
-    **{bid: f"Yard track Y{n}" for n, bid in enumerate(YARD, 1)},
-    **{bid: f"Engine storage E{n}" for n, bid in enumerate(ENGINE, 1)},
-    RS1: "Main line (west), RS-1", "block:23B-35B": "Double-track section", "block:33A-35A": "Double-track section",
-    "block:1C-5A#1+1C-5A#2": "Main line (east)", "block:5B-7A": "Main line beside the passing siding",
-    "block:7B-33C": "Main line (east)", "block:37C-39C#2": "Return loop RS-2", "block:37C-39C#1": "Return loop RS-2",
-    SIDING: "Passing siding", "block:7A-13C": "Yard lead", "block:3B-end": "Holding track",
-    "block:3C-end": "Holding track"}
 # The siding's "about n 50 ft cars". A 50 ft car is 50 scale ft over the body, about 6.9 in at
 # 1:87.1; with 5 scale ft added for the couplers and the gap between cars (about 55 ft coupler face to coupler face),
 # each car takes about 7.6 in of track. The scale is the plan's (plan_overrides.json, staging scale_ratio).
@@ -145,16 +141,49 @@ def station_at(stations: list, did: str) -> str:
     return held[0][1]
 
 
-def label(section: Section, master: Master) -> str:
-    """The page's description of a detected section, by its block ID; an OS block's by its turnout's number."""
-    if section["id"] in LABELS:
-        return LABELS[section["id"]]
+def read_labels(path: Path = LABELS_CSV) -> dict[str, str]:
+    """{block ID: the page's label} of layout_docs_labels.csv, in file order. LayoutDocsError on a missing file, a
+    header other than id,label, an empty cell or an ID given twice."""
+    try:
+        with path.open(newline="", encoding="utf-8") as fh:
+            rows = list(csv.reader(fh))
+    except OSError as exc:
+        raise LayoutDocsError(f"build_layout_docs: cannot read the section labels {path} ({exc})") from exc
+    if not rows or rows[0] != LABEL_COLUMNS:
+        raise LayoutDocsError(f"build_layout_docs: {path.name} must start with the header {','.join(LABEL_COLUMNS)}")
+    out: dict[str, str] = {}
+    for line, row in enumerate(rows[1:], 2):
+        if len(row) != len(LABEL_COLUMNS) or not all(cell.strip() for cell in row):
+            raise LayoutDocsError(f"build_layout_docs: {path.name} line {line}: give a block ID and a label")
+        bid, text = row
+        if bid in out:
+            raise LayoutDocsError(f"build_layout_docs: {path.name} line {line}: {bid} has a label already")
+        out[bid] = text
+    return out
+
+
+def check_labels(labels: dict[str, str], rows: list[Section]) -> None:
+    """Every labelled block ID is a detected section's: a label for a block the plan no longer has would hide a
+    renumbered switch."""
+    ids = {s["id"] for s in rows}
+    unknown = [bid for bid in labels if bid not in ids]
+    if unknown:
+        raise LayoutDocsError(f"build_layout_docs: {LABELS_CSV.name} labels {', '.join(unknown)}, no detected "
+                              "section; fix the block ID or drop the row")
+
+
+def label(section: Section, master: Master, labels: dict[str, str]) -> str:
+    """The page's description of a detected section, by its block ID (`labels`, read_labels); an OS block's by its
+    turnout's number."""
+    if section["id"] in labels:
+        return labels[section["id"]]
     m = OS.fullmatch(section["id"])
     if m:
         number = switch_number(master, f"switch:{m.group(1)}")
         half = re.search(r"([ab])$", section["name"]) if m.group(2) else None
         return f"Turnout {number}{' (crossover half ' + half.group(1) + ')' if half else ''}"
-    raise LayoutDocsError(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to LABELS")
+    raise LayoutDocsError(f"build_layout_docs: no label for section {section['id']} ({section['name']}); add it to "
+                          f"{LABELS_CSV.name}")
 
 
 def master_rows(files: devices.Files | Path | None = None) -> Master:
@@ -234,9 +263,9 @@ def detected_sections(lengths: dict[str, block_lengths.Block] | None = None, mas
     return sorted(out, key=lambda s: (s["node"], s["ch"]))
 
 
-def sections_table(rows: list[Section], master: Master) -> str:
+def sections_table(rows: list[Section], master: Master, labels: dict[str, str]) -> str:
     body = "".join(
-        f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s, master))}</td>"
+        f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s, master, labels))}</td>"
         f"<td>{html.escape(s['name'])}</td><td>C{s['node']} · {s['ch']}</td>"
         f"<td class=\"num\">{'≈ ' if s['estimate'] else ''}{s['inches']:.0f}</td></tr>"
         for i, s in enumerate(rows, 1))
@@ -382,15 +411,19 @@ def check_drawings() -> None:
                 raise LayoutDocsError(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
 
 
-def outputs(files=None, stations: Path | None = None, plans=None, drawings=None) -> dict[Path, str]:
+def outputs(files=None, stations: Path | None = None, plans=None, drawings=None,
+            labels: Path = LABELS_CSV) -> dict[Path, str]:
     """The page. `files` is the device master's (hartlib.devices.Files of a test's copy), `stations` a copy of
-    stations.csv, `plans` copies of the plans and `drawings` copies of all the drawings; None the repo's."""
+    stations.csv, `plans` copies of the plans, `drawings` copies of all the drawings and `labels` a copy of
+    layout_docs_labels.csv; None the repo's."""
     master = master_rows(files)
     places = railroad.read_stations(railroad.Sources.under().stations if stations is None else stations)
     rows = detected_sections(master=master)
+    named = read_labels(labels)
+    check_labels(named, rows)
     fact = facts(rows, master)
     page = fill_switches(fill_names(TEMPLATE.read_text(), master), master, places)
-    page = page.replace("{{SECTIONS_TABLE}}", sections_table(rows, master))
+    page = page.replace("{{SECTIONS_TABLE}}", sections_table(rows, master, named))
     for key, value in fact.items():
         page = page.replace("{{" + key + "}}", value)
     if "{{" in page:

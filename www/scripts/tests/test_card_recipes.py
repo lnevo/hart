@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import make_share_cards  # noqa: E402,F401  (loads the kit before the recipes, as the package does)
 from share_card_recipes.editor_view import SHOWN_FUNCTION, function_lines, shown_lines  # noqa: E402
 from share_card_recipes import CardError  # noqa: E402
-from share_card_recipes.panel_image import ROSTER_ROWS, roster_rows  # noqa: E402
+from share_card_recipes.panel_image import ROSTER_PAGE, RosterRow, roster_picks, roster_rows  # noqa: E402
 from share_card_recipes import composites, forms, page_figures  # noqa: E402
 
 SOURCE = """#include "x.h"
@@ -59,17 +59,59 @@ class ShownLines(unittest.TestCase):
         self.assertEqual(shown_lines(SOURCE, SHOWN_FUNCTION, rows=25), (4, 12))
 
 
+PICKS = [RosterRow("turnout", "Switch 1"), RosterRow("signal", "Mast 2L"), RosterRow("signal", "Mast 4RA"),
+         RosterRow("occupancy", "OS Switch 3")]
+
+
 class RosterRows(unittest.TestCase):
     def test_every_row_drawn_in_order(self) -> None:
-        items = [{"kind": k, "publicName": n, "cp": "CP 1", "hardware": "<LCC>"} for k, n in ROSTER_ROWS]
-        html = roster_rows(items)
-        self.assertEqual(html.count("<tr>"), len(ROSTER_ROWS))
+        items = [{"kind": k, "publicName": n, "cp": "CP 1", "hardware": "<LCC>"} for k, n in PICKS]
+        html = roster_rows(items, PICKS)
+        self.assertEqual(html.count("<tr>"), len(PICKS))
         self.assertIn("&lt;LCC&gt;", html)
         self.assertLess(html.index("Switch 1"), html.index("OS Switch 3"))
 
     def test_missing_rows_are_named(self) -> None:
         with self.assertRaisesRegex(CardError, "no signal Mast 2L, signal Mast 4RA"):
-            roster_rows([{"kind": k, "publicName": n} for k, n in ROSTER_ROWS if k != "signal"])
+            roster_rows([{"kind": k, "publicName": n} for k, n in PICKS if k != "signal"], PICKS)
+
+
+class RosterPicks(unittest.TestCase):
+    """The roster card's rows, from its share-cards.json entry."""
+
+    def cards(self, rows) -> dict[str, dict]:
+        return {ROSTER_PAGE: {"image": "assets/share/roster-index.jpg", "rows": rows}}
+
+    def test_the_repo_entry_has_rows(self) -> None:
+        picks = roster_picks()
+        self.assertTrue(picks)
+        self.assertTrue(all(isinstance(p, RosterRow) for p in picks))
+
+    def test_rows_come_back_in_file_order(self) -> None:
+        rows = [{"kind": "signal", "name": "Mast 2L"}, {"kind": "turnout", "name": "Switch 1"}]
+        self.assertEqual(roster_picks(self.cards(rows)), [RosterRow("signal", "Mast 2L"),
+                                                          RosterRow("turnout", "Switch 1")])
+
+    def test_a_missing_card_is_a_card_error(self) -> None:
+        with self.assertRaisesRegex(CardError, f"{ROSTER_PAGE}: no such card"):
+            roster_picks({})
+
+    def test_missing_or_empty_rows_are_a_card_error(self) -> None:
+        for cards in ({ROSTER_PAGE: {"image": "x"}}, self.cards([]), self.cards({"kind": "turnout"})):
+            with self.subTest(cards=cards), self.assertRaisesRegex(CardError, 'no "rows" list'):
+                roster_picks(cards)
+
+    def test_a_bad_row_is_named_by_its_number(self) -> None:
+        for bad in ({"kind": "turnout"}, {"kind": "turnout", "name": ""}, {"kind": "turnout", "name": "S", "x": 1},
+                    ["turnout", "Switch 1"], {"kind": 3, "name": "Switch 1"}):
+            rows = [{"kind": "turnout", "name": "Switch 1"}, bad]
+            with self.subTest(bad=bad), self.assertRaisesRegex(CardError, "row 2 is .*, not a kind and a name"):
+                roster_picks(self.cards(rows))
+
+    def test_a_row_given_twice_is_a_card_error(self) -> None:
+        rows = [{"kind": "turnout", "name": "Switch 1"}] * 2
+        with self.assertRaisesRegex(CardError, "row 2 gives turnout Switch 1 twice"):
+            roster_picks(self.cards(rows))
 
 
 class PaperworkForms(unittest.TestCase):

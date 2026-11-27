@@ -79,7 +79,7 @@ tools/audit/check_stamps.py,AUDIT_SAMPLE,8,keep,its values are used only by this
 tools/audit/check_stamps.py,BY_KIND,14,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/audit/check_stamps.py,ENTITY_MASTERS,18,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 18 for the three waybill rule files, new masters a test checks the list against"
 tools/audit/check_stamps.py,EXTRA,46,keep,"stamp declarations built from Python constants; the shared job names are already checked by docs_unit_tests (Fable, pattern 4) (marked by claude (Fable's review))"
-tools/audit/check_stamps.py,SIDECAR_MASTERS,16,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 16 for the three waybill rule files, new masters a test checks the list against"
+tools/audit/check_stamps.py,SIDECAR_MASTERS,17,keep,"stamp declarations built from Python constants; masters the unit tests read, traced (wave 5 5-L2); 17 for the three waybill rule files and the layout docs labels, new masters a test checks the list against"
 tools/audit/portal_inputs.py,SITE_TOOLS,14,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 tools/ci/docs_unit_tests.py,KIND_DIRS,4,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
 tools/ci/docs_unit_tests.py,LEFT_OUT,27,keep,"exception list keyed by check_stamps job names, already checked against them (Fable, pattern 4) (marked by claude (Fable's review))"
@@ -179,7 +179,6 @@ www/scripts/build_exam_answers.js,ESCAPES,9,keep,"JavaScript's string escapes, w
 www/scripts/build_exam_answers.js,FRIENDLY,8,keep,its values are used only by this script: no reuse found in other tables or the masters (marked by claude)
 www/scripts/build_exam_answers.js,RUN_FILES,5,keep,"the game's script files with the run each one's questions belong to, for the answer key's labels; not railroad data (marked by claude)"
 www/scripts/build_helix_page.py,GROUPS,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/build_layout_docs.py,LABELS,14,move,10 railroad names (block); first sort: page text
 www/scripts/build_layout_docs.py,SOQ_WORDS,11,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/build_tables_browser.py,FEEDBACK,7,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/build_tables_browser.py,TABLES,14,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
@@ -191,7 +190,6 @@ www/scripts/repo_guide_page.py,FOLDERS,10,keep,"used only by this script, no reu
 www/scripts/repo_guide_page.py,HARTLIB_OTHER,33,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4); 33 for waybills and sml_qa, hartlib modules the page must describe"
 www/scripts/repo_guide_page.py,LAYOUT_TREE,8,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/repo_guide_page.py,SUBMODULES,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
-www/scripts/share_card_recipes/panel_image.py,ROSTER_ROWS,6,move,6 railroad names (occupancy sensor); first sort: per-item tweak
 www/scripts/tables_page.py,GROUPS,23,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/tables_page.py,GROUP_HEADS,4,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
 www/scripts/tables_page.py,PANELS,6,keep,"used only by this script, no reuse found; the owner's keep-unless-reused rule (wave 4)"
