@@ -86,17 +86,45 @@ class Main(unittest.TestCase):
     def test_an_unreadable_broker_exits_1_before_any_publish(self) -> None:
         mod = _load()
         published: list[tuple[int, str]] = []
+
+        def record(addr: int, msg: str) -> bool:
+            published.append((addr, msg))
+            return True
+
         err = io.StringIO()
         with unittest.mock.patch.object(mod.tf, "get_json", return_value=[_row("M2T3", "Switch 3", "FB R")]), \
                 unittest.mock.patch.object(mod.tf, "mqtt_retain",
                                            side_effect=mosquitto_cli.MosquittoError("connection refused")), \
-                unittest.mock.patch.object(mod, "_mqtt_pub", lambda a, m: published.append((a, m)) or True), \
+                unittest.mock.patch.object(mod, "_mqtt_pub", record), \
                 unittest.mock.patch.object(sys, "argv", ["sync_mqtt_turnouts_from_fb.py"]), \
                 contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
             code = mod.main()
         self.assertEqual(code, 1)
         self.assertEqual(published, [])
+        self.assertIn("FAIL M2T3", err.getvalue())
         self.assertIn("unreadable: connection refused", err.getvalue())
+
+    def test_a_broker_lost_part_way_counts_the_rest_as_failed(self) -> None:
+        mod = _load()
+        table = [_row("M2T3", "Switch 3", "FB R"), _row("M2T4", "Switch 4", "FB R")]
+        reads = iter(["CLOSED"])
+
+        def retain(addr: int) -> str | None:
+            try:
+                return next(reads)
+            except StopIteration:
+                raise mosquitto_cli.MosquittoError("connection lost") from None
+
+        published: list[tuple[int, str]] = []
+
+        def record(addr: int, msg: str) -> bool:
+            published.append((addr, msg))
+            return True
+
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            counts = mod.sync(table, retain, record, dry_run=False)
+        self.assertEqual(published, [(3, "THROWN")])
+        self.assertEqual((counts.synced, counts.failed), (1, 1))
 
     def test_a_publish_error_is_reported_and_returns_false(self) -> None:
         mod = _load()

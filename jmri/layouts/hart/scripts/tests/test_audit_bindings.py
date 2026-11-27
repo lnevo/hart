@@ -15,6 +15,8 @@ import unittest
 import xml.etree.ElementTree as ET
 from unittest import mock
 from pathlib import Path
+from types import ModuleType
+from typing import Any, ClassVar
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -22,16 +24,19 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, tables  # noqa: E402
 
 
-def load(name: str):
+def load(name: str) -> ModuleType:
     spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    assert spec is not None and spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
     sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
 class AuditBindings(unittest.TestCase):
+    apc: ClassVar[ModuleType]
+    staging: ClassVar[Any]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.apc = load("audit_panel_contracts")
@@ -126,6 +131,9 @@ class AuditBindings(unittest.TestCase):
 
 
 class AuditSettings(unittest.TestCase):
+    apc: ClassVar[ModuleType]
+    root: ClassVar[ET.Element]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.apc = load("audit_panel_contracts")

@@ -80,7 +80,13 @@ def sync(
         if fb is None:
             n_skip += 1
             continue
-        prev = retain(addr)
+        try:
+            prev = retain(addr)
+        except mosquitto_cli.MosquittoError as e:
+            # counted, and nothing published for it: the broker may be gone part way through the run
+            print(f"FAIL {name:10} {uname:16} FB→{fb}: MQTT retain unreadable: {e}", file=sys.stderr)
+            n_fail += 1
+            continue
         if prev == fb:
             print(f"ok  {name:10} {uname:16} FB→{fb} MQTT={prev}")
             n_ok += 1
@@ -108,11 +114,7 @@ def main() -> int:
         print(f"JMRI unreachable: {e}", file=sys.stderr)
         return 1
 
-    try:
-        counts = sync(table, lambda addr: tf.mqtt_retain(MQTT_HOST, addr), _mqtt_pub, args.dry_run)
-    except mosquitto_cli.MosquittoError as e:
-        print(f"MQTT broker {MQTT_HOST} unreadable: {e}", file=sys.stderr)
-        return 1
+    counts = sync(table, lambda addr: tf.mqtt_retain(MQTT_HOST, addr), _mqtt_pub, args.dry_run)
     print(f"synced={counts.synced} unchanged={counts.unchanged} no_clear_fb={counts.no_clear_fb} failed={counts.failed}")
     return 1 if counts.failed else 0
 

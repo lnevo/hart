@@ -40,8 +40,9 @@ def run_command(cmd: Sequence[str]) -> subprocess.CompletedProcess[str]:
 
 
 def _timed_out(proc: subprocess.CompletedProcess[str]) -> bool:
-    said = f"{proc.stdout or ''}\n{proc.stderr or ''}".lower()
-    return proc.returncode == TIMED_OUT_STATUS or TIMED_OUT_TEXT in said
+    # the client's own notice is a line of its own; "Connection timed out" from the network is a failure
+    lines = f"{proc.stdout or ''}\n{proc.stderr or ''}".lower().splitlines()
+    return proc.returncode == TIMED_OUT_STATUS or TIMED_OUT_TEXT in (line.strip() for line in lines)
 
 
 def _failure(proc: subprocess.CompletedProcess[str], what: str) -> MosquittoError:

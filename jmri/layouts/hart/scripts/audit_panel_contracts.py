@@ -327,7 +327,7 @@ def audit_generated_settings(root: ET.Element, audit: Audit, switches: Path | No
     it), and the disabled aspects of AAR 2-head masts."""
     try:
         closed = continuing_closed_idents(switches)
-    except railroad_facts.FactsError as exc:
+    except (railroad_facts.FactsError, OSError) as exc:
         audit.error(f"continuing turnouts: {exc}")
         closed = ()
     for turnout in root.iter("layoutturnout"):

@@ -7,6 +7,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import unittest
+import unittest.mock
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -70,8 +71,13 @@ class SetRetained(unittest.TestCase):
 
 class RunCommand(unittest.TestCase):
     def test_a_missing_client_is_an_error(self) -> None:
-        with self.assertRaisesRegex(mc.MosquittoError, "could not be started"):
-            mc.run_command(["hart-no-such-mosquitto-client"])
+        with unittest.mock.patch.object(mc.subprocess, "run", side_effect=FileNotFoundError("no such file")), \
+                self.assertRaisesRegex(mc.MosquittoError, "could not be started"):
+            mc.run_command(["mosquitto_sub"])
+
+    def test_a_network_timeout_is_a_failure_not_the_end_of_a_read(self) -> None:
+        with self.assertRaisesRegex(mc.MosquittoError, "exited 14: Error: Connection timed out"):
+            mc.subscribe("broker", "track/sensor/#", run=FakeRunner(14, "", "Error: Connection timed out\n"))
 
 
 class TurnoutRetain(unittest.TestCase):
