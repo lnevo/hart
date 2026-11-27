@@ -78,7 +78,7 @@ if ! git -C "$ROOT" fetch -q origin; then
   echo "win_run.sh: could not fetch origin from the Mac; run the command on the Mac." >&2
   exit 3
 fi
-if ! git -C "$ROOT" branch -r --contains "$sha" | grep -q .; then
+if ! git -C "$ROOT" branch -r --contains "$sha" | grep . >/dev/null; then
   echo "win_run.sh: $ref ($sha) is not on origin; push it first (git push -u origin HEAD)." >&2
   exit 2
 fi
