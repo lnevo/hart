@@ -98,6 +98,8 @@ WINDOWS = """<?xml version="1.0" encoding="UTF-8"?>
 </auxiliary-configuration>
 """
 UI = ".jmri/TCS_MQTT.jmri/profile/0badf00d/user-interface.xml"
+# A PanelPro JVM as ps shows it on the Pi (PanelPro -p <profile>).
+JAVA = "java -Djava.awt.headless=false -Dorg.jmri.profile={profile} -cp .:jmri.jar apps.PanelPro.PanelPro"
 PROFILE = start_up("preference:jython/jmri_cmd_watcher.py")     # the Start Up list the apply step edits first
 
 
@@ -133,11 +135,32 @@ class PiPanelWindowSizes(unittest.TestCase):
             self.assertIn("every saved panel window already has the tables' size", pi.out)
 
     def test_a_running_jmri_leaves_the_file_alone(self) -> None:
-        with self.apply(jmri_running=True) as pi:
+        for java in (JAVA.format(profile="TCS_MQTT.3f32a166"), JAVA.format(profile="TCS_MQTT")):
+            with self.subTest(java=java), self.apply(processes=[java]) as pi:
+                self.assertEqual(pi.code, 0, pi.out)
+                self.assertEqual((pi.home / UI).read_text(encoding="utf-8"), WINDOWS.format(saved="1018.0"))
+                self.assertIn("Panel window sizes NOT set: JMRI runs on the profile TCS_MQTT", pi.out)
+
+    def test_jmri_on_a_profile_that_only_starts_the_same_is_not_this_profile(self) -> None:
+        others = [JAVA.format(profile="TCS_MQTT_test"), JAVA.format(profile="TCS_MQTT_test.0badf00d"),
+                  JAVA.format(profile="TCS_MQTTX")]
+        with self.apply(processes=others) as pi:
             self.assertEqual(pi.code, 0, pi.out)
-            self.assertEqual((pi.home / UI).read_text(encoding="utf-8"), WINDOWS.format(saved="1018.0"))
-            self.assertIn("Panel window sizes NOT set: JMRI runs on the profile TCS_MQTT", pi.out)
-            self.assertIn("pgrep -f [o]rg.jmri.profile=TCS_MQTT", pi.calls)
+            self.assertNotIn("NOT set", pi.out)
+            self.assertIn('height="1032.0"', (pi.home / UI).read_text(encoding="utf-8"))
+
+    def test_a_full_profile_id_matches_only_that_id(self) -> None:
+        env = {"HART_PI_PROFILE": "TCS_MQTT.3f32a166"}
+        with self.apply(processes=[JAVA.format(profile="TCS_MQTT.3f32a166x")], env=env) as pi:
+            self.assertNotIn("NOT set", pi.out)
+        with self.apply(processes=[JAVA.format(profile="TCS_MQTT.3f32a166")], env=env) as pi:
+            self.assertIn("Panel window sizes NOT set: JMRI runs on the profile TCS_MQTT.3f32a166", pi.out)
+
+    def test_a_profile_id_that_is_not_an_id_is_refused(self) -> None:
+        with self.apply(env={"HART_PI_PROFILE": "TCS MQTT|x"}) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            self.assertIn("Panel window sizes NOT set: HART_PI_PROFILE='TCS MQTT|x' is not a JMRI profile id.", pi.out)
+            self.assertFalse(any(call.startswith("pgrep") for call in pi.calls), pi.calls)
 
     def test_a_profile_with_no_saved_windows_is_one_line(self) -> None:
         with self.apply(ui="") as pi:
@@ -149,7 +172,9 @@ class PiPanelWindowSizes(unittest.TestCase):
         with self.apply(ui=other, env={"HART_PI_PROFILE": "Rehearsal.0badf00d"}) as pi:
             self.assertEqual(pi.code, 0, pi.out)
             self.assertIn('height="1032.0"', (pi.home / other).read_text(encoding="utf-8"))
-            self.assertIn("pgrep -f [o]rg.jmri.profile=Rehearsal.0badf00d", pi.calls)
+        with self.apply(ui=other, env={"HART_PI_PROFILE": "Rehearsal.0badf00d"},
+                        processes=[JAVA.format(profile="Rehearsal.0badf00d")]) as pi:
+            self.assertIn("JMRI runs on the profile Rehearsal.0badf00d", pi.out)
 
     def test_a_file_it_cannot_read_warns_and_the_deploy_goes_on(self) -> None:
         package = {**profile_scripts(), "tables.xml": TABLES.format(main="1032"), "cats/deploy_stamp.txt": "x\n"}

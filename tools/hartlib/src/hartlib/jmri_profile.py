@@ -70,14 +70,32 @@ def _script_basename(path: str) -> str:
     return Path(path).name
 
 
+# A Start Up entry with the whitespace before it, so removing one leaves no blank line.
+_PERFORM = re.compile(r"\n?[ \t]*<perform\b[^>]*/>")
+_NAME = re.compile(r'\bname="([^"]*)"')
+
+
+def _runs(tag: str, basename: str) -> bool:
+    """True when the <perform> `tag` is a PerformScript entry whose name= runs the file `basename`: the part after
+    the last /, \\ or : equals it (preference:jython/x.py runs x.py; old_x.py does not)."""
+    name = _NAME.search(tag)
+    return ("PerformScriptModelXml" in tag and name is not None
+            and re.split(r"[/\\:]", name.group(1))[-1] == basename)
+
+
+def _script_entries(txt: str, basename: str) -> list[str]:
+    """The Start Up entries in `txt` that run the file `basename` (a mention elsewhere in the file is not one)."""
+    return [m.group(0) for m in _PERFORM.finditer(txt) if _runs(m.group(0), basename)]
+
+
 def insert_after(profile: Path, script_path: str, after: str) -> str:
-    """Add a Start Up entry running `script_path` after the entry naming `after`: "inserted", or "already" when the
-    profile names the script."""
+    """Add a Start Up entry running `script_path` after the entry naming `after`: "inserted", or "already" when a
+    Start Up entry runs the script."""
     if not after:
         raise StartupPatchError(f"{profile}: no Start Up entry given to insert {script_path} after")
     txt = profile.read_text(encoding="utf-8")
     needle = _script_basename(script_path)
-    if needle in txt:
+    if _script_entries(txt, needle):
         return "already"
     idx = txt.find(after)
     if idx < 0:
@@ -88,23 +106,21 @@ def insert_after(profile: Path, script_path: str, after: str) -> str:
     end += 2
     sample = txt[txt.rfind("<perform", 0, idx) : end]
     insert = "\n" + _perform_for(sample, script_path)
-    profile.write_text(txt[:end] + insert + txt[end:], encoding="utf-8")
+    new = txt[:end] + insert + txt[end:]
+    if len(_script_entries(new, needle)) != 1:
+        raise StartupPatchError(f"{profile}: the entry for {needle} after {after!r} is not one Start Up entry")
+    profile.write_text(new, encoding="utf-8")
     return "inserted"
 
 
 def remove_script(profile: Path, script_path: str) -> str:
-    """Remove the Start Up entry running `script_path`: "removed", or "absent" when the profile does not name it."""
+    """Remove every Start Up entry running `script_path`: "removed", or "absent" when no entry runs it."""
     txt = profile.read_text(encoding="utf-8")
     needle = _script_basename(script_path)
-    if needle not in txt:
+    if not _script_entries(txt, needle):
         return "absent"
-    new, n = re.subn(
-        rf"\n?[ \t]*<perform\b[^>]*{re.escape(needle)}[^>]*/>",
-        "",
-        txt,
-        count=1,
-    )
-    if n != 1:
+    new = _PERFORM.sub(lambda m: "" if _runs(m.group(0), needle) else m.group(0), txt)
+    if _script_entries(new, needle):
         raise StartupPatchError(f"{profile}: could not remove {needle}")
     profile.write_text(new, encoding="utf-8")
     return "removed"
@@ -263,23 +279,53 @@ def saved_windows(text: str) -> list[str]:
     return [html.unescape(m.group("name")) for m in _WINDOW.finditer(text)]
 
 
+def _backup_name(path: Path) -> re.Pattern[str]:
+    """<path>.hart-<stamp>.bak, or <path>.hart-<stamp>-<n>.bak for the n-th more copy made in the same second."""
+    return re.compile(re.escape(path.name) + r"\.hart-(?P<stamp>\d{8}-\d{6})(?:-(?P<n>[1-9]\d*))?\.bak")
+
+
 def backups(path: Path) -> list[Path]:
-    """The <path>.hart-<stamp>.bak copies beside `path`, oldest first (the stamp sorts by time)."""
-    pattern = re.compile(re.escape(path.name) + r"\.hart-\d{8}-\d{6}\.bak")
-    return sorted(p for p in path.parent.iterdir() if pattern.fullmatch(p.name))
+    """The backup copies beside `path` (_backup_name), oldest first: by stamp, then by n."""
+    pattern = _backup_name(path)
+    found = []
+    for p in path.parent.iterdir():
+        m = pattern.fullmatch(p.name)
+        if m:
+            found.append(((m.group("stamp"), int(m.group("n") or 0)), p))
+    return [p for _, p in sorted(found)]
+
+
+def _back_up(path: Path) -> Path:
+    """Copy `path` to a new backup beside it and return the copy. The copy is created exclusively, so a second
+    backup in the same second gets the next -<n> name instead of replacing the first."""
+    stamp = time.strftime(BACKUP_STAMP)
+    n = 0
+    while True:
+        copy = path.with_name(f"{path.name}.hart-{stamp}{f'-{n}' if n else ''}.bak")
+        made = False
+        try:
+            with path.open("rb") as src, copy.open("xb") as dst:
+                made = True
+                shutil.copyfileobj(src, dst)
+            shutil.copystat(path, copy)
+        except FileExistsError:
+            n += 1
+            continue
+        except OSError as exc:
+            # a half-written copy would count as one of the newest backups and push out a good one
+            if made:
+                copy.unlink(missing_ok=True)
+            raise WindowSizesError(f"cannot back up {path} to {copy}: {exc}") from exc
+        return copy
 
 
 def write_user_interface(path: Path, text: str, *, backup: bool = False) -> Path | None:
     """Write `text` to `path` through a temporary file (hartlib.files.write_atomic), so JMRI never reads half a file.
-    With `backup`, first copy the file there to <path>.hart-<stamp>.bak beside it, keep the newest BACKUPS_KEPT of
-    those copies, and return the new copy's path; None without."""
+    With `backup`, first copy the file there to a new <path>.hart-<stamp>.bak beside it (_back_up), keep the newest
+    BACKUPS_KEPT of those copies, and return the new copy's path; None without."""
     copy = None
     if backup:
-        copy = path.with_name(f"{path.name}.hart-{time.strftime(BACKUP_STAMP)}.bak")
-        try:
-            shutil.copy2(path, copy)
-        except OSError as exc:
-            raise WindowSizesError(f"cannot back up {path} to {copy}: {exc}") from exc
+        copy = _back_up(path)
         try:
             for old in backups(path)[:-BACKUPS_KEPT]:
                 old.unlink()
