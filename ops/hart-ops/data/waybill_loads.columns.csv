@@ -1,0 +1,5 @@
+column,description,type,required,key,refs,values
+industry_id,"The industry the spot usage belongs to. With usage it is the row's key.",str,yes,yes,ops/hart-ops/data/industries.csv:industry_id,
+usage,"The spot usage, as spot_assignments.csv's Usage names it. A usage with no row here gets the generic loads waybill_deck.waybill_spec builds from its name.",str,yes,yes,ops/hart-ops/data/spot_assignments.csv:Usage,
+inbound_load,"The load the cards carry in: a commodity, a group (Process Chemicals, General Freight) whose parties name the per-card load, or EMPTY for a load spot.",str,yes,,,
+outbound_load,"The load the cards carry out: a commodity, General Freight, or EMPTY for an unload spot.",str,yes,,,

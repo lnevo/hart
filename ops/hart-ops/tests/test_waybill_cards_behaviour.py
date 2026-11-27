@@ -6,8 +6,9 @@ those are covered here.
 
 Golden runs read a small frozen spot list (SPOT_CSV_TEXT below) and a stand-in sticker sheet,
 with the random module seeded, so the snapshots do not depend on the live spot_assignments.csv,
-the private sticker template or photos. The interchange decks and SPOT_WAYBILL table live in
-the script itself, so the snapshots follow them on purpose.
+the private sticker template or photos. The waybill rules (waybill_loads.csv, waybill_parties.csv,
+waybill_empty_returns.csv) and the interchange rows of HART_Spot_Waybills.csv are read from the
+repo's data files, so the snapshots follow them on purpose.
 Golden data: tests/golden/w4c/waybills_*.
 """
 import csv
@@ -34,7 +35,8 @@ import waybill_sheet as wsheet  # noqa: E402
 from golden_support import check_golden, docx_summary  # noqa: E402
 
 TEST_ID = "test_waybill_cards_behaviour"
-DEPENDS = "the frozen spot list in test_waybill_cards_behaviour.py, a seeded random module and the tables in generate_waybill_cards.py"
+DEPENDS = ("the frozen spot list in test_waybill_cards_behaviour.py, a seeded random module, the waybill rule files "
+           "in ops/hart-ops/data/ and the interchange rows of HART_Spot_Waybills.csv")
 NO_FILE = Path("/nonexistent/w4c-fixture.png")
 
 SPOT_CSV_TEXT = """Industry,Spot #,Usage,Cars Applicable
@@ -139,7 +141,7 @@ class Parsing(unittest.TestCase):
         self.assertEqual(err.getvalue().count("'Mystery' at Other Works"), 1)
 
     def test_party_pool_copies_do_not_share_the_table_parties(self):
-        spec = wdata.SPOT_WAYBILL[("Calgon Carbon", "Coal Unload")]
+        spec = wdata.spot_waybill()[("Calgon Carbon", "Coal Unload")]
         pool = wdeck.party_pool("IN", "Coal", spec)
         self.assertEqual(pool, spec["suppliers"])
         pool[0]["name"] = "changed"
@@ -230,7 +232,7 @@ class Specs(unittest.TestCase):
                                   "suppliers": [], "customers": []}, "here")
 
     def test_every_table_party_has_all_fields(self):
-        for key, spec in wdata.SPOT_WAYBILL.items():
+        for key, spec in wdata.spot_waybill().items():
             for party in spec["suppliers"] + spec["customers"]:
                 self.assertEqual(set(party), {"name", "via", "entry", "commodity"}, key)
 
@@ -244,10 +246,10 @@ class Specs(unittest.TestCase):
 
     def test_apply_load_summary(self):
         card = {"Commodity": "Caustic Soda"}
-        wdeck._apply_load_summary(card)
+        wdeck._apply_load_summary(card, "Process Chemicals")
         self.assertEqual(card["LoadSummary"], "Process Chemicals")
         card = {"Commodity": "Coal"}
-        wdeck._apply_load_summary(card)
+        wdeck._apply_load_summary(card, "Coal")
         self.assertNotIn("LoadSummary", card)
         card = {"Commodity": "Coal"}
         wdeck._apply_load_summary(card, "Fuel")
@@ -364,13 +366,33 @@ class DeckBuilding(SeededCase):
         self.assertEqual(calgon[0]["Spots"], "1-2")
         self.assertEqual(calgon[0]["Flow"], "IN")
 
-    def test_interchange_deck_leaves_out_layout_parties(self):
-        deck = wdeck.build_interchange_deck()
+    def test_interchange_deck_is_the_master_rows(self):
+        rows = wdata.interchange_rows()
+        deck = wdeck.build_interchange_deck(rows)
+        self.assertEqual(len(deck), len(rows))
         self.assertTrue(deck)
-        for card in deck:
+        for row, card in zip(rows, deck):
             self.assertEqual(card["CardKind"], "interchange")
-            for end in (card["RouteFrom"], card["RouteTo"]):
-                self.assertFalse(wdeck._is_layout_party(end), end)
+            self.assertEqual(card["Industry"], wdata.INTERCHANGE_HEADER)
+            self.assertEqual((card["Commodity"], card["CarType"], card["RouteFrom"], card["RouteTo"],
+                              card["RouteChain"], card.get("LoadSummary", "")),
+                             (row.commodity, row.car_type, row.route_from, row.route_to, row.via, row.load_summary))
+            self.assertNotIn("Flow", card)   # interchange_flow counts in the report only; the card prints no flow
+
+    def test_interchange_row_naming_an_island_industry_stops_the_build(self):
+        row = wdata.interchange_rows()[0]._replace(route_to="Calgon Carbon")
+        with self.assertRaises(wdata.WaybillDataError) as caught:
+            wdeck.build_interchange_deck([row])
+        self.assertIn(f"interchange card {row.card_id}", str(caught.exception))
+        self.assertIn("Calgon Carbon", str(caught.exception))
+
+    def test_a_broken_rule_file_is_a_card_pipeline_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "HART_Spot_Waybills.csv"
+            with self.assertRaises(wdata.WaybillRulesFileError) as caught:
+                wdata.interchange_rows(missing)
+        self.assertIsInstance(caught.exception, car_paths.CardPipelineError)
+        self.assertIn(str(missing), str(caught.exception))
 
     def test_is_layout_party(self):
         self.assertTrue(wdeck._is_layout_party("Aristech Plastics"))

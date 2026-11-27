@@ -1,0 +1,9 @@
+column,description,type,required,key,refs,values
+industry_id,"The industry of the spot usage. With usage it names a row of waybill_loads.csv, which hartlib.waybills checks.",str,yes,yes,ops/hart-ops/data/industries.csv:industry_id,
+usage,"The spot usage, as spot_assignments.csv's Usage names it.",str,yes,yes,ops/hart-ops/data/spot_assignments.csv:Usage,
+role,"supplier for a party that ships the inbound load, customer for one that takes the outbound load (customers also route the inbound empties of a load spot).",enum,yes,yes,,supplier;customer
+party,"The party's number within the usage and role, 1 to n with no gaps. The deck draws parties in this order, so a seeded run prints the same cards.",int,yes,yes,,
+name,"The shipper or receiver as the card prints it.",str,yes,,,
+via,"The road a customer is reached by. Empty on suppliers.",enum,,,,CSX;NS;POHC
+entry,"The road a supplier's load enters by. Empty: the card says CSX.",enum,,,,CSX;POHC
+commodity,"The load this party's cards carry where it differs from the usage's load (the chemicals of a Process Chemicals spot, the steel of General Freight).",str,,,,

@@ -1,19 +1,25 @@
-"""Waybill tables for generate_waybill_cards.py: loads, routing and interchange decks.
+"""Waybill data for generate_waybill_cards.py: the card types, and the rules and through cards read from the data files.
 
-Data only. These tables are the paper system of record for spot waybills (see
-wiki/pipelines/waybills.md); the deck logic is in waybill_deck.py.
+The rules are kept in ops/hart-ops/data/ and read through hartlib.waybills: waybill_loads.csv and waybill_parties.csv
+(each spot usage's loads, suppliers and customers), waybill_empty_returns.csv (where each industry's outbound empties
+go) and the interchange rows of the card master HART_Spot_Waybills.csv (see wiki/pipelines/waybills.md). The deck
+logic is in waybill_deck.py.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
+from functools import cache
+from pathlib import Path
 from typing import TypedDict, cast
 
+from card_errors import CardPipelineError
 from card_template_records import WaybillCardRecord
 import hartlib_path  # noqa: E402
 
 hartlib_path.ensure_on_path()
-from hartlib import operations  # noqa: E402
+from hartlib import operations, waybills  # noqa: E402
+from hartlib.waybills import EmptyReturn, InterchangeCard  # noqa: E402
 
 CARDS_PER_DIRECTION = 3
 INTERCHANGE_PAGES = 2
@@ -24,6 +30,10 @@ GENERAL_FREIGHT = "General Freight"
 
 class WaybillDataError(ValueError):
     """A waybill table entry or spot usage the deck cannot be built from."""
+
+
+class WaybillRulesFileError(CardPipelineError, ValueError):
+    """A waybill rule file or the card master cannot be read or names an industry the waybill decks do not have."""
 
 
 class Party(TypedDict):
@@ -103,210 +113,71 @@ def normalize_spec(raw: Mapping[str, object], where: str) -> WaybillSpec:
     }
 
 
-
-# Per-card names that summarize to Process Chemicals in the lower table.
-_PROCESS_CHEMICAL_DETAILS = frozenset(
-    {
-        "Phosphoric Acid",
-        "Caustic Soda",
-        "Hydrochloric Acid",
-        "Styrene Monomer",
-        "Methyl Methacrylate",
-        "Ethyl Acrylate",
-        "Phosphor Compounds",
-        "Argon",
-        "Industrial Gases",
-    }
-)
-
-# Outbound empty return yards — one destination per industry; totals balance 8 POHC / 8 CSX.
-OUTBOUND_EMPTY_RETURN: dict[str, dict[str, str]] = {
-    "Aristech Plastics": {"RouteTo": "Scully Yard", "RouteChain": "POHC"},
-    "Calgon Carbon": {"RouteTo": "Scully Yard", "RouteChain": "POHC"},
-    "A Stucki Co": {"RouteTo": "Demmler Yard", "RouteChain": "CSX"},
-    "Ferrel Gas": {"RouteTo": "Demmler Yard", "RouteChain": "CSX"},
-    "Kosmos Cement": {"RouteTo": "Demmler Yard", "RouteChain": "CSX"},
-}
-
 SKIP_USAGES = frozenset({"off spot", "storage"})
+
+_INDUSTRY_SHEET = operations.read_industry_sheet()
 
 # The waybill decks' industries in their order: industry_sheet.csv's waybill_order (hartlib.operations).
 INDUSTRY_ORDER: dict[str, int] = dict(sorted(
-    ((r.sheet_name, r.waybill_order) for r in operations.read_industry_sheet() if r.waybill_order is not None),
+    ((r.sheet_name, r.waybill_order) for r in _INDUSTRY_SHEET if r.waybill_order is not None),
     key=lambda pair: pair[1]))
 
-# Per spot usage: loads plus named suppliers/customers from the HART routing matrix.
-# Unload spots: loaded in, empty out. Load/shipping spots: empty in, loaded out.
-_SPOT_WAYBILL_RAW: dict[tuple[str, str], dict[str, str | list[RawParty]]] = {
-    ("Calgon Carbon", "Coal Unload"): {
-        "inbound_load": "Coal",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            "Consol Energy (Pittsburgh, PA)",
-            "R&P Coal (Brady Twp, PA)",
-            {"name": "Hillman Coal (Canton Twp, PA)", "entry": "POHC"},
-        ],
-        "customers": [],
-    },
-    ("Calgon Carbon", "Carbon Load"): {
-        "inbound_load": EMPTY,
-        "outbound_load": "Activated Carbon",
-        "suppliers": [],
-        "customers": [
-            {"name": "Univar (Salem, MA)", "via": "NS"},
-            {"name": "Houghton Chemical (Allston, MA)", "via": "CSX"},
-            {"name": "Calgon Corp (Columbus, OH)", "via": "CSX"},
-        ],
-    },
-    ("Calgon Carbon", "Chemical Unload"): {
-        "inbound_load": "Process Chemicals",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            {
-                "name": "Dow Chemical (Midland, MI)",
-                "entry": "CSX",
-                "commodity": "Phosphoric Acid",
-            },
-            {
-                "name": "Houghton Chemical (Allston, MA)",
-                "entry": "POHC",
-                "commodity": "Caustic Soda",
-            },
-            {
-                "name": "General Chemical (Parsippany, NJ)",
-                "entry": "POHC",
-                "commodity": "Hydrochloric Acid",
-            },
-        ],
-        "customers": [],
-    },
-    ("Kosmos Cement", "Cement Unload"): {
-        "inbound_load": "Cement",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            {"name": "Kosmos Cement (Canton, OH)", "entry": "POHC"},
-            {"name": "Lehigh Cement (Mitchell, IN)", "entry": "POHC"},
-            "Medusa Cement (Charlevoix, MI)",
-        ],
-        "customers": [],
-    },
-    ("Kosmos Cement", "Aggregate Unload"): {
-        "inbound_load": "Aggregate",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            "US Aggregates (Indianapolis, IN)",
-            {"name": "Michigan Limestone (Rogers City, MI)", "entry": "POHC"},
-            "Martin Marietta (Clairton, PA)",
-        ],
-        "customers": [],
-    },
-    ("Ferrel Gas", "LPG Unload"): {
-        "inbound_load": "LPG",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            {"name": "Ferrellgas Co (Taneytown, MD)", "entry": "POHC"},
-            "Ferrellgas pipeline terminal",
-        ],
-        "customers": [],
-    },
-    ("Aristech Plastics", "Pellet Unload"): {
-        "inbound_load": "Plastic Pellets",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            {"name": "Dow Chemical (Midland, MI)", "entry": "CSX"},
-            "BASF (Wyandotte, MI)",
-            {"name": "Novacor (Indian Orchard, MA)", "entry": "POHC"},
-        ],
-        "customers": [],
-    },
-    ("Aristech Plastics", "Chemical Unload"): {
-        "inbound_load": "Process Chemicals",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            {
-                "name": "Dow Chemical (Midland, MI)",
-                "entry": "CSX",
-                "commodity": "Styrene Monomer",
-            },
-            {
-                "name": "Exxon Chemical (Bayonne, NJ)",
-                "entry": "POHC",
-                "commodity": "Methyl Methacrylate",
-            },
-            {
-                "name": "Dow Chemical (Midland, MI)",
-                "entry": "CSX",
-                "commodity": "Ethyl Acrylate",
-            },
-        ],
-        "customers": [],
-    },
-    ("Aristech Plastics", "Shipping Door"): {
-        "inbound_load": EMPTY,
-        "outbound_load": "Plastic Resins",
-        "suppliers": [],
-        "customers": [
-            {"name": "Owens-Illinois (Toledo, OH)", "via": "NS"},
-            {"name": "Bemis Company (Flemington, NJ)", "via": "NS"},
-            {"name": "Owens-Illinois (Ottawa, IL)", "via": "CSX"},
-        ],
-    },
-    ("A Stucki Co", "Crane Track"): {
-        "inbound_load": "Steel",
-        "outbound_load": EMPTY,
-        "suppliers": [
-            {"name": "Allegheny Ludlum (Brackenridge, PA)", "entry": "POHC"},
-            {"name": "Republic Steel (Cleveland, OH)", "entry": "POHC"},
-            "Metal Service Co. (Apollo, PA)",
-        ],
-        "customers": [],
-    },
-    ("A Stucki Co", "Team Track"): {
-        "inbound_load": "General Freight",
-        "outbound_load": "General Freight",
-        "suppliers": [
-            {"name": "Ryerson Steel Service", "commodity": "Steel Coils"},
-            {
-                "name": "McConway & Torley (Pittsburgh, PA)",
-                "entry": "POHC",
-                "commodity": "Steel Billets",
-            },
-            {
-                "name": "Washington Steel (Washington, PA)",
-                "commodity": "Steel Plate",
-            },
-        ],
-        "customers": [
-            {"name": "Ryerson Steel Service", "via": "CSX", "commodity": "Steel Coils"},
-            {
-                "name": "Metal Service Co. (Apollo, PA)",
-                "via": "CSX",
-                "commodity": "Machined Parts",
-            },
-            {
-                "name": "McConway & Torley (Pittsburgh, PA)",
-                "via": "NS",
-                "commodity": "Forged Components",
-            },
-            {
-                "name": "Pittsburgh Forge (McKees Rocks, PA)",
-                "via": "NS",
-                "commodity": "Railway Springs",
-            },
-        ],
-    },
-}
+# industry_id -> the name the decks key an industry by (spot_assignments.csv's Industry spelling)
+_DECK_NAME: dict[str, str] = {r.industry_id: r.sheet_name for r in _INDUSTRY_SHEET if r.waybill_order is not None}
 
-# CSX ↔ POHC interchange: through traffic only. Layout spot industries (see
-# INDUSTRY_ORDER) must not appear as RouteFrom or RouteTo — those moves use
-# spot waybills instead.
-SPOT_WAYBILL: dict[tuple[str, str], WaybillSpec] = {
-    key: normalize_spec(raw, f"SPOT_WAYBILL{key}") for key, raw in _SPOT_WAYBILL_RAW.items()
-}
+
+def _deck_name(industry_id: str, where: str) -> str:
+    name = _DECK_NAME.get(industry_id)
+    if name is None:
+        raise WaybillRulesFileError(f"{where}: industry {industry_id!r} has no waybill_order in industry_sheet.csv")
+    return name
+
+
+def _party(p: waybills.RuleParty) -> Party:
+    return {"name": p.name, "via": p.via, "entry": p.entry, "commodity": p.commodity}
+
+
+@cache
+def spot_waybill() -> dict[tuple[str, str], WaybillSpec]:
+    """Per (industry, usage): the loads and the named suppliers and customers of waybill_loads.csv and
+    waybill_parties.csv. Unload spots: loaded in, empty out. Load and shipping spots: empty in, loaded out."""
+    try:
+        rules = waybills.read_spot_rules()
+    except waybills.WaybillRulesError as exc:
+        raise WaybillRulesFileError(str(exc)) from exc
+    return {
+        (_deck_name(rule.industry_id, waybills.WAYBILL_LOADS.name), rule.usage): {
+            "inbound_load": rule.inbound_load,
+            "outbound_load": rule.outbound_load,
+            "suppliers": [_party(p) for p in rule.suppliers],
+            "customers": [_party(p) for p in rule.customers],
+        }
+        for rule in rules.values()
+    }
+
+
+@cache
+def outbound_empty_return() -> dict[str, EmptyReturn]:
+    """Per industry (its deck name): the yard and road its outbound empties return by (waybill_empty_returns.csv)."""
+    try:
+        returns = waybills.read_empty_returns()
+    except waybills.WaybillRulesError as exc:
+        raise WaybillRulesFileError(str(exc)) from exc
+    return {_deck_name(i, waybills.WAYBILL_EMPTY_RETURNS.name): r for i, r in returns.items()}
+
+
+def interchange_rows(master: Path = waybills.SPOT_WAYBILLS) -> list[InterchangeCard]:
+    """The through cards of the card master HART_Spot_Waybills.csv (traffic interchange), in card_id order."""
+    try:
+        return waybills.read_interchange(master)
+    except waybills.WaybillRulesError as exc:
+        raise WaybillRulesFileError(str(exc)) from exc
+
 
 INTERCHANGE_HEADER = "INTERCHANGE"
 
-# Names tied to on-layout industries (exact or operational alias).
+# Names tied to on-layout industries (exact or operational alias). Interchange cards carry through traffic only:
+# a card that names one of these as RouteFrom or RouteTo is a spot waybill's move, not an interchange card.
 _LAYOUT_PARTY_NAMES = frozenset(
     {
         *INDUSTRY_ORDER.keys(),
@@ -316,161 +187,18 @@ _LAYOUT_PARTY_NAMES = frozenset(
 )
 
 
-
-def _ix_card(**fields: str) -> DeckCard:
-    """An interchange card; fields are DeckCard text keys (Commodity, CarType, RouteFrom ...)."""
-    return cast(DeckCard, {
+def interchange_card(row: InterchangeCard) -> DeckCard:
+    """The deck card of a master interchange row. LoadSummary is set only where the row has one."""
+    card = {
         "Industry": INTERCHANGE_HEADER,
         "CardKind": "interchange",
         "Spots": "—",
-        "RouteFrom": "",
-        "RouteTo": "",
-        "RouteChain": "",
-        **fields,
-    })
-
-
-# Off-layout POHC-side industries (through interchange only — not spot cards).
-STANDARD_FORGED = "Standard Forged Products (McKees Rocks, PA)"
-UNIVERSAL_STAINLESS = "Universal Stainless & Alloy (Bridgeville, PA)"
-GE_BRIDGEVILLE = "GE (Bridgeville, PA)"
-
-# Through + POHC-industry interchange (RouteChain = CSX or POHC for Via … Interchange).
-# Car types: coils → Coil Car; slabs/billets/plate/bar/forgings → Flat Car; scrap → Gondola.
-INTERCHANGE_IN_VIA_CSX: list[DeckCard] = [
-    _ix_card(Commodity="Steel Billets", CarType="Flat Car",
-             RouteFrom="Republic Steel (Cleveland, OH)",
-             RouteTo=STANDARD_FORGED,
-             RouteChain="CSX"),
-    _ix_card(Commodity="Stainless Slab", CarType="Flat Car",
-             RouteFrom="Allegheny Ludlum (Brackenridge, PA)",
-             RouteTo=UNIVERSAL_STAINLESS,
-             RouteChain="CSX"),
-    _ix_card(Commodity="Phosphor Compounds", CarType="Covered Hopper",
-             RouteFrom="General Chemical (Parsippany, NJ)",
-             RouteTo=GE_BRIDGEVILLE,
-             RouteChain="CSX"),
-    _ix_card(Commodity="Steel Billets", CarType="Flat Car",
-             RouteFrom="Republic Steel (Cleveland, OH)",
-             RouteTo="McConway & Torley (Pittsburgh, PA)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Industrial Gases", CarType="Tank Car",
-             RouteFrom="Dow Chemical (Midland, MI)",
-             RouteTo="Knouse Foods (Orrtanna, PA)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Steel Plate", CarType="Flat Car",
-             RouteFrom="Bethlehem Steel (Bethlehem, PA)",
-             RouteTo="Ryerson Steel Service (Pittsburgh, PA)",
-             RouteChain="CSX"),
-]
-
-INTERCHANGE_IN_VIA_POHC: list[DeckCard] = [
-    _ix_card(Commodity="Stainless Slab", CarType="Flat Car",
-             RouteFrom="Weirton Steel (Weirton, WV)",
-             RouteTo="Armco Steel (Middletown, OH)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Plastic Pellets", CarType="Covered Hopper",
-             RouteFrom="BASF (Wyandotte, MI)",
-             RouteTo="Owens-Illinois (Toledo, OH)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Phosphor Compounds", CarType="Covered Hopper",
-             RouteFrom="General Chemical (Parsippany, NJ)",
-             RouteTo="Heinz (Pittsburgh, PA)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Argon", CarType="Tank Car",
-             RouteFrom="Air Products (Allentown, PA)",
-             RouteTo=GE_BRIDGEVILLE,
-             RouteChain="POHC"),
-    _ix_card(Commodity="Methyl Methacrylate", CarType="Tank Car",
-             RouteFrom="Exxon Chemical (Bayonne, NJ)",
-             RouteTo="DuPont (Wilmington, DE)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Cement", CarType="Covered Hopper",
-             RouteFrom="Lehigh Cement (Mitchell, IN)",
-             RouteTo="Holcim (Buffalo, NY)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Steel Coils", CarType="Coil Car",
-             RouteFrom="Republic Steel (Cleveland, OH)",
-             RouteTo="John Deere (Moline, IL)",
-             RouteChain="POHC"),
-]
-
-INTERCHANGE_OUT_VIA_POHC: list[DeckCard] = [
-    _ix_card(Commodity="Forged Components", CarType="Flat Car",
-             RouteFrom=STANDARD_FORGED,
-             RouteTo="Caterpillar (Peoria, IL)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Stainless Bar", CarType="Flat Car",
-             RouteFrom=UNIVERSAL_STAINLESS,
-             RouteTo="Ryerson Steel (Chicago, IL)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Fluorescent Lamps", CarType="Boxcar",
-             RouteFrom=GE_BRIDGEVILLE,
-             RouteTo="Penelec (Erie, PA)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Fluorescent Tubes", CarType="Boxcar",
-             RouteFrom=GE_BRIDGEVILLE,
-             RouteTo="Graybar Electric (St. Louis, MO)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Frozen Foods", CarType="Reefer",
-             RouteFrom="Heinz (Pittsburgh, PA)",
-             RouteTo="Sysco Foods (Harrisburg, PA)",
-             RouteChain="POHC"),
-]
-
-INTERCHANGE_OUT_VIA_CSX: list[DeckCard] = [
-    _ix_card(Commodity="Coal", CarType="Hopper",
-             RouteFrom="Consol Energy (Pittsburgh, PA)",
-             RouteTo="American Electric Power (Columbus, OH)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Activated Carbon", CarType="Covered Hopper",
-             RouteFrom="Calgon Corp (Columbus, OH)",
-             RouteTo="Houghton Chemical (Allston, MA)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Packaged Meats", CarType="Reefer",
-             RouteFrom="Dubuque Packing Co (Dubuque, IA)",
-             RouteTo="Giant Eagle (Pittsburgh, PA)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Plastic Resins", CarType="Boxcar",
-             RouteFrom="Dow Chemical (Midland, MI)",
-             RouteTo="Owens-Illinois (Ottawa, IL)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="LPG", CarType="Tank Car",
-             RouteFrom="Mapco LP (Memphis, TN)",
-             RouteTo="Suburban Propane (Buffalo, NY)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Stainless Bar", CarType="Flat Car",
-             RouteFrom=UNIVERSAL_STAINLESS,
-             RouteTo="Carpenter Steel (Reading, PA)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Forged Components", CarType="Flat Car",
-             RouteFrom=STANDARD_FORGED,
-             RouteTo="Sharon Steel (Farrell, PA)",
-             RouteChain="CSX"),
-]
-
-INTERCHANGE_CSX_TO_NS: list[DeckCard] = [
-    _ix_card(Commodity="Tin Plate", LoadSummary=GENERAL_FREIGHT, CarType="Coil Car",
-             RouteFrom="Wheeling-Pittsburgh Steel (Wheeling, WV)",
-             RouteTo="Heinz (Pittsburgh, PA)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Cement", CarType="Covered Hopper",
-             RouteFrom="Medusa Cement (Charlevoix, MI)",
-             RouteTo="Knouse Foods (Orrtanna, PA)",
-             RouteChain="POHC"),
-    _ix_card(Commodity="Scrap Steel", CarType="Gondola",
-             RouteFrom="Allegheny Ludlum (Brackenridge, PA)",
-             RouteTo="McConway & Torley (Pittsburgh, PA)",
-             RouteChain="POHC"),
-]
-
-INTERCHANGE_NS_TO_CSX: list[DeckCard] = [
-    _ix_card(Commodity="Steel Coils", LoadSummary=GENERAL_FREIGHT, CarType="Coil Car",
-             RouteFrom="Weirton Steel (Weirton, WV)",
-             RouteTo="Ryerson Steel Service (Pittsburgh, PA)",
-             RouteChain="CSX"),
-    _ix_card(Commodity="Plastic Pellets", CarType="Covered Hopper",
-             RouteFrom="BASF (Wyandotte, MI)",
-             RouteTo="Owens-Illinois (Toledo, OH)",
-             RouteChain="CSX"),
-]
+        "Commodity": row.commodity,
+        "CarType": row.car_type,
+        "RouteFrom": row.route_from,
+        "RouteTo": row.route_to,
+        "RouteChain": row.via,
+    }
+    if row.load_summary:
+        card["LoadSummary"] = row.load_summary
+    return cast(DeckCard, card)
