@@ -9,11 +9,11 @@
 #   JMRI_PROFILE=My_JMRI_Railroad.3ef75bfd ./cats/scripts/launch_cats.sh
 #
 # macOS Local Network / MQTT:
-#   Agent-launched java inherits Cursor's TCC. Grant Cursor Local Network once
-#   (System Settings → Privacy & Security → Local Network), then restart Cursor
-#   / relaunch CATS. PanelPro often never appears in that list — that is fine.
-#   If Cursor is still blocked: CATS_LAUNCH_VIA=terminal hands off.
-#   Override: CATS_LAUNCH_VIA=direct|terminal|auto
+#   A java started from another app (an editor, an agent's shell) has that app's Local
+#   Network permission (System Settings → Privacy & Security → Local Network). Grant it
+#   to the app once and restart the app, or hand off to Terminal.app, which usually has
+#   it: CATS_LAUNCH_VIA=terminal. PanelPro often never appears in that list.
+#   CATS_LAUNCH_VIA=direct (default; auto is the same) | terminal
 #
 # Logs (stdout+stderr via 2>&1 | tee):
 #   Default: cats/logs/cats_launch.log
@@ -54,15 +54,14 @@ if [[ ! -f "$PANEL" ]]; then
 fi
 PANEL="$(cd "$(dirname "$PANEL")" && pwd)/$(basename "$PANEL")"
 
-jmri_already_running() {
-  # Local JMRI/CATS JVM only (not this script / ssh / grep).
-  pgrep -u "$(id -u)" -f 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' >/dev/null 2>&1
-}
-if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && jmri_already_running; then
+# A JMRI or CATS JVM of this user (not this script, ssh or grep): hartlib.tables._JMRI_PROCESS, which
+# cats/scripts/tests/test_launch_cats.py holds both launch_cats.sh copies to.
+JMRI_PROCESS='java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)'
+if [[ "${CATS_FORCE_LAUNCH:-}" != "1" ]] && pgrep -u "$(id -u)" -f "$JMRI_PROCESS" >/dev/null 2>&1; then
   echo "Refusing to launch CATS: JMRI/PanelPro/CATS is already running locally." >&2
   echo "Quit PanelPro first (use it only to edit/store JMRI tables), then relaunch CATS." >&2
   echo "Do not run both at once. Emergency override: CATS_FORCE_LAUNCH=1" >&2
-  pgrep -lf 'java .*(cats\.apps\.Crandic|apps\.PanelPro\.PanelPro|apps\.gui3\.dp3\.DecoderPro3|apps\.DecoderPro|apps\.DispatcherPro)' 2>/dev/null | head -5 >&2 || true
+  pgrep -lf "$JMRI_PROCESS" 2>/dev/null | head -5 >&2 || true
   exit 1
 fi
 

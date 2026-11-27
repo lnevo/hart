@@ -1,0 +1,7 @@
+column,description,type,required,key,refs,values
+industry_id,"The industry (industries.csv). The key.",str,yes,yes,ops/hart-ops/data/industries.csv:industry_id,
+sheet_name,"The name the operator sheet and the waybill decks key the industry by: spot_assignments.csv's spelling (A Stucki Co, Ferrel Gas), which the STS seed still uses; it changes with that rename.",str,yes,,,
+sheet_order,"The industry's place among the sheet's island industries (0 first).",int,yes,,,
+waybill_order,"Its place in the waybill decks (0 first). Empty: the industry has no waybills (Shenango Coke Works).",int,,,,
+logo,"The logo, a file in ops/hart-ops/operator_logos/.",str,yes,,,
+logo_width,"The logo's width on the page, in inches.",float,yes,,,

@@ -5,6 +5,11 @@ from __future__ import annotations
 
 from typing import NotRequired, TypedDict
 
+import hartlib_path  # noqa: E402
+
+hartlib_path.ensure_on_path()
+from hartlib import operations  # noqa: E402
+
 
 class TrackRow(TypedDict):
     """One row of a track table (an industry with no numbered spots)."""
@@ -38,90 +43,14 @@ class YardPage(TypedDict):
     jobs: NotRequired[list[str]]
 
 
-INDUSTRY_LOGOS: dict[str, tuple[str, float]] = {
-    "Aristech Plastics": ("aristech.png", 1.95),
-    "A Stucki Co": ("stucki.png", 1.55),
-    "Calgon Carbon": ("calgon.png", 2.05),
-    "Ferrel Gas": ("ferrellgas.png", 1.05),
-    "Kosmos Cement": ("kosmos.png", 1.45),
-    "Shenango Coke Works": ("shenango.png", 0.55),
-}
-
-# Local page order for island industries (includes Shenango; not in waybill INDUSTRY_ORDER).
-SHEET_INDUSTRY_ORDER: dict[str, int] = {
-    "Aristech Plastics": 0,
-    "A Stucki Co": 1,
-    "Calgon Carbon": 2,
-    "Ferrel Gas": 3,
-    "Kosmos Cement": 4,
-    "Shenango Coke Works": 5,
-}
-
-# Historical notes (through 1990s) plus a short traffic line for the operator.
-INDUSTRY_SUMMARIES: dict[str, list[str]] = {
-    "Aristech Plastics": [
-        "Founded 1986 as Aristech Chemical, spun off from U.S. Steel's USS Chemicals "
-        "division with headquarters in Pittsburgh.",
-        "Major producer of acrylic sheet, molded plastics, and synthetic resins for "
-        "bathtubs, spas, architectural panels, and packaging.",
-        "Continuous-cast acrylic sheet production began in 1969; chemical operations "
-        "draw on the former USS Chemicals heritage dating to the 1960s.",
-        "Traffic: plastic pellets (HC) and process chemicals (TA) in; plastic resins (XM) "
-        "out. NVL serves the plant.",
-    ],
-    "A Stucki Co": [
-        "Founded 1911 by Swiss engineer Arnold Stucki in the Pittsburgh area.",
-        "Stucki's roller side-bearing design stabilized freight cars and became a "
-        "North American industry standard by the 1950s.",
-        "Grew through the 20th century as a supplier of railcar components, springs, "
-        "bearings, and machined steel.",
-        "Traffic: steel (FM/GA/XM) on the crane; general freight (XM/FM/GA) on the team "
-        "track. Empties and outbound parts leave after spotting. NVL serves the plant.",
-    ],
-    "Calgon Carbon": [
-        "Traces to 1942, when Pittsburgh Coke & Chemical developed coal-based activated "
-        "carbon for U.S. military gas masks during World War II.",
-        "Pioneered granular activated carbon for municipal drinking-water treatment in "
-        "the 1960s; headquartered in the Pittsburgh area.",
-        "Became an independent public company in 1987; one of the world's leading "
-        "activated-carbon producers by the 1990s.",
-        "Traffic: coal (HM) and process chemicals (TA) in; activated carbon (HC) out. "
-        "NVL serves the plant.",
-    ],
-    "Ferrel Gas": [
-        "Founded 1939 as A.C. Ferrell Butane Gas Company in Atchison, Kansas.",
-        "James E. Ferrell took over in 1965 when the business had just four employees, "
-        "then rebuilt it through Midwest propane dealer acquisitions.",
-        "Bulk propane storage and rail deliveries expanded through the 1970s and 1980s "
-        "as residential and farm demand grew.",
-        "Traffic: LPG (TA) in at the unload racks; empty tanks out. NVL serves the plant.",
-    ],
-    "Kosmos Cement": [
-        "Portland cement plant at Kosmosdale, Kentucky, shipping from the same site since "
-        "1905; founded by Samuel Horner Jr. as Kosmos Portland Cement Company.",
-        "Supplied cement for early Ohio River lock and dam construction; a fleet of "
-        "company towboats with names beginning in \"K\" moved cement and quarry stone.",
-        "The company town of Kosmosdale grew around the mill; Horner heirs sold the "
-        "operation in 1957 and the plant was rebuilt in the early 1970s.",
-        "Traffic: cement (HC) and aggregate (HM/GA) in; empty hoppers out. NVL serves "
-        "the plant.",
-    ],
-    "Shenango Coke Works": [
-        "Pittsburgh Coke & Chemical (PC&C) was making coke and pig iron on the "
-        "eastern end of Neville Island by 1929. The coke ovens and chemical works "
-        "that later became Shenango date to about 1930.",
-        "PC&C was more than a coke plant: on the island it also made cement, "
-        "industrial chemicals, and activated carbon. Those other branches became "
-        "the Kosmos, Aristech, and Calgon operations still switched today.",
-        "In 1962 Shenango Furnace purchased PC&C. The coke-and-iron division became "
-        "Shenango Inc. and kept making coke and coke by-products on the same site "
-        "for decades after the PC&C name disappeared.",
-        "Traffic: HM coke on Shipping 1 and Shipping 2 (no numbered spots). CK1 lifts "
-        "for South Yard scale. Loads to U.S. Steel Edgar Thomson Works (Braddock, PA) "
-        "via CSX and LTV Steel Cleveland Works (Cleveland, OH) via POHC. NVL may set "
-        "out deliveries; no Shenango empty pickup on the NVL return.",
-    ],
-}
+# The island industries of the sheet, in their order, with their logos and history notes: ops/hart-ops/data/
+# industry_sheet.csv and industry_notes.csv (hartlib.operations), keyed here by the sheet's name for each.
+_SHEET = operations.read_industry_sheet()
+_NOTES = operations.read_industry_notes()
+INDUSTRY_LOGOS: dict[str, tuple[str, float]] = {r.sheet_name: (r.logo, r.logo_width) for r in _SHEET}
+SHEET_INDUSTRY_ORDER: dict[str, int] = {r.sheet_name: r.sheet_order for r in _SHEET}
+SHEET_INDUSTRY_IDS: dict[str, str] = {r.sheet_name: r.industry_id for r in _SHEET}   # sheet name -> industry_id
+INDUSTRY_SUMMARIES: dict[str, list[str]] = {r.sheet_name: _NOTES.get(r.industry_id, []) for r in _SHEET}
 
 SHENANGO_TRACK_ROWS: list[TrackRow] = [
     {

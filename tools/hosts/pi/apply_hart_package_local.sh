@@ -176,9 +176,19 @@ fi
 # it quits, so with JMRI running on the profile the step is skipped; the next deploy with PanelPro quit sets them.
 PI_PROFILE="${HART_PI_PROFILE:-TCS_MQTT}"
 SIZES="$HART/cats/scripts/panel_window_sizes.py"
-if [[ -f "$SIZES" && -f "$UF/tables.xml" ]]; then
+# The JVM of a JMRI app on the profile: -Dorg.jmri.profile=<the id> as a whole word. A name with no id suffix
+# (TCS_MQTT) also matches its id (TCS_MQTT.3f32a166), and neither matches another profile that starts the same
+# (TCS_MQTT_test). "[o]rg" keeps the pattern from matching the shell that runs pgrep.
+profile_jvm_pattern() {
+  local id="$1" suffix=""
+  [[ "$id" == *.* ]] || suffix='(\.[[:alnum:]]+)?'
+  printf '%s' "[o]rg\\.jmri\\.profile=${id//./\\.}${suffix}( |\$)"
+}
+if [[ -f "$SIZES" && -f "$UF/tables.xml" && ! "$PI_PROFILE" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]*$ ]]; then
+  echo "Panel window sizes NOT set: HART_PI_PROFILE='$PI_PROFILE' is not a JMRI profile id."
+elif [[ -f "$SIZES" && -f "$UF/tables.xml" ]]; then
   running=0
-  pgrep -f "[o]rg.jmri.profile=${PI_PROFILE}" >/dev/null 2>&1 || running=$?
+  pgrep -f "$(profile_jvm_pattern "$PI_PROFILE")" >/dev/null 2>&1 || running=$?
   if [[ "$running" -eq 0 ]]; then
     echo "Panel window sizes NOT set: JMRI runs on the profile $PI_PROFILE and would overwrite user-interface.xml." \
       "Quit PanelPro (tools/hosts/pi_quit_panelpro.sh --for-deploy) and deploy again."
