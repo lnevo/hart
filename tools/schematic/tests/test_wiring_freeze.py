@@ -125,8 +125,7 @@ class TheBuild(unittest.TestCase):
     def build(self, frozen, pins=None):
         bands, joined, runs, corners = self.solved
         rr = self.rr
-        _cp, rows, _parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
-                                      rr.lcos_nodes, rr.local_switches, corners, frozen=frozen, pins=pins)
+        _cp, rows, _parts = bdm.build(bands, joined, runs, bdm.MapInputs.of(rr), corners, frozen=frozen, pins=pins)
         return {(r["layer"], r["user_name"]): r for r in rows}
 
     def freeze(self, cp, today="2026-11-21"):

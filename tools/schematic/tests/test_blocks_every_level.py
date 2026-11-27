@@ -475,8 +475,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         except bl.BuildError as exc:
             skip_or_fail(exc)
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
-        _cp, rows, _parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
-                                      rr.lcos_nodes, rr.local_switches, corners)
+        _cp, rows, _parts = bdm.build(bands, joined, runs, bdm.MapInputs.of(rr), corners)
         mine = [(str(r["level"]), r["user_name"], r["trial_name"], r["notes"]) for r in rows
                 if r["layer"] in ("block", "occupancy") and str(r["level"]) in ("2", "3")]
         want = [(r["level"], r["user_name"], r["trial_name"], r["notes"]) for r in committed()
@@ -487,8 +486,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
     def build_rows(self, bands, joined, runs, corners):
         """(level, user name, trial name) of every block row (parts too) the builder writes for `bands`."""
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
-        _cp, rows, parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
-                                     rr.lcos_nodes, rr.local_switches, corners)
+        _cp, rows, parts = bdm.build(bands, joined, runs, bdm.MapInputs.of(rr), corners)
         staging = bdm.staging_rows(bands, joined, runs)
         return sorted((str(r["level"]), r["user_name"], r["trial_name"]) for r in rows + parts + staging
                       if r["layer"] == "block")

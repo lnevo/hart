@@ -28,24 +28,23 @@ command and report the turnouts their device-master rows give (internal today, I
 split_system_name), closed on the drawn leg B, which is
 NORMAL; double crossover 225 too, its one turnout moving all four points, and a desk block per corner as in the
 Layout Editor, OS Switch 225a to d on their corners' detectors, with the middle of its X a block of its own and no
-detector: the plugin's `corners` binding, which opens a row between its tracks on the upper level; owner,
-2026-11-17), and their
+detector: the plugin's `corners` binding, which opens a row between its tracks on the upper level), and their
 control-point masts (masts.csv, on virtual heads) are drawn and bound as staging's are: each on the track
 it faces at the switch it protects (level_signals), its CATS template the one staging's masts of its appearance type
 take. Every main and upper desk block is bound to its virtual occupancy sensor (the device map's jmri_name,
-IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,
-2026-11-17: the physical plant is a draft, swapped in later by the device map alone); the planned detector, when the
+IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (the physical plant is a draft,
+swapped in later by the device map alone); the planned detector, when the
 map has one, is kept in the bindings as _planned_occupied / _planned_unoccupied for the record and is not on the
 panel. The middle of 225's X, a desk-only block, has no sensor. Each helix track is one desk
-block over both bands it is drawn on (cats_helix_blocks "one"; owner, 2026-11-20: one JMRI block from its staging
-switch to its main or upper switch), named and bound as the main and upper device map gives it (Track Helix Outer,
+block over both bands it is drawn on (cats_helix_blocks "one": one JMRI block from its staging switch to its main
+or upper switch), named and bound as the main and upper device map gives it (Track Helix Outer,
 Track Helix Inner: its virtual sensor), the staging device map naming the same block for the staging piece.
 Anything else without a JMRI block, an ambiguous track, or a fact that disagrees with the drawing stops the run.
 The sheet is built once and tables.xml read once; bindings and panels come from the same plugin code.
 The IOSPEC, STATION and SECSIGNAL conventions are the hand-wired desks' (cats_turnout_io.py, digicon_lib.py,
 hartlib.cats). The header (fonts, counters, signal templates, train, job and crew stores, colours,
 OPERATIONS, JMRI names) and the publication plate come from cats/data/generated_desk_header.xml, frozen from the
-live desk on 2026-11-15; the ABS twin turns every CTC block ABS and says DS-ABS / ABS DIGICON on its plate, as the
+live desk; the ABS twin turns every CTC block ABS and says DS-ABS / ABS DIGICON on its plate, as the
 hand-wired ABS desk did. Inputs and plugin are the same as tools/schematic/publish_draft.py (SCHEMATIC_PLUGIN for
 other plugin code).
 
@@ -59,7 +58,10 @@ import json
 import os
 import sys
 import tempfile
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from types import ModuleType
+from typing import Any, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
@@ -77,11 +79,11 @@ from cats_panel import (split_system_name, MAIN_UPPER_DISCIPLINE, block_bindings
                         loop_half_edge, mast_bindings, name_loop_halves, os_blocks, os_plates, plan_edge, placeholder,
                         planned_sensor, spec, staging_names, switch_bindings, switch_of, track_block, virtual_sensor,
                         xover_corners)
+from cats_panel import Bands, BlockBinding, MastBinding, SwitchBinding, Unbound  # noqa: E402
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
                               plate_box, right_edge, station_plates)
 
-# The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
-# launchers and shortcuts use. Nothing else writes them.
+# The live desks (CATS cut-over, ADR-023): the names the hosts, launchers and shortcuts use. Nothing else writes them.
 OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
@@ -91,8 +93,36 @@ BOUND_LEVEL = 1        # the level bound to JMRI: staging's band (its `level` in
 # which also gives the cells the desk must fit in that window. cats_window is not set there: publish_draft.solved_sheet
 # derives it from the page's host_screen (host_screen.py), the layout hosts' screen, as the Layout Editor's le_window.
 
+Cells = tuple[int, int]         # (columns, rows), or a window's (width, height) in pixels
 
-def plugin_modules(plugin):
+
+class DeskOptions(TypedDict):
+    """The page's CATS preferences as the plugin's cats.options gives them, checked by desk_options: the desks'
+    window in pixels and the cells they must fit in it are set, and each helix track is one block."""
+    scale: Any                  # cats_cells_per_unit as the plugin's check_scale returns it (the plugin is untyped)
+    helix_blocks: str
+    band_gap: int | None        # None: cats.panel's default
+    title_gap: int | None
+    window: Cells
+    fit: Cells
+
+
+class DeskBindings(TypedDict):
+    """The bindings file (HART_CTC.bindings.json) as bindings() writes it."""
+    _note: str
+    _main_upper_not_on_desk: dict[str, Unbound]
+    switches: dict[str, SwitchBinding]
+    blocks: dict[str, BlockBinding]
+    masts: dict[str, MastBinding]
+
+
+NOTE = ("Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper switches "
+        "command their internal turnouts, their masts are bound and their blocks report their virtual occupancy "
+        "sensors (IS:HART:C3:B:); a block's planned detector, a draft, is kept as _planned_occupied / "
+        "_planned_unoccupied.")
+
+
+def plugin_modules(plugin: Path) -> tuple[ModuleType, ModuleType]:
     """The plugin's cats and sheet modules, imported from `plugin` (the same code the command would run)."""
     sys.path.insert(0, str(plugin))
     for name in [m for m in sys.modules if m == "schematic" or m.startswith("schematic.")]:
@@ -102,35 +132,47 @@ def plugin_modules(plugin):
     return cats, sheet
 
 
-def cats_le(cats):
+def cats_le(cats: ModuleType) -> ModuleType:
     """The plugin's le module, beside its cats module."""
     return importlib.import_module(cats.__name__.rpartition(".")[0] + ".le")
 
 
-def check_apart(staging, dark):
+def check_apart(staging: Mapping[str, BlockBinding], dark: Mapping[str, BlockBinding]) -> None:
     """Stop when a staging and a main or upper block binding share a panel name or the block name they take (which
     would make them one CATS block)."""
     clash = sorted(set(staging) & set(dark))
     if clash:
         raise CatsPanelError(f"staging and main/upper blocks share panel names {', '.join(clash)}")
-    bound = lambda bs: {e.get("name", k) for k, e in bs.items()}     # the block name each desk block takes
+
+    def bound(bs: Mapping[str, BlockBinding]) -> set[str]:
+        """The block name each desk block takes: its binding's name, else its panel name."""
+        return {e.get("name", k) for k, e in bs.items()}
+
     clash = sorted(bound(staging) & bound(dark))
     if clash:
         raise CatsPanelError(f"staging and main/upper desk blocks would both be {', '.join(clash)}")
 
 
-def bound_index(bands):
+def check_keys_apart(what: str, staging: Mapping[str, object], level: Mapping[str, object]) -> None:
+    """Stop when staging's and main/upper's `what` bindings share a key (one would hide the other in the file)."""
+    shared = sorted(set(staging) & set(level))
+    if shared:
+        raise CatsPanelError(f"staging and main/upper share {what} keys {', '.join(shared)}")
+
+
+def bound_index(bands: Bands) -> int:
     """The index of the staging band, the one bound to the field: the band of level BOUND_LEVEL, found by its level
     (le_common.find_band), never by its title. Stops when no band, or several, are at that level."""
     try:
-        return sdm.lc.find_band(bands, BOUND_LEVEL)
+        found: int = sdm.lc.find_band(bands, BOUND_LEVEL)
     except sdm.lc.BuildError as exc:
         raise CatsPanelError(f"the band bound to the field: {exc}") from exc
+    return found
 
 
-def bindings(bands, cats, F, o, page):
+def bindings(bands: Bands, cats: ModuleType, F: Facts, o: DeskOptions, page: Mapping[str, Any]) -> DeskBindings:
     """The bindings for every band, from the facts (see the module docstring); `o` the page's CATS preferences
-    (cats.options), `page` the schematic's page preferences (the solved sheet's opts)."""
+    (desk_options), `page` the schematic's page preferences (the solved sheet's opts: the plugin's JSON)."""
     bi = bound_index(bands)
     _, band, opts = bands[bi]
     stored = staging_names(band, pd.DATA)       # the staging names, from the store of the folder solved from
@@ -139,7 +181,7 @@ def bindings(bands, cats, F, o, page):
     le_mod = cats_le(cats)
     level_sw = level_switch_bindings(bands, F, bi, bdm.dx_corners(bands, le_mod, page))
     # the panel's block names once the switches name their OS blocks (and a double crossover its corners)
-    named = {k: {"block": v["block"]} for k, v in out_sw.items()}
+    named: dict[str, dict[str, Any]] = {k: {"block": v["block"]} for k, v in out_sw.items()}
     named.update({k: {"corners": v["corners"]} for k, v in level_sw.items() if "corners" in v})
     P = cats.panel(bands, scale=o["scale"], helix_blocks=o["helix_blocks"],   # names only: no column trimming
                    band_gap=o["band_gap"], title_gap=o["title_gap"],
@@ -150,18 +192,13 @@ def bindings(bands, cats, F, o, page):
     print("\n".join(log))
     check_apart(blocks, dark)
     masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)
-    for what, a, b in (("switch", out_sw, level_sw), ("mast", masts, level)):
-        if set(a) & set(b):
-            raise CatsPanelError(f"staging and main/upper share {what} keys {', '.join(sorted(set(a) & set(b)))}")
-    return {"_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and "
-                     "upper switches command their internal turnouts, their masts are bound and their blocks report "
-                     "their virtual occupancy sensors (IS:HART:C3:B:); a block's planned detector, a draft, is kept "
-                     "as _planned_occupied / _planned_unoccupied.",
-            "_main_upper_not_on_desk": missing,
-            "switches": dict(out_sw, **level_sw), "blocks": dict(blocks, **dark), "masts": dict(masts, **level)}
+    check_keys_apart("switch", out_sw, level_sw)
+    check_keys_apart("mast", masts, level)
+    return DeskBindings(_note=NOTE, _main_upper_not_on_desk=missing, switches={**out_sw, **level_sw},
+                        blocks={**blocks, **dark}, masts={**masts, **level})
 
 
-def desk_options(cats, page, bands):
+def desk_options(cats: ModuleType, page: Mapping[str, Any], bands: Bands) -> DeskOptions:
     """The page's CATS preferences (cats.options), which must hold the desks' window (they fit the dispatcher's) and
     each helix track one block over both bands (dark_bindings binds it as the main and upper device map gives it).
     CatsPanelError when they do not."""
@@ -169,16 +206,17 @@ def desk_options(cats, page, bands):
         o = cats.options(page, bands)
     except cats.SchematicError as e:
         raise CatsPanelError(f"error: {e}") from e
-    if o["fit"] is None:
+    if o["fit"] is None or o["window"] is None:
         raise CatsPanelError("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's "
                              "window")
     if o["helix_blocks"] != "one":
         raise CatsPanelError(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"one\" (a helix "
                              "track one block over both bands, as JMRI holds it)")
-    return o
+    return DeskOptions(scale=o["scale"], helix_blocks=o["helix_blocks"], band_gap=o["band_gap"],
+                       title_gap=o["title_gap"], window=o["window"], fit=o["fit"])
 
 
-def check_desk_faults(cats, P, fit):
+def check_desk_faults(cats: ModuleType, P: object, fit: Cells) -> None:
     """Print the plugin's desk faults for panel P (cats.faults: two blocks landing in one cell, a desk wider than its
     `fit` window), the count first, and stop when there is one. They are what preferences.json[main_upper]'s
     level_leg pins on 115, 235 and 239 keep away (its _level_leg note). CatsPanelError on a fault."""
@@ -199,7 +237,7 @@ def desk_plates() -> list[tuple[str, tuple[str, ...]]]:
     return [(st.name, st.switches) for st in rows if st.desk_plate]
 
 
-def generate(plugin, out, bindings_out, out_abs=None):
+def generate(plugin: Path, out: Path, bindings_out: Path, out_abs: Path | None = None) -> None:
     """Build the sheet once and write the bindings and the desks with the same plugin code. CatsPanelError when a
     fact, the window or the labels do not fit."""
     cats, sheet = plugin_modules(plugin)
@@ -238,7 +276,31 @@ def generate(plugin, out, bindings_out, out_abs=None):
                              "them:\n  " + "\n  ".join(clashes))
 
 
-def main(argv):
+def compare(fresh: Mapping[Path, Path], check: bool) -> int:
+    """Hold each live file to its fresh build (`fresh`: {live path: fresh path}): print current or stale, with a
+    diff, under `check`; else write each stale one. The number of stale files under `check`, else 0."""
+    stale = 0
+    for target, new_file in fresh.items():
+        new = new_file.read_text(encoding="utf-8")
+        old = target.read_text(encoding="utf-8") if target.exists() else ""
+        rel = target.relative_to(pd.REPO)
+        if new == old:
+            print(f"{rel} is current")
+        elif check:
+            stale += 1
+            print(f"{rel} is stale; run python3 tools/schematic/build_cats_panel.py")
+            sys.stdout.writelines(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
+                                                       target.name, "fresh", n=1))
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(new, encoding="utf-8")
+            print(f"wrote {rel}")
+    return stale
+
+
+def main(argv: Sequence[str]) -> int:
+    """Exit status: 0 current or written, 1 a stale file under --check or a named error (its message on stderr),
+    2 a bad argument. --help prints the docstring."""
     if {"-h", "--help"} & set(argv):     # help wins over --check and over a typo beside it: it only prints
         print(__doc__ or "build_cats_panel.py [--check]")       # python -OO strips the docstring
         return 0
@@ -254,7 +316,8 @@ def main(argv):
         plugin = pd.plugin()
     except pd.PluginMissing as e:
         if not check:
-            sys.exit(str(e))
+            print(e, file=sys.stderr)
+            return 1
         print(f"SKIPPED CATS panel check: {e}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     with tempfile.TemporaryDirectory() as tmp:
@@ -262,24 +325,9 @@ def main(argv):
         try:
             generate(plugin, fresh[OUT], fresh[BINDINGS], fresh[OUT_ABS])
         except CatsPanelError as exc:       # a fact the desks need is wrong: the message names it
-            sys.exit(str(exc))
-        stale = 0
-        for target, new_file in fresh.items():
-            new = new_file.read_text(encoding="utf-8")
-            old = target.read_text(encoding="utf-8") if target.exists() else ""
-            rel = target.relative_to(pd.REPO)
-            if new == old:
-                print(f"{rel} is current")
-            elif check:
-                stale += 1
-                print(f"{rel} is stale; run python3 tools/schematic/build_cats_panel.py")
-                sys.stdout.writelines(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
-                                                           target.name, "fresh", n=1))
-            else:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(new, encoding="utf-8")
-                print(f"wrote {rel}")
-    return 1 if stale else 0
+            print(exc, file=sys.stderr)
+            return 1
+        return 1 if compare(fresh, check) else 0
 
 
 if __name__ == "__main__":
