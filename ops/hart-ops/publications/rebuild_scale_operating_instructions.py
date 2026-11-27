@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Rebuild HART Railroad Scale Operating Instructions (Revision D).
 
-The body text comes from the crew master, ops/hart-ops/data/crew.json ("scale"); this holds the layout. Preserves masthead artwork
-from the canonical docx, then rewrites publication lines and everything
-from SECTION 1 onward.
+The body text comes from the crew master, ops/hart-ops/data/crew.json ("scale"); this holds the layout. Preserves
+masthead artwork from the canonical docx, then rewrites publication lines and everything from SECTION 1 onward.
 
 The canonical docx is also the template: each run reads the last one written.
 
@@ -18,6 +17,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
 from typing import Literal, TypedDict, cast
@@ -55,6 +55,10 @@ PUBLICATION = {
 }
 
 BlockKind = Literal["h1", "h2", "intro", "steps", "spacer"]
+
+
+class ScaleInstructionsError(Exception):
+    """EQ-01 cannot be rebuilt: no template, a template without its masthead or numbering, or an unknown block."""
 
 
 class Block(TypedDict, total=False):
@@ -183,6 +187,7 @@ def _add_break_run(p_el: BaseOxmlElement, break_type: str, at_start: bool = Fals
 
 
 def _set_numPr(p_el: BaseOxmlElement, num_id: str) -> None:
+    """Number the paragraph in list num_id at level 0, with the 8 pt list mark of the Compact lists."""
     pPr = _ensure_pPr(p_el)
     old = pPr.find(qn("w:numPr"))
     if old is not None:
@@ -191,7 +196,7 @@ def _set_numPr(p_el: BaseOxmlElement, num_id: str) -> None:
     ilvl = OxmlElement("w:ilvl")
     ilvl.set(qn("w:val"), "0")
     numId = OxmlElement("w:numId")
-    numId.set(qn("w:val"), str(num_id))
+    numId.set(qn("w:val"), num_id)
     numPr.append(ilvl)
     numPr.append(numId)
     pStyle = pPr.find(qn("w:pStyle"))
@@ -212,20 +217,23 @@ def _set_numPr(p_el: BaseOxmlElement, num_id: str) -> None:
         rPr.append(el)
 
 
+def _abstract_num(numbering: BaseOxmlElement, abstract_id: str) -> BaseOxmlElement:
+    for an in numbering.findall(qn("w:abstractNum")):
+        if an.get(qn("w:abstractNumId")) == abstract_id:
+            return an
+    raise ScaleInstructionsError(f"abstractNum {abstract_id} not found")
+
+
+def _max_id(numbering: BaseOxmlElement, tag: str, attr: str) -> int:
+    """The highest numeric id among the numbering's tag elements (0 when it has none)."""
+    return max((int(el.get(qn(attr))) for el in numbering.findall(qn(tag))), default=0)
+
+
 def _new_list_num(numbering: BaseOxmlElement, abstract_src: str = "2") -> str:
     """Clone abstract + num with startOverride so each subsection restarts at 1."""
-    src = None
-    for an in numbering.findall(qn("w:abstractNum")):
-        if an.get(qn("w:abstractNumId")) == abstract_src:
-            src = an
-            break
-    if src is None:
-        raise RuntimeError(f"abstractNum {abstract_src} not found")
-
-    abs_ids = [int(a.get(qn("w:abstractNumId"))) for a in numbering.findall(qn("w:abstractNum"))]
-    num_ids = [int(n.get(qn("w:numId"))) for n in numbering.findall(qn("w:num"))]
-    new_abs_id = max(abs_ids) + 1
-    new_num_id = max(num_ids) + 1
+    src = _abstract_num(numbering, abstract_src)
+    new_abs_id = _max_id(numbering, "w:abstractNum", "w:abstractNumId") + 1
+    new_num_id = _max_id(numbering, "w:num", "w:numId") + 1
 
     new_abs = deepcopy(src)
     new_abs.set(qn("w:abstractNumId"), str(new_abs_id))
@@ -273,9 +281,9 @@ def _set_text_preserve_runs(p: Paragraph, text: str) -> None:
 
 def _find_template() -> Path:
     for p in TEMPLATE_CANDIDATES:
-        if p.exists():
+        if p.is_file():
             return p
-    raise FileNotFoundError(
+    raise ScaleInstructionsError(
         "No masthead template found. Expected one of:\n  "
         + "\n  ".join(str(p) for p in TEMPLATE_CANDIDATES)
     )
@@ -313,46 +321,43 @@ def _update_masthead(doc: DocxDocument) -> None:
             _set_text_preserve_runs(p, PUBLICATION["title_line"])
 
 
-def _strip_body_after_official(doc: DocxDocument) -> Paragraph:
-    """Remove all paragraphs after Official Publication; return that paragraph."""
-    official = None
+def _official_paragraph(doc: DocxDocument) -> Paragraph:
     for p in doc.paragraphs:
         if (p.text or "").strip() == "Official Publication":
-            official = p
-            break
-    if official is None:
-        raise RuntimeError("Official Publication paragraph not found in template")
+            return p
+    raise ScaleInstructionsError("Official Publication paragraph not found in template")
 
-    body = doc.element.body
-    # Collect removable elements after official._p until final sectPr
-    remove = []
-    seen_official = False
-    for child in list(body):
-        if child is official._p:
-            seen_official = True
-            continue
-        if not seen_official:
-            continue
+
+def _remove_body_after(body: BaseOxmlElement, anchor: BaseOxmlElement) -> None:
+    """Remove every body element after anchor up to the final w:sectPr."""
+    children = list(body)
+    for child in children[children.index(anchor) + 1:]:
         if child.tag == qn("w:sectPr"):
             break
-        remove.append(child)
-    for el in remove:
-        body.remove(el)
+        body.remove(child)
 
-    # Ensure page break on Official Publication (not a following empty para)
-    for r in list(official._p.findall(qn("w:r"))):
+
+def _is_empty_run(r: BaseOxmlElement) -> bool:
+    """A run with no text, break, drawing or tab (only its w:rPr is left)."""
+    return all(r.find(qn(tag)) is None for tag in ("w:t", "w:br", "w:drawing", "w:tab"))
+
+
+def _move_page_break_to_end(p_el: BaseOxmlElement) -> None:
+    """The page break goes on the paragraph itself, last, not on a following empty paragraph."""
+    for r in list(p_el.findall(qn("w:r"))):
         for br in list(r.findall(qn("w:br"))):
             if br.get(qn("w:type")) == "page":
                 r.remove(br)
-        if (
-            r.find(qn("w:t")) is None
-            and r.find(qn("w:br")) is None
-            and r.find(qn("w:drawing")) is None
-        ):
-            # orphan rPr-only run after stripping break
-            if r.find(qn("w:tab")) is None:
-                official._p.remove(r)
-    _add_break_run(official._p, "page", at_start=False)
+        if _is_empty_run(r):
+            p_el.remove(r)
+    _add_break_run(p_el, "page", at_start=False)
+
+
+def _strip_body_after_official(doc: DocxDocument) -> Paragraph:
+    """Remove all paragraphs after Official Publication; return that paragraph."""
+    official = _official_paragraph(doc)
+    _remove_body_after(doc.element.body, official._p)
+    _move_page_break_to_end(official._p)
     return official
 
 
@@ -363,7 +368,7 @@ def _ensure_two_columns(doc: DocxDocument) -> None:
         if child.tag == qn("w:sectPr"):
             sect = child
     if sect is None:
-        raise RuntimeError("Document has no body sectPr")
+        raise ScaleInstructionsError("Document has no body sectPr")
     stype = sect.find(qn("w:type"))
     if stype is not None:
         sect.remove(stype)
@@ -383,41 +388,64 @@ def _new_paragraph(style_id: str) -> BaseOxmlElement:
     return p
 
 
+def _heading1(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
+    p = _new_paragraph("Heading1")
+    if block.get("space_before") is not None:
+        _set_spacing_before(p, block["space_before"])
+    if block.get("column_break_before"):
+        _add_break_run(p, "column", at_start=True)
+    _add_text_run(p, block["text"], sz="26", color=block.get("heading_color"))
+    return [p]
+
+
+def _heading2(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
+    p = _new_paragraph("Heading2")
+    ind = OxmlElement("w:ind")  # the Heading 2 outdent of this publication
+    ind.set(qn("w:left"), "-180")
+    _ensure_pPr(p).append(ind)
+    _add_text_run(p, block["text"], sz="23")
+    return [p]
+
+
+def _intro(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
+    p = _new_paragraph("FirstParagraph")
+    _add_text_run(p, block["text"], sz="22")
+    return [p]
+
+
+def _steps(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
+    """One Compact paragraph per item, in a new list that starts at 1."""
+    num_id = _new_list_num(numbering, "2")
+    out = []
+    for item in block["items"]:
+        p = _new_paragraph("Compact")
+        _set_numPr(p, num_id)
+        _set_ind_left(p, "540")
+        _add_text_run(p, item, sz="22")
+        out.append(p)
+    return out
+
+
+def _spacer(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
+    return [_new_paragraph("Heading1")]
+
+
+BLOCK_WRITERS: dict[str, Callable[[Block, BaseOxmlElement], list[BaseOxmlElement]]] = {
+    "spacer": _spacer,
+    "h1": _heading1,
+    "h2": _heading2,
+    "intro": _intro,
+    "steps": _steps,
+}
+
+
 def _block_paragraphs(block: Block, numbering: BaseOxmlElement) -> list[BaseOxmlElement]:
     """The paragraphs of one body block, in order."""
     kind = block["kind"]
-    if kind == "spacer":
-        return [_new_paragraph("Heading1")]
-    if kind == "h1":
-        p = _new_paragraph("Heading1")
-        if block.get("space_before") is not None:
-            _set_spacing_before(p, block["space_before"])
-        if block.get("column_break_before"):
-            _add_break_run(p, "column", at_start=True)
-        _add_text_run(p, block["text"], sz="26", color=block.get("heading_color"))
-        return [p]
-    if kind == "h2":
-        p = _new_paragraph("Heading2")
-        ind = OxmlElement("w:ind")  # the Heading 2 outdent of this publication
-        ind.set(qn("w:left"), "-180")
-        _ensure_pPr(p).append(ind)
-        _add_text_run(p, block["text"], sz="23")
-        return [p]
-    if kind == "intro":
-        p = _new_paragraph("FirstParagraph")
-        _add_text_run(p, block["text"], sz="22")
-        return [p]
-    if kind == "steps":
-        num_id = _new_list_num(numbering, "2")
-        out = []
-        for item in block["items"]:
-            p = _new_paragraph("Compact")
-            _set_numPr(p, num_id)
-            _set_ind_left(p, "540")
-            _add_text_run(p, item, sz="22")
-            out.append(p)
-        return out
-    raise ValueError(f"Unknown block kind: {kind}")
+    writer = BLOCK_WRITERS.get(kind)
+    if writer is None:
+        raise ScaleInstructionsError(f"Unknown block kind: {kind}")
+    return writer(block, numbering)
 
 
 def rebuild(out: Path = CANONICAL) -> Path:
@@ -426,26 +454,32 @@ def rebuild(out: Path = CANONICAL) -> Path:
     # Work on a copy so the template can be the canonical docx itself.
     work = out if template.resolve() != out.resolve() else out.with_suffix(".rebuild.docx")
     shutil.copy2(template, work)
-
-    doc = Document(str(work))
-    numbering = doc.part.numbering_part._element
-    _update_masthead(doc)
-    insert_after = _strip_body_after_official(doc)._p
-    for block in CONTENT:
-        for p in _block_paragraphs(block, numbering):
-            insert_after.addnext(p)
-            insert_after = p
-    _ensure_two_columns(doc)
-    doc.save(str(out))
-    if work != out:
-        work.unlink(missing_ok=True)
+    try:
+        doc = Document(str(work))
+        numbering = doc.part.numbering_part._element
+        _update_masthead(doc)
+        insert_after = _strip_body_after_official(doc)._p
+        for block in CONTENT:
+            for p in _block_paragraphs(block, numbering):
+                insert_after.addnext(p)
+                insert_after = p
+        _ensure_two_columns(doc)
+        doc.save(str(out))
+    finally:
+        if work != out:
+            work.unlink(missing_ok=True)
     return out
 
 
-def main() -> None:
-    path = rebuild()
+def main() -> int:
+    try:
+        path = rebuild()
+    except ScaleInstructionsError as exc:
+        print(f"rebuild_scale_operating_instructions: {exc}", file=sys.stderr)
+        return 1
     print(f"Wrote {path} (Revision {REVISION})")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

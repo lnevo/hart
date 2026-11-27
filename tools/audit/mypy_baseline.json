@@ -40,7 +40,6 @@
  "jmri/layouts/hart/scripts/tests/test_uss_switch_levers.py": 3,
  "ops/hart-ops/card_pipeline/card_template_docx.py": 2,
  "ops/hart-ops/card_pipeline/loco_backdrop.py": 1,
- "ops/hart-ops/publications/rebuild_crew_instructions.py": 1,
  "ops/hart-ops/publications/rebuild_station_map_full.py": 1,
  "ops/hart-ops/tests/test_cars_merge.py": 14,
  "tools/anyrail/tests/test_levels_page.py": 1,
