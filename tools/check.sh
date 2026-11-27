@@ -45,11 +45,9 @@ fi
 # The caller's PYTHONPATH, before any job puts a hook on it: a bash check runs with it (run_check).
 CALLER_PYTHONPATH=()
 if [[ -n "${PYTHONPATH+set}" ]]; then CALLER_PYTHONPATH=(PYTHONPATH="$PYTHONPATH"); else CALLER_PYTHONPATH=(-u PYTHONPATH); fi
-# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic, private to this user), for every job
-# here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
-# (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
-# the folder between runs (.github/workflows/check.yml).
-# A folder that cannot be made leaves the cache off, as before.
+# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic,
+# private to this user), for every job: the Layout Editor job solves the whole sheet without it (about 3 minutes).
+# An empty SCHEMATIC_CACHE (the caller's) keeps it off, as does a folder that cannot be made. CI keeps the folder.
 if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
   source "$ROOT/tools/hosts/profile_tables_guard.sh"
   cache="$(hart_cache_dir "$ROOT" schematic)"
@@ -77,19 +75,15 @@ if (( DOCS_ONLY )); then
   HOPS_PY="$HOPS_PY" bash tools/ci/docs_checks.sh && { echo "DOCS CHECKS PASSED (the docs-only path; FULL=1 runs check.sh in full)"; exit 0; }
   echo "FAILED"; exit 1
 fi
-# A schematic check that cannot load the plugin fails rather than printing SKIPPED and passing, as in CI (owner,
-# 2026-11-23): a checkout without the submodule must not report ALL PASSED. SCHEMATIC_REQUIRED=0 lets those checks skip.
+# A schematic check that cannot load the plugin fails, as in CI: no ALL PASSED without the submodule. SCHEMATIC_REQUIRED=0 skips them.
 export SCHEMATIC_REQUIRED="${SCHEMATIC_REQUIRED:-1}"
 fail=0
-# Local traced stamps (tools/audit/check_stamps.py, tools/audit/traced.py): a job whose recorded reads (the files its
-# Python opened, probed and listed) match its last pass is skipped, and prints "<job>: current, skipped"; a job that
-# ran a program the trace cannot see falls back to its declared folders. CI (CI is set, unless CHECK_SKIP_FROM below),
-# FULL=1 and an audit run never skip (FULL=1 records). CHECK_ONLY=<regex> runs only the jobs whose name matches (a
-# quick look at one job). CHECK_AUDIT=<folder> logs the repo files each job's Python opens, for
-# `check_stamps.py audit-report` and tools/audit/tests/test_check_stamps.py.
-# STAMPS: a job may be skipped; RECORD: a passing job records its traced stamp (FULL=1 and an audit run record, CI
-# only with CHECK_RECORD_TO). A recorded job runs under the trace hook (tools/audit/traced.py), which logs what its
-# Python reads.
+# Local traced stamps (tools/audit/check_stamps.py, traced.py): a job whose recorded reads (files its Python opened,
+# probed, listed) match its last pass is skipped ("<job>: current, skipped"); a job running a program the trace cannot
+# see falls back to its declared folders. CI (unless CHECK_SKIP_FROM), FULL=1 and an audit run never skip. CHECK_ONLY=
+# <regex> runs the jobs whose name matches. CHECK_AUDIT=<folder> logs the repo files each job's Python opens.
+# STAMPS: a job may be skipped; RECORD: a passing job records its stamp, read from the trace hook's log of its Python's
+# reads (FULL=1 and an audit run record, CI only with CHECK_RECORD_TO).
 STAMPS=1
 RECORD=1
 if [[ -n "${CI:-}" || "${FULL:-}" == 1 || -n "${CHECK_AUDIT:-}" ]]; then STAMPS=0; fi
@@ -131,10 +125,9 @@ if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
   fi
 fi
 unset CHECK_RECORD_TO CHECK_SKIP_FROM CHECK_SKIP_NOTE
-# CHECK_RESULTS_TO=<file>: once every job is done, one line per queued job, "<name><TAB>passed|failed|skipped", for
-# tools/ci/stamp_gate.py: a pull request run's record of the jobs it skipped, and the weekly full run's check that no
-# job those runs skipped fails (.github/workflows/check.yml). The file is emptied here, so a run that stops before the
-# end leaves it empty (which the gate refuses), and the variable is unset, so a job never inherits it.
+# CHECK_RESULTS_TO=<file>: once every job is done, "<name><TAB>passed|failed|skipped" per queued job, for
+# tools/ci/stamp_gate.py (.github/workflows/check.yml). Emptied here, so a run that stops early leaves it empty (which
+# the gate refuses); unset, so a job never inherits it.
 RESULTS_TO="${CHECK_RESULTS_TO:-}"
 unset CHECK_RESULTS_TO
 if [[ -n "$RESULTS_TO" ]] && ! : >"$RESULTS_TO"; then
@@ -214,12 +207,10 @@ OWN_LINES=("${MANIFEST_LINES[@]}")
 for line in "${STATIC_LINES[@]}" "${OWN_LINES[@]}"; do MANIFEST_JOBS+="${line%% *} "; done
 has_step panels-tables "${STATIC_LINES[@]}" || { echo "STOP: no panels-tables job in tools/pipeline/manifest.py jobs check --group static: the panels step of tools/pipeline/checks.toml lists the steps of tools/pipeline/panels.toml, and the deploy gate reads panels-tables" >&2; exit 2; }
 has_step portal "${OWN_LINES[@]}" || { echo "STOP: no portal step in tools/pipeline/checks.toml; check.sh decides when it runs" >&2; exit 2; }
-# The jobs (each read-only check, the unit tests, public text, the portal build) run at the same time,
-# at most one job per core. Every one works in its own temp folders. `later` queues a job; `start_jobs` checks every
-# queued job's stamp in one process (check_stamps.py current-batch) and starts the ones that must run, each with its
-# output in a file; `collect` waits for each in the order queued and prints its output under its heading. Job control
-# (set -m) gives each job its own process group with the signals a terminal has (a plain background job ignores
-# SIGINT), and Ctrl-C or TERM stops every group still running.
+# The jobs run side by side, at most one per core, each in its own temp folders. `later` queues a job; `start_jobs`
+# checks every stamp in one process (check_stamps.py current-batch) and starts the jobs that must run, output to files;
+# `collect` prints each in queue order under its heading, and a failure sooner (early_failures). set -m gives each job
+# its own process group with a terminal's signals, and Ctrl-C or TERM stops every group still running.
 set -m
 JOBS="$(mktemp -d)"
 MAX_JOBS="${CHECK_MAX_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"   # win_run.sh sets CHECK_MAX_JOBS to its share of the box
@@ -298,7 +289,7 @@ start_jobs() {
       pids[$n]=""
       continue
     fi
-    while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do sleep 0.2; done
+    while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do early_failures; sleep 0.2; done
     eval "set -- ${cmds[$n]}"
     (
       start=$SECONDS
@@ -371,9 +362,26 @@ job_status() {
   rc="$(cat "$JOBS/$1.rc" 2>/dev/null)" || return 1
   [[ "$rc" == 0 ]]
 }
+# A failed job queued after the one collect waits for (COLLECTED) is printed as soon as it ends, between EARLY FAILURE
+# lines no parser takes for a heading (win_run.sh, deploy/ci_pass.py), and again in its place. bash 3.2 has no wait -n.
+COLLECTED=-1 reported=()      # reported: each finished job's code, once early_failures has read it
+early_failures() {
+  local j rc
+  for j in "${!pids[@]}"; do
+    (( j > COLLECTED )) && [[ -n "${pids[$j]}" && -z "${reported[$j]:-}" ]] && rc="$(cat "$JOBS/$j.rc" 2>/dev/null)" && [[ -n "$rc" ]] || continue
+    reported[$j]=$rc
+    [[ "$rc" == 0 ]] || { echo "EARLY FAILURE: ${names[$j]} FAILED ($(cat "$JOBS/$j.time" 2>/dev/null)s), more jobs still running"
+      cat "$JOBS/$j.log"; echo "EARLY FAILURE: end of ${names[$j]}; every job is reported in queue order once all have ended"; }
+  done
+}
+await_job() {   # await_job I: until job I writes its code or is no longer running, printing early failures meanwhile
+  while [[ ! -s "$JOBS/$1.rc" && $'\n'"$(jobs -rp)"$'\n' == *$'\n'"${pids[$1]}"$'\n'* ]]; do early_failures; sleep 0.2; done
+}
 collect() {
   local i took skipped=0 results=()
   for i in "${!names[@]}"; do
+    COLLECTED=$i
+    [[ -e "$JOBS/$i.skip" ]] || await_job "$i"
     if [[ -e "$JOBS/$i.skip" ]]; then
       skipped=$((skipped + 1))
       results+=("${names[$i]}"$'\tskipped')
@@ -433,14 +441,11 @@ unit() {
   shift
   later "$name" env -u HART_TABLES "$@"
 }
-# One read-only check of the manifest's static group as a job of its own: run_line LINE [WORD...] evals the step's
-# line (its name, then its command) inside the job, so an env PYTHONPATH=dir word keeps the trace hook start_jobs put
-# on PYTHONPATH, and adds the words after it. What the job's trace must show for the check: a Python check (python3,
-# or env VAR=... python3) is one Python process it expects ("b"); bash is a program the hook cannot see into, so it
-# goes in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its declaration
-# (tools/audit/check_stamps.py); bash runs outside the job's hooks, with the caller's PYTHONPATH (no step runs bash
-# since the panels step became one job per panels step, stage 6). Any other program is refused: its reads would be
-# missing.
+# One step of the manifest as a job: run_line LINE [WORD...] evals the step's line (its name, then its command) inside
+# the job, so an env PYTHONPATH=dir word keeps the trace hook start_jobs put on PYTHONPATH, and adds the words. Its
+# trace: a Python check (python3, env VAR=... python3) is one Python process it expects ("b"); bash, which the hook
+# cannot see into, is a spawn nothing hooked ("x"), so the stamp falls back to its declaration, and runs with the
+# caller's PYTHONPATH. Any other program is refused: its reads would be missing.
 run_line() {
   local line=$1
   shift
@@ -467,10 +472,8 @@ run_check() {
     *) echo "$name: check.sh's run_check takes python3, env VAR=... python3 or bash, not $prog; not run"; return 1 ;;
   esac
 }
-# The read-only checks are queued here, the panels jobs first and the rest after the Layout Editor job below: the
-# panels checks were the longest of them (78 s of the 107 s the one static job took on the Windows box, 2026-11-25),
-# the solve-heavy ones (device-map, schematic, tables, cats) a few seconds each once the schematic cache is warm.
-# panels-schematic (45 s in CI) and panels-cats, the slowest, go first.
+# The read-only checks: the panels jobs first, panels-schematic and panels-cats (the slowest) ahead of the rest,
+# then the others after the Layout Editor job below.
 for pass in slow rest; do
   for line in "${STATIC_LINES[@]}"; do
     case "${line%% *}" in
@@ -504,9 +507,8 @@ for line in "${STATIC_LINES[@]}"; do
   [[ "${line%% *}" == panels-* ]] && continue
   later "${line%% *}" run_line "$line"
 done
-# unit-jmri runs one job per file on a local run, the slow files first: about 25 s in one job, 16 s spread over six
-# cores. CI keeps one job: its four cores are taken by the Layout Editor job and the guard files for minutes, so a
-# split would only add some 50 interpreter starts there.
+# unit-jmri runs one job per file on a local run, the slow files first (25 s in one job, 16 s over six cores). CI keeps
+# one job: its four cores are full for minutes, so a split would only add some 50 interpreter starts.
 JMRI_TESTS=jmri/layouts/hart/scripts/tests
 if [[ -n "${CI:-}" ]]; then
   unit unit-jmri python3 -m unittest discover -b -q -s jmri/layouts/hart/scripts/tests
@@ -516,9 +518,8 @@ else
     unit "unit-jmri ${f%.py}" python3 -m unittest discover -b -q -s "$JMRI_TESTS" -p "$f"
   done
 fi
-# The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
-# both run one job per file, found as discover finds them, the files in SLOW first. A file in
-# BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job; the deploy tests).
+# The host, guard and schematic tests run one job per file, found as discover finds them, the files in SLOW first. A
+# file in BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls; the deploy tests).
 for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests; do
   if [[ -n "$(find "$d" -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
     echo "--- $d: tests in a subfolder; give them their own job in check.sh"
@@ -527,9 +528,8 @@ for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests
 done
 BY_CLASS=" test_worktrees.py "
 BY_CLASS+=" test_panel_stamps.py "      # in tools/schematic/tests
-# in tools/hosts/tests: the deploy scripts run in scratch repos; one job per file took 456 s and 274 s, the longest
-# jobs of a full local run, and 94 s at most per class side by side (2026-11-24). CI keeps one job per file, as for
-# unit-jmri: its four cores are already full, and these tests wait on subprocess timeouts.
+# in tools/hosts/tests: the deploy scripts in scratch repos took 456 s and 274 s per file, 94 s at most per class side
+# by side. CI keeps one job per file, as for unit-jmri: its cores are full, and these tests wait on timeouts.
 [[ -n "${CI:-}" ]] || BY_CLASS+=" test_deploy_gates.py test_deploy_preflight.py "
 # A class in BY_METHOD runs one job per test (test_panel_stamps.ShellTest: eight runs of build_panels.sh in scratch repos).
 BY_METHOD=" test_panel_stamps.ShellTest "
