@@ -6,9 +6,6 @@
   "dated-note": 11,
   "lost-cause": 1
  },
- "cats/scripts/tests/test_build_cats_panel_pieces.py": {
-  "dated-note": 1
- },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
   "dated-note": 1,
   "import-exit": 3
