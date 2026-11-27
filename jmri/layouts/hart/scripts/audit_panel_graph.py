@@ -129,14 +129,14 @@ class PanelCountsError(FactsError):
 
 
 def _count(value: object, where: str) -> int:
-    """`value` when it is a whole number of 0 or more (not a bool); FactsError naming `where` otherwise."""
+    """`value` when it is a whole number of 0 or more (not a bool); PanelCountsError naming `where` otherwise."""
     if type(value) is not int or value < 0:
         raise PanelCountsError(f"{where}: expected a whole number of 0 or more, found {value!r}")
     return value
 
 
 def _keys(value: object, keys: tuple[str, ...], where: str) -> dict[str, object]:
-    """`value` when it is an object with exactly `keys`; FactsError naming `where` and what it holds otherwise."""
+    """`value` when it is an object with exactly `keys`; PanelCountsError naming `where` and what it holds otherwise."""
     if not isinstance(value, dict) or sorted(value) != sorted(keys):
         found = sorted(value) if isinstance(value, dict) else type(value).__name__
         raise PanelCountsError(f"{where}: expected the keys {sorted(keys)}, found {found}")

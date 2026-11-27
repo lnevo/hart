@@ -1,5 +1,5 @@
-"""tools/hosts/pi/jython_scripts.txt is the one list of the jython the Mac and the Pi install: common.sh builds the
-Mac's and the package's arrays from it, and the Pi apply step reads the copy the package carries. The reader
+"""tools/hosts/pi/jython_scripts.txt is the one list of the jython the Mac, the Pi and Windows install: common.sh builds
+the Mac's and the package's arrays from it, and the Pi apply step reads the copy the package carries. The reader
 (jython_list.sh) refuses a malformed list, and the Pi apply step refuses a package without a listed script before
 it changes anything."""
 from __future__ import annotations

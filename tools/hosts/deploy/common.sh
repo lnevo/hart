@@ -43,7 +43,7 @@ LIVE_PANELS=(
   HART_ABS.xml
 )
 
-# The jython the Mac and the Pi install (tools/hosts/pi/jython_scripts.txt; the Pi apply step reads the same file
+# The jython the Mac, the Pi and Windows install (tools/hosts/pi/jython_scripts.txt; the Pi apply step reads the same file
 # from the package): the Start Up scripts, then what signal_coordinator.py and panel_status.py load, in order
 # (SIBLING_MODULES after the loader jython_siblings.py, and PARTS), beside them and not Start Up items. A "macpi"
 # row is a Start Up script here as a "startup" one is (Windows leaves it out). A "pi" row is a Start Up script on the

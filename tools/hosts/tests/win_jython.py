@@ -6,6 +6,7 @@ $JythonWindowsRoles, so the Windows set still follows the one list and the roles
 """
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -33,10 +34,14 @@ def run_reader(listing: Path, package: Path) -> list[str]:
     """Get-JythonSources on `listing` and `package` in pwsh: each source path, relative to `package`, as posix."""
     if PWSH is None:
         raise RuntimeError("pwsh is not installed")
-    script = ("$ErrorActionPreference = 'Stop'; . $args[0]; "
-              "try { Get-JythonSources -List $args[1] -Package $args[2] } catch { [Console]::Error.WriteLine($_); exit 3 }")
-    done = subprocess.run([PWSH, "-NoProfile", "-NonInteractive", "-Command", script, str(READER), str(listing),
-                           str(package)], capture_output=True, text=True, timeout=120, check=False)
+    # pwsh -Command appends extra arguments to the command text and leaves $args empty, so the paths go in the env.
+    script = ("$ErrorActionPreference = 'Stop'; . $env:HART_JYTHON_READER; "
+              "try { Get-JythonSources -List $env:HART_JYTHON_LIST -Package $env:HART_JYTHON_PACKAGE } "
+              "catch { [Console]::Error.WriteLine($_); exit 3 }")
+    env = {**os.environ, "HART_JYTHON_READER": str(READER), "HART_JYTHON_LIST": str(listing),
+           "HART_JYTHON_PACKAGE": str(package)}
+    done = subprocess.run([PWSH, "-NoProfile", "-NonInteractive", "-Command", script], capture_output=True,
+                          text=True, timeout=120, check=False, env=env)
     if done.returncode == 3:
         raise PwshError(done.stderr.strip())
     if done.returncode != 0:

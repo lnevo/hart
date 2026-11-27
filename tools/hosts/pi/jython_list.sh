@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# The reader of jython_scripts.txt, the list of the jython the Mac and the Pi install. Bash 3.2 and up: the Mac
+# The reader of jython_scripts.txt, the list of the jython the Mac, the Pi and Windows install. Bash 3.2 and up: the Mac
 # sources it from tools/hosts/deploy/common.sh, the Pi apply step from the deploy drop (cats/scripts/pi/).
 
 # jython_list LIST: print each "ROLE PATH" line of LIST, in file order, without its comments and blank lines.
