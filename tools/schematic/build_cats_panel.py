@@ -296,14 +296,15 @@ def report(cats: ModuleType, P: Any, bands: Bands, o: DeskOptions) -> None:
 
 def generate(plugin: Path, out: Path, bindings_out: Path, out_abs: Path | None = None) -> None:
     """Build the sheet once and write the bindings and the desks with the same plugin code. CatsPanelError when a
-    fact, the window or the labels do not fit, or when the plugin stops (its SchematicError) while the bindings or
-    the desks are built; a bindings failure leaves no bindings file written."""
+    fact, the window or the labels do not fit, or when the plugin stops (its SchematicError) while the main and upper
+    masts are placed or the bindings or the desks are built; a failure in the masts or the bindings leaves no
+    bindings file written."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
     bands, page = solved(sheet, F)
     o = desk_options(cats, page, bands)
-    level_signals(bands, F, bound_index(bands))
     try:
+        level_signals(bands, F, bound_index(bands))
         text = json.dumps(bindings(bands, cats, F, o, page), indent=1, sort_keys=True) + "\n"
         bindings_out.write_text(text, encoding="utf-8")
         frozen = frozen_header()

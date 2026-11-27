@@ -58,6 +58,49 @@ class SwitchFacts(unittest.TestCase):
             sdm.closed_legs()
 
 
+def keys_of(rows):
+    """A drawing_keys.Keys of {trial key: (layer, user name)}, each row its own device."""
+    from hartlib import drawing_keys
+    ids = {ph: ("1", f"id{n}") for n, ph in enumerate(rows)}
+    return drawing_keys.Keys(ids, {ids[ph]: dict(layer=layer, user_name=user, jmri_name=f"J{user}")
+                                   for ph, (layer, user) in rows.items()})
+
+
+class LoadSteps(unittest.TestCase):
+    """load()'s steps: the block rows' track keys by piece, and each strand's blocks from its first end."""
+
+    def test_track_runs_group_block_rows_by_piece(self):
+        keys = keys_of({"Track 5C-7B 2/2": ("block", "B2"), "Track 5C-7B 1/2": ("block", "B1"),
+                        "Track 1C-end": ("block", "S1"), "Switch 5": ("turnout", "T5"), "OS Switch 5": ("block", "OS5")})
+        self.assertEqual(sdm.track_runs(keys), {"5C-7B": {2: (2, "Track 5C-7B 2/2"), 1: (2, "Track 5C-7B 1/2")},
+                                                "1C-end": {1: (1, "Track 1C-end")}})
+
+    def test_a_strand_takes_its_blocks_from_its_first_end_and_marks_them_used(self):
+        keys = keys_of({"Track 5C-7B 1/2": ("block", "B1"), "Track 5C-7B 2/2": ("block", "B2")})
+        bad: list[str] = []
+        trials = sdm._Trials(keys, bad)
+        got = sdm.strand_blocks({"s1": ("5C-7B", False), "s2": ("5C-7B", True)}, sdm.track_runs(keys), trials)
+        self.assertEqual(got, {"s1": ["B1", "B2"], "s2": ["B2", "B1"]})
+        self.assertEqual((bad, trials.used), ([], {"Track 5C-7B 1/2", "Track 5C-7B 2/2"}))
+
+    def test_a_strand_with_no_rows_or_a_broken_run_is_a_problem(self):
+        keys = keys_of({"Track 5C-7B 1/2": ("block", "B1")})
+        bad: list[str] = []
+        got = sdm.strand_blocks({"s1": ("5C-7B", False), "s2": ("9C-end", False)}, sdm.track_runs(keys),
+                                sdm._Trials(keys, bad))
+        self.assertEqual(got, {})
+        self.assertEqual(len(bad), 2)
+        self.assertIn("track 5C-7B: blocks ['Track 5C-7B 1/2'] are not 1/n to n/n", bad)
+        self.assertTrue(bad[1].startswith("track 9C-end (s2) is on no block row"))
+
+    def test_a_trial_key_of_another_layer_is_a_problem(self):
+        bad: list[str] = []
+        trials = sdm._Trials(keys_of({"Switch 5": ("turnout", "T5")}), bad)
+        self.assertEqual(trials.name("Switch 5", "turnout"), "JT5")
+        self.assertEqual(trials.name("Switch 5", "block"), "")
+        self.assertEqual(bad, ["no block row has trial_name Switch 5"])
+
+
 class Pure(unittest.TestCase):
     def test_mast_kind_follows_the_row(self):
         self.assertEqual(sdm.mast_kind(dict(switch="1", protects="OS Switch 1")), "turnout")

@@ -114,7 +114,7 @@ cmd = ["python3", "tools/schematic/build_device_map.py"]
 check_args = ["--check"]
 domain = "layout"
 label = "build_device_map.py"
-desc = "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_rows.py (every level's row makers and the owner's values over them), device_map_staging.py (staging's rows) and device_map_masts.py (staging's masts, build_masts.py part 1 until naming-layers step 12): writes every level's turnout, feedback, block, occupancy, mast and head rows to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it (naming-layers step 7), and (T6b) the plan_generated.json main_upper section from the solved sheet."
+desc = "make panels step 7: writes every level's turnout, feedback, block, occupancy, mast and head rows to devices_generated.csv, each generated from the plan with the owner's cells from devices_field.csv over it, and the plan_generated.json main_upper section from the solved sheet. Its modules: device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks), device_map_records.py (the records build() shares), device_map_nodes.py (the LCOS node allocator), device_map_plant.py (main and upper's switch, block and track rows), device_map_level_masts.py (main and upper's mast and head rows), device_map_rows.py (every level's row makers), device_map_master.py (the rows in the master's form), device_map_staging.py (staging's rows) and device_map_masts.py (staging's mast and head rows)."
 inputs = [
   { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "reads, via hartlib.hand_lists" },
   { path = "jmri/layouts/hart/data/schematic/block_numbering.csv", label = "reads, via hartlib.block_numbering" },
@@ -134,7 +134,7 @@ inputs = [
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads staging plan lengths by id (masts)", written_later = ["plan-lengths"] },
 ]
 outputs = [
-  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "every level's rows, masts and heads too (naming-layers step 12); wiring cells" },
+  { path = "jmri/layouts/hart/data/devices_generated.csv", label = "every level's rows, masts and heads too; wiring cells" },
   { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "main_upper section" },
 ]
 updates = [

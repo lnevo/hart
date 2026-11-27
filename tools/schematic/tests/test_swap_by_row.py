@@ -14,7 +14,6 @@ committed. Runs over the committed drawing (needs the plugin; skipped without it
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import sys
 import tempfile
@@ -26,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
+from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 from hartlib import devices, railroad, tables, tables_build  # noqa: E402
 
@@ -35,12 +35,6 @@ SWAP = {TURNOUT: "M2T3308", DETECTOR: "M2S3305"}
 # the rows the swap reaches: the two swapped, the turnout's LCC alias and feedback (follow_swaps), and the block
 # whose bean comment names its detector's sensor
 REACHED = {TURNOUT, DETECTOR, ("2", "dcc:107"), ("2", "fb:107:N"), ("2", "fb:107:R"), ("2", "block:107B-107C#1")}
-
-
-def skip_or_fail(exc: Exception) -> None:
-    if os.environ.get("SCHEMATIC_REQUIRED") == "1":
-        raise AssertionError(f"the plugin is required: {exc}")
-    raise unittest.SkipTest(str(exc))
 
 
 def swap_rows(rows: list[dict]) -> list[dict]:

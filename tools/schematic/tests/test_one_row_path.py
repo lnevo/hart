@@ -16,16 +16,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
+from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 devices = bdm.devices
 railroad = bdm.railroad
-
-
-def skip_or_fail(exc: Exception) -> None:
-    if os.environ.get("SCHEMATIC_REQUIRED") == "1":
-        raise AssertionError(f"the plugin is required: {exc}")
-    raise unittest.SkipTest(str(exc))
 
 
 class OneRowPath(RepoReadOnly, unittest.TestCase):
