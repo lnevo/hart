@@ -4438,7 +4438,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: a top-level table in a .py or www .js file that holds railroad names (from the CSV masters in entities.csv), or that it cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it; a listed table may not grow and a row for a table gone fails, so the list only shrinks.",
+   "desc": "Audit: a top-level table in a .py or www .js file that holds railroad names (from the CSV masters in entities.csv), or that it cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it; a listed table may not grow, a row for a table gone is a note, and --update (make baselines) drops such rows, so the list only shrinks.",
    "path": "tools/audit/check_hand_tables.py",
    "gen": "manifest"
   },
@@ -4579,6 +4579,16 @@
    "domain": "extras",
    "desc": "Fails when a tracked .py file's count of a code habit (lost traceback, dated owner note, source-text test, exit on import, exec-loaded part) rises above tools/audit/habits_baseline.json; a fall passes with a note; --update lowers it and refuses any rise.",
    "path": "tools/audit/check_habits.py",
+   "gen": "manifest"
+  },
+  {
+   "id": "tools/audit/check_devices_one_path.py",
+   "label": "check_devices_one_path",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Audit: no tracked .py outside hartlib names a devices file (devices_generated.csv, devices_field.csv) or opens the master itself; it reaches them through hartlib.devices (MASTER_FILE, FIELD_FILE, master_path, field_path, load, index, field_index, write_field).",
+   "path": "tools/audit/check_devices_one_path.py",
    "gen": "manifest"
   },
   {
@@ -6038,13 +6048,13 @@
    "path": "tools/ops/screenshot.py"
   },
   {
-   "id": "tools/ops/split_status.py",
+   "id": "archive/code/status-split/split_status.py",
    "label": "split_status.py",
    "kind": "generator",
    "status": "live",
    "domain": "agents",
    "desc": "Splits a one-file wiki/STATUS.md into entry files under wiki/status/ (ADR-038) and checks the result.",
-   "path": "tools/ops/split_status.py"
+   "path": "archive/code/status-split/split_status.py"
   },
   {
    "id": "tools/ops/agent_launch_count.py",
@@ -13886,11 +13896,11 @@
   },
   {
    "from": "wiki/STATUS.md",
-   "to": "tools/ops/split_status.py",
+   "to": "archive/code/status-split/split_status.py",
    "label": "one-file page"
   },
   {
-   "from": "tools/ops/split_status.py",
+   "from": "archive/code/status-split/split_status.py",
    "to": "wiki/status",
    "label": "entry files"
   },
@@ -15151,6 +15161,13 @@
    "label": "plant names"
   },
   {
+   "from": "tools/audit/check_devices_one_path.py",
+   "to": "tools/check.sh",
+   "label": "check devices-one-path",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -15727,6 +15744,13 @@
   {
    "from": "wiki/decisions",
    "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": ".claude/agents/tool-fixer.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"

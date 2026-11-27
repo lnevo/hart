@@ -1,6 +1,7 @@
 /* Signals shared by the study deck (index.html), the Extra East game (run.html) and the answer-key build.
    Data in the guides' own words: the Standard Code speed signals (Rules 281-292), the Signals guide's route
-   signal chart and its plates. Plain script: it defines globals, so the pages and node's vm can load it. */
+   signal chart and its plates. In a page it is a plain script whose names are globals to the scripts loaded after
+   it; in node require() returns the same names (the answer key's build reads them so). */
 /* A speed-signal drawing: semaphore arms top to bottom, as the Standard Code draws them (Rules 281-292).
    R red horizontal, Y yellow 45 degrees up, G green vertical. */
 const ARM={R:{a:0,c:"#b8322b",t:"#fff",w:"red, horizontal"},Y:{a:-45,c:"#e0b52a",t:"#1d2733",w:"yellow, 45° up"},G:{a:-90,c:"#2d7a4a",t:"#fff",w:"green, vertical"}};
@@ -93,3 +94,6 @@ function pickStories(fixed,allowed,once,rand,clash=(a,b)=>a===b){
   }
   return out;
 }
+
+if(typeof module!=="undefined"&&module.exports)
+  module.exports={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords,plateWrongs,routeWhy,pickStories};

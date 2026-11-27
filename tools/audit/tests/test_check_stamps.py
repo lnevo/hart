@@ -12,7 +12,9 @@ import sys
 import tempfile
 import unittest
 import unittest.mock
+from collections.abc import Sequence
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -65,6 +67,77 @@ WIDENED_READS: dict[str, tuple[set[str], set[str], str]] = {   # job -> (files r
 
 # the end of both check_stamps.record refusals for a change while a job ran (the git state, or a file it read)
 MOVED_MID_RUN = "changed while the job ran"
+
+
+# ---- reading the nested check.sh run's output: which audited job failed, and why one recorded no stamp ----
+
+# the heading check.sh's collect prints before each job's log: "--- NAME (12s)", "--- NAME FAILED (12s)", or
+# "--- NAME FAILED (killed before it finished, no s)"; the "--- stamps (NAME):" lines inside a log end with ":"
+HEADING = re.compile(r"(?m)^--- (?P<name>.+?) (?P<failed>FAILED )?\((?P<took>[^()\n]*)s\)$")
+# unittest's summary line for one failing or erroring test: "FAIL: test_x (module.Class.test_x)"
+FAILED_TEST = re.compile(r"(?m)^(?:FAIL|ERROR): (?P<test>\S+)(?: \((?P<id>[^)\n]+)\))?")
+# the line check.sh adds to a job's log when the declaration audit, not the job's own tests, failed it
+AUDIT_FAILED_JOB = "FAILED by the declaration audit"
+
+
+class JobSection(NamedTuple):
+    """One job's part of a check.sh run's output: its heading and the log printed under it."""
+    name: str
+    failed: bool
+    text: str
+
+
+def job_sections(stdout: str) -> dict[str, JobSection]:
+    """The jobs check.sh's collect printed in `stdout`, by name, each with the text up to the next heading."""
+    heads = list(HEADING.finditer(stdout))
+    ends = [h.start() for h in heads[1:]] + [len(stdout)]
+    return {h["name"]: JobSection(h["name"], bool(h["failed"]), stdout[h.end():end]) for h, end in zip(heads, ends)}
+
+
+def failed_tests(text: str) -> list[str]:
+    """The tests a job's unittest output names as failing or erroring, by full id where unittest gives one; a test
+    module that failed to import (unittest's _FailedTest) is named as such."""
+    return list(dict.fromkeys(f"{m['test']} (the module failed to import)"
+                              if (m["id"] or "").startswith("unittest.loader._FailedTest.") else m["id"] or m["test"]
+                              for m in FAILED_TEST.finditer(text)))
+
+
+def failure_lines(sections: dict[str, JobSection], names: Sequence[str]) -> list[str]:
+    """One line for each job in `names` that failed in the nested run: on its own tests, or by the declaration audit
+    (an undeclared read, which is what this audit is for)."""
+    lines = []
+    for name in names:
+        sec = sections.get(name)
+        if sec is None or not sec.failed:
+            continue
+        if AUDIT_FAILED_JOB in sec.text or "STAMP AUDIT FAILED" in sec.text:
+            said = [ln for ln in sec.text.splitlines() if "UNCOVERED" in ln or "STAMP AUDIT FAILED" in ln
+                    or ln.startswith("not stamped:") or AUDIT_FAILED_JOB in ln]
+            lines.append(f"inner job {name} failed by the declaration audit:\n  " + "\n  ".join(said))
+            continue
+        tests = failed_tests(sec.text)
+        lines.append(f"inner job {name} failed on its own tests; fix that job first (its own check.sh job shows the "
+                     "cause). This audit says nothing about declarations until it passes"
+                     + (f". Failing: {', '.join(tests)}" if tests else "")
+                     + ". If that job passes outside the audit, the audit run's hooks (tools/audit/stamp_audit, "
+                       "tools/audit/trace_hook on PYTHONPATH) changed what it can import")
+    return lines
+
+
+def why_unstamped(sections: dict[str, JobSection], name: str) -> str:
+    """Why `name` recorded no stamp, as far as the nested run's output says: the job failed, HEAD, origin/main or a
+    file it read changed while it ran (MOVED_MID_RUN), or neither."""
+    sec = sections.get(name)
+    if sec is None:
+        return f"{name} recorded no stamp: the nested run printed no heading for it"
+    said = [ln for ln in sec.text.splitlines() if ln.startswith("not stamped:")]
+    if sec.failed:
+        why = "the job failed"
+    elif MOVED_MID_RUN in sec.text:
+        why = "HEAD, origin/main or a file it read changed while it ran, on both tries"
+    else:
+        why = "the job passed and neither HEAD, origin/main nor a file it read changed while it ran"
+    return f"{name} recorded no stamp: {why}" + "".join(f"\n  {ln}" for ln in said)
 
 
 class DeclarationTest(unittest.TestCase):
@@ -204,6 +277,67 @@ class DeclarationTest(unittest.TestCase):
                 self.assertIn("check_stamps", "".join(c.args[0] for c in err.write.call_args_list))
 
 
+class NestedOutputTest(unittest.TestCase):
+    """The helpers that read the nested check.sh run's output, on fake output in collect's format."""
+
+    PASSED = "--- unit-mimic (4s)\n.....\nOK\n"
+    OWN_FAIL = ("--- unit-hartlib FAILED (31s)\n"
+                "======================================================================\n"
+                "FAIL: test_one_path (test_devices_one_path.OnePathTest.test_one_path)\n"
+                "----------------------------------------------------------------------\n"
+                "AssertionError: 1 != 0\n"
+                "ERROR: test_load (test_devices.LoadTest.test_load)\n"
+                "ERROR: test_render (unittest.loader._FailedTest.test_render)\n"
+                "FAILED (failures=1, errors=1)\n")
+    MOVED = ("--- unit-cats (20s)\nOK\n--- stamps (unit-cats):\n"
+             "not stamped: HEAD, origin/main, the plugin, an interpreter, the private plan or the job's entries in "
+             "tools/pipeline/checks.toml changed while the job ran\n")
+    AUDIT_FAIL = ("--- unit-anyrail FAILED (9s)\nOK\n--- stamps (unit-anyrail):\nnot stamped: the declaration audit "
+                  "below failed\n  UNCOVERED ops/hart-ops/data/loco_models.csv\n"
+                  "unit-anyrail: FAILED by the declaration audit above (ADR-037 stage 4c; check_stamps.py record "
+                  "exited 1)\n")
+    TAIL = "--- unit-jmri test_speedmatch_distance FAILED (killed before it finished, no s)\nFAILED\n"
+
+    def test_the_sections_split_on_collect_headings(self) -> None:
+        secs = job_sections("noise\n" + self.PASSED + self.OWN_FAIL + self.MOVED + self.TAIL)
+        self.assertEqual(list(secs), ["unit-mimic", "unit-hartlib", "unit-cats", "unit-jmri test_speedmatch_distance"])
+        self.assertEqual([s.failed for s in secs.values()], [False, True, False, True])
+        self.assertIn("--- stamps (unit-cats):", secs["unit-cats"].text)   # a stamps line is no heading
+        self.assertNotIn("unit-cats", secs["unit-hartlib"].text)
+
+    def test_a_job_that_failed_on_its_own_is_named_with_its_tests(self) -> None:
+        secs = job_sections(self.PASSED + self.OWN_FAIL + self.TAIL)
+        said = failure_lines(secs, ("unit-mimic", "unit-hartlib"))
+        self.assertEqual(len(said), 1)
+        self.assertTrue(said[0].startswith("inner job unit-hartlib failed on its own tests; fix that job first"))
+        self.assertIn("This audit says nothing about declarations until it passes", said[0])
+        self.assertIn("test_devices_one_path.OnePathTest.test_one_path, test_devices.LoadTest.test_load, "
+                      "test_render (the module failed to import)", said[0])
+
+    def test_a_declaration_audit_failure_is_not_called_the_jobs_own(self) -> None:
+        said = failure_lines(job_sections(self.AUDIT_FAIL), ("unit-anyrail",))
+        self.assertEqual(len(said), 1)
+        self.assertTrue(said[0].startswith("inner job unit-anyrail failed by the declaration audit:"))
+        self.assertIn("UNCOVERED ops/hart-ops/data/loco_models.csv", said[0])
+        self.assertNotIn("own tests", said[0])
+
+    def test_no_audited_job_failed_says_nothing(self) -> None:
+        self.assertEqual(failure_lines(job_sections(self.PASSED + self.MOVED + self.TAIL),
+                                       ("unit-mimic", "unit-cats")), [])
+
+    def test_why_a_job_recorded_no_stamp(self) -> None:
+        secs = job_sections(self.PASSED + self.OWN_FAIL + self.MOVED)
+        failed = why_unstamped(secs, "unit-hartlib")
+        self.assertEqual(failed, "unit-hartlib recorded no stamp: the job failed")
+        moved = why_unstamped(secs, "unit-cats")
+        self.assertIn("unit-cats recorded no stamp: HEAD, origin/main or a file it read changed", moved)
+        self.assertIn("\n  not stamped: HEAD, origin/main, the plugin", moved)
+        neither = why_unstamped(secs, "unit-mimic")
+        self.assertEqual(neither, "unit-mimic recorded no stamp: the job passed and neither HEAD, origin/main nor a "
+                                  "file it read changed while it ran")
+        self.assertIn("printed no heading", why_unstamped(secs, "unit-portal"))
+
+
 class AuditTest(unittest.TestCase):
     """Runs check.sh for the quick jobs under CHECK_AUDIT (tools/audit/stamp_audit, an independent hook) while they
     record their traced stamps into a scratch store, and fails for any repo file or folder the audit saw a job touch
@@ -231,7 +365,11 @@ class AuditTest(unittest.TestCase):
                 if attempt == 1 and unstamped and MOVED_MID_RUN in done.stdout:
                     continue
                 break
-            self.assertEqual(done.returncode, 0, done.stdout[-3000:] + done.stderr[-2000:])
+            sections = job_sections(done.stdout)
+            if done.returncode != 0:
+                said = failure_lines(sections, cs.AUDIT_SAMPLE)
+                self.assertEqual(done.returncode, 0, "\n".join(said) if said
+                                 else done.stdout[-3000:] + done.stderr[-2000:])
             jobs = cs.read_audit(Path(f"{tmp}/audit"))
             wanted = list(cs.AUDIT_SAMPLE)
             self.assertEqual(sorted(jobs), sorted(wanted), "the jobs CHECK_ONLY matched are not the ones audited")
@@ -242,7 +380,7 @@ class AuditTest(unittest.TestCase):
                     self.assertTrue(files, "the audit hook logged nothing")
                     stamp = cs.traced.load(cs._file(name, Path(f"{tmp}/stamps")))
                     # a job whose tests skipped records too, with the skips in its key
-                    self.assertIsNotNone(stamp, f"{name} recorded no stamp:\n{done.stdout[-3000:]}")
+                    self.assertIsNotNone(stamp, why_unstamped(sections, name))
                     verified += 1
                     # every sample job, traced or not: this test's own declaration is built from theirs (RUNS_JOBS)
                     self.assertEqual(cs.uncovered(name, files, dirs - {"tools/audit/stamp_audit"}), [])

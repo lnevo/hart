@@ -9,8 +9,9 @@ fill() replaces each region's contents with the value read from the checkout:
 
 - the masts the device master plans (the device master, all levels), split into those with
   lamps and the hidden staging masts (virtual, IF$vsm);
-- the masts signal_coordinator.py hands over (those whose heads are LCOS heads, IH plus node and signal number, the
-  same rule as its _collect_beans, now in sml_beans.py) and their Signal Mast Logic destinations in tables.xml, against the rest;
+- the masts signal_coordinator.py hands over (those whose heads are LCOS heads, IH plus node and signal number, by
+  the rule its _collect_beans enrols them with: sml_lcos.py, imported through hartlib.coordinator.lcos_rule) and
+  their Signal Mast Logic destinations in tables.xml, against the rest;
 - the plant switches panel_status.py flips (M2T/MTT turnouts with both feedback sensors, its
   _included_plant_turnouts);
 - which hosts install each Jython script (tools/hosts/pi/jython_scripts.txt for the Pi and the Mac, the Windows
@@ -46,7 +47,6 @@ COORDINATOR = "jmri/scripts/signal_coordinator.py"
 PANEL_STATUS = "jmri/layouts/hart/scripts/panel_status.py"
 TABLES = "jmri/layouts/hart/output/tables.xml"
 SPLIT_SCRIPTS = (COORDINATOR, PANEL_STATUS)   # the Jython scripts whose code is split into parts beside them
-HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
 # Every host installs the jython of one list (tools/hosts/pi/jython_scripts.txt, read by jython_list.sh; Windows reads
@@ -90,22 +90,18 @@ def _siblings(root: Path) -> set[str]:
         raise PageError(str(e)) from e
 
 
-def _lcos_range(root: Path) -> tuple[int, int]:
-    """The LCOS signal numbers signal_coordinator.py accepts, read from it and its modules so the two cannot differ."""
+def _lcos(root: Path) -> coordinator.LcosRule:
+    """signal_coordinator.py's LCOS head rule, imported from the sml_lcos.py under `root`."""
     try:
-        src = coordinator.source(root / COORDINATOR)
+        return coordinator.lcos_rule(root / coordinator.LCOS_RULE.relative_to(paths.REPO_ROOT))
     except coordinator.CoordinatorError as e:
         raise PageError(str(e)) from e
-    got = {k: int(v) for k, v in re.findall(r"^_LCOS_SIGNAL_UID_(MIN|MAX)\s*=\s*(\d+)", src, re.M)}
-    if set(got) != {"MIN", "MAX"}:
-        raise PageError("signal_coordinator.py no longer sets _LCOS_SIGNAL_UID_MIN and _MAX; update this script")
-    return got["MIN"], got["MAX"]
 
 
-def is_lcos_head(packed: str, lo: int, hi: int) -> bool:
-    """signal_coordinator._packed_is_lcos_signal: node*100 + signal number, the node written in octal digits."""
-    n = int(packed)
-    return lo <= n % 100 <= hi and set(str(n // 100)) <= set("01234567")
+def lcos_heads(sys_name: str, rule: coordinator.LcosRule) -> list[str]:
+    """The LCOS heads in a mast's system name: each "(IH<digits>)" the rule finds, without its brackets, that the
+    rule enrols."""
+    return [h for h in (m[1:-1] for m in rule.in_mast.findall(sys_name)) if rule.is_head(h)]
 
 
 def jython_rows(root: Path = ROOT) -> list[tuple[str, str]]:
@@ -153,13 +149,13 @@ def _facts(root: Path) -> dict:
     masts = [m for rows in planned.values() for m in rows]
     hidden = [m for m in masts if m["role"] == "hidden"]
 
-    lo, hi = _lcos_range(root)
+    rule = _lcos(root)
     tab = T.read(root / TABLES)
     field, field_masts = set(), 0
     for el in tab.iter():
         if isinstance(el.tag, str) and el.tag.endswith("signalmast") and el.find("systemName") is not None:
             sys_name = T.system_name(el)
-            if any(is_lcos_head(p, lo, hi) for p in HEAD_IN_MAST.findall(sys_name)):
+            if lcos_heads(sys_name, rule):
                 field.add(sys_name)
                 field_masts += 1
                 if T.user_name(el):

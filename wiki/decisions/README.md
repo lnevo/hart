@@ -42,5 +42,6 @@
 | [038](ADR-038-one-file-per-status-entry.md) | One file per STATUS entry | Accepted, amends 036 |
 | [039](ADR-039-data-masters-in-git.md) | One master per kind of record, kept in git | Accepted |
 | [040](ADR-040-site-deploys-recorded-current-one-at-a-time.md) | Website deploys are recorded, current and one at a time | Accepted |
+| [041](ADR-041-baselines-lowered-at-wave-end.md) | Baselines are lowered at the end of each wave | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.

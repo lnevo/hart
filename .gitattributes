@@ -10,3 +10,8 @@ docs/INDEX.md merge=union
 # and the session-start hook (--install). GitHub never runs this driver: merge origin/main into the branch locally.
 # The two map pages built from it are not committed (ADR-036).
 docs/pipeline-map/pipeline_map.json merge=pipeline-map
+# The two ratchet lists hold one row per key, and parallel branches add rows near each other; keep both sides (owner,
+# 2026-11-27, ADR-041). A row both sides edited comes out twice, and the loader stops on it as "listed twice"
+# (hand_tables.csv by file and table, py_sizes.csv by path), so union never hides a real conflict.
+tools/audit/hand_tables.csv merge=union
+tools/audit/py_sizes.csv merge=union

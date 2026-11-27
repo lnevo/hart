@@ -63,7 +63,7 @@ from .device_rows import row_cells
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, MASTER_COLUMNS, NAME_LAYERS, MasterRow, FactsError
 
 # The one place the master's file names and paths are written (T6a): every other module asks for them here, and
-# tools/hartlib/tests/test_devices_one_path.py fails on any tracked .py outside hartlib that names a file itself.
+# tools/audit/check_devices_one_path.py fails on any tracked .py outside hartlib that names a file itself.
 # MASTER is the generated file, a reader's handle on the pair: load(MASTER) merges the field file beside it.
 GENERATED_FILE = "devices_generated.csv"     # every row the builders make (WRITERS), written by them alone
 FIELD_FILE = "devices_field.csv"             # the owner's cells, keyed by KEY, and the Store's level-less devices
