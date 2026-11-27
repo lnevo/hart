@@ -11,26 +11,65 @@ Deploy afterwards with www/scripts/deploy_hartrailroad.sh.
 """
 from __future__ import annotations
 
+import argparse
+import json
+import re
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import NamedTuple, TypedDict
+
+import hartlib_path
 from card_template_records import CardRecord
+from car_records import IntakeContext
+from car_repo import as_fields
 from private_name import contains_private_name
 
-import json
-import sys
-import re
-from pathlib import Path
-
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+hartlib_path.ensure_on_path()
 from hartlib import paths  # noqa: E402
+
 HART_ROOT = paths.REPO_ROOT
 GALLERY = HART_ROOT / "www/data/fleet-gallery.json"
 IMAGE_DIR = "../ops/car-cards/car-images/CarImagesFinal"
 DEFAULT_ALBUM = "freight"
+LOCO_TYPES = ("locomotive", "diesel", "engine", "switcher", "electric")
 
 
-def album_for(type_name: str, known: dict[str, str]) -> str:
+class GalleryItem(TypedDict, total=False):
+    """One photo of fleet-gallery.json. Entries this module adds carry every key."""
+
+    id: str
+    album: str
+    src: str
+    title: str
+    caption: str
+    credit: str
+    road: str
+    number: str
+    type: str
+
+
+class GalleryAlbum(TypedDict, total=False):
+    id: str
+    count: int
+
+
+class Gallery(TypedDict, total=False):
+    """fleet-gallery.json: its albums and items, and any other keys, kept as they are."""
+
+    albums: list[GalleryAlbum]
+    items: list[GalleryItem]
+
+
+class Candidate(NamedTuple):
+    """A photographed car or locomotive: the card fields it prints and its photo's file name."""
+
+    record: CardRecord
+    source_image: str
+
+
+def album_for(type_name: str, known: Mapping[str, str]) -> str:
     """Locomotives go in locos; other types follow the album existing entries of that type use."""
-    if type_name.lower() in ("locomotive", "diesel", "engine", "switcher", "electric"):
+    if type_name.lower() in LOCO_TYPES:
         return "locos"
     return known.get(type_name, DEFAULT_ALBUM)
 
@@ -40,7 +79,7 @@ def fleet_id(title: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
 
 
-def entry_for(record: CardRecord, source_image: str, known: dict[str, str]) -> dict:
+def entry_for(record: CardRecord, source_image: str, known: Mapping[str, str]) -> GalleryItem:
     kind = record["Type"]
     road, number = record["RoadName"], record["RoadNumber"]
     desc = record.get("Description", "")
@@ -60,10 +99,10 @@ def entry_for(record: CardRecord, source_image: str, known: dict[str, str]) -> d
     }
 
 
-def missing_entries(candidates: list[tuple[CardRecord, str]], data: dict) -> list[dict]:
+def missing_entries(candidates: Sequence[tuple[CardRecord, str]], data: Gallery) -> list[GalleryItem]:
     """Entries for photographed cars the gallery lacks. Never the private name."""
     have = {Path(i["src"]).stem for i in data["items"]}
-    known = {}
+    known: dict[str, str] = {}
     for item in data["items"]:
         known.setdefault(item.get("type", ""), item["album"])
     taken = {i.get("id") for i in data["items"]}
@@ -83,32 +122,38 @@ def missing_entries(candidates: list[tuple[CardRecord, str]], data: dict) -> lis
     return out
 
 
-def add_entries(data: dict, entries: list[dict]) -> dict:
+def add_entries(data: Gallery, entries: list[GalleryItem]) -> Gallery:
     data["items"].extend(entries)
     for album in data["albums"]:
         album["count"] = sum(1 for i in data["items"] if i["album"] == album["id"])
     return data
 
 
-def cmd_site(args, ctx) -> int:
+def candidates(ctx: IntakeContext) -> list[Candidate]:
+    """Every photographed car of the repository, then every photographed locomotive."""
     import generate_all_cards as gen
     import locos
 
     rows, _ = ctx.read_rows()
     roster = gen.load_roster()
     _, engines = gen.load_engine_roster()
-    candidates = []
+    out = []
     for row in rows:
         if row.get("source_image"):
-            record, _image = gen.row_to_card(row, roster, engines)
-            candidates.append((record, row["source_image"]))
+            record, _image = gen.row_to_card(as_fields(row), roster, engines)
+            out.append(Candidate(record, row["source_image"]))
     for loco in locos.read_locos():
         if loco.get("source_image"):
             card, engine = locos.card_row(loco)
             record, _image = gen.row_to_card(card, roster, {**engines, (loco["road_name"], loco["road_number"]): engine})
-            candidates.append((record, loco["source_image"]))
-    data = json.loads(GALLERY.read_text(encoding="utf-8"))
-    entries = missing_entries(candidates, data)
+            out.append(Candidate(record, loco["source_image"]))
+    return out
+
+
+def cmd_site(args: argparse.Namespace, ctx: IntakeContext) -> int:
+    found = candidates(ctx)
+    data: Gallery = json.loads(GALLERY.read_text(encoding="utf-8"))
+    entries = missing_entries(found, data)
     if not entries:
         print("The public gallery already has every photographed car and locomotive.")
         return 0

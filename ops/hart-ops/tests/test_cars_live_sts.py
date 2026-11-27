@@ -10,7 +10,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
-import cars  # noqa: E402
+import car_fields  # noqa: E402
+import car_live_sts  # noqa: E402
+import car_repo  # noqa: E402
 
 ROW = {"roster_id": "NW2", "roster_road": "NW", "road_number": "2", "car_type": "Flatcar",
        "roster_length_ft": "52", "color": "Black", "notes": ""}
@@ -18,8 +20,8 @@ ROW = {"roster_id": "NW2", "roster_road": "NW", "road_number": "2", "car_type": 
 
 class LiveStsTests(unittest.TestCase):
     def setUp(self):
-        gen, reason = cars.seed_helpers()
-        if gen is None or not (cars.STS_HELPERS / "lib/sts_api.py").is_file():
+        gen, reason = car_fields.seed_helpers()
+        if gen is None or not (car_repo.STS_HELPERS / "lib/sts_api.py").is_file():
             self.skipTest(reason or "sts-helpers lib missing")
         self.requests = []
 
@@ -50,7 +52,7 @@ class LiveStsTests(unittest.TestCase):
         env = {"STS_API_URL": "http://sts.example.invalid/sts/api/v1", "STS_API_TOKEN": "x"}
         with unittest.mock.patch.dict("os.environ", env), self.fake_urlopen(body, error), \
                 contextlib.redirect_stdout(out):
-            rc = cars.print_live_sts([ROW], False, operating=operating)
+            rc = car_live_sts.print_live_sts([ROW], False, operating=operating)
         return rc, out.getvalue()
 
     def test_match_reports_no_differences_and_only_gets(self):
@@ -59,7 +61,7 @@ class LiveStsTests(unittest.TestCase):
         self.assertIn("Field differences: 0", out)
         self.assertIn("Target: live", out)
         self.assertTrue(self.requests and all(m == "GET" for m, _, _ in self.requests))
-        self.assertTrue(all(t == cars.LIVE_STS_TIMEOUT for _, _, t in self.requests))
+        self.assertTrue(all(t == car_live_sts.LIVE_STS_TIMEOUT for _, _, t in self.requests))
 
     def test_difference_is_reported_and_position_is_ignored(self):
         live = [{"reporting_marks": "NW2", "remarks": "Flatcar 50ft", "position": 9, "status": "Loaded"},
@@ -115,7 +117,7 @@ class LiveStsTests(unittest.TestCase):
 
         with unittest.mock.patch.dict("os.environ", env), unittest.mock.patch("urllib.request.urlopen", opener), \
                 contextlib.redirect_stdout(out):
-            rc = cars.print_live_sts([ROW], False, operating=lambda: None)
+            rc = car_live_sts.print_live_sts([ROW], False, operating=lambda: None)
         return rc, out.getvalue()
 
     def test_local_target_is_read_while_operating(self):
@@ -123,7 +125,7 @@ class LiveStsTests(unittest.TestCase):
         env = {"STS_API_URL": "http://localhost:8980/sts/api/v1", "STS_API_TOKEN": "x"}
         with unittest.mock.patch.dict("os.environ", env), self.fake_urlopen([]), \
                 contextlib.redirect_stdout(out):
-            rc = cars.print_live_sts([ROW], False, operating=lambda: "busy")
+            rc = car_live_sts.print_live_sts([ROW], False, operating=lambda: "busy")
         self.assertEqual(rc, 0)
         self.assertTrue(self.requests)
 
@@ -132,12 +134,12 @@ class OperatingReasonTests(unittest.TestCase):
     def run_status(self, code, stdout=""):
         done = unittest.mock.Mock(returncode=code, stdout=stdout)
         with unittest.mock.patch("subprocess.run", return_value=done):
-            return cars.operating_reason()
+            return car_live_sts.operating_reason()
 
     def test_clear_set_and_unreadable(self):
         self.assertIsNone(self.run_status(1, "not operating"))
         self.assertEqual(self.run_status(0, "operating: by=o since=t reason=speed run"), "speed run")
-        with self.assertRaises(cars.LiveStsError):
+        with self.assertRaises(car_live_sts.LiveStsError):
             self.run_status(2, "usage")
 
     def test_exit_2_refuses_the_section(self):
@@ -146,7 +148,7 @@ class OperatingReasonTests(unittest.TestCase):
         env = {"STS_API_URL": "http://sts.example.invalid/sts/api/v1"}
         with unittest.mock.patch.dict("os.environ", env), unittest.mock.patch("subprocess.run", return_value=done), \
                 contextlib.redirect_stdout(out):
-            rc = cars.print_live_sts([ROW], False)
+            rc = car_live_sts.print_live_sts([ROW], False)
         self.assertEqual(rc, 2)
         self.assertIn("cannot read the operating flag", out.getvalue())
 

@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
+import car_repo  # noqa: E402
 import cars  # noqa: E402
 import intake_stages as st  # noqa: E402
 import locos  # noqa: E402
@@ -18,7 +19,7 @@ import site_gallery as site  # noqa: E402
 
 class PathTests(unittest.TestCase):
     def test_hart_root_is_the_repo_root(self):
-        for module in (st, site, locos, cars):
+        for module in (st, site, locos, car_repo):
             self.assertTrue((module.HART_ROOT / "wiki").is_dir(), module.__name__)
 
 

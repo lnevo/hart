@@ -13,13 +13,15 @@ CS-105 sync. Dispatcher traininfo needs nothing per loco (wiki/pipelines/intake-
 """
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import re
 import xml.etree.ElementTree as ET
+from collections.abc import Callable, Mapping
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from card_errors import CardPipelineError
 
@@ -69,22 +71,41 @@ QUESTIONS = [
     ("sound", "Sound (yes/no)"),
 ]
 
+# One row of locos.csv or loco_queue.csv: column -> the CSV text, blank while unset.
+LocoRow = dict[str, str]
+ParseSets = Callable[[list[str]], dict[str, str]]
+Upserted = Literal["added", "updated"]
 
-def read_locos() -> list[dict]:
+
+class RosterEntry(TypedDict):
+    """One entry of new_locos.json, what the Pi-side import needs to create the DecoderPro entry."""
+
+    id: str
+    road_name: str
+    road_number: str
+    mfg: str
+    model: str
+    dcc_address: str
+    long_address: bool
+    image: str
+    comment: str
+
+
+def read_locos() -> list[LocoRow]:
     if not LOCOS.is_file():
         return []
     with LOCOS.open(newline="", encoding="utf-8") as fh:
         return list(csv.DictReader(fh))
 
 
-def write_table(path: Path, columns: list[str], rows: list[dict]) -> None:
+def write_table(path: Path, columns: list[str], rows: list[LocoRow]) -> None:
     with path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=columns, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
 
-def read_queue() -> list[dict]:
+def read_queue() -> list[LocoRow]:
     if not LOCO_QUEUE.is_file():
         return []
     with LOCO_QUEUE.open(newline="", encoding="utf-8") as fh:
@@ -101,11 +122,11 @@ def ops_id(road: str, number: str) -> str:
     return re.sub(r"[^A-Za-z0-9]", "", road) + re.sub(r"[^A-Za-z0-9]", "", number)
 
 
-def missing_fields(row: dict) -> list[str]:
+def missing_fields(row: Mapping[str, str]) -> list[str]:
     return [f for f in REQUIRED if not row.get(f, "").strip()]
 
 
-def upsert(rows: list[dict], queue: list[dict], fields: dict) -> str:
+def upsert(rows: list[LocoRow], queue: list[LocoRow], fields: Mapping[str, str]) -> Upserted:
     """Add or update a locomotive. Returns "added" or "updated"."""
     rid = loco_roster_id(fields.get("road_name", ""), fields.get("road_number", ""))
     if not fields.get("road_name") or not fields.get("road_number"):
@@ -120,7 +141,7 @@ def upsert(rows: list[dict], queue: list[dict], fields: dict) -> str:
     return "added"
 
 
-def cmd_add(args, parse_sets) -> int:
+def cmd_add(args: argparse.Namespace, parse_sets: ParseSets) -> int:
     rows, queue = read_locos(), read_queue()
     values = parse_sets(args.set)
     if not args.yes:
@@ -136,7 +157,7 @@ def cmd_add(args, parse_sets) -> int:
     return 0
 
 
-def cmd_set(args, parse_sets) -> int:
+def cmd_set(args: argparse.Namespace, parse_sets: ParseSets) -> int:
     rows = read_locos()
     row = next((r for r in rows if r["roster_id"] == args.roster_id), None)
     if row is None:
@@ -147,7 +168,7 @@ def cmd_set(args, parse_sets) -> int:
     return 0
 
 
-def cmd_status(_args, _parse_sets) -> int:
+def cmd_status(_args: argparse.Namespace, _parse_sets: ParseSets) -> int:
     rows, queue = read_locos(), {q["roster_id"]: q for q in read_queue()}
     print(f"Locomotives: {len(rows)}")
     for r in rows:
@@ -160,7 +181,8 @@ def cmd_status(_args, _parse_sets) -> int:
     return 0
 
 
-def engine_element(row: dict) -> dict:
+def engine_element(row: Mapping[str, str]) -> dict[str, str]:
+    """The attributes of the <engine> element merge_engines adds for one locomotive."""
     attrs = {
         "id": ops_id(row["road_name"], row["road_number"]),
         "roadName": row["road_name"],
@@ -179,13 +201,14 @@ def engine_element(row: dict) -> dict:
     return attrs
 
 
-def merge_engines(path: Path, rows: list[dict]) -> list[str]:
+def merge_engines(path: Path, rows: list[LocoRow]) -> list[str]:
     """Add engines the roster lacks. Existing engines keep their session state."""
     text = path.read_text(encoding="utf-8")
     header = text[: text.index("<operations-config")]
-    tree = ET.ElementTree(ET.fromstring(text[len(header):]))
-    root = tree.getroot()
+    root = ET.fromstring(text[len(header):])
     engines = root.find("engines")
+    if engines is None:
+        raise CardPipelineError(f"{path} has no <engines> section")
     models = root.find("models")
     have = {e.get("id") for e in engines}
     added = []
@@ -201,8 +224,10 @@ def merge_engines(path: Path, rows: list[dict]) -> list[str]:
     return added
 
 
-def roster_entry(row: dict) -> dict:
+def roster_entry(row: Mapping[str, str]) -> RosterEntry:
     """What the Pi-side import needs to create the DecoderPro entry."""
+    if not row["dcc_address"].strip().isdigit():
+        raise CardPipelineError(f"{row['roster_id']}: DCC address {row['dcc_address']!r} is not a number")
     return {
         "id": row["roster_id"],
         "road_name": row["road_name"],
@@ -217,7 +242,7 @@ def roster_entry(row: dict) -> dict:
     }
 
 
-def card_row(row: dict) -> tuple[dict[str, str], EngineRecord]:
+def card_row(row: Mapping[str, str]) -> tuple[dict[str, str], EngineRecord]:
     """A repository row and engine record in the shape generate_all_cards.row_to_card reads.
 
     The engine record comes from locos.csv itself, so a card can be built before publish
@@ -255,7 +280,7 @@ def photo_to_jpg(src: Path, dst: Path) -> None:
     Image.open(src).convert("RGB").save(dst, quality=90)
 
 
-def cmd_publish(args, _parse_sets, final_dir: Path | None = None) -> int:
+def cmd_publish(args: argparse.Namespace, _parse_sets: ParseSets, final_dir: Path | None = None) -> int:
     rows, queue = read_locos(), read_queue()
     open_ids = {q["roster_id"] for q in queue if not q["published"]}
     todo = [r for r in rows if r["roster_id"] in open_ids]
@@ -268,7 +293,7 @@ def cmd_publish(args, _parse_sets, final_dir: Path | None = None) -> int:
     if bad:
         raise CardPipelineError("Fill the missing fields with: cars.py locos set ID FIELD=VALUE")
     added = merge_engines(ENGINE_ROSTER, todo)
-    entries = []
+    entries: list[RosterEntry] = []
     if IMPORT_LIST.is_file():
         entries = json.loads(IMPORT_LIST.read_text(encoding="utf-8"))
     known = {e["id"] for e in entries}
