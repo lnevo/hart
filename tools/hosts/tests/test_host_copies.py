@@ -3,11 +3,17 @@
 The Windows PowerShell scripts and the JMRI operations settings run on a host without
 this repo's env, so they keep their own literal. This test is what keeps each one equal
 to tools/env/defaults.env; change the value there and here fails until the copy follows.
-No network: it only reads files.
+
+The card pipeline is imported and load_env.sh sourced with the host variables unset, so
+those tests check the default each one uses. The PowerShell scripts do not run here and
+launch_cats.sh starts CATS, so for those the test reads the one assignment. No network.
 """
 from __future__ import annotations
 
+import json
+import os
 import re
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -15,6 +21,8 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULTS_ENV = ROOT / "tools/env/defaults.env"
+LOAD_ENV = ROOT / "tools/env/load_env.sh"
+CARD_PIPELINE = ROOT / "ops/hart-ops/card_pipeline"
 
 
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
@@ -24,6 +32,22 @@ from hartlib.hosts import read_env_file  # noqa: E402
 def defaults() -> dict[str, str]:
     """defaults.env as hartlib reads it, the same parser the Python tools use."""
     return read_env_file(DEFAULTS_ENV)
+
+
+def bare_env() -> dict[str, str]:
+    """This process's environment without the host settings, and with no tools/env/hart.env to read."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("HART_")}
+    env["HART_ENV_FILE"] = str(ROOT / "tools/env/no-such-hart.env")
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
+
+
+def run(cmd: list[str], cwd: Path = ROOT) -> list[str]:
+    """The lines `cmd` prints, run in bare_env; a failure names the command and its stderr."""
+    done = subprocess.run(cmd, cwd=cwd, env=bare_env(), capture_output=True, text=True, timeout=60)
+    if done.returncode != 0:
+        raise AssertionError(f"{cmd[0]} exited {done.returncode}: {done.stderr.strip()}")
+    return done.stdout.splitlines()
 
 
 def one(pattern: str, rel: str) -> str:
@@ -48,21 +72,20 @@ class HostCopiesTest(unittest.TestCase):
         self.assertEqual(got, self.d["HART_PI_WEB_HOST"])
 
     def test_jmri_ops_settings_url(self) -> None:
-        got = one(r'"url": "([^"]+)"', "jmri/layouts/hart/data/sts_jmri_ops_settings.json")
+        settings = json.loads((ROOT / "jmri/layouts/hart/data/sts_jmri_ops_settings.json").read_text(encoding="utf-8"))
         want = urlsplit(self.d["HART_JMRI_JSON"])
-        self.assertEqual(urlsplit(got).netloc, want.netloc)
+        self.assertEqual(urlsplit(settings["connection"]["url"]).netloc, want.netloc)
 
     def test_card_pipeline_defaults(self) -> None:
-        rel = "ops/hart-ops/card_pipeline/cars.py"
-        self.assertEqual(one(r'environ\.get\("HART_PI_SSH", "([^"]+)"\)', rel), self.d["HART_PI_SSH"])
-        self.assertEqual(one(r'environ\.get\("HART_PI_USERFILES", "([^"]+)"\)', rel),
-                         self.d["HART_PI_USERFILES"])
+        got = run([sys.executable, "-c", "import cars; print(cars.PI_HOST); print(cars.PI_OPS_DIR)"],
+                  cwd=CARD_PIPELINE)
+        self.assertEqual(got, [self.d["HART_PI_SSH"], f"{self.d['HART_PI_USERFILES']}/operations"])
 
     def test_pi_launch_cats_profile(self) -> None:
         """The Pi's launch_cats.sh runs without load_env.sh; its default profile is load_env's HART_PI_PROFILE."""
         got = one(r'^JMRI_PROFILE="\$\{JMRI_PROFILE:-([^}]+)\}"$', "tools/hosts/pi/launch_cats.sh")
-        want = one(r'^export HART_PI_PROFILE="\$\{HART_PI_PROFILE:-([^}]+)\}"$', "tools/env/load_env.sh")
-        self.assertEqual(got, want)
+        want = run(["bash", "-c", f'source "{LOAD_ENV}" && echo "$HART_PI_PROFILE"'])
+        self.assertEqual([got], want)
 
     def test_host_side_files_name_only_the_pi_address(self) -> None:
         """Any 10.0.0.x address in the files that ship to the hosts is the Pi's."""

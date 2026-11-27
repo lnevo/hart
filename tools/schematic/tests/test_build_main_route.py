@@ -1,5 +1,5 @@
-"""build_main_route.py: the main route worked out from the main_upper rows of main_lines.csv and the plan graph marks the same
-track as the 21 hops that were written by hand against plan part numbers, and stops where it would have to guess."""
+"""build_main_route.py: the main route worked out from the main_upper rows of main_lines.csv and the plan graph marks
+the same track as the 21 hops written by hand against plan part numbers, and stops where it would have to guess."""
 import copy
 import csv
 import io
@@ -11,8 +11,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_main_route as M  # noqa: E402
 
-# main_route as it was written by hand against plan 5.3c part numbers (before main_lines.csv), its helix tracks by
-# their plan names since 2026-11-21
+# The main route as 21 hops written by hand against plan 5.3c part numbers, its helix tracks by their plan names.
+# The route derived from main_lines.csv must mark the same track.
 HAND_ROUTE = [
     ["Helix Inner", "T281"], ["T281", "T311", "direct"], ["T311", "T294", "direct"], ["T294", "T316", "direct"],
     ["T316", "T310", "direct"], ["T310", "T283", "direct"], ["T283", "T261"], ["T261", "T307"], ["T307", "T289"],
@@ -32,8 +32,8 @@ def lines_file(tmp, *rows):
 
 
 def file_rows(sheet):
-    """The committed main_lines.csv's rows of `sheet` as written: their stops give tracks by block id
-   , as a copy must, where read_lines gives them back by name."""
+    """The committed main_lines.csv's rows of `sheet` as written. Their stops name tracks by block id, as a copy of the
+    file must; read_lines gives the same stops back by name."""
     with open(M.LINES, newline="", encoding="utf-8") as fh:
         return [r for r in csv.DictReader(fh) if r["sheet"] == sheet]
 

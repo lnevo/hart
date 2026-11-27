@@ -11,11 +11,11 @@ Run it with `python3 tools/ctc_history/films.py cats`.
 from __future__ import annotations
 
 import os
-import tempfile
+from functools import partial
 from pathlib import Path
 from typing import NamedTuple
 
-from film_common import CAPTION_INK, HISTORY, REPO, Box, Font, load_font, mp4_command, open_frame, run_ffmpeg, write_concat_list
+from film_common import CAPTION_INK, HISTORY, REPO, Box, Font, build_film, load_font, open_frame
 from PIL import Image, ImageDraw
 
 HERE = HISTORY
@@ -53,6 +53,8 @@ FRAMES: list[Frame] = [
 
 
 def compose(src: Path, box: Box | None, caption: str, font: Font) -> Image.Image:
+    """The screenshot at ``src``, cropped to ``box`` at SCALE (or fitted whole, never enlarged, when ``box`` is None),
+    anchored top-left with ``caption`` centred along the bottom; the caption strip hides what reaches it."""
     img = open_frame(src)
     if box is None:
         scale = min(CANVAS[0] / img.width, (CANVAS[1] - CAPTION_H) / img.height, 1.0)
@@ -70,17 +72,6 @@ def compose(src: Path, box: Box | None, caption: str, font: Font) -> Image.Image
 
 def main() -> None:
     font = load_font(22)
-    with tempfile.TemporaryDirectory(prefix="cats_evo_") as tmp:
-        work = Path(tmp)
-        frame_paths: list[Path] = []
-        for i, frame_spec in enumerate(FRAMES):
-            p = work / f"f{i:02d}.png"
-            frame = compose(SRC / frame_spec.name, frame_spec.box, frame_spec.caption, font)
-            frame.save(p)
-            if i == len(FRAMES) - 1:
-                frame.save(OUT_POSTER, quality=88)
-            frame_paths.append(p)
-        lst = work / "concat.txt"
-        write_concat_list(frame_paths, lst)
-        run_ffmpeg(mp4_command(lst, len(frame_paths), ["-c:v", "libx264", "-crf", "26", "-movflags", "+faststart"], OUT_MP4))
+    build_film([partial(compose, SRC / f.name, f.box, f.caption, font) for f in FRAMES], OUT_MP4, OUT_POSTER,
+               "cats_evo_")
     print(f"Wrote {OUT_MP4} and {OUT_POSTER}")
