@@ -8845,6 +8845,13 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/scripts/sml_lcos.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/audit/check_name_copies.py",
    "to": "tools/check.sh",
    "label": "check name-copies",
