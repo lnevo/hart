@@ -72,6 +72,8 @@ TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", 
 # The tracked files it lists, as git globs: one per suffix (readable() then leaves out SKIP_PREFIXES and tests). The
 # step's quiet_inputs in tools/pipeline/checks.toml are these (tools/audit/tests/test_manifest_scans.py).
 SCAN_GLOBS = tuple(f"**/*{s}" for s in TEXT_SUFFIXES)
+# Fewer files than this holding a name means the file list went wrong (several hundred hold one); main() fails then.
+MIN_NAME_FILES = 50
 
 # Dated records that keep a name that is no longer current: file -> (names, reason);
 # names None allows any. Keep this short: a copy still in use belongs on the data.
@@ -257,6 +259,10 @@ def main(argv: list[str] | None = None) -> int:
     unused = unused_allow(ALLOW, used)
     for msg in unused:
         print(msg)
+    if len(counts) < MIN_NAME_FILES:
+        print(f"FAIL: only {len(counts)} files hold a name (at least {MIN_NAME_FILES} expected): the scan read "
+              "almost nothing; is the file list right?")
+        return 1
     if hits or unused:
         print(f"FAIL: {len(hits)} stale name copies. Change each to the current name, look it up from "
               "the data, or (dated records only) add it to ALLOW with its reason.")
