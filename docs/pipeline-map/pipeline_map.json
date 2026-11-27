@@ -1034,6 +1034,15 @@
    "path": "jmri/layouts/hart/data/block_lengths_measured.csv"
   },
   {
+   "id": "jmri/layouts/hart/data/native_sml_qa.csv",
+   "label": "native_sml_qa.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The native SML QA's steps: each step's description, the staging devices it drives by device ID and the masts it checks; read through hartlib.sml_qa; column rules in native_sml_qa.columns.csv.",
+   "path": "jmri/layouts/hart/data/native_sml_qa.csv"
+  },
+  {
    "id": "jmri/layouts/hart/data/devices.columns.csv",
    "label": "devices.columns.csv",
    "kind": "structured",
@@ -2226,7 +2235,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Six train cards (D749, NVL, CK1, Route 23, OCS-1, EXTRA) appended to the last sheet by bin/cars cards --trains.",
+   "desc": "Six train cards (D749, NVL, CK1, Route 23, OCS-1, EXTRA) appended to the last sheet by bin/cars cards --trains; road and number from trains.csv, wording in code.",
    "path": "ops/hart-ops/card_pipeline/train_cards.py"
   },
   {
@@ -2316,7 +2325,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "The roster road codes the car pipeline names: the marks a card shows and the spellings the car photo and loco matchers turn into the code (hartlib.operations). locos.csv's road_name refers to it.",
+   "desc": "The roster road codes the car pipeline names: the marks a card shows and the spellings the car photo and loco matchers turn into the code (hartlib.operations). locos.csv's and trains.csv's road_name refer to it.",
    "path": "ops/hart-ops/data/roads.csv"
   },
   {
@@ -2361,7 +2370,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "ops",
-   "desc": "Train master keyed on train_symbol (ADR-039): CATS name, engine, font, runs_job, on_desks (no for the Operations Pro staging trains), the Operations Pro name when it differs; column rules in trains.columns.csv.",
+   "desc": "Train master keyed on train_symbol (ADR-039): CATS name, the road and card number of the train cards, engine, font, runs_job, on_desks (no for the Operations Pro staging trains), the Operations Pro name when it differs; column rules in trains.columns.csv.",
    "path": "ops/hart-ops/data/trains.csv"
   },
   {
@@ -3731,7 +3740,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "Hand-run QA: drives retained MQTT states, checks mast aspects through JMRI JSON, restores baseline; writes gitignored notes.",
+   "desc": "Hand-run QA: drives retained MQTT states from native_sml_qa.csv, checks mast aspects through JMRI JSON, restores baseline; --list prints the steps and publishes nothing; writes gitignored notes.",
    "path": "tools/mqtt-mimic/qa/run_native_sml_qa.py"
   },
   {
@@ -11671,7 +11680,7 @@
   {
    "from": "ops/hart-ops/data/roads.csv",
    "to": "tools/ops/check_data.py",
-   "label": "rules; locos.csv road_name refers to it",
+   "label": "rules; locos.csv and trains.csv road_name refer to it",
    "side": "check",
    "gen": "manifest"
   },
@@ -11700,6 +11709,13 @@
    "from": "ops/hart-ops/data/spot_usages.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/data/native_sml_qa.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; refers to the device master and masts.csv",
    "side": "check",
    "gen": "manifest"
   },
@@ -15023,6 +15039,26 @@
    "from": "jmri/layouts/hart/scripts/render_le_draw.py",
    "to": "jmri/layouts/hart/scripts/render_le_layout.py",
    "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/native_sml_qa.csv",
+   "to": "tools/mqtt-mimic/qa/run_native_sml_qa.py",
+   "label": "steps"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/mqtt-mimic/qa/run_native_sml_qa.py",
+   "label": "device IDs"
+  },
+  {
+   "from": "ops/hart-ops/data/trains.csv",
+   "to": "ops/hart-ops/card_pipeline/train_cards.py",
+   "label": "road, card number"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/stations.csv",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "plant names"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

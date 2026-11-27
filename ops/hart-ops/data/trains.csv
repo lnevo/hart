@@ -1,10 +1,10 @@
-train_symbol,train_name,engine,font,runs_job,on_desks,opspro_name,notes
-R23A,Route 23 AM,4678,East,true,yes,,DS-01 lineup #1 — timetable through
-D749,D749,1993,East,true,yes,,DS-01 #2 — Demmler/Track K-2 CSX turn (CI-D749 CR 1993)
-OCS1,OCS-1,1827,FONT_TRAIN,true,yes,,DS-01 #3 — highest priority when scheduled
-NVL,NVL,2091,West,true,yes,,DS-01 #4 — Scully local (CI-NVL POHC 2091)
-CK1,CK1,9602,FONT_TRAIN,true,yes,,DS-01 #5 — Shenango coke / scale (CI-CK1)
-D749R,D749 Return,1993,West,true,yes,D749 Return,DS-01 #6 — return; terminate West Yard
-R23P,Route 23 PM,4678,West,true,yes,,DS-01 #7 — timetable through
-STG-DEMMLER,,,,,no,,Operations Pro staging train: the CSX offline swap at Demmler; run by the Session automation with no crew
-STG-SCULLY,,,,,no,,Operations Pro staging train: the POHC offline swap at Scully; run by the Session automation with no crew
+train_symbol,train_name,road_name,card_number,engine,font,runs_job,on_desks,opspro_name,notes
+R23A,Route 23 AM,PRC,Route 23,4678,East,true,yes,,DS-01 lineup #1 — timetable through
+D749,D749,CSX,D749,1993,East,true,yes,,DS-01 #2 — Demmler/Track K-2 CSX turn (CI-D749 CR 1993)
+OCS1,OCS-1,CSX,OCS-1,1827,FONT_TRAIN,true,yes,,DS-01 #3 — highest priority when scheduled
+NVL,NVL,POHC,NVL,2091,West,true,yes,,DS-01 #4 — Scully local (CI-NVL POHC 2091)
+CK1,CK1,HART,CK1,9602,FONT_TRAIN,true,yes,,DS-01 #5 — Shenango coke / scale (CI-CK1)
+D749R,D749 Return,CSX,,1993,West,true,yes,D749 Return,DS-01 #6 — return; terminate West Yard
+R23P,Route 23 PM,PRC,,4678,West,true,yes,,DS-01 #7 — timetable through
+STG-DEMMLER,,,,,,,no,,Operations Pro staging train: the CSX offline swap at Demmler; run by the Session automation with no crew
+STG-SCULLY,,,,,,,no,,Operations Pro staging train: the POHC offline swap at Scully; run by the Session automation with no crew

@@ -216,3 +216,41 @@ def read_spot_usages(path: Path = SPOT_USAGES) -> dict[str, str]:
             raise OpsDataError(f"{path}:{line}: usage {row['usage']!r} must be lower case and listed once")
         out[row["usage"]] = row["label"]
     return out
+
+
+# ---------------------------------------------------------------- the train master
+
+TRAINS_CSV = HART_OPS_DATA / "trains.csv"
+TRAIN_COLUMNS = ["train_symbol", "train_name", "road_name", "card_number", "on_desks"]
+
+
+@dataclass(frozen=True)
+class Train:
+    """A train of trains.csv (ADR-039), the columns the train cards read."""
+    symbol: str           # train_symbol, the key (R23A, D749)
+    name: str             # train_name, the CATS desk name; empty on a staging train
+    road: str             # road_name, the railroad that runs it (CSX, POHC, PRC, HART)
+    card_number: str      # the number its train card shows; empty: it has no card of its own
+    on_desks: bool
+
+
+def read_trains(path: Path = TRAINS_CSV) -> dict[str, Train]:
+    """{train_symbol: Train} of trains.csv in file order. Stops on an empty or repeated symbol, an on_desks that is not
+    yes or no, a train on the desks with no road_name, and a card_number given to two trains."""
+    out: dict[str, Train] = {}
+    cards: dict[str, str] = {}
+    for line, row in _rows(path, TRAIN_COLUMNS):
+        symbol = row["train_symbol"]
+        if not symbol:
+            raise OpsDataError(f"{path}:{line}: train_symbol is empty")
+        if symbol in out:
+            raise OpsDataError(f"{path}:{line}: train {symbol} is listed twice")
+        if row["on_desks"] not in ("yes", "no"):
+            raise OpsDataError(f"{path}:{line}: on_desks {row['on_desks']!r} is not yes or no")
+        if row["on_desks"] == "yes" and not row["road_name"]:
+            raise OpsDataError(f"{path}:{line}: {symbol} is on the desks and has no road_name")
+        card = row["card_number"]
+        if card and cards.setdefault(card, symbol) != symbol:
+            raise OpsDataError(f"{path}:{line}: card_number {card} is {cards[card]}'s too")
+        out[symbol] = Train(symbol, row["train_name"], row["road_name"], card, row["on_desks"] == "yes")
+    return out

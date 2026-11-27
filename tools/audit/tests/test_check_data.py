@@ -301,6 +301,25 @@ class TheRepo(unittest.TestCase):
         self.assertRegex(found, r"area names what is not in jmri/layouts/hart/data/schematic/lcos_nodes.csv:area")
         self.assertIn("Attic", found)
 
+    def test_a_train_road_is_a_road_of_roads_csv(self) -> None:
+        """trains.csv's road_name refers to roads.csv's road: every road used is there, and one that is not fails."""
+        data = ROOT / "ops/hart-ops/data"
+        with (data / "roads.csv").open(newline="", encoding="utf-8") as fh:
+            roads = {r["road"] for r in csv.DictReader(fh)}
+        with (data / "trains.csv").open(newline="", encoding="utf-8") as fh:
+            used = {r["road_name"] for r in csv.DictReader(fh) if r["road_name"]}
+        self.assertIn("HART", used)
+        self.assertLessEqual(used, roads)
+        with tempfile.TemporaryDirectory() as d:
+            side = Path(d) / "trains.columns.csv"
+            side.write_bytes((data / "trains.columns.csv").read_bytes())
+            text = (data / "trains.csv").read_text(encoding="utf-8")
+            self.assertIn(",HART,", text)
+            (Path(d) / "trains.csv").write_text(text.replace(",HART,", ",NOSUCHROAD,", 1), encoding="utf-8")
+            found = " | ".join(C.Checker().check(side))
+        self.assertRegex(found, r"road_name names what is not in ops/hart-ops/data/roads.csv:road")
+        self.assertIn("NOSUCHROAD", found)
+
 
 if __name__ == "__main__":
     unittest.main()

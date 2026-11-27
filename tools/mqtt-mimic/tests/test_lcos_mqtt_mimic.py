@@ -169,7 +169,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
 
 
 class PlantOrder(unittest.TestCase):
-    """plant_rank orders unknown plants last."""
+    """plant_rank orders the station master's plants west to east and unknown plants last."""
 
     m: ClassVar[ModuleType]
 
@@ -177,10 +177,34 @@ class PlantOrder(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.m = load_module()
 
+    def setUp(self) -> None:
+        self.m.plant_order.cache_clear()
+        self.addCleanup(self.m.plant_order.cache_clear)
+
     def test_unknown_plant_sorts_after_every_listed_one(self) -> None:
-        ranks = [self.m.plant_rank(p) for p in (*self.m.PLANT_ORDER, "Nowhere")]
+        order = self.m.plant_order()
+        ranks = [self.m.plant_rank(p) for p in (*order, "Nowhere")]
         self.assertEqual(ranks, sorted(ranks))
-        self.assertEqual(ranks[-1], len(self.m.PLANT_ORDER))
+        self.assertEqual(ranks[-1], len(order))
+
+    def test_names_come_from_the_station_master(self) -> None:
+        names = self.m.places.table().by_id
+        self.assertEqual(self.m.plant_order(),
+                         tuple(names[i] for i in self.m.PLANT_STATIONS) + self.m.OTHER_PLANTS)
+        self.assertEqual(self.m.plant_order()[0], names["st:brick"])
+
+    def test_an_id_the_master_lacks_is_a_mimic_error(self) -> None:
+        from unittest import mock
+        with mock.patch.object(self.m, "PLANT_STATIONS", ("st:brick", "st:nowhere")), \
+                self.assertRaisesRegex(self.m.MimicError, "has no station st:nowhere"):
+            self.m.plant_order()
+
+    def test_an_unreadable_master_is_a_mimic_error(self) -> None:
+        from unittest import mock
+        err = self.m.FactsError("stations.csv: no column station_id")
+        with mock.patch.object(self.m.places, "table", side_effect=err), \
+                self.assertRaisesRegex(self.m.MimicError, "station master cannot be used: stations.csv: no column"):
+            self.m.plant_order()
 
 
 class Errors(unittest.TestCase):
