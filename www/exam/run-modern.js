@@ -5,9 +5,9 @@
 (function(){
 "use strict";
 const X=window.ExtraEast;
-const {fmt,$,esc,reduced,randSetup,rnd,STATIONS,LAST,state,addTime,renderMap,animateTo,renderStatus,runTime,drawRoad,
+const {fmt,$,esc,reduced,randSetup,rnd,STATIONS,LAST,state,addTime,renderMap,renderStatus,leg,drawRoad,
   finish,push,front,next,log,scene,ask,info}=X.take("run-modern.js",["fmt","$","esc","reduced","randSetup","rnd",
-  "STATIONS","LAST","state","addTime","renderMap","animateTo","renderStatus","runTime","drawRoad","finish","push","front",
+  "STATIONS","LAST","state","addTime","renderMap","renderStatus","leg","drawRoad","finish","push","front",
   "next","log","scene","ask","info"]);
 /* ---------- modern: track warrant control ---------- */
 /* The choices in the form's blanks: stations, tracks, warrant numbers, trains, times, speeds and the "other specific
@@ -16,8 +16,8 @@ const TW_SEL={s:STATIONS.map(x=>x.n),t:["Main","Main 1","Main 2"],w:["101","102"
   train:["2211 West","640 East","844 East"],time:["6:15","6:20","6:25","7:00","8:00","9:00"],mph:["10","20","30","40"],
   txt:["Joint with work train 292 between Birchwood and Cobb","Joint with 640 East between Hollis and Ironton",
   "Joint with 2211 West between Dunmore and Elk Gap"]};
-/* The form's boxes and the dispatcher's words: www/js/track-warrant.js. */
-const {BOXES,SAY}=window.TrackWarrant;
+/* The form's boxes, the dispatcher's words, the blank form and the copy check: www/js/track-warrant.js. */
+const {BOXES,SAY,formHtml,compare:wrongBoxes}=window.TrackWarrant;
 
 /* The run's three warrants. boxes are on the warrant every run. Each draw is a pair of box sets, the first taken when
    the run draws true: box12 (Box 12, men or equipment; else Boxes 11 and 17, joint with work train 292) and hold (Box 8;
@@ -51,31 +51,10 @@ function dispatcherLines(w){
   return [`Track warrant number ${w.no.split("").join(" ")}, to KV 812 East at ${w.at}.`,
     ...nums.map(b=>`Box ${b}. ${SAY[b](w.boxes[b])}.`),"Dispatcher RK. Read it back."];
 }
-/* The blank form: each box with a checkbox and a list of TW_SEL's choices for each blank. */
-function formHtml(){
-  return BOXES.map(([n,txt])=>{
-    let k=0;
-    const blank=(_,t)=>{
-      const id=`b${n}_${k++}`;
-      return `<select id="${id}" aria-label="Box ${n} blank ${k}"><option value="">—</option>`+
-        `${TW_SEL[t].map(v=>`<option>${esc(v)}</option>`).join("")}</select>`;
-    };
-    const body=esc(txt).replace(/\{(\w+)\}/g,blank);
-    return `<label class="box" id="row${n}"><input type="checkbox" id="c${n}"><span class="n">${n}</span><span>${body}</span></label>`;
-  }).join("");
-}
 /* The form as the player filled it: {box: {on, v}}, on for the checkbox and v the blanks' values in order. */
 function readForm(){
   return Object.fromEntries(BOXES.map(([n])=>[n,{on:$("c"+n).checked,
     v:[...$("row"+n).querySelectorAll("select")].map(s=>s.value)}]));
-}
-/* The boxes copied wrong: checked when not given, not checked when given, or with a blank that differs. */
-function wrongBoxes(w,got){
-  return BOXES.map(([n])=>n).filter(n=>{
-    const want=w.boxes[n];
-    if(!!want!==got[n].on)return true;
-    return !!want&&got[n].v.some((v,i)=>v!==want[i]);
-  });
 }
 
 /* The copy scene: the dispatcher reads warrant w, the player fills the form and repeats it back. A wrong copy costs
@@ -86,7 +65,7 @@ function warrantCopy(w){
     const lines=dispatcherLines(w);
     scene(w.at,"Copy track warrant "+w.no,
       `<p>The dispatcher reads the warrant at copying speed. Check each box he gives and fill in its blanks, then repeat it back.</p><div class="xw-dict" id="dict"></div>
-      <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})} 1997<br><span style="font-weight:400">To KV 812 East at ${esc(w.at)}</span></div>${formHtml()}<div class="okline">OK ____  Dispatcher ____</div></div>
+      <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · ${new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})} 1997<br><span style="font-weight:400">To KV 812 East at ${esc(w.at)}</span></div>${formHtml(TW_SEL,esc)}<div class="okline">OK ____  Dispatcher ____</div></div>
       <div class="choices"><button class="xw-btn primary" id="rb">Repeat it to the dispatcher</button></div><div class="result" hidden></div>`);
     // read it out a line at a time
     const d=$("dict");let i=0;
@@ -126,19 +105,13 @@ function copiedRight(w,r){
   $("xwGo").onclick=()=>{$("xwGo").disabled=true;next()};
 }
 
-/* A stretch from station `from` to `to`: the events given, or one drawn from the road pool. */
+/* A stretch from station `from` to `to` (run.js leg): the events given, or one drawn from the road pool as the train
+   leaves. */
 function legTWC(from,to,events){
-  return ()=>{
-    state.moving=STATIONS[from].n+" and "+STATIONS[to].n;state.inSiding=false;
-    const ev=events||[];
-    if(!ev.length){const r=drawRoad();if(r)ev.push(r)}
-    front(...ev,()=>animateTo(to,arrive(from,to)));
-    next();
-  };
-}
-/* At station `to` after the run from `from`: the running time, the position and the log. */
-function arrive(from,to){
-  return ()=>{addTime(runTime(from,to));state.pos=to;state.moving=null;log("At "+STATIONS[to].n);next()};
+  return leg(from,to,()=>{
+    if(events&&events.length)return events;
+    const r=drawRoad();return r?[r]:[];
+  });
 }
 /* The modern run: draws its warrants from TWC_PLAN and the wait for 2211 West, then queues the run a stretch at a
    time. */

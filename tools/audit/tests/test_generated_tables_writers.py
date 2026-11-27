@@ -30,17 +30,18 @@ class GeneratedTablesRefused(unittest.TestCase):
             with self.subTest(script=script):
                 done = subprocess.run([sys.executable, str(ROOT / script), *args], cwd=ROOT, env=env,
                                       capture_output=True, text=True, timeout=300)
-                self.assertNotEqual(0, done.returncode, done.stdout[-500:])
-                self.assertIn("tables.xml is generated (ADR-029)", done.stdout + done.stderr)
+                self.assertEqual(1, done.returncode, done.stdout[-500:])
+                self.assertIn("tables.xml is generated (ADR-029)", done.stderr)
+                self.assertNotIn("Traceback", done.stderr)          # main prints the refusal, not a traceback
                 self.assertEqual(before, TABLES.read_bytes())
 
     def test_refuse_generated_names_only_the_repo_file(self) -> None:
-        with self.assertRaisesRegex(SystemExit, "build_tables.py"):
+        with self.assertRaisesRegex(tb.GeneratedTablesError, "x.py: not writing .*build_tables.py"):
             tb.refuse_generated(paths.REPO_TABLES_XML, "x.py")
         with tempfile.TemporaryDirectory() as tmp:
             link = Path(tmp) / "tables.xml"
             link.symlink_to(paths.REPO_TABLES_XML)
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(tb.GeneratedTablesError):
                 tb.refuse_generated(link, "x.py")             # through a link too
             other = Path(tmp) / "other.xml"
             shutil.copy(paths.REPO_TABLES_XML, other)

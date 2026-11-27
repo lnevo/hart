@@ -8,7 +8,7 @@
 from java.lang import Runnable, Thread
 from javax.swing import JButton, JOptionPane, SwingUtilities
 
-from sml_beans import _ascii
+from sml_beans import _ascii, _log_once
 
 
 class SmlUi(object):
@@ -25,7 +25,8 @@ class SmlUi(object):
             n += c
             try:
                 name = mast.getUserName() or mast.getSystemName()
-            except Exception:
+            except Exception as exc:
+                _log_once("mqtt_signalhead: cannot read the name of mast %s: %s" % (_ascii(mast), _ascii(exc)))
                 name = "?"
             names.append(_ascii(name))
         return n, names
@@ -64,7 +65,8 @@ class SmlUi(object):
                         "Digicon SML stored Enabled",
                         JmriJOptionPane.WARNING_MESSAGE,
                     )
-                except Exception:
+                except Exception as exc:
+                    print("mqtt_signalhead: JMRI dialog failed (%s) -- plain Swing dialog" % _ascii(exc))
                     JOptionPane.showMessageDialog(
                         None,
                         msg,
@@ -74,6 +76,23 @@ class SmlUi(object):
 
         SwingUtilities.invokeLater(_Warn())
         return True
+
+    def _button_on_strip(self, space):
+        """True if this run's button is already on the strip. A button left by an earlier run
+        drives that run's controller, so it is taken off rather than reused."""
+        for i in range(space.getComponentCount() - 1, -1, -1):
+            c = space.getComponent(i)
+            try:
+                if c is self._button:
+                    return True
+                if not hasattr(c, "getText"):  # a panel or separator: not a button
+                    continue
+                if c.getText() in ("SML Enabled", "SML Disabled"):
+                    space.remove(c)
+                    print("mqtt_signalhead: removed SML button left by an earlier run")
+            except Exception as exc:
+                _log_once("mqtt_signalhead: cannot read button-strip component %s: %s" % (_ascii(c), _ascii(exc)))
+        return False
 
     def _add_toggle_button(self, attempt=0):
         """PanelPro main-window strip — kept in addition to the LE Signals lamp."""
@@ -87,20 +106,10 @@ class SmlUi(object):
                 space = Apps.buttonSpace()
                 if space is None:
                     raise RuntimeError("Apps.buttonSpace() is None")
-                # Already on the strip (retry). A button left by an earlier run drives
-                # that run's controller, so take it off rather than reuse it.
-                for i in range(space.getComponentCount() - 1, -1, -1):
-                    c = space.getComponent(i)
-                    try:
-                        if c is self._button:
-                            space.revalidate()
-                            space.repaint()
-                            return True
-                        if c.getText() in ("SML Enabled", "SML Disabled"):
-                            space.remove(c)
-                            print("mqtt_signalhead: removed SML button left by an earlier run")
-                    except Exception:
-                        pass
+                if self._button_on_strip(space):  # already there (a retry)
+                    space.revalidate()
+                    space.repaint()
+                    return True
                 if self._button is None:
                     self._button = JButton("SML Disabled")
                     self._button.addActionListener(lambda e: self._on_toggle())

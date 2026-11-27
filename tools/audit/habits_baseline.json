@@ -6,12 +6,6 @@
   "dated-note": 11,
   "lost-cause": 1
  },
- "cats/scripts/tests/test_build_cats_panel_pieces.py": {
-  "dated-note": 1
- },
- "cats/scripts/tests/test_live_desk_levels.py": {
-  "dated-note": 1
- },
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": {
   "dated-note": 1,
   "import-exit": 3
@@ -24,9 +18,6 @@
  },
  "jmri/layouts/hart/scripts/jmri_cmd_watcher.py": {
   "exec-parts": 1
- },
- "jmri/layouts/hart/scripts/lcc_turnout_contract.py": {
-  "dated-note": 1
  },
  "jmri/layouts/hart/scripts/panelpro_smoke_test.py": {
   "dated-note": 2
@@ -115,9 +106,6 @@
  "ops/hart-ops/tests/test_crew_master.py": {
   "dated-note": 1
  },
- "tools/audit/check_layout_facts.py": {
-  "import-exit": 1
- },
  "tools/audit/check_name_copies.py": {
   "dated-note": 1
  },
@@ -166,9 +154,6 @@
  "tools/hartlib/src/hartlib/paths.py": {
   "import-exit": 1
  },
- "tools/hartlib/src/hartlib/tables_build.py": {
-  "import-exit": 1
- },
  "tools/hartlib/tests/test_block_lengths.py": {
   "dated-note": 1
  },
@@ -205,12 +190,6 @@
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
  },
- "tools/schematic/device_map_masts.py": {
-  "dated-note": 3
- },
- "tools/schematic/device_map_rows.py": {
-  "dated-note": 1
- },
  "tools/schematic/evolution.py": {
   "import-exit": 5
  },
@@ -222,12 +201,6 @@
   "exec-parts": 1
  },
  "tools/schematic/tests/test_band_panels.py": {
-  "dated-note": 1
- },
- "tools/schematic/tests/test_block_layer.py": {
-  "dated-note": 2
- },
- "tools/schematic/tests/test_blocks_every_level.py": {
   "dated-note": 1
  },
  "tools/schematic/tests/test_builders_read_field.py": {

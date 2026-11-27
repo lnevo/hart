@@ -144,6 +144,20 @@ class ExamAnswers(unittest.TestCase):
         for k, v in html.items():
             self.assertNotRegex(v, r"\{\w+\}", k)
 
+    def special(self, src):
+        return node(f"const m=require({json.dumps(str(SCRIPT))});"
+                    f"console.log(m.specialInstructions({{file:'run.js',src:{json.dumps(src)}}}))").strip()
+
+    def test_special_instructions_come_from_the_sheet_notes(self):
+        self.assertEqual(self.special('const SHEET_NOTES={tto:["One.","Two (Rule 5)."]};'),
+                         "<li>One.</li><li>Two (Rule 5).</li>")
+        with self.assertRaisesRegex(AssertionError, "SHEET_NOTES.tto is not a list of special instructions"):
+            self.special('const SHEET_NOTES={tto:[]};')
+        with self.assertRaisesRegex(AssertionError, "SHEET_NOTES.tto is not a list"):
+            self.special('const SHEET_NOTES={twc:["x"]};')
+        with self.assertRaisesRegex(AssertionError, "const SHEET_NOTES= not found"):
+            self.special('const NOTES={};')
+
     def test_warrant_box_value_count_must_match_its_blanks(self):
         with self.assertRaisesRegex(AssertionError, "box 5 has 2 values for 1 blanks"):
             node(

@@ -70,7 +70,7 @@ def _included_plant_turnouts():
             if _is_plant(to) and _has_two_fb_sensors(to):
                 out.append(to)
     except Exception as e:
-        print("panel_status: scan turnouts failed: %s" % e)
+        _log_once("panel_status: scan turnouts failed: %s" % e)
     return out
 
 
@@ -101,7 +101,7 @@ def _note_plant(to):
         else:
             _plant_modes.pop(sn, None)
     except Exception as e:
-        print("panel_status: plant update failed: %s" % e)
+        _log_once("panel_status: plant update failed: %s" % e)
 
 
 def _ensure_turnout_fb_head():
@@ -124,7 +124,7 @@ def _ensure_turnout_fb_head():
         print("panel_status: created VirtualSignalHead %s" % TURNOUT_FB_HEAD)
         return head
     except Exception as e:
-        print("panel_status: Turnouts lamp head unavailable: %s" % e)
+        _log_once("panel_status: Turnouts lamp head unavailable: %s" % e)
         return None
 
 
@@ -190,36 +190,40 @@ def _rebind_turnout_fb_icons(head):
             _log_once("panel_status: Turnouts icon rebind: cannot read the contents of %s: %s" % (ed, e))
             continue
         for icon in contents:
-            if not isinstance(icon, SignalHeadIcon):
-                continue
-            try:
-                shown = head_sys(icon)
-            except Exception as e:
-                _log_once("panel_status: Turnouts icon rebind: cannot read the head of %s: %s" % (icon, e))
-                continue
-            if shown == TURNOUT_FB_HEAD:
+            if isinstance(icon, SignalHeadIcon) and _rebind_icon(ed, icon, head):
                 rebound = True
-                continue
-            try:
-                tip = _tooltip_text(icon)
-            except Exception as e:
-                _log_once("panel_status: Turnouts icon rebind: cannot read the tooltip of %s: %s" % (icon, e))
-                continue
-            if tip != TURNOUT_FB_TOOLTIP:
-                continue
-            try:
-                icon.setSignalHead(TURNOUT_FB_HEAD)
-            except Exception as e:
-                print("panel_status: Turnouts icon rebind by name failed (%s); setting the head itself" % e)
-                try:
-                    icon.setSignalHead(head)
-                except Exception as e2:
-                    print("panel_status: Turnouts icon rebind failed on %s: %s" % (ed, e2))
-                    continue
-            rebound = True
-            print("panel_status: rebound Turnouts icon -> %s" % TURNOUT_FB_HEAD)
     if rebound:
         _icon_rebound = True
+
+
+def _rebind_icon(ed, icon, head):
+    """True if this SignalHeadIcon of editor ed shows the Turnouts lamp head: it already did, or it is the lamp
+    (its tooltip) and now does. A read or set that fails is logged once and the icon counts as not rebound."""
+    try:
+        shown = head_sys(icon)
+    except Exception as e:
+        _log_once("panel_status: Turnouts icon rebind: cannot read the head of %s: %s" % (icon, e))
+        return False
+    if shown == TURNOUT_FB_HEAD:
+        return True
+    try:
+        tip = _tooltip_text(icon)
+    except Exception as e:
+        _log_once("panel_status: Turnouts icon rebind: cannot read the tooltip of %s: %s" % (icon, e))
+        return False
+    if tip != TURNOUT_FB_TOOLTIP:
+        return False
+    try:
+        icon.setSignalHead(TURNOUT_FB_HEAD)
+    except Exception as e:
+        _log_once("panel_status: Turnouts icon rebind by name failed (%s); setting the head itself" % e)
+        try:
+            icon.setSignalHead(head)
+        except Exception as e2:
+            _log_once("panel_status: Turnouts icon rebind failed on %s: %s" % (ed, e2))
+            return False
+    print("panel_status: rebound Turnouts icon -> %s" % TURNOUT_FB_HEAD)
+    return True
 
 
 def sync_turnout_fb_lamp():
