@@ -226,8 +226,8 @@ def _read(name: str, data: bytes, table: places.Table) -> tuple[Mapping[str, str
 def key_of(row: MasterRow | Mapping[str, str]) -> RowKey:
     """A row's (a MasterRow's, or a row of the master's text) key in both files: (level, id) (KEY) for a row with a
     level, ("", layer, user name) for a Store's level-less row, which has no id."""
-    level, layer, user = name_key(row)
-    return (level, row_cells(row)["id"]) if level else ("", layer, user)
+    r = row_cells(row)
+    return (r["level"], r["id"]) if r["level"] else ("", r["layer"], r["user_name"])
 
 
 def name_key(row: MasterRow | Mapping[str, str]) -> tuple[str, str, str]:

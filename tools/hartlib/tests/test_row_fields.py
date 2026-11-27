@@ -111,5 +111,14 @@ class TheReadersTakeFields(unittest.TestCase):
             self.assertTrue(tables_build.base().root is not None)
 
 
+class TheReExport(unittest.TestCase):
+    def test_railroad_facts_carries_every_public_name_of_device_rows(self) -> None:
+        public = {n for n, v in vars(device_rows).items()
+                  if not n.startswith("_") and getattr(v, "__module__", device_rows.__name__) == device_rows.__name__
+                  and n.isidentifier() and not isinstance(v, type(sys))}
+        self.assertTrue({"row_cells", "MasterRow", "DeviceRow"} <= public)
+        self.assertEqual(sorted(n for n in public if not hasattr(railroad_facts, n)), [])
+
+
 if __name__ == "__main__":
     unittest.main()

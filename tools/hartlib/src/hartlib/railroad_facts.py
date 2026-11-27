@@ -13,7 +13,7 @@ from typing import Any
 
 from . import layer_files, level_devices, level_masts, paths, tables, track_names
 from .errors import FactsError, HartlibError
-from .device_rows import DEVICE_LIST, MASTER_COLUMNS, DeviceRow, MasterRow, device_list  # noqa: F401  re-exported
+from .device_rows import DEVICE_LIST, MASTER_COLUMNS, DeviceRow, MasterRow, device_list, row_cells  # noqa: F401
 from .levels import ALL_LEVELS, MAIN_UPPER, Level, parse_level
 
 LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
