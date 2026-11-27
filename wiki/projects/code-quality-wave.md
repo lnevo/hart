@@ -108,10 +108,11 @@ The owner started a third round from the wave 2 report card, one PR per lane:
 
 | Lane | Scope |
 |---|---|
-| L1 | Card pipeline: the five card generators, `cars.py` and `card_template_waybill.py`; `build_card` and `build_waybill_card` as steps over typed records; the IMG_9088 case in data; no exits at import |
+| L1 | Card pipeline: `generate_all_cards`, `generate_card_template`, `engine_lookup`, `card_template_sheet` and `card_template_waybill`; `build_card` and `build_waybill_card` as steps over typed records; the IMG_9088 case in data; no exits at import |
 | L2 | Station maps and publications: the three renderers on `station_compass.py` with behaviour tests; `rebuild_dispatcher_train_list`, `rebuild_yardmaster_sequence`, `rebuild_local_station_maps` |
 | L3 | Site share cards: `share_card_recipes/composites.py` and `forms.py` |
 | L4 | `render_cats_panel.py`, `cs105_consist.py`, `export_track_lengths.py` |
 | L5 | Garbled docstrings, source-text host tests, the film frame loop into `film_common` |
-| L6 | Types, after L1 to L5: device-row callers on attributes, `build_device_map` and `build_cats_panel` annotations, `tools/ops` to mypy strict if it fits |
+| L4b | Card generators, after L4 and L5: `cars.py` split under the size limit; `generate_cc_waybill_labels`, `generate_waybill_cards` and `generate_single_card` on the shared sticker deck writer and typed records |
+| L6 | Types, after L1 to L5 and L4b: device-row callers on attributes, `build_device_map` and `build_cats_panel` annotations, `tools/ops` to mypy strict if it fits |
 
