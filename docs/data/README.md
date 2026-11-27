@@ -33,8 +33,14 @@ A spreadsheet, a slide deck or a JSON file for the site is never a master. It is
 A table typed into a script that holds the railroad's own names is a copy of a master or a fact with no master.
 `tools/audit/check_hand_tables.py` (job `hand-tables`) fails on a new one: it takes the names from the key and name
 columns of every CSV master in `entities.csv` (`hartlib.hand_tables`), so a new master here widens the check. The
-tables in code today are listed in `tools/audit/hand_tables.csv`, each `move` (railroad data, to move to a CSV),
+tables in code today are listed in `tools/audit/hand_tables.csv`, each `move` (re-used data, to move to a CSV or a shared file),
 `unreviewed` (the check cannot tell it from a code setting; the owner decides) or `keep` (stays in code, with the
 reason). A listed table may not grow, and its row goes when the table does.
+
+The owner's review set the rule for which tables move: a table stays in code unless its values are re-used, by another
+table, another script or a master, so moving does not make a data file for one script. Where tables in several files
+hold the same labels (the track warrant form, the Chartiers stations in the website games), they become one shared
+source. For tables only the website's JavaScript reads, that source is a shared file under `www/js/`, as
+`game-engine.js` is, not a CSV with a build step.
 
 Which script writes or reads a given file is in `docs/pipeline-map/pipeline_map.json`. The rule is in [ADR-039](../../wiki/decisions/ADR-039-data-masters-in-git.md).
