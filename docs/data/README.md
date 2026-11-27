@@ -28,4 +28,13 @@ A spreadsheet, a slide deck or a JSON file for the site is never a master. It is
 - **Crew jobs and their text:** a new `ops/hart-ops/data/crew.json` (crew jobs keyed on `code`, destination colors keyed on `id`, TT-23, the spot sheet, EQ-01 and the station map text). `www/data/crew.json` and the crew, YM-01, DS-01 and EQ-01 docx are built from it; the spot sheet's industry names come from `industries.csv`.
 - **Stations and control points:** two files with new ids. `schematic/stations.csv` owns stations (`station_id`) and `schematic/interlockings.csv` owns control points (`cp_id`). Every `cp` cell then holds ids.
 
+## Railroad data in code
+
+A table typed into a script that holds the railroad's own names is a copy of a master or a fact with no master.
+`tools/audit/check_hand_tables.py` (job `hand-tables`) fails on a new one: it takes the names from the key and name
+columns of every CSV master in `entities.csv` (`hartlib.hand_tables`), so a new master here widens the check. The
+tables in code today are listed in `tools/audit/hand_tables.csv`, each `move` (railroad data, to move to a CSV),
+`unreviewed` (the check cannot tell it from a code setting; the owner decides) or `keep` (stays in code, with the
+reason). A listed table may not grow, and its row goes when the table does.
+
 Which script writes or reads a given file is in `docs/pipeline-map/pipeline_map.json`. The rule is in [ADR-039](../../wiki/decisions/ADR-039-data-masters-in-git.md).
