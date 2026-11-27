@@ -12,7 +12,7 @@ const vm = require("vm");
 const { El, roots, mk, doc } = require("./fake_dom.js");
 
 const WWW = path.join(__dirname, "..", "..");
-const SCRIPTS = ["js/game-engine.js", "js/track-warrant.js", "exam/signals.js", "exam/run.js", "exam/run-1949.js", "exam/run-modern.js",
+const SCRIPTS = ["js/game-engine.js", "js/track-warrant.js", "exam/signals.js", "exam/run-data.js", "exam/run.js", "exam/run-1949.js", "exam/run-modern.js",
   "exam/run-signals.js", "exam/run-yard.js", "exam/run-title.js"]; // run.html's order
 const ERAS = ["tto", "twc", "yard", "sig"]; // the start buttons
 const RUNS = ["tto", "twc", "yard", "sigs", "sigr"]; // "sig" plays speed signals, or route signals with the switch on
