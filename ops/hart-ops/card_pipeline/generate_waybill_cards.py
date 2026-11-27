@@ -27,13 +27,14 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import ModuleType
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
 from docx.table import _Cell
 
 from card_errors import CardPipelineError
 
 if TYPE_CHECKING:
+    from waybill_data import DeckCard, FlowKey, Party, SpotGroupKey as GroupKey
     from waybill_deck import SpotGroup
 
 _HERE = Path(__file__).resolve().parent
@@ -80,10 +81,6 @@ WAYBILL_CSV = DATA / "HART_Spot_Waybills.csv"
 class SpotCsvMissingError(CardPipelineError, FileNotFoundError):
     """spot_assignments.csv is not where SPOT_CSV says."""
 
-
-# A deck card: a WaybillCardRecord's fields plus the build keys waybill_deck adds (see its docstring).
-DeckCard = dict
-GroupKey = tuple[str, str, str]  # (industry, spots, usage)
 
 
 class WaybillDeck(NamedTuple):
@@ -150,10 +147,11 @@ def generate(deck: Sequence[DeckCard]) -> None:
     card_template_sheet.write_sticker_deck(deck, _fill_slot, sticker_sheet=sticker_sheet, output=OUTPUT)
 
 
-def route_text(flow: str, load: str, pool: Sequence[Mapping[str, str]]) -> str:
+def route_text(flow: str, load: str, pool: Sequence[Party]) -> str:
     """The parties a direction's cards are spread over, as the report names them; blank with no pool."""
     if not pool:
         return ""
+    key: Literal["via", "entry"]
     if load == wdata.EMPTY and flow == "IN":
         label, key = "via routing", "via"
     elif flow == "OUT":
@@ -173,7 +171,7 @@ def copies_note(load: str, designs: int) -> str:
     return f"1 each + {wdata.CARDS_PER_DIRECTION - designs} extra"
 
 
-def group_line(group_key: GroupKey, by_direction: Mapping[tuple[GroupKey, str], list[DeckCard]]) -> str:
+def group_line(group_key: GroupKey, by_direction: Mapping[FlowKey, list[DeckCard]]) -> str:
     """One spot group's IN and OUT designs for the report; blank when it has none."""
     parts: list[str] = []
     for flow in ("IN", "OUT"):
@@ -199,7 +197,7 @@ def print_spot_groups(deck: WaybillDeck) -> None:
             for ind in sorted(outbound_empty_counts, key=lambda n: wdata.INDUSTRY_ORDER.get(n, 99))
         )
         print(f"  outbound empties (industry): {empty_summary}")
-    by_direction: dict[tuple[GroupKey, str], list[DeckCard]] = defaultdict(list)
+    by_direction: dict[FlowKey, list[DeckCard]] = defaultdict(list)
     for record in deck.waybills:
         by_direction[record["DirectionKey"]].append(record)
     for group_key in deck.group_order:

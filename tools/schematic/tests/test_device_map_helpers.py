@@ -4,11 +4,14 @@ taken_bean_names. They pin the behaviour the split of build_device_map.py into d
 device_map_schematic.py and device_map_staging.py keeps; none needs the schematic plugin."""
 from __future__ import annotations
 
+import contextlib
+import io
 import subprocess
 import sys
 import tempfile
 import unittest
 import unittest.mock
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -271,12 +274,16 @@ class TheSplit(TempFiles):
             with self.subTest(name=name):
                 self.assertIs(getattr(bdm, name), getattr(nodes, name))
 
-    def test_a_switch_with_no_node_and_no_frozen_turnout_stops(self):
-        """build() picks a node for each control point that has a switch not frozen; a switch reaching its rows with
-        neither stops naming it, not on a TypeError."""
-        st = bdm.MapBuild(*[None] * len(bdm.MapBuild._fields))._replace(nodes=bdm.Nodes([]))
-        with self.assertRaisesRegex(bdm.MapError, "Switch 201: not frozen in wiring.csv, and no node was picked"):
-            bdm._switch_rows(st, 2, "North", "CP 201", "201", None)
+    def test_the_builder_re_exports_the_row_stages(self):
+        import device_map_level_masts as level_masts
+        import device_map_master as master
+        import device_map_plant as plant
+        for module, names in ((plant, ("NOT_WIRED", "NO_DETECTOR", "block_sensor", "occupancy_user", "assign_ports")),
+                              (level_masts, ("HEAD_NOT_WIRED", "head_name", "virtual_memory")),
+                              (master, ("WRITER", "block_beans", "check_virtual", "startup_thrown"))):
+            for name in names:
+                with self.subTest(name=name):
+                    self.assertIs(getattr(bdm, name), getattr(module, name))
 
     def test_the_build_records_are_device_map_records(self):
         import device_map_records as rec
@@ -344,6 +351,65 @@ class TheSplit(TempFiles):
         p = self.file("wiring.csv", WIRING_HEAD + "2,detector,det:os:123,,,,,,42,1,,,planned,\n")
         self.assertEqual(inputs.read_pins(p, [], set()), {"OS Switch 123": (42, 0)})
         self.assertEqual(bdm.read_pins(p, found=[], split=set()), {"OS Switch 123": (42, 0)})
+
+
+class TheRun(TempFiles):
+    """main()'s steps after the build: what --check reports and what a write prints and returns."""
+
+    def setUp(self):
+        self.tmp = self.file("seed.txt", "").parent
+
+    def wanted(self, held=()):
+        path = self.tmp / "out.csv"
+        return path, bdm.Wanted({path: "new\n"}, Counter({"turnout": 2, "fb": 4}), list(held))
+
+    def run_step(self, step, *args):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            status = step(*args)
+        return status, out.getvalue(), err.getvalue()
+
+    def test_a_write_writes_the_stale_outputs_and_prints_the_counts(self):
+        path, want = self.wanted()
+        status, out, err = self.run_step(bdm._write, want, [path])
+        self.assertEqual((status, path.read_text(encoding="utf-8"), err), (0, "new\n", ""))
+        self.assertEqual(out.splitlines(), [f"wrote {path}", "2 turnout, 4 fb"])
+
+    def test_a_write_with_staging_masts_held_writes_and_exits_2(self):
+        path, want = self.wanted(held=["Track 9-11 has no plan length"])
+        status, out, err = self.run_step(bdm._write, want, [path])
+        self.assertEqual((status, path.read_text(encoding="utf-8")), (2, "new\n"))
+        self.assertNotIn("turnout", out)
+        self.assertIn("rows written, staging's masts kept as they were: Track 9-11 has no plan length", err)
+
+    def test_a_check_is_1_on_a_stale_output_or_held_masts(self):
+        self.assertEqual(self.run_step(bdm._report_stale, [], []), (0, "", ""))
+        status, out, err = self.run_step(bdm._report_stale, [bdm.GENERATED], [])
+        self.assertEqual((status, out), (1, ""))
+        self.assertIn(bdm.GENERATED.name, err)
+        status, _out, err = self.run_step(bdm._report_stale, [], ["no plan length"])
+        self.assertEqual((status, err), (1, "build_device_map.py: staging's masts not placed again: no plan length\n"))
+
+    def test_a_fact_that_stops_the_build_is_named_and_exits_2(self):
+        self.assertEqual(self.run_step(bdm._stopped, bdm.MapError("switch 9 is in no control point")),
+                         (2, "", "build_device_map.py: switch 9 is in no control point\n"))
+
+    def test_a_bad_input_file_exits_2_before_the_drawing_is_solved(self):
+        gone = railroad.Sources.under().but(interlockings=self.tmp / "gone.csv")
+        with unittest.mock.patch.object(bdm, "sources", return_value=gone), \
+                unittest.mock.patch.object(bdm, "solve", side_effect=AssertionError("solved")):
+            status, _out, err = self.run_step(bdm.main, ["--check"])
+        self.assertEqual(status, 2)
+        self.assertIn("gone.csv", err)
+
+    def test_held_wiring_reads_the_given_pins_and_frozen_wires(self):
+        held = bdm._held([], {}, [], found=[], split_names=set(), track_ids={})
+        self.assertEqual((held.os_pin_level, held.cps, held.devices, held.blocks), ({}, frozenset(), set(), set()))
+        self.assertIsInstance(held.nodes, bdm.Nodes)
+
+    def test_a_pin_on_a_node_the_node_list_lacks_stops(self):
+        with self.assertRaisesRegex(bdm.MapError, "Track 1-3 is pinned to node 4, which lcos_nodes.csv does not list"):
+            bdm._held([], {"Track 1-3": (4, 0)}, [], found=[], split_names=set(), track_ids={})
 
 
 class RowMakers(unittest.TestCase):
