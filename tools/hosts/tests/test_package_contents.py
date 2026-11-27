@@ -98,7 +98,7 @@ def shipped_jython() -> list[str]:
         cwd=ROOT, capture_output=True, text=True, timeout=60, check=False)
     if done.returncode != 0:
         raise AssertionError(f"load_parked failed ({done.returncode}): {done.stderr.strip()}")
-    return done.stdout.split()
+    return done.stdout.splitlines()
 
 
 class KeptScripts(unittest.TestCase):
