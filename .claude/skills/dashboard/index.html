@@ -67,7 +67,7 @@
 .w2 .clock b { color:var(--color-fg); font-weight:var(--cds-font-weight-medium); font-variant-numeric:tabular-nums; }
 .w2 .clock .refresh[disabled] { opacity:.6; cursor:progress; }
 </style>
-<div class="w2 theme-auto">
+<div class="w2 theme-dark">
   <header id="top" class="proj">
     <div>
       <p class="eyebrow">lnevo/hart</p>
@@ -86,9 +86,9 @@
       </div>
     </div>
     <div class="theme" role="group" aria-label="Theme">
-      <button type="button" data-theme="auto" aria-pressed="true">Auto</button>
+      <button type="button" data-theme="auto" aria-pressed="false">Auto</button>
       <button type="button" data-theme="light">Light</button>
-      <button type="button" data-theme="dark">Dark</button>
+      <button type="button" data-theme="dark" aria-pressed="true">Dark</button>
     </div>
   </header>
   <p class="lead"><span data-draw="lead" class="dash-skeleton">—</span></p>
@@ -277,7 +277,7 @@ dash.draw('agents', (el)=> lineChart(el,
   'Claude sessions plus agents running over time against the cap of 8, and remote checks'));
 
 (function(){
-  let pick='auto'; try { pick = localStorage.getItem('w2-theme') || 'auto'; } catch(e) {}
+  let pick='dark'; try { pick = localStorage.getItem('w2-theme') || 'dark'; } catch(e) {}
   const apply=(t)=>{ document.querySelectorAll('.w2').forEach((w)=>{ w.classList.remove('theme-auto','theme-light','theme-dark'); w.classList.add('theme-'+t); });
     document.querySelectorAll('.w2 .theme button').forEach((b)=> b.setAttribute('aria-pressed', String(b.dataset.theme===t))); };
   apply(pick);
