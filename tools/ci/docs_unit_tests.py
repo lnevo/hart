@@ -81,7 +81,7 @@ class StampDecls(Protocol):
     MANIFEST_CHECK: tuple[str, ...]
     RUNS_JOBS: Mapping[str, object]
     DOCS_K: Mapping[str, str]
-    declared: Callable[[str], tuple[str, ...]]
+    declared: Callable[[str], tuple[str, ...] | None]
 
 
 # Where the Markdown docs are: docs/, wiki/, and the skills and subagents under .claude/ (changed_kind.CLAUDE_DOCS).
@@ -106,7 +106,7 @@ def on_docs(stamps: StampDecls = check_stamps) -> set[str]:
     """Every declaration that covers a Markdown doc. A job that runs other jobs (RUNS_JOBS) is declared on theirs
     too: its whole declaration."""
     declared = {**stamps.BY_KIND, **stamps.EXTRA, "manifest checks": stamps.MANIFEST_CHECK,
-                **{k: stamps.declared(k) for k in stamps.RUNS_JOBS}}
+                **{k: stamps.declared(k) or () for k in stamps.RUNS_JOBS}}
     return {k for k, v in declared.items() if covers_markdown_docs(v)}
 
 

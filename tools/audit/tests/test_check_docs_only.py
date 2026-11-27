@@ -399,6 +399,11 @@ class DocsUnitTests(unittest.TestCase):
                 mock.patch("sys.stderr"):
             self.assertEqual(1, docs_unit_tests.main())
 
+    def test_a_job_that_runs_jobs_with_no_declaration_covers_no_docs(self) -> None:
+        stamps = type("Stamps", (), {"BY_KIND": {}, "EXTRA": {}, "MANIFEST_CHECK": (), "DOCS_K": {},
+                                     "RUNS_JOBS": {"docs-all skipped": ()}, "declared": staticmethod(lambda name: None)})
+        self.assertEqual(set(), docs_unit_tests.on_docs(stamps))
+
     def test_the_probe_reads_patterns_as_the_stamps_do(self) -> None:
         covers = docs_unit_tests.covers_markdown_docs
         self.assertTrue(covers(("**/*",)))

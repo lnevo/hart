@@ -3,8 +3,9 @@
 
 The page began as the Model Railroad Engineer SOQ (docs/ap/electrical) without the NMRA form, the
 checklist, the requirement framing and the wiring-record appendix. It reads nothing from the SOQ, which was
-submitted and is frozen; the page is a live document that follows the layout's data. Its text is layout_docs_template.html, and its drawings and photos are files under
-www/assets/behind/layout-docs/, edited in place. This script fills in the list of detected sections (lengths
+submitted and is frozen; the page is a live document that follows the layout's data. Its text is
+layout_docs_template.html, and its drawings and photos are files under www/assets/behind/layout-docs/, edited in
+place. This script fills in the list of detected sections (lengths
 and detectors from jmri/layouts/hart/data/block_lengths.csv by level and ID, names from the device master,
 where the owner's name wins), the track names the template gives by block ID ({{name:<id>}}), the switch names
 and DCC addresses it gives by turnout ID ({{turnout:switch:3}}, {{turnouts:switch:9,switch:11}}, {{dcc:switch:3}}),
