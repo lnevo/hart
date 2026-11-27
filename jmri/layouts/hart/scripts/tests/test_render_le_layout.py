@@ -252,6 +252,37 @@ class PanelErrors(unittest.TestCase):
                 self.assertEqual(render_le_layout.main([str(src), str(Path(d) / "o.png")]), 0)
             self.assertTrue((Path(d) / "o.png").is_file())
 
+    def test_all_views_draws_each_view_with_labels_and_scale(self):
+        from PIL import Image
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "panel.xml"
+            src.write_text(PANEL, encoding="utf-8")
+            widths = {}
+            for scale in ("1", "4"):
+                out = Path(d) / f"s{scale}"
+                out.mkdir()
+                with mock.patch.object(render_le_layout, "render_view", wraps=render_le_layout.render_view) as rv, \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    rc = render_le_layout.main([str(src), "--all-views", str(out), "--labels", "--scale", scale])
+                self.assertEqual(rc, 0)
+                self.assertEqual(rv.call_count, len(render_le_layout.VIEWS))
+                for call in rv.call_args_list:
+                    self.assertIsNotNone(call.kwargs["decor"])                 # --labels reaches every view
+                    self.assertEqual(call.kwargs["fixed_scale"], float(scale))
+                with Image.open(out / "hart_ctc_01_overview.png") as im:
+                    widths[scale] = im.width
+            self.assertGreater(widths["4"], widths["1"])
+
+    def test_all_views_refuses_one_view_options(self):
+        for extra in (["o.png"], ["--title", "T"], ["--subtitle", "S"], ["--xwin", "0", "5"]):
+            err = io.StringIO()
+            with self.subTest(extra=extra), contextlib.redirect_stderr(err), self.assertRaises(SystemExit) as cm:
+                render_le_layout.main(["panel.xml", "--all-views", "outdir", *extra])
+            self.assertEqual(cm.exception.code, 2)
+            self.assertIn("--all-views draws each view with its own title and window: drop "
+                          + ("out" if extra == ["o.png"] else extra[0]), err.getvalue())
+
     def test_the_sources_are_the_three_parts(self):
         self.assertEqual([p.name for p in render_le_layout.SOURCES],
                          ["render_le_layout.py", "render_le_geometry.py", "render_le_draw.py"])

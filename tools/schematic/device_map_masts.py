@@ -551,7 +551,8 @@ def staging_masts(bands: Bands, joined: Joined, runs: Runs, rows: Sequence[Mappi
     "rows": their mast and head rows (device_rows, role and id set), "facts": plan_facts}."""
     with pd.cache_on():
         band, _opts, _core = sdm.staging_band()
-    names = sdm.load(band, master_rows=rows, with_masts=False, turnout_idents=False, with_normal=False)
+    names = sdm.load(band, sdm.LoadOptions(master_rows=rows, with_masts=False, turnout_idents=False,
+                                                   with_normal=False))
     cp_of = sdm.switch_areas(STATIONS)
     locks = interlockings(set(cp_of))
     field = field_by_id(files)

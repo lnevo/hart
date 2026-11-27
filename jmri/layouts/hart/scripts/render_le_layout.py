@@ -142,14 +142,19 @@ def mast_kinds(path: str | Path, sheet: str | None = None) -> dict[str, str]:
     return out
 
 
+DEFAULT_TITLE = "HART Layout"
+
+
 def main(argv: list[str] | None = None) -> int:
     """The command: 0 when drawn, 1 with the message when the panel or the signals file cannot be used."""
     ap = argparse.ArgumentParser()
     ap.add_argument("src", type=Path)
     ap.add_argument("out", type=Path, nargs="?")
-    ap.add_argument("--all-views", type=Path, metavar="OUTDIR")
-    ap.add_argument("--title", default="HART Layout")
-    ap.add_argument("--subtitle", default="")
+    ap.add_argument("--all-views", type=Path, metavar="OUTDIR",
+                    help="draw every VIEWS view into OUTDIR, each with its own title and window; --labels, --scale, "
+                         "--curves and --kinds apply to each")
+    ap.add_argument("--title", help=f"the one view's title (default: {DEFAULT_TITLE})")
+    ap.add_argument("--subtitle", help="the one view's subtitle (default: none)")
     ap.add_argument("--xwin", type=float, nargs=2, metavar=("XMIN", "XMAX"))
     ap.add_argument("--panel", help="Layout Editor panel name (default: HART Railroad)")
     ap.add_argument("--curves", action="store_true", help="draw Bezier and arc track as curves, not chords")
@@ -163,7 +168,12 @@ def main(argv: list[str] | None = None) -> int:
                     help=f"the section of a sectioned signals file to read (default: {KINDS_SHEET}); "
                          "refused for a plain signals file")
     args = ap.parse_args(argv)
-    if not args.all_views and not args.out:
+    if args.all_views:
+        given = [flag for flag, value in (("out", args.out), ("--title", args.title),
+                                          ("--subtitle", args.subtitle), ("--xwin", args.xwin)) if value is not None]
+        if given:
+            ap.error(f"--all-views draws each view with its own title and window: drop {', '.join(given)}")
+    elif not args.out:
         ap.error("out PNG path required unless --all-views is used")
     try:
         draw(args)
@@ -185,19 +195,19 @@ def draw(args: argparse.Namespace) -> None:
         for s in signals:
             s["kind"] = kinds.get(s["name"])
 
+    decor = load_decor(args.src, args.panel, root) if args.labels else None
     if args.all_views:
         for key, (title, subtitle, xmin, xmax) in VIEWS.items():
             render_view(pp, legs, turnouts, segs, signals, stations,
                         args.all_views / f"hart_ctc_{key}.png",
-                        title, subtitle, xmin, xmax)
+                        title, subtitle, xmin, xmax, decor=decor, fixed_scale=args.scale)
         return
     xmin = args.xwin[0] if args.xwin else None
     xmax = args.xwin[1] if args.xwin else None
     render_view(
         pp, legs, turnouts, segs, signals, stations,
-        args.out, args.title, args.subtitle, xmin, xmax,
-        decor=load_decor(args.src, args.panel, root) if args.labels else None,
-        fixed_scale=args.scale,
+        args.out, args.title or DEFAULT_TITLE, args.subtitle or "", xmin, xmax,
+        decor=decor, fixed_scale=args.scale,
     )
 
 

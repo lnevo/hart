@@ -943,14 +943,14 @@ class LoopAndCrossover(unittest.TestCase):
         renamed = {"Track 107 Loop": "Track 107 Loop 1", "OS Switch 225": "OS Switch 225a",
                    "Track 227-241": "Track 227-241 1"}
         self.assertEqual(new[:len(old)], [renamed.get(b, b) for b in old])      # every old number kept
-        self.assertEqual(new[len(old):], list(B.APPENDED_BLOCKS))
+        self.assertEqual(new[len(old):], list(B.numbering().appended))
 
     def test_the_numbering_is_read_from_its_csv(self) -> None:
-        self.assertEqual(B.BLOCK_NUMBERED_AS, {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
+        self.assertEqual(dict(B.numbering().numbered_as), {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
                                                "Track 227-241 1": "Track 227-241"})
-        self.assertEqual(B.APPENDED_BLOCKS, ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
+        self.assertEqual(B.numbering().appended, ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
                                              "OS Switch 225d", "Track 227-241 2"))
-        self.assertEqual(B.RETIRED_BLOCKS, ("Track 131-H1", "Track 131-H2"))
+        self.assertEqual(B.numbering().retired, ("Track 131-H1", "Track 131-H2"))
 
     def test_a_bad_numbering_file_stops_with_its_line(self) -> None:
         # a live block by its id (naming-layers step 5), named by the name store; a retired one by its old name
@@ -982,7 +982,7 @@ class LoopAndCrossover(unittest.TestCase):
 
     def test_the_build_stops_on_a_row_for_a_block_that_is_gone(self) -> None:
         have = ["OS Switch 107", "Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b",
-                "OS Switch 225c", "OS Switch 225d", "Track 227-241 1", *B.RETIRED_BLOCKS]   # no Track 227-241 2
+                "OS Switch 225c", "OS Switch 225d", "Track 227-241 1", *B.numbering().retired]   # no Track 227-241 2
         with self.assertRaisesRegex(B.BuildError, "Track 227-241 2, which the main and upper levels no longer have"):
             B.numbered_blocks(have, require_listed=True)
         self.assertEqual(B.numbered_blocks(have)[-4:], ["Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
