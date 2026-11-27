@@ -3,44 +3,57 @@
 against the block lengths in output/tables.xml.
 
     export_track_lengths.py            # write the document
-    export_track_lengths.py --tables   # refused: tables.xml is generated and takes its lengths from build_tables.py
     export_track_lengths.py --check    # exit 1 on drift between the two, or a stale document
+
+tables.xml is generated (ADR-029): tools/schematic/build_tables.py writes the operating lengths into it, and this
+script only reads it.
 
 The two CSVs are the record (hartlib.block_lengths): each block's AnyRail plan 5.3c length (block_lengths.csv) and,
 for a timed block, its measured length (block_lengths_measured.csv). JMRI's block holds the operating length, in mm:
 the measured one where there is one, else the plan's (ADR-039). The document prints both
 lengths and the one JMRI holds, so it reads both sides (tools/hartlib/tests/test_block_lengths.py).
+The main and upper levels' blocks (internal system names, IB:C3:...) are in the CSV too, with their plan lengths,
+so every level's JMRI length is checked.
 """
+import argparse
 import sys
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import block_lengths, devices, paths, railroad, tables, tables_build  # noqa: E402
+from hartlib import block_lengths, devices, paths, railroad, tables  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
 DOC = ROOT / "docs/jmri/TRACK_LENGTHS.md"
-MM = 25.4
+MM = block_lengths.MM_PER_INCH
+TOLERANCE_MM = 1.0
 
 
-# The main and upper levels' blocks (internal system names, IB:C3:...) are in the CSV too, with their plan lengths,
-# so every level's JMRI length is checked.
+class TableLengthError(ValueError):
+    """A block's length in tables.xml is not a number; the message names the block and the value."""
 
 
-def table_lengths():
-    """Block userName -> length in mm, for blocks that have both, on every level."""
-    return {
-        tables.user_name(b): float(b.get("length"))
-        for b in tables.blocks(tables.read(TABLES))
-        if b.get("length") and tables.user_name(b)
-    }
+def table_lengths() -> dict[str, float]:
+    """Block userName -> length in mm, for blocks that have both, on every level; TableLengthError on a length
+    that is not a number."""
+    out: dict[str, float] = {}
+    for b in tables.blocks(tables.read(TABLES)):
+        length, name = b.get("length"), tables.user_name(b)
+        if length and name:
+            try:
+                out[name] = float(length)
+            except ValueError as exc:
+                raise TableLengthError(f"{paths.rel(TABLES)}: block {name} has length {length!r}") from exc
+    return out
 
 
-def render(rows, measured, operating):
+def render(rows: Mapping[str, block_lengths.Block], measured: Mapping[str, block_lengths.Measured],
+           operating: Mapping[str, float]) -> str:
     """The document: `rows` the plan blocks (block_lengths.plan_blocks), `measured` the timed blocks' rows
     (measured_lengths) and `operating` the length JMRI holds (operating_lengths), all by block name."""
-    def fmt(b):
+    def fmt(b: block_lengths.Block) -> str:
         m = measured.get(b.user_name)
         return (f"| {b.user_name} | {b.occupancy_sensor} | {b.plan_in:g} | {f'{m.measured_in:g}' if m else ''} | "
                 f"{'timed' if m else 'plan'} | {operating[b.user_name] * MM:.1f} | {m.note if m else b.note} |")
@@ -83,32 +96,48 @@ Speed matching and the Dispatcher take it.
 """
 
 
-def main():
-    try:
-        rows = block_lengths.plan_blocks()                 # this checkout's files
-        operating = block_lengths.operating_lengths()
-        text = render(rows, block_lengths.measured_lengths(), operating)
-    except railroad.FactsError as exc:          # devices.DevicesError too: a block with no row or no role
-        sys.exit(str(exc))
-    if "--tables" in sys.argv:
-        # tables.xml is generated (ADR-029): build_tables.py writes the operating lengths into it.
-        paths.exit_if_overridden(Path(__file__).name)
-        tables_build.refuse_generated(TABLES, Path(__file__).name)      # always refuses: the file is generated
-    if "--check" not in sys.argv:
-        paths.exit_if_overridden(Path(__file__).name)
-        DOC.write_text(text, encoding="utf-8")
-        print(f"wrote {DOC.relative_to(ROOT)} ({len(rows)} blocks)")
-        return 0
+def drift(rows: Mapping[str, block_lengths.Block], operating: Mapping[str, float], text: str) -> list[str]:
+    """What disagrees: an operating length tables.xml does not hold, a tables.xml block the CSV lacks, a stale
+    document (`text` is the document as rendered now). Empty when all agree."""
     bad = []
     tl = table_lengths()
     for name, inches in operating.items():
         v = tl.get(name)
-        if v is None or abs(v - inches * MM) > 1.0:
+        if v is None or abs(v - inches * MM) > TOLERANCE_MM:
             bad.append(f"{name}: operating length {inches * MM:.1f} mm, tables {v}; run "
                        "python3 tools/schematic/build_tables.py")
     bad += [f"{k}: in tables.xml ({v} mm) but not in CSV" for k, v in tl.items() if k not in rows]
     if not DOC.exists() or DOC.read_text(encoding="utf-8") != text:
         bad.append("docs/jmri/TRACK_LENGTHS.md is stale; run the script without --check")
+    return bad
+
+
+def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
+    ap = argparse.ArgumentParser(description="Write or check docs/jmri/TRACK_LENGTHS.md.")
+    ap.add_argument("--check", action="store_true",
+                    help="exit 1 on drift between the CSVs, tables.xml and the document; write nothing")
+    return ap.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        rows = block_lengths.plan_blocks()                 # this checkout's files
+        operating = block_lengths.operating_lengths()
+        text = render(rows, block_lengths.measured_lengths(), operating)
+    except railroad.FactsError as exc:          # devices.DevicesError too: a block with no row or no role
+        print(exc, file=sys.stderr)
+        return 1
+    if not args.check:
+        paths.exit_if_overridden(Path(__file__).name)
+        DOC.write_text(text, encoding="utf-8")
+        print(f"wrote {DOC.relative_to(ROOT)} ({len(rows)} blocks)")
+        return 0
+    try:
+        bad = drift(rows, operating, text)
+    except TableLengthError as exc:
+        print(exc, file=sys.stderr)
+        return 1
     print("\n".join(bad) or "track lengths OK")
     return 1 if bad else 0
 
