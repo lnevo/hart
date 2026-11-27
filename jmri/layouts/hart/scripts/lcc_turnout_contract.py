@@ -6,8 +6,8 @@ is ``MTT{dcc}``, the turnout row's own ``dcc`` column. In tables.xml the alias b
 comment (its wiring, with no DCC group) and the same feedback sensors as the MQTT bean. Do not delete MTT* as
 leftovers. Nothing here reads a DCC address out of a comment: the address is the row's ``dcc``.
 
-Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner, 2026-11-20): an MTT* with no MQTT plant
-(a DCC accessory, a test turnout) is no problem. Only a device-master row that names itself an MQTT plant's alias needs
+Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS: an MTT* with no MQTT plant (a DCC accessory,
+a test turnout) is no problem. Only a device-master row that names itself an MQTT plant's alias needs
 one.
 """
 
@@ -31,14 +31,14 @@ def child_text(element: ET.Element, tag: str) -> str:
 @dataclass(frozen=True)
 class Plant:
     """A field turnout row of the device master and its LCC alias row."""
-    key: tuple             # the turnout row's name key (devices.name_key: level, layer, user_name)
+    key: tuple[str, str, str]  # the turnout row's name key (devices.name_key: level, layer, user_name)
     user: str              # Switch N
     system: str            # M2T...
     dcc: str
     alias: str             # the alias row's system name, MTT{dcc}
     alias_user: str        # DCC Switch N
     alias_comment: str     # the alias row's JMRI comment (devices.comment_of): its wiring, no DCC group
-    index: object = field(default=None, compare=False, repr=False)     # the master's devices.Index
+    index: devices.Index = field(compare=False, repr=False)     # the master's devices.Index
 
     @property
     def where(self) -> str:
