@@ -139,7 +139,7 @@ class VirtualMemory(unittest.TestCase):
                          {2: {"Mast 210R": self.OLD}})
 
     def test_a_name_that_is_no_virtual_masts_stops(self):
-        with self.assertRaisesRegex(MapError, "is not a main or upper virtual mast's system name"):
+        with self.assertRaisesRegex(MapError, "is no level's virtual mast system name"):
             lm.virtual_memory([], {"mast:block:x:east": ("Mast 208R", "IF$shsm:basic:one-low(IH1)")})
 
     def test_an_old_name_another_mast_now_has_stops(self):

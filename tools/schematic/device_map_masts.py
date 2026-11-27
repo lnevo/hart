@@ -37,7 +37,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Literal, NotRequired, TypedDict, cast
+from typing import Any, Literal, NotRequired, TypedDict
 
 import device_map_level_masts as dmlm
 import le_names as ln
@@ -47,7 +47,7 @@ import publish_draft as pd
 import staging_device_map as sdm
 from device_map_level_masts import mast_system_name
 from hartlib import device_ids, devices, level_masts, railroad, wiring
-from mast_plan import Band, Intermediate, MastPlan, VirtualMast
+from mast_plan import Band, Intermediate, MastPlan
 from mast_rule import HomeMast, Leg
 
 WRITER = "build_device_map.py"              # the one writer of every level's mast and head rows
@@ -417,10 +417,14 @@ def virtual_names(vgen: Sequence[Mapping[str, Any]], ids: Mapping[str, str], old
     name is now another mast's, or an old name is no virtual mast's of a level."""
     old = {r["id"]: (r["user_name"], r["system_name"]) for r in old_rows
            if r["layer"] == "mast" and level_masts.virtual_ordinal(r["system_name"])}
-    # virtual_memory reads only each mast's id and its name now (no "Mast ")
-    now = cast("list[VirtualMast]", [{"id": ids[m["mast"]], "name": m["mast"].removeprefix("Mast ")} for m in vgen])
+    now = [dmlm.NamedMast(id=ids[m["mast"]], name=m["mast"].removeprefix("Mast ")) for m in vgen]
     try:
-        memory = {k: v for by_name in dmlm.virtual_memory(now, old).values() for k, v in by_name.items()}
+        by_level = dmlm.virtual_memory(now, old)
+        others = sorted(set(by_level) - {LEVEL})
+        if others:
+            raise RuleError(f"staging's old mast rows hold virtual system names of level {others[0]}: "
+                            f"{', '.join(sorted(by_level[others[0]].values()))}")
+        memory = by_level.get(LEVEL, {})
         return {f"Mast {k}": v for k, v in mast_plan.virtual_system_names(
             [m["name"] for m in now], LEVEL, memory).items()}
     except mast_rule.MapError as exc:

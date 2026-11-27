@@ -337,6 +337,12 @@ class OneNameSource(unittest.TestCase):
         with self.assertRaisesRegex(dmm.RuleError, r"\$5001\) \(id mast:block:3B-end:west"):
             dmm.virtual_names([dict(mast="Mast 4LA")], {"Mast 4LA": "mast:block:3B-end:west"}, old)
 
+    def test_an_old_staging_row_with_another_levels_virtual_name_is_a_rule_error(self):
+        old = [dict(layer="mast", id="mast:block:3B-end:west", user_name="Mast 4LA",
+                    system_name="IF$vsm:basic:one-low($2001)")]
+        with self.assertRaisesRegex(dmm.RuleError, r"staging's old mast rows hold virtual system names of level 2"):
+            dmm.virtual_names([dict(mast="Mast 4LA")], {"Mast 4LA": "mast:block:3B-end:west"}, old)
+
     def test_a_new_virtual_mast_takes_the_next_ordinal(self):
         got = dmm.virtual_names([dict(mast="Mast 4LA")], {"Mast 4LA": "mast:block:3B-end:west"}, [])
         self.assertEqual(list(got), ["Mast 4LA"])        # an ordinal of staging's thousand past the retired ones
