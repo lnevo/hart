@@ -19,7 +19,7 @@ while true; do
     | tr '\r' ' ' | tr '\n' ' ')
   set -- $w
   sess=$(ps -axo comm | grep -c -x claude)
-  ag=$(find "$TASKS" -path '*/tasks/a*.output' -mmin -3 2>/dev/null | wc -l | tr -d ' ')
+  ag=$(find -L "$TASKS" -path '*/tasks/a*.output' -mmin -3 2>/dev/null | wc -l | tr -d ' ')
   printf '{"at":"%s","mac_load1":%s,"mac_cpus":%s,"win_load1":%s,"win_cpus":%s,"win_remote_runs":%s,"sessions":%s,"subagents":%s,"claude_total":%s}\n' \
     "$t" "${mload:-null}" "$MCPU" "${1:-null}" "${2:-null}" "${3:-null}" "$sess" "$ag" "$((sess + ag))" >> "$OUT"
   n=$((n + 1)); if [ $((n % 5)) -eq 1 ]; then echo "SYNC $t"; fi
