@@ -176,7 +176,8 @@ function app() {
       // a Start button's main line: each card moved up or down clear of the line's cards before it, so all of them show
       const line = [];
       lit.forEach((n, i) => {
-        if (n.id === hoverId || !nodeEl[n.id].classList.contains("ml")) return;
+        if (n.id === hoverId) { line.push(boxes[i]); return; }  // placed first and already clear: the line's cards clear it
+        if (!nodeEl[n.id].classList.contains("ml")) return;
         boxes[i] = clearOf(boxes[i], blocked.concat(line), area);
         line.push(boxes[i]);
       });

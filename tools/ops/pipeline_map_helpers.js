@@ -261,23 +261,26 @@ function mainLine(edges, focus, { stops = () => false, up = null, down = null } 
   const ins = new Map(), outs = new Map();
   const add = (m, k, v) => { if (!m.has(k)) m.set(k, new Set()); m.get(k).add(v); };
   edges.forEach(e => { if (!e.side && e.from !== e.to) { add(outs, e.from, e.to); add(ins, e.to, e.from); } });
-  const longest = (adj, within, blocked) => {  // the longest run from focus along adj, focus first (depth first, memoised)
+  const longest = (adj, within, blocked) => {  // the longest run from focus along adj, focus first (depth first)
+    // a run is memoised only when no loop was cut below it: a cut run depends on the path it was reached by
     const memo = new Map(), onPath = new Set();
     const go = v => {
-      if (memo.has(v)) return memo.get(v);
+      if (memo.has(v)) return { run: memo.get(v), cut: false };
       onPath.add(v);
-      let best = [v];
+      let best = [v], cut = false;
       const next = v !== focus && stops(v) ? [] : [...(adj.get(v) || [])].sort();
       for (const w of next) {
-        if (onPath.has(w) || blocked.has(w) || (within && !within.has(w))) continue;
-        const run = go(w);
-        if (run.length + 1 > best.length) best = [v, ...run];
+        if (blocked.has(w) || (within && !within.has(w))) continue;
+        if (onPath.has(w)) { cut = true; continue; }
+        const got = go(w);
+        cut = cut || got.cut;
+        if (got.run.length + 1 > best.length) best = [v, ...got.run];
       }
       onPath.delete(v);
-      memo.set(v, best);
-      return best;
+      if (!cut) memo.set(v, best);
+      return { run: best, cut };
     };
-    return go(focus);
+    return go(focus).run;
   };
   const upRun = longest(ins, up, new Set()).reverse();
   const downRun = longest(outs, down, new Set(upRun.slice(0, -1)));
