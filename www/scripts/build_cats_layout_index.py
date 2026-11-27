@@ -181,9 +181,13 @@ def read_sections() -> list[ET.Element]:
     return tp.findall("SECTION")
 
 
+WHOLE_NUMBER = re.compile(r"-?[0-9]+")     # ASCII digits only: str.isdigit also takes digits int() refuses
+
+
 def cell_of(s: ET.Element) -> Cell:
+    """A SECTION's (X, Y); CatsIndexError naming both when either is not a whole number in ASCII digits."""
     x, y = s.get("X"), s.get("Y")
-    if x is None or y is None or not x.lstrip("-").isdigit() or not y.lstrip("-").isdigit():
+    if x is None or y is None or not WHOLE_NUMBER.fullmatch(x) or not WHOLE_NUMBER.fullmatch(y):
         raise CatsIndexError(f"{paths.rel(PANEL)}: a SECTION has X={x!r} Y={y!r}, not two whole numbers")
     return int(x), int(y)
 

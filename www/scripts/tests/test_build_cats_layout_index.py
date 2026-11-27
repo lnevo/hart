@@ -128,6 +128,11 @@ class DeskTest(unittest.TestCase):
     def test_a_section_without_whole_number_coordinates_stops(self) -> None:
         with self.assertRaisesRegex(cats_index.CatsIndexError, "X='a' Y=None"):
             cats_index.cell_of(ET.fromstring('<SECTION X="a" />'))
+        # digits str.isdigit takes: a superscript two (int() refuses it), Arabic-Indic three; and a doubled sign
+        for x in ("\u00b2", "\u0663", "--1", "-", "1 "):
+            with self.subTest(x=x), self.assertRaisesRegex(cats_index.CatsIndexError, f"X={x!r} Y='4'"):
+                cats_index.cell_of(ET.fromstring(f'<SECTION X="{x}" Y="4" />'))
+        self.assertEqual(cats_index.cell_of(ET.fromstring('<SECTION X="-12" Y="4" />')), (-12, 4))
 
     def test_sections_that_share_a_cell_pool_their_blocks(self) -> None:
         sections = [ET.fromstring(f'<SECTION X="1" Y="2"><SEC_EDGE><BLOCK NAME="{n}" /></SEC_EDGE></SECTION>')

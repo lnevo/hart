@@ -256,7 +256,7 @@ class StagingShares(unittest.TestCase):
 
 class LayoutEditor(unittest.TestCase):
     def test_retired_blocks_keep_their_numbers_taken(self):
-        order = T.numbered_blocks({"Track 127-131 1", "Track 201-203"} | set(T.RETIRED_BLOCKS))
+        order = T.numbered_blocks({"Track 127-131 1", "Track 201-203"} | set(T.numbering().retired))
         self.assertEqual(order.index("Track 131-H1") + 1, order.index("Track 131-H2"))
         self.assertLess(order.index("Track 127-131 1"), order.index("Track 131-H1"))
         self.assertLess(order.index("Track 131-H2"), order.index("Track 201-203"))
