@@ -151,6 +151,16 @@ path, names)`: `main_lines.csv`, each stop's block IDs named from the name store
 `read_panel_items(path)`: `panel_items.json` parsed (`panel_items.load` checks the items, an `ItemsError`). Their
 paths are `RETIRED_MASTS`, `SHEETS_FILE` and `PANEL_ITEMS`.
 
+### `hartlib.hand_tables`
+
+The two inputs of `tools/audit/check_hand_tables.py` (owner, 2026-11-26: anything kept by hand goes in a CSV read
+through hartlib). `railroad_names(entities, root)`: `{name or id: "kind (master)"}`, every value of the key column and
+the `NAME_COLUMNS` of each CSV master `docs/data/entities.csv` names (a cell's `;` items split, one- and two-character
+values and numbers under 100 left out), so a new master adds its names with no change here; `masters()` and
+`master_files()` say which files that reads. `read_listed(path)`: `tools/audit/hand_tables.csv` by `(file, table)` as
+`Listed` rows (entries, a status of `move`, `unreviewed` or `keep`, and the reason), stopping with `HandTablesError`
+(a `ValueError`) naming the file and line; `write_listed(path, rows)` writes it back sorted.
+
 ### `hartlib.drawing_keys`
 
 Which device each piece of the drawing is, keyed by device ID (naming-layers step 13, builder merge step 7): the one

@@ -116,6 +116,7 @@ desc = "Checks pipeline_map.json is current and that both map pages build; --che
 docs_only = true
 inputs = [
   "docs/pipeline-map/pipeline_map.json",
+  { path = "docs/pipeline-map/timings.json", label = "step times" },
   { path = "tools/ops/pipeline_map_page.html", label = "template" },
   { path = "tools/ops/pipeline_map_layout.js", label = "inlined" },
   { path = "tools/ops/pipeline_map_helpers.js", label = "inlined" },
@@ -557,6 +558,51 @@ label = "check_data_readers"
 desc = "Audit: no script outside hartlib names a layout data file (jmri/layouts/hart/data/) but the pairs it allows, each with its reason; Jython inside JMRI reads only generated outputs."
 # it reads every tracked .py as text (check_data_readers.SCAN_GLOBS)
 quiet_inputs = ["**/*.py"]
+
+# No new railroad data typed into code (owner, 2026-11-26: anything kept by hand goes in a CSV read through hartlib):
+# a top-level table of railroad names, or one it cannot tell from a code setting, must be listed in hand_tables.csv,
+# and a listed table may not grow. The names come from the CSV masters entities.csv names (hartlib.hand_tables).
+[[step]]
+name = "hand-tables"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/audit/check_hand_tables.py"]
+git = ["head", "base"]
+domain = "extras"
+label = "check_hand_tables"
+desc = "Audit: a top-level table in a .py or www .js file that holds railroad names (from the CSV masters in entities.csv), or that it cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it; a listed table may not grow and a row for a table gone fails, so the list only shrinks."
+inputs = [
+  { path = "tools/audit/hand_tables.csv", label = "listed tables" },
+  { path = "docs/data/entities.csv", label = "masters" },
+]
+# it reads every tracked .py and www .js (check_hand_tables.SCAN_GLOBS) and the CSV masters for their names
+# (hartlib.hand_tables.master_files; tools/audit/tests/test_check_hand_tables.py keeps the two equal)
+quiet_inputs = ["**/*.py", "www/**/*.js",
+  "docs/wiring/lcos/lcos_signal_logic.csv",
+  "docs/wiring/lcos/lcos_signal_plan_notes.csv",
+  "jmri/layouts/hart/data/block_lengths.csv",
+  "jmri/layouts/hart/data/devices_field.csv",
+  "jmri/layouts/hart/data/devices_generated.csv",
+  "jmri/layouts/hart/data/schematic/block_numbering.csv",
+  "jmri/layouts/hart/data/schematic/block_overrides.csv",
+  "jmri/layouts/hart/data/schematic/interlockings.csv",
+  "jmri/layouts/hart/data/schematic/lcos_nodes.csv",
+  "jmri/layouts/hart/data/schematic/main_lines.csv",
+  "jmri/layouts/hart/data/schematic/masts.csv",
+  "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
+  "jmri/layouts/hart/data/schematic/sheets.csv",
+  "jmri/layouts/hart/data/schematic/stations.csv",
+  "jmri/layouts/hart/data/switches.csv",
+  "jmri/layouts/hart/data/wiring.csv",
+  "ops/hart-ops/data/HART_Spot_Waybills.csv",
+  "ops/hart-ops/data/image_metadata.csv",
+  "ops/hart-ops/data/industries.csv",
+  "ops/hart-ops/data/locos.csv",
+  "ops/hart-ops/data/spot_assignments.csv",
+  "ops/hart-ops/data/trains.csv",
+  "ops/hart-ops/docs/print/waybills/HART_CC_Waybill_Inventory.csv",
+  "www/scripts/archive_catalogue.csv",
+]
 
 [[step]]
 name = "wiring-crosswalk"
@@ -1076,7 +1122,8 @@ quiet_inputs = ["www/**", "docs/benchwork/helix/*.md", "docs/benchwork/helix/*.p
                 "jmri/layouts/hart/scripts/panel_status.py", "jmri/layouts/hart/scripts/panel_status_turnouts.py",
                 "jmri/layouts/hart/scripts/panel_status_clicks.py", "tools/hosts/deploy/common.sh",
                 "tools/hosts/pi/apply_hart_package_local.sh", "tools/hosts/windows/apply_hart_package_local.ps1",
-                "docs/pipeline-map/pipeline_map.json", "tools/ops/pipeline_map_page.html",
+                "docs/pipeline-map/pipeline_map.json", "docs/pipeline-map/timings.json",
+                "tools/ops/pipeline_map_page.html",
                 "tools/ops/pipeline_map_layout.js", "tools/ops/pipeline_map_helpers.js",
                 "tools/ops/pipeline_map_view.js", "tools/ops/pipeline_map_view_frame.js",
                 "tools/ops/pipeline_map_facets.js", "tools/ops/pipeline_map_view_lanes.js",
