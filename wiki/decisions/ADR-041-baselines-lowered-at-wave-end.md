@@ -19,6 +19,10 @@ The ratchets already pass when a count falls and print a note. PRs rewrote the l
 
 The text lives in the `handoff` skill (Merge, step 2), the `coordinate` skill (Baseline sweep) and the `tool-fixer` agent.
 
+## Amendment (owner, 2026-11-27)
+
+`py_sizes.csv` rows are caps, not counts to lower. A listed file fails only when it grows past its row plus 10 percent headroom (row + floor(row * 0.10)), and `--update --accept PATH` still raises a row by name. The wave-end sweep never lowers a row: a file that shrank keeps its row, so a later fix that adds a few lines (a named error, an input check) passes. `--update` only drops the row of a file that is gone or at or under its limit. The other three baselines are lowered at the sweep as above.
+
 ## Consequences
 
 - Between sweeps the lists run high, and the notes say how many files are below their baseline. A rise is still caught against the higher count.

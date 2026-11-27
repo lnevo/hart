@@ -44,7 +44,7 @@ A docs-only PR (Markdown under `wiki/`, `docs/`, `.claude/skills/` or `.claude/a
 
 Batch small related lanes into one PR: each merge costs a CI cycle and a push run on main to watch.
 
-**Baseline sweep (owner, 2026-11-27):** lanes do not lower baselines (`mypy_baseline.json`, `habits_baseline.json`, `py_sizes.csv`, `hand_tables.csv`); a count that falls passes with a note. At the end of each wave the queue holder runs `make baselines` in one PR, which lowers all four. A lane still adds a row for a new or moved file.
+**Baseline sweep (owner, 2026-11-27):** lanes do not lower baselines (`mypy_baseline.json`, `habits_baseline.json`, `py_sizes.csv`, `hand_tables.csv`); a count that falls passes with a note. At the end of each wave the queue holder runs `make baselines` in one PR, which lowers the first two and `hand_tables.csv`. `py_sizes.csv` rows are caps with 10 percent headroom that are never lowered; the sweep only drops the rows of files gone or at or under their limit. A lane still adds a row for a new or moved file.
 
 **Main red (owner, 2026-11-27):** while main's push run of `check` is red (failure, cancelled or timed out), the queue holder gives no "go". The PR that broke it fixes forward, or one PR reverts it. Nothing deploys: the deploy gate stops a red main itself (G0c, `ci_pass.py --main-red`).
 

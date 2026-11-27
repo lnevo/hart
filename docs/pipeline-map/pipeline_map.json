@@ -4567,7 +4567,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; a shrink passes with a note; --update tightens the list, --accept raises a row by name.",
+   "desc": "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv plus 10 percent headroom; warns at 90 percent of the limit; a shrink keeps its row; --update drops rows of files gone or under the limit, --accept raises a row by name.",
    "path": "tools/audit/check_py_sizes.py",
    "gen": "manifest"
   },

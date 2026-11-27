@@ -1,5 +1,5 @@
-"""check_py_sizes.py: a Python file over 800 lines may not grow; the committed list is a ratchet that only an
---accept by name can raise. Run against scratch git repos, plus the real repo."""
+"""check_py_sizes.py: a file over its line limit has a row that caps it with 10 percent headroom; --update never
+lowers a row and only an --accept by name raises one. Run against scratch git repos, plus the real repo."""
 from __future__ import annotations
 
 import contextlib
@@ -58,12 +58,23 @@ class Scratch(ScratchRepo):
         self.sizes.write_text("path,lines\na/big.py,900\n")
         self.assertEqual(self.run_main()[0], 0)
 
-    def test_growth_fails_and_names_the_accept(self) -> None:
-        self.put("a/big.py", 901)
+    def test_growth_within_the_headroom_passes(self) -> None:
+        self.assertEqual(CPS.HEADROOM, 0.10)
+        self.assertEqual([CPS.allowed_size(n) for n in (900, 801, 509)], [990, 881, 559])
+        for n in (901, 950, 990):
+            with self.subTest(lines=n):
+                self.put("a/big.py", n)
+                self.sizes.write_text("path,lines\na/big.py,900\n")
+                rc, out, _ = self.run_main()
+                self.assertEqual(rc, 0, out)
+                self.assertNotIn("listed file(s)", out)
+
+    def test_growth_past_the_headroom_fails_and_names_the_allowed_size_and_the_accept(self) -> None:
+        self.put("a/big.py", 991)
         self.sizes.write_text("path,lines\na/big.py,900\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 1)
-        self.assertIn("a/big.py: grew from 900 to 901 lines", out)
+        self.assertIn("a/big.py: grew from 900 to 991 lines, past the 990 its row allows (10 percent headroom)", out)
         self.assertIn("--update --accept a/big.py", out)
 
     def test_a_file_crossing_the_limit_without_a_row_fails(self) -> None:
@@ -78,35 +89,44 @@ class Scratch(ScratchRepo):
         self.sizes.write_text("path,lines\n")
         self.assertEqual(self.run_main()[0], 0)
 
-    def test_shrinking_passes_with_a_note_until_the_list_is_tightened(self) -> None:
+    def test_a_shrunk_file_keeps_its_row_through_update_and_may_grow_back(self) -> None:
         self.put("a/big.py", 850)
         self.sizes.write_text("path,lines\na/big.py,900\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 0)
-        self.assertIn("1 file(s) below the baseline; `--update` locks them in", out)
-        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,900\n")
-        self.assertEqual(self.run_main("--update")[0], 0)
-        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,850\n")
-        rc, out, _ = self.run_main()
+        self.assertNotIn("listed file(s)", out)
+        rc, out, _ = self.run_main("--update")
         self.assertEqual(rc, 0)
-        self.assertNotIn("below the baseline", out)
+        self.assertIn("already current", out)
+        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,900\n")
+        self.put("a/big.py", 990)               # grows back past its old size, within the headroom of its row
+        self.assertEqual(self.run_main()[0], 0)
 
     def test_a_file_under_the_limit_or_gone_passes_with_a_note(self) -> None:
         self.put("a/was_big.py", 700)
         self.sizes.write_text("path,lines\na/gone.py,900\na/was_big.py,900\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 0)
-        self.assertIn("2 file(s) below the baseline; `--update` locks them in", out)
+        self.assertIn("2 listed file(s) gone or at or under their limit; `--update` drops their rows", out)
         self.assertEqual(self.run_main("--update")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\n")
 
+    def test_update_drops_the_row_of_a_file_at_its_limit_and_keeps_the_others(self) -> None:
+        self.put("a/edge.py", 800)
+        self.put("a/big.py", 820)
+        self.sizes.write_text("path,lines\na/big.py,900\na/edge.py,900\na/gone.py,900\n")
+        rc, out, _ = self.run_main("--update")
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,900\n")
+        self.assertNotIn("listed file(s)", out)
+
     def test_a_shrink_beside_a_growth_still_fails(self) -> None:
         self.put("a/big.py", 850)
-        self.put("a/other.py", 950)
+        self.put("a/other.py", 1000)
         self.sizes.write_text("path,lines\na/big.py,900\na/other.py,900\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 1)
-        self.assertIn("a/other.py: grew from 900 to 950", out)
+        self.assertIn("a/other.py: grew from 900 to 1000", out)
 
     def test_a_new_untracked_file_is_measured_but_an_ignored_one_is_not(self) -> None:
         self.put("a/new.py", 900, track=False)
@@ -136,13 +156,18 @@ class Scratch(ScratchRepo):
     # --update and --accept
 
     def test_update_never_raises_a_size_or_adds_a_file_without_accept(self) -> None:
-        self.put("a/big.py", 950)
+        self.put("a/big.py", 1000)
         self.put("a/new.py", 820)
         self.sizes.write_text("path,lines\na/big.py,900\n")
         rc, out, _ = self.run_main("--update")
         self.assertEqual(rc, 1)
         self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,900\n")
-        self.assertIn("grew from 900 to 950", out)
+        self.assertIn("grew from 900 to 1000", out)
+        self.assertIn("a/new.py: 820 lines, over 800 with no row", out)
+        self.put("a/big.py", 950)               # within the headroom: passes, and --update still keeps the row
+        self.put("a/new.py", 700)
+        self.assertEqual(self.run_main("--update")[0], 0)
+        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,900\n")
 
     def test_accept_by_name_takes_growth_and_a_new_file(self) -> None:
         self.put("a/big.py", 950)
@@ -151,6 +176,10 @@ class Scratch(ScratchRepo):
         rc, _, _ = self.run_main("--update", "--accept", "a/big.py", "--accept", "a/new.py")
         self.assertEqual(rc, 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,950\na/new.py,820\n")
+        self.put("a/big.py", 1100)              # past the headroom of the old row, accepted by name
+        self.assertEqual(self.run_main()[0], 1)
+        self.assertEqual(self.run_main("--update", "--accept", "a/big.py")[0], 0)
+        self.assertEqual(self.sizes.read_text(), "path,lines\na/big.py,1100\na/new.py,820\n")
 
     def test_accept_refuses_a_path_that_does_not_need_it(self) -> None:
         self.put("a/big.py", 900)
@@ -219,25 +248,25 @@ class OtherKinds(ScratchRepo):
         self.assertIn("tools/a.sh: 501 lines, over 500 with no row", out)
         self.assertNotIn("edge", out.split("problem(s)", 1)[1])
 
-    def test_growth_fails_and_shrinking_is_a_note(self) -> None:
-        self.put("tools/a.sh", 520)
+    def test_growth_past_the_headroom_fails_and_a_shrink_keeps_its_row(self) -> None:
+        self.put("tools/a.sh", 562)
         self.put("www/a.js", 900)
         self.sizes.write_text("path,lines\ntools/a.sh,510\nwww/a.js,950\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 1)
-        self.assertIn("tools/a.sh: grew from 510 to 520 lines", out)
-        self.assertIn("1 file(s) below the baseline", out)
+        self.assertIn("tools/a.sh: grew from 510 to 562 lines, past the 561 its row allows", out)
+        self.assertNotIn("listed file(s)", out)
         self.assertEqual(self.run_main("--update")[0], 1)       # the growth stays a problem without --accept
-        self.assertEqual(self.sizes.read_text(), "path,lines\ntools/a.sh,510\nwww/a.js,900\n")
+        self.assertEqual(self.sizes.read_text(), "path,lines\ntools/a.sh,510\nwww/a.js,950\n")
         self.assertEqual(self.run_main("--update", "--accept", "tools/a.sh")[0], 0)
-        self.assertEqual(self.sizes.read_text(), "path,lines\ntools/a.sh,520\nwww/a.js,900\n")
+        self.assertEqual(self.sizes.read_text(), "path,lines\ntools/a.sh,562\nwww/a.js,950\n")
 
     def test_a_file_at_or_under_its_limit_or_gone_is_a_note(self) -> None:
         self.put("tools/a.sh", 500)
         self.sizes.write_text("path,lines\ntools/a.sh,600\nwww/gone.js,900\n")
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 0)
-        self.assertIn("2 file(s) below the baseline; `--update` locks them in", out)
+        self.assertIn("2 listed file(s) gone or at or under their limit; `--update` drops their rows", out)
         self.assertEqual(self.run_main("--update")[0], 0)
         self.assertEqual(self.sizes.read_text(), "path,lines\n")
 
@@ -295,7 +324,7 @@ class Warnings(ScratchRepo):
             "fails without a row: split it first",
             "check_py_sizes: WARNING: www/near.js: 800 lines, at 100 percent of its 800-line limit; over 800 it "
             "fails without a row: split it first"])
-        self.assertTrue(out.endswith("grew (0 listed)\n"), out)
+        self.assertTrue(out.endswith("grew past its cap (0 listed)\n"), out)
 
     def test_a_file_over_its_limit_is_a_problem_not_a_warning(self) -> None:
         self.put("a/big.py", 900)
@@ -303,7 +332,7 @@ class Warnings(ScratchRepo):
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 0)
         self.assertNotIn("WARNING", out)
-        self.put("a/big.py", 901)
+        self.put("a/big.py", 991)
         rc, out, _ = self.run_main()
         self.assertEqual(rc, 1)
         self.assertNotIn("WARNING", out)

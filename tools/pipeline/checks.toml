@@ -972,7 +972,7 @@ label = "check_tracked_policy"
 desc = "Audit that tracked files obey the tracking policy."
 
 # Owner, 2026-11-25 (wiki/projects/cleanup-streamline-handoff.md, D): a .py or .js file over 800 lines, or a .sh file
-# over 500, may not grow past its row in py_sizes.csv; only `--update --accept PATH` raises a row. It lists files with
+# over 500, may not grow past its row in py_sizes.csv plus 10 percent headroom; only `--update --accept PATH` raises a row. It lists files with
 # git ls-files, so it keeps HEAD. Its name stays py-sizes (a new name would drop its stamp for nothing).
 [[step]]
 name = "py-sizes"
@@ -982,7 +982,7 @@ cmd = ["python3", "tools/audit/check_py_sizes.py"]
 git = ["head", "base"]
 domain = "extras"
 label = "check_py_sizes"
-desc = "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv; warns at 90 percent of the limit; a shrink passes with a note; --update tightens the list, --accept raises a row by name."
+desc = "Fails when a .py or .js file over 800 lines, or a .sh file over 500, grows past its row in tools/audit/py_sizes.csv plus 10 percent headroom; warns at 90 percent of the limit; a shrink keeps its row; --update drops rows of files gone or under the limit, --accept raises a row by name."
 inputs = [
   "tools/audit/py_sizes.csv",
 ]

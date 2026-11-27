@@ -1,6 +1,6 @@
 # Project health round 2: hand-off (2026-11-21)
 
-Status: active
+Status: done (2026-11-27)
 
 Comes from the 2026-11-21 rescore (8.5/10, up from 8 on 2026-10-31). Organization stayed at 8 because two scripts kept growing, subagents rose to 7.5 while 68% of launches were still `general-purpose`, and a few wiki table cells grew past the point where anyone reads them. The owner chose the options below on 2026-11-21.
 
@@ -96,7 +96,7 @@ The scores are a reviewer's judgment, and each one rests on the measurements in 
 Held back on 2026-11-27:
 - **Verification:** the local quick `./tools/check.sh` fails in a fresh worktree on the Mac, while the remote run passes. The two failures are unit-cats (`No module named 'PIL'` under Homebrew Python) and `test_check_stamps`. This is queued on [wave-loose-ends](wave-loose-ends.md). The group D split of `signal_coordinator.py` was accepted without a live test.
 - **Organization:** the repo keeps growing faster than it gets simpler.
-- **Subagents:** the 2026-12-05 count below is still the formal re-measure.
+- **Subagents:** the 2026-11-27 rescore is the re-measure: `general-purpose` was 27% of chosen launches (target under 50%), so the 2026-12-05 count is dropped (owner, 2026-11-27).
 
 How to measure again:
 - Count commits since the last rescore with `git rev-list --count --since=…` and `--merges`.
@@ -108,6 +108,6 @@ How to measure again:
 
 ## Done when
 
-Left on 2026-11-23: only the 2026-12-05 agent count. Items 0, 1, 2 and 4 are merged, and item 1 is deployed.
+Done 2026-11-27: items 0 to 4 are merged, item 1 is deployed, and the subagent target is met (27% `general-purpose` in the 2026-11-27 rescore), so the 2026-12-05 count is dropped (owner).
 
 All four items are merged, item 1 is deployed to the Pi and Windows, the 2026-12-05 agent count is recorded here, and this page is marked done.

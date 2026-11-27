@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
-"""Fail when a .py, .js or .sh file over its line limit grows (wiki/projects/cleanup-streamline-handoff.md, D).
+"""Fail when a .py, .js or .sh file crosses its line limit, or a listed file grows past its cap.
 
-Owner, 2026-11-25 (.py); .js and .sh joined in the size sweep of the same day. LIMITS gives each kind its limit:
-.py and .js 800 lines, .sh 500. Every tracked file of those kinds outside EXCLUDED (and outside any node_modules
-folder) that is over its limit has a row in SIZES (path, lines): the size it may not pass. The check fails when such a
-file grows past its row and when a file crosses its limit with no row. A file that shrank, fell to its limit or
-below, or is gone passes with one note: `--update` tightens its row (a ratchet that never fails on a shrink, since with
-strict up-to-date merges a shrink on main would otherwise fail every open branch). A file at 90 percent of its limit or more
-(WARN_SHARE, warn_at: 720 lines for .py and .js, 450 for .sh) with no row gets a WARNING line, which does not fail
-the check, so the guard speaks before the crossing. The warning is advisory: it shows when the py-sizes job runs, not
-when its stamp lets check.sh skip it.
+LIMITS gives each kind its limit: .py and .js 800 lines, .sh 500. A file at or under its limit passes; the limit is
+its only rule. A file at 90 percent of its limit or more (WARN_SHARE, warn_at: 720 lines for .py and .js, 450 for .sh)
+with no row gets a WARNING line, which does not fail the check, so the guard speaks before the crossing. The warning
+is advisory: it shows when the py-sizes job runs, not when its stamp lets check.sh skip it.
+
+Every tracked file of those kinds outside EXCLUDED (and outside any node_modules folder) that is over its limit has a
+row in SIZES (path, lines). The row is a cap with headroom: the file fails only when it grows past
+row + floor(row * HEADROOM), so a fix that adds a few lines (a named error, an input check) passes. A file over its
+limit with no row fails. A row is never lowered: a file that shrank keeps its row, so it can grow back for a fix. A
+row whose file is gone or has fallen to its limit or below passes with one note, and `--update` drops it.
 
     python3 tools/audit/check_py_sizes.py            check (exit 1 on a problem, 2 when it cannot run)
-    python3 tools/audit/check_py_sizes.py --update   rewrite SIZES for files that shrank, fell under their limit or
-                                                     went away; it never raises a size or adds a file
+    python3 tools/audit/check_py_sizes.py --update   drop the rows of files that are gone or at or under their
+                                                     limit; it never lowers, raises or adds a row
     python3 tools/audit/check_py_sizes.py --update --accept PATH [--accept PATH ...]
-                                                     also take PATH's current size: growth, or a new file over its
-                                                     limit, accepted by name, so the diff of SIZES shows it
+                                                     also take PATH's current size as its row: growth, or a new
+                                                     file over its limit, accepted by name, so the diff of SIZES
+                                                     shows it
 
 Lines are newlines, as `wc -l` counts them, plus a last line with no newline. Untracked files that git does not
 ignore are measured too, so a new file over its limit fails before it is staged.
@@ -45,6 +47,7 @@ SCAN_GLOBS = tuple(f"**/*{suffix}" for suffix in LIMITS)
 EXCLUDED = ("archive/", "external/", "reference/", "tools/cats/src-repo/", "jmri/layouts/hart/parked/")
 HEADER = ("path", "lines")
 WARN_SHARE = 0.9        # the share of its limit at which a file with no row gets a WARNING
+HEADROOM = 0.10         # the share of its row a listed file may grow by before it fails
 
 
 class SizeError(Exception):
@@ -72,6 +75,11 @@ def line_limit(path: str) -> int:
 def warn_at(limit: int) -> int:
     """The line count from which a file under `limit` with no row is warned about (720 of 800, 450 of 500)."""
     return int(limit * WARN_SHARE)
+
+
+def allowed_size(row: int) -> int:
+    """The most lines a listed file may have: its row plus HEADROOM of it, rounded down (900 gives 990)."""
+    return row + int(row * HEADROOM)
 
 
 def in_scope(path: str) -> bool:
@@ -138,20 +146,20 @@ def problems(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
         limit = line_limit(path)
         if lines <= limit:
             continue
-        allowed = sizes.get(path)
-        if allowed is None:
+        row = sizes.get(path)
+        if row is None:
             out.append(Problem(path, f"{lines} lines, over {limit} with no row in {SIZES.name}: split it, or accept "
                                      f"it by name (--update --accept {path})"))
-        elif lines > allowed:
-            out.append(Problem(path, f"grew from {allowed} to {lines} lines: split it, or accept it by name "
-                                     f"(--update --accept {path})"))
+        elif lines > allowed_size(row):
+            out.append(Problem(path, f"grew from {row} to {lines} lines, past the {allowed_size(row)} its row "
+                                     f"allows ({int(HEADROOM * 100)} percent headroom): split it, or accept it by "
+                                     f"name (--update --accept {path})"))
     return out
 
 
 def slack(now: dict[str, int], sizes: dict[str, int]) -> list[str]:
-    """The listed files whose row --update would lower or drop: shrank, at or under the limit, or gone. Not a failure."""
-    return sorted(path for path, allowed in sizes.items()
-                  if path not in now or now[path] <= line_limit(path) or now[path] < allowed)
+    """The listed files whose row --update would drop: gone, or at or under their limit. Not a failure."""
+    return sorted(path for path in sizes if path not in now or now[path] <= line_limit(path))
 
 
 def warnings(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
@@ -166,8 +174,8 @@ def warnings(now: dict[str, int], sizes: dict[str, int]) -> list[Problem]:
 
 
 def updated(now: dict[str, int], sizes: dict[str, int], accept: set[str]) -> dict[str, int]:
-    """The new list: rows lowered or dropped where files shrank, fell under their limit or went away; rows raised or
-    added only for paths in `accept`. A path in `accept` that does not need it is an error, so a typo is not ignored."""
+    """The new list: rows dropped where files fell to their limit or below or went away, other rows kept as they are
+    (a shrink never lowers one); rows raised or added only for paths in `accept`. A path in `accept` that does not need it is an error, so a typo is not ignored."""
     for path in sorted(accept):
         if path not in now:
             raise SizeError(f"--accept {path}: no {kinds()} file this check covers has that path")
@@ -182,7 +190,7 @@ def updated(now: dict[str, int], sizes: dict[str, int], accept: set[str]) -> dic
         if path in accept:
             new[path] = lines
         elif path in sizes:
-            new[path] = min(lines, sizes[path])
+            new[path] = sizes[path]
     return new
 
 
@@ -204,7 +212,8 @@ def limits_text() -> str:
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--update", action="store_true", help="tighten the list; never raises a size unless --accept")
+    ap.add_argument("--update", action="store_true", help="drop the rows of files gone or at or under their limit; never lowers a row, "
+                         "and raises or adds one only with --accept")
     ap.add_argument("--accept", action="append", default=[], metavar="PATH",
                     help="with --update: take PATH's current size (growth or a new file), by name")
     args = ap.parse_args(argv)
@@ -230,13 +239,15 @@ def main(argv: list[str]) -> int:
         print(f"check_py_sizes: WARNING: {w.path}: {w.text}")
     below = slack(now, sizes)
     if below:
-        print(f"check_py_sizes: {len(below)} file(s) below the baseline; `--update` locks them in")
+        print(f"check_py_sizes: {len(below)} listed file(s) gone or at or under their limit; `--update` drops "
+              f"their rows")
     if left:
         print(f"check_py_sizes: {len(left)} problem(s) with files over their line limit ({limits_text()}):")
         for p in left:
             print(f"  {p.path}: {p.text}")
         return 1
-    print(f"check_py_sizes: no file over its line limit ({limits_text()}) grew ({len(sizes)} listed)")
+    print(f"check_py_sizes: no file over its line limit ({limits_text()}) grew past its cap "
+          f"({len(sizes)} listed)")
     return 0
 
 
