@@ -26,7 +26,7 @@ TABLES = ROOT / check.TABLES_REL
 
 def renamed_map(path: Path, renames: dict[str, str]) -> str:
     """The text of the master at `path` after renaming each old user name to its new one (ADR-005)."""
-    rows = [dict(r, user_name=renames.get(r["user_name"], r["user_name"])) for r in devices.load(path)]
+    rows = [dict(r.cells(), user_name=renames.get(r.user_name, r.user_name)) for r in devices.load(path)]
     return devices.master_text(rows)
 
 

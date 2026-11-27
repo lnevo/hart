@@ -503,7 +503,7 @@ class FactsReaders(unittest.TestCase):
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
         from hartlib import devices
         with tempfile.TemporaryDirectory() as tmp:
-            rows = list(devices.load(B.DEVICE_MAP))
+            rows = [r.cells() for r in devices.load(B.DEVICE_MAP)]
             block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
             bad = devices.write_one_file(rows + [block], Path(tmp) / devices.ONE_FILE)     # a block row twice
             for read in (B.device_names,):

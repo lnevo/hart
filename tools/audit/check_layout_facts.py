@@ -379,7 +379,7 @@ def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]
 def level_turnouts() -> dict[str, str]:
     """{user name: bean name} of the main and upper turnouts, from the device master's rows
     (hartlib.tables_build.level_turnouts), so a swapped turnout is still one."""
-    return tables_build.level_turnouts(devices.load(DEVICE_MAP))
+    return tables_build.level_turnouts([r.cells() for r in devices.load(DEVICE_MAP)])
 
 
 @functools.cache
@@ -411,8 +411,8 @@ def device_map_blocks() -> frozenset[str]:
 def field_sensors() -> frozenset[str]:
     """The JMRI names of the main and upper detectors swapped to a field sensor by their row (assignment field,
     ADR-028): a column of the row, not its level, says a block's sensor is virtual."""
-    return frozenset(r["jmri_name"] for r in devices.load(DEVICE_MAP) if r["level"] in level_devices.LEVELS
-                     and r["layer"] == "occupancy" and r["assignment"] == "field")
+    return frozenset(r.jmri_name for r in devices.load(DEVICE_MAP) if r.level_cell in level_devices.LEVELS
+                     and r.layer == "occupancy" and r.swapped)
 
 
 def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> None:
