@@ -86,10 +86,13 @@ class Scratch:
     def verdict(self) -> str:
         return checkout_line(self.repo, "origin/main")
 
-    def check_sh(self, **env: str) -> subprocess.CompletedProcess:
+    def check_sh_env(self, **env: str) -> dict[str, str]:
+        """The environment check_sh runs check.sh with: the caller's, less the variables that pick its path."""
         base = {k: v for k, v in os.environ.items() if k not in PATH_VARS}
-        return subprocess.run(["bash", str(self.repo / "tools/check.sh")], cwd=self.repo,
-                              env={**base, "SCHEMATIC_CACHE": "", "STUB_PIN": "stub: stopped before any job", **env},
+        return {**base, "SCHEMATIC_CACHE": "", "STUB_PIN": "stub: stopped before any job", **env}
+
+    def check_sh(self, **env: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["bash", str(self.repo / "tools/check.sh")], cwd=self.repo, env=self.check_sh_env(**env),
                               capture_output=True, text=True, timeout=60)
 
 
