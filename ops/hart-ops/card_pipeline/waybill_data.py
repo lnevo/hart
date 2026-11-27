@@ -131,8 +131,9 @@ OUTBOUND_EMPTY_RETURN: dict[str, dict[str, str]] = {
 SKIP_USAGES = frozenset({"off spot", "storage"})
 
 # The waybill decks' industries in their order: industry_sheet.csv's waybill_order (hartlib.operations).
-INDUSTRY_ORDER: dict[str, int] = {r.sheet_name: r.waybill_order for r in sorted(
-    (r for r in operations.read_industry_sheet() if r.waybill_order is not None), key=lambda r: r.waybill_order or 0)}
+INDUSTRY_ORDER: dict[str, int] = dict(sorted(
+    ((r.sheet_name, r.waybill_order) for r in operations.read_industry_sheet() if r.waybill_order is not None),
+    key=lambda pair: pair[1]))
 
 # Per spot usage: loads plus named suppliers/customers from the HART routing matrix.
 # Unload spots: loaded in, empty out. Load/shipping spots: empty in, loaded out.
