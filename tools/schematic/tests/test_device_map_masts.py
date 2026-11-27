@@ -365,6 +365,8 @@ class EdgeCases(unittest.TestCase):
         dmm.check_control_points(gen, planned, {"1": "Brick", "11": "Barn", "33": "East End"})
         with self.assertRaisesRegex(dmm.RuleError, r"switch\(es\) 9, 33, which no staging station names"):
             dmm.check_control_points(gen + [dict(mast="Mast 10L", toward="9")], planned, {"1": "Brick", "11": "Barn"})
+        with self.assertRaisesRegex(dmm.RuleError, r"switch\(es\) 11, which no staging station names"):
+            dmm.check_control_points(gen, planned, {"1": "Brick", "33": "East End"})
 
     def test_a_dropped_virtual_masts_name_taken_by_a_new_mast_stops(self):
         """A dropped mast's ordinal must not go silently to a new mast (a new ID) that takes its name."""
