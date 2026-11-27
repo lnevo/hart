@@ -340,6 +340,20 @@ class LocoTests(unittest.TestCase):
         locos.cmd_publish(None, None)  # nothing is published twice
         self.assertEqual(len(json.loads(locos.IMPORT_LIST.read_text())), 1)
 
+    def test_a_bad_address_stops_publish_before_the_roster_is_written(self):
+        rows, queue = [], []
+        locos.upsert(rows, queue, {"road_name": "NW", "road_number": "1776"})
+        rows[0].update(self.full(dcc_address="²", long_address="yes"))
+        locos.write_table(locos.LOCOS, locos.COLUMNS, rows)
+        locos.write_table(locos.LOCO_QUEUE, locos.QUEUE_COLUMNS, queue)
+        before = locos.ENGINE_ROSTER.read_bytes() if locos.ENGINE_ROSTER.is_file() else None
+        with self.assertRaisesRegex(locos.CardPipelineError, "is not a number"):
+            locos.cmd_publish(None, None)
+        after = locos.ENGINE_ROSTER.read_bytes() if locos.ENGINE_ROSTER.is_file() else None
+        self.assertEqual(after, before)
+        self.assertFalse(locos.IMPORT_LIST.is_file())
+        self.assertFalse(locos.read_queue()[0]["published"])
+
 
 if __name__ == "__main__":
     unittest.main()

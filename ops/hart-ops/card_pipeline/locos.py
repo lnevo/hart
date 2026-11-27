@@ -224,10 +224,17 @@ def merge_engines(path: Path, rows: list[LocoRow]) -> list[str]:
     return added
 
 
+def dcc_number(row: Mapping[str, str]) -> int:
+    """The row's DCC address as a number; CardPipelineError when it is not one."""
+    try:
+        return int(row["dcc_address"].strip())
+    except ValueError as exc:
+        raise CardPipelineError(f"{row['roster_id']}: DCC address {row['dcc_address']!r} is not a number") from exc
+
+
 def roster_entry(row: Mapping[str, str]) -> RosterEntry:
     """What the Pi-side import needs to create the DecoderPro entry."""
-    if not row["dcc_address"].strip().isdigit():
-        raise CardPipelineError(f"{row['roster_id']}: DCC address {row['dcc_address']!r} is not a number")
+    address = dcc_number(row)
     return {
         "id": row["roster_id"],
         "road_name": row["road_name"],
@@ -236,7 +243,7 @@ def roster_entry(row: Mapping[str, str]) -> RosterEntry:
         "model": row["model"],
         "dcc_address": row["dcc_address"],
         "long_address": row.get("long_address", "").lower() in ("yes", "true", "1")
-        or int(row["dcc_address"]) > 127,
+        or address > 127,
         "image": f"preference:resources/roster/{row['road_number']}.jpg",
         "comment": row.get("notes", ""),
     }
@@ -292,6 +299,8 @@ def cmd_publish(args: argparse.Namespace, _parse_sets: ParseSets, final_dir: Pat
         print(f"  {rid}: missing {' '.join(miss)}")
     if bad:
         raise CardPipelineError("Fill the missing fields with: cars.py locos set ID FIELD=VALUE")
+    for r in todo:  # every address checked before the roster file is rewritten
+        dcc_number(r)
     added = merge_engines(ENGINE_ROSTER, todo)
     entries: list[RosterEntry] = []
     if IMPORT_LIST.is_file():
