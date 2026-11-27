@@ -279,7 +279,7 @@ Owner rulings during the wave: parked code leaves the report card (listed, not g
 
 ### Result
 
-Final report card (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE, "After wave 6 (final)"): the line-weighted average reaches 3.301, B+, over 534 source files and 123,997 lines, with parked code left out of every column. The margin over B+ is small: 117 grade-point-lines.
+Final report card (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE, "After wave 6 (final)"; kept with the project and data cards on [report cards](../report-cards.md)): the line-weighted average reaches 3.301, B+, over 534 source files and 123,997 lines, with parked code left out of every column. The margin over B+ is small: 117 grade-point-lines.
 
 | | Start | Wave 1 | Wave 2 | Wave 3 (corrected) | Wave 4 | Wave 5 | Wave 6 |
 |---|---|---|---|---|---|---|---|

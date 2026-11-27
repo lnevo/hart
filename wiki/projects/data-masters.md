@@ -58,4 +58,4 @@ The owner's rule (2026-11-25): a block length has two sources. `plan_in` comes o
   1. Colour key: full names everywhere ("Demmler Yard; McKeesport", "Scully Yard; McKees Rocks"); the docx `key_label` overrides go. Lane N7 of [night-plunge](night-plunge-handoff.md).
   2. TT-23: the site wording everywhere; the docx subtitle and note overrides go. Lane N7.
   3. YM-01: the NONE row ("No card color", "Yard storage") shows on the site legend too. Lane N7.
-  4. The DecoderPro roster becomes a repo master, like the cars and locos. A phase 2 decision, not started yet.
+  4. The DecoderPro roster becomes a repo master, like the cars and locos. Done in lane N8 of [night-plunge](night-plunge-handoff.md) (#1220, 2026-11-26; [ADR-039 amendment](../decisions/ADR-039-data-masters-in-git.md#amendment-2026-11-26-the-decoderpro-roster-is-a-master-lane-n8)).
