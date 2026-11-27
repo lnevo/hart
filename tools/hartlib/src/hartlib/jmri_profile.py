@@ -302,14 +302,19 @@ def _back_up(path: Path) -> Path:
     n = 0
     while True:
         copy = path.with_name(f"{path.name}.hart-{stamp}{f'-{n}' if n else ''}.bak")
+        made = False
         try:
             with path.open("rb") as src, copy.open("xb") as dst:
+                made = True
                 shutil.copyfileobj(src, dst)
             shutil.copystat(path, copy)
         except FileExistsError:
             n += 1
             continue
         except OSError as exc:
+            # a half-written copy would count as one of the newest backups and push out a good one
+            if made:
+                copy.unlink(missing_ok=True)
             raise WindowSizesError(f"cannot back up {path} to {copy}: {exc}") from exc
         return copy
 

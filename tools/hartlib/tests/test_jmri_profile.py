@@ -125,6 +125,14 @@ class WriteSafety(Files):
             jmri_profile.write_user_interface(ui, "<windowDetails/>", backup=True)
         self.assertNotIn("cannot back up", str(cm.exception))
 
+    def test_a_backup_that_fails_midway_leaves_no_copy(self) -> None:
+        ui = self.write("user-interface.xml", UI)
+        with mock.patch.object(jmri_profile.shutil, "copyfileobj", side_effect=OSError("disk full")), \
+                self.assertRaisesRegex(jmri_profile.WindowSizesError, "cannot back up"):
+            jmri_profile.write_user_interface(ui, "<windowDetails/>", backup=True)
+        self.assertEqual([p.name for p in self.dir.iterdir()], ["user-interface.xml"])
+        self.assertEqual(ui.read_text(encoding="utf-8"), UI)
+
     def test_two_backups_in_one_second_keep_both_files(self) -> None:
         ui = self.write("user-interface.xml", "first")
         with mock.patch.object(jmri_profile.time, "strftime", return_value="20260101-000000"):
