@@ -19,6 +19,8 @@ It also found a bug: the operating-flag guard missed `$(ssh …)` and `xargs ssh
 - **History notes:** delete a note when an ADR, a wiki page or git already records the decision. Move a decision that only the comment records into the wiki. Keep the why in the code, without dates.
 - **mypy:** strict for hartlib. Every other CPython folder runs in basic mode against a per-file baseline that may only go down. Jython is excluded.
 - **Parked code:** `gen_ctc_track_plan.py` and the parked rules in `refresh_bean_comments.py` stay as they are.
+- **Parked code in the report card (2026-11-27):** parked code is left out of the card: not in the line-weighted average, the C and D counts or the files read. The card lists parked files separately, each with a one-line reason. Parked means everything under jmri/layouts/hart/parked/ and the scripts that serve only parked features (hartlib.parked.PARKED: nx, dispatcher, uss), each confirmed from its callers; a file that serves live and parked code is graded.
+- **Last wave (2026-11-27):** wave 6 is the last wave; its card is the final one.
 - **Guard against regressions:** a ratchet check (`check_habits.py`) plus the AGENTS.md rules. ruff stays on F rules only.
 - **Deploys:** deploy each merge that ships straight away, with no live try ("just deploy, consider everything tested").
 
