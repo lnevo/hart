@@ -1,6 +1,7 @@
 """The JMRI-hosted mimic: generated layout, install step, and what the page may publish."""
 from __future__ import annotations
 
+import html
 import importlib.util
 import json
 import os
@@ -10,7 +11,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections.abc import Sequence
 from pathlib import Path
+from typing import TypedDict
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[1]
@@ -71,11 +74,6 @@ class Levels(unittest.TestCase):
         for kind in ("turnouts", "blocks", "heads"):
             for it in self.layout[kind]:
                 self.assertTrue(it["plant"], it)
-
-    def test_tab_titles_cover_the_levels(self):
-        view = (WEB / "mimic_view.js").read_text(encoding="utf-8")
-        titles = re.search(r"LEVEL_TITLES = \{(.+?)\}", view).group(1)
-        self.assertEqual(set(re.findall(r"(\w+):", titles)), {"staging", "main", "upper"})
 
     def test_mac_mimic_keeps_staging_only(self):
         staged = self.mimic.load_layout(levels=False)
@@ -146,69 +144,246 @@ class SharedView(unittest.TestCase):
         self.assertEqual({name.lstrip("/") for name in mimic.SHARED_FILES}, set(SHARED))
 
 
-# Runs render() under node with a stub DOM and prints every innerHTML it set.
+# Runs mimic_view.js under node with a small fake DOM. Input (JSON file): `state` to
+# merge, the filter box value `q`, the URL `hash`, the body `headsTitle`, and `mount`
+# to call mountMimic() first. Output: each root's element tree, every innerHTML the
+# view set (mountMimic's fixed markup goes through insertAdjacentHTML instead), and
+# the level render() settled on.
 _RENDER_HARNESS = r"""
 const fs = require("fs"), vm = require("vm");
-const [viewPath, statePath] = process.argv.slice(1);
-const html = [];
-function node(id) {
-  const el = { id, hidden: false, value: "", className: "", dataset: {},
-    appendChild() {}, addEventListener() {}, insertAdjacentHTML() {} };
-  Object.defineProperty(el, "innerHTML", { get() { return ""; }, set(v) { html.push(v); } });
-  return el;
+const [viewPath, inputPath] = process.argv.slice(1);
+const input = JSON.parse(fs.readFileSync(inputPath, "utf8"));
+const markup = [];
+class Text { constructor(t) { this.text = t; } }
+class El {
+  constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this.hidden = false; this.value = "";
+    this.dataset = {}; }
+  set className(v) { this.attrs.class = v; }
+  get className() { return this.attrs.class || ""; }
+  setAttribute(k, v) { this.attrs[k] = String(v); }
+  appendChild(c) { this.kids.push(c); return c; }
+  replaceChildren(...c) { this.kids = c; }
+  set textContent(v) { this.kids = [new Text(String(v))]; }
+  set innerHTML(v) { markup.push(v); }
+  addEventListener() {}
+  insertAdjacentHTML() {}
 }
+const tree = (n) => n instanceof Text ? n.text
+  : { tag: n.tag, attrs: n.attrs, hidden: n.hidden, kids: n.kids.map(tree) };
 const els = {};
-const document = { body: node("body"), getElementById: (id) => (els[id] ||= node(id)),
-  createElement: (t) => node(t) };
-const ctx = vm.createContext({ document, location: { hash: "" }, console });
+const body = new El("body");
+body.dataset.headsTitle = input.headsTitle || "";
+const document = { body, getElementById: (id) => (els[id] ||= new El(id)),
+  createElement: (t) => new El(t), createTextNode: (t) => new Text(t) };
+const ctx = vm.createContext({ document, location: { hash: input.hash || "" }, window: new El("window"),
+  history: { replaceState() {} }, console });
 vm.runInContext(fs.readFileSync(viewPath, "utf8"), ctx);
-const given = JSON.parse(fs.readFileSync(statePath, "utf8"));
-vm.runInContext("Object.assign(state, " + JSON.stringify(given) + "); render();", ctx);
-process.stdout.write(JSON.stringify(html));
+document.getElementById("q").value = input.q || "";
+if (input.mount) vm.runInContext("mountMimic();", ctx);
+vm.runInContext("Object.assign(state, " + JSON.stringify(input.state) + "); render();", ctx);
+const roots = {};
+for (const id of ["tabs", "turnouts", "blocks", "heads", "heads-title"]) roots[id] = tree(document.getElementById(id));
+const level = vm.runInContext("state.level", ctx);
+process.stdout.write(JSON.stringify({ roots, markup, level }));
 """
 
 EVIL = '<img src=x onerror=alert(1)>"\''
 
 
+class Node(TypedDict):
+    tag: str
+    attrs: dict[str, str]
+    hidden: bool
+    kids: list[Node | str]
+
+
+class Rendered(TypedDict):
+    roots: dict[str, Node]
+    markup: list[str]
+    level: str
+
+
+def _html(node: Node | str) -> str:
+    """The node as HTML, with text and attribute values escaped."""
+    if isinstance(node, str):
+        return html.escape(node, quote=False)
+    attrs = "".join(f' {k}="{html.escape(v)}"' for k, v in node["attrs"].items())
+    return f"<{node['tag']}{attrs}>{''.join(_html(k) for k in node['kids'])}</{node['tag']}>"
+
+
+def _walk(node: Node | str) -> list[Node]:
+    if isinstance(node, str):
+        return []
+    found = [node]
+    for kid in node["kids"]:
+        found += _walk(kid)
+    return found
+
+
+def _text(node: Node | str) -> str:
+    return node if isinstance(node, str) else "".join(_text(k) for k in node["kids"])
+
+
+def _elements(node: Node) -> list[Node]:
+    return [k for k in node["kids"] if not isinstance(k, str)]
+
+
+def _rec(level: str = "staging", plant: str = "East", **fields: object) -> dict[str, object]:
+    return {"level": level, "plant": plant, **fields}
+
+
+def _layout(turnouts: Sequence[dict] = (), blocks: Sequence[dict] = (),
+            heads: Sequence[dict] = ()) -> dict[str, list[dict]]:
+    return {"turnouts": list(turnouts), "blocks": list(blocks), "heads": list(heads)}
+
+
 @unittest.skipUnless(shutil.which("node"), "node is not installed")
-class RenderEscapes(unittest.TestCase):
-    """Layout names and the live head aspect from the JSON socket never reach innerHTML as markup."""
+class Render(unittest.TestCase):
+    """render() draws the shown level from `state`; layout names and live values stay text."""
 
-    def _render(self, given: dict) -> str:
+    def _run(self, state: dict, **opts: object) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory() as tmp:
-            state_path = Path(tmp) / "state.json"
-            state_path.write_text(json.dumps(given), encoding="utf-8")
-            out = subprocess.run(
-                ["node", "-e", _RENDER_HARNESS, str(WEB / "mimic_view.js"), str(state_path)],
-                capture_output=True, text=True, check=True,
-            ).stdout
-        return "".join(json.loads(out))
+            path = Path(tmp) / "input.json"
+            path.write_text(json.dumps({"state": state, **opts}), encoding="utf-8")
+            return subprocess.run(
+                ["node", "-e", _RENDER_HARNESS, str(WEB / "mimic_view.js"), str(path)],
+                capture_output=True, text=True, check=False,
+            )
 
-    def test_names_and_aspect_are_escaped(self) -> None:
-        rec = {"level": "staging", "plant": EVIL}
-        given = {
+    def _render(self, state: dict, **opts: object) -> Rendered:
+        done = self._run(state, **opts)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        out: Rendered = json.loads(done.stdout)
+        self.assertEqual(out["markup"], [], "the view sets no innerHTML")
+        return out
+
+    def _rows(self, out: Rendered, root: str) -> list[Node]:
+        return [n for n in _walk(out["roots"][root]) if n["attrs"].get("class", "").startswith("row")]
+
+    def _buttons(self, out: Rendered, root: str) -> list[Node]:
+        return [n for n in _walk(out["roots"][root]) if n["tag"] == "button"]
+
+    def test_names_and_aspect_stay_text(self) -> None:
+        rec = _rec(plant=EVIL)
+        out = self._render({
             "level": "staging",
-            "layout": {
-                "turnouts": [dict(rec, label=EVIL, name=EVIL, addr=EVIL, tip=EVIL, n_addr=EVIL, r_addr=EVIL)],
-                "blocks": [dict(rec, label=EVIL, userName=EVIL, name=EVIL, addr=EVIL)],
-                "heads": [dict(rec, id="IH1", systemName=EVIL, mast=EVIL)],
-            },
+            "layout": _layout(
+                [dict(rec, label=EVIL, name=EVIL, addr=EVIL, tip=EVIL, n_addr=EVIL, r_addr=EVIL)],
+                [dict(rec, label=EVIL, userName=EVIL, name=EVIL, addr=EVIL)],
+                [dict(rec, id="IH1", systemName=EVIL, mast=EVIL)]),
             "heads": {"1": EVIL + ";x"},
-        }
-        html = self._render(given)
-        self.assertNotIn("<img", html)
-        self.assertIn("&lt;img src=x onerror=alert(1)&gt;&quot;&#39;", html)
-        self.assertNotIn('"\'', html)
+        }, mount=True, headsTitle=EVIL)
+        everything = [n for root in out["roots"].values() for n in _walk(root)]
+        self.assertNotIn("img", {n["tag"] for n in everything})
+        for root in ("turnouts", "blocks", "heads"):
+            h3 = next(n for n in _walk(out["roots"][root]) if n["tag"] == "h3")
+            self.assertEqual(_text(h3), EVIL)
+        self.assertEqual({b["attrs"]["data-to"] for b in self._buttons(out, "turnouts")}, {EVIL})
+        self.assertEqual(self._buttons(out, "blocks")[0]["attrs"]["data-occ"], EVIL)
+        lamp = next(n for n in _walk(out["roots"]["heads"]) if n["tag"] == "i")
+        self.assertEqual(lamp["attrs"]["title"], f"{EVIL} {EVIL}")
+        self.assertEqual(_text(out["roots"]["heads-title"]), EVIL)
 
-    def test_plain_names_render_unchanged(self) -> None:
-        given = {
+    def test_plain_heads_render_unchanged(self) -> None:
+        out = self._render({
             "level": "staging",
-            "layout": {"turnouts": [], "blocks": [],
-                       "heads": [{"level": "staging", "plant": "East", "id": "IH7", "systemName": "IH7", "mast": "6LB"}]},
+            "layout": _layout(heads=[_rec(id="IH7", systemName="IH7", mast="6LB")]),
             "heads": {"7": "Green"},
-        }
-        html = self._render(given)
-        self.assertIn('<i class="lamp Green" title="IH7 Green"></i><span class="lbl" title="6LB">6LB</span>', html)
+        })
+        self.assertEqual(_html(out["roots"]["heads"]["kids"][0]),
+                         '<div class="plant"><h3>East</h3><div class="lamps"><div class="mast">'
+                         '<i class="lamp Green" title="IH7 Green"></i><span class="lbl" title="6LB">6LB</span>'
+                         '</div></div></div>')
+
+    def test_head_aspect_is_the_first_field_and_dark_without_a_report(self) -> None:
+        heads = [_rec(id="IH7", mast="A"), _rec(id="IH8", systemName="West 8", mast="A"), _rec(id="IH9", mast="B")]
+        out = self._render({"level": "staging", "layout": _layout(heads=heads),
+                            "heads": {"7": "FlashingYellow ; 3", "IH9": "Red"}})
+        lamps = [n["attrs"] for n in _walk(out["roots"]["heads"]) if n["tag"] == "i"]
+        self.assertEqual(lamps, [{"class": "lamp FlashingYellow", "title": "IH7 FlashingYellow"},
+                                 {"class": "lamp Dark", "title": "West 8 Dark"},
+                                 {"class": "lamp Red", "title": "IH9 Red"}])
+        masts = [n for n in _walk(out["roots"]["heads"]) if n["attrs"].get("class") == "mast"]
+        self.assertEqual([_text(m) for m in masts], ["A", "B"])
+
+    def test_tabs_follow_the_levels_in_order(self) -> None:
+        layout = _layout(blocks=[_rec("upper", addr="U"), _rec("staging", addr="S"), _rec("main", addr="M")])
+        out = self._render({"level": "main", "layout": layout})
+        tabs = out["roots"]["tabs"]
+        self.assertFalse(tabs["hidden"])
+        self.assertEqual([(_text(b), b["attrs"]) for b in _elements(tabs)], [
+            ("Staging", {"class": "tab", "data-level": "staging"}),
+            ("Main", {"class": "tab on", "data-level": "main"}),
+            ("Upper", {"class": "tab", "data-level": "upper"}),
+        ])
+        self.assertEqual([b["attrs"]["data-occ"] for b in self._buttons(out, "blocks")], ["M"])
+
+    def test_every_level_the_build_emits_gets_a_tab(self) -> None:
+        # a level the layout build writes but the view has no title for would be dropped with no tab and no error
+        layout = _load("lcos_mqtt_mimic").load_layout()
+        built = {it["level"] for kind in ("turnouts", "blocks", "heads") for it in layout[kind]}
+        out = self._render({"level": "staging", "layout": layout})
+        self.assertEqual(built, {b["attrs"]["data-level"] for b in _elements(out["roots"]["tabs"])})
+
+    def test_one_level_hides_the_tabs(self) -> None:
+        out = self._render({"level": "staging", "layout": _layout(blocks=[_rec(addr="S")])})
+        self.assertTrue(out["roots"]["tabs"]["hidden"])
+
+    def test_unknown_level_takes_the_hash_then_the_first(self) -> None:
+        layout = _layout(blocks=[_rec("staging", addr="S"), _rec("upper", addr="U")])
+        self.assertEqual(self._render({"level": "nope", "layout": layout}, hash="#upper")["level"], "upper")
+        self.assertEqual(self._render({"level": "nope", "layout": layout}, hash="#nope")["level"], "staging")
+
+    def test_turnout_state_and_feedback(self) -> None:
+        turnouts = [
+            _rec(label="Switch 1", name="M2T1", addr="1", tip="tip one", n_addr="10", r_addr="11"),
+            _rec(label="Switch 2", name="M2T2", addr="2", feedback="DIRECT"),
+            _rec(label="Switch 3", name="IT3", addr="IT3", virtual=True, tip="not shown"),
+        ]
+        out = self._render({"level": "staging", "layout": _layout(turnouts),
+                            "turnouts": {"1": "thrown", "2": "CLOSED"}, "sensors": {"10": "active", "11": "INACTIVE"}})
+        rows = self._rows(out, "turnouts")
+        self.assertEqual([_text(r) for r in rows], [
+            "Switch 1 M2T1tip oneFB N 10 ACTIVE · R 11ClosedThrown",
+            "Switch 2 M2T2DIRECTDIRECT — turnout topic onlyClosedThrown",
+            "Switch 3 IT3Virtual turnout, set in JMRI (no MQTT)ClosedThrown",
+        ])
+        spans = [n["attrs"]["class"] for n in _walk(rows[0]) if n["tag"] == "span"]
+        self.assertEqual(spans, ["sub", "n on", "r"])
+        self.assertEqual([(b["attrs"]["class"], b["attrs"]["data-to"], b["attrs"]["data-st"])
+                          for b in self._buttons(out, "turnouts")], [
+            ("sw", "1", "CLOSED"), ("sw on-thrown", "1", "THROWN"),
+            ("sw on-closed", "2", "CLOSED"), ("sw", "2", "THROWN"),
+            ("sw", "IT3", "CLOSED"), ("sw", "IT3", "THROWN"),
+        ])
+
+    def test_block_button_offers_the_other_state(self) -> None:
+        blocks = [_rec(label="B1", userName="One", name="M2S1", addr="1"),
+                  _rec(label="B2", userName="Two", name="M2S2", addr="2")]
+        out = self._render({"level": "staging", "layout": _layout(blocks=blocks), "sensors": {"1": "ACTIVE"}})
+        self.assertEqual([(_text(b), b["attrs"]) for b in self._buttons(out, "blocks")], [
+            ("Occupied", {"class": "occ active", "data-occ": "1", "data-st": "INACTIVE"}),
+            ("Clear", {"class": "occ inactive", "data-occ": "2", "data-st": "ACTIVE"}),
+        ])
+        self.assertEqual(_text(self._rows(out, "blocks")[1]), "B2Two · M2S2Clear")
+
+    def test_filter_hides_rows_that_do_not_match(self) -> None:
+        blocks = [_rec(label="Brick 1", userName="x", addr="1"),
+                  _rec(plant="West", label="Yard", userName="x", addr="2")]
+        out = self._render({"level": "staging", "layout": _layout(blocks=blocks)}, q="  WEST ")
+        self.assertEqual([r["attrs"]["class"] for r in self._rows(out, "blocks")], ["row hidden", "row"])
+
+    def test_plants_keep_first_seen_order(self) -> None:
+        blocks = [_rec(plant="B", addr="1"), _rec(plant="A", addr="2"), _rec(plant="B", addr="3")]
+        out = self._render({"level": "staging", "layout": _layout(blocks=blocks)})
+        plants = _elements(out["roots"]["blocks"])
+        self.assertEqual([_text(p["kids"][0]) for p in plants], ["B", "A"])
+        self.assertEqual([len(p["kids"]) - 1 for p in plants], [2, 1])
+
+    def test_a_layout_without_a_list_is_an_error(self) -> None:
+        done = self._run({"level": "staging", "layout": {"turnouts": [], "blocks": []}})
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn('mimic layout has no "heads" list', done.stderr)
 
 
 class Install(unittest.TestCase):
