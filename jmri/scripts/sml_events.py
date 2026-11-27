@@ -15,6 +15,7 @@ from sml_beans import (
     _appearance_constant,
     _ascii,
     _head_manager,
+    _log_once,
     _packed_is_lcos_signal,
 )
 from sml_claims import _parse_claim
@@ -189,7 +190,11 @@ class SmlEvents(object):
             return
         try:
             mast = sml.getSourceMast()
-        except Exception:
+        except Exception as exc:
+            _log_once(
+                "mqtt_signalhead: cannot read the source mast of SML %s, change ignored: %s"
+                % (_ascii(sml), _ascii(exc))
+            )
             return
         if mast not in self._masts:
             return
@@ -239,53 +244,77 @@ class SmlEvents(object):
         aspect = parts[0]
         head = _head_manager().getSignalHead(sys_name)
         if head is not None:
-            mapped = _ASPECT_TO_APPEARANCE.get(aspect.lower())
-            if mapped is None:
-                mapped = aspect
-            const = _appearance_constant(mapped)
-            if const is not None:
-                try:
-                    if head.getAppearance() != const:
-                        head.setAppearance(const)
-                except Exception as exc:
-                    print(
-                        "mqtt_signalhead: setAppearance %s %s: %s"
-                        % (_ascii(sys_name), _ascii(mapped), _ascii(exc))
-                    )
+            _paint_head(head, sys_name, aspect)
         if mast is None:
             return
-        mast_aspect = aspect
-        if aspect.lower() in _ASPECT_TO_APPEARANCE:
-            appearance = _ASPECT_TO_APPEARANCE[aspect.lower()]
-            mast_aspect = {
-                "Red": "Stop",
-                "Yellow": "Approach",
-                "Green": "Clear",
-                "Dark": "Dark",
-            }.get(appearance, aspect)
+        _paint_mast(mast, aspect, parts[1:])
+
+
+# A field report's state words after the aspect: the SignalMast setter and its value.
+_MAST_STATE_WORDS = {
+    "lit": ("setLit", True),
+    "unlit": ("setLit", False),
+    "held": ("setHeld", True),
+    "unheld": ("setHeld", False),
+}
+
+_APPEARANCE_TO_MAST_ASPECT = {
+    "Red": "Stop",
+    "Yellow": "Approach",
+    "Green": "Clear",
+    "Dark": "Dark",
+}
+
+
+def _paint_head(head, sys_name, aspect):
+    """Show a field report's aspect on its IH head; a head that refuses it is printed once."""
+    mapped = _ASPECT_TO_APPEARANCE.get(aspect.lower())
+    if mapped is None:
+        mapped = aspect
+    const = _appearance_constant(mapped)
+    if const is None:
+        return
+    try:
+        if head.getAppearance() != const:
+            head.setAppearance(const)
+    except Exception as exc:
+        _log_once(
+            "mqtt_signalhead: setAppearance %s %s: %s"
+            % (_ascii(sys_name), _ascii(mapped), _ascii(exc))
+        )
+
+
+def _paint_mast(mast, aspect, words):
+    """Show a field report's aspect and its state words (Lit/Unlit/Held/Unheld) on the source
+    SignalMast. A read or set that fails is printed once per distinct message."""
+    mast_aspect = aspect
+    if aspect.lower() in _ASPECT_TO_APPEARANCE:
+        appearance = _ASPECT_TO_APPEARANCE[aspect.lower()]
+        mast_aspect = _APPEARANCE_TO_MAST_ASPECT.get(appearance, aspect)
+    try:
+        current = None
         try:
-            current = None
-            try:
-                current = mast.getAspect()
-            except Exception:
-                pass
-            if current != mast_aspect:
-                mast.setAspect(mast_aspect)
+            current = mast.getAspect()
         except Exception as exc:
-            print(
-                "mqtt_signalhead: setAspect %s %s: %s"
-                % (_ascii(mast.getDisplayName()), _ascii(mast_aspect), _ascii(exc))
+            _log_once(
+                "mqtt_signalhead: cannot read the aspect of %s (set anyway): %s"
+                % (_ascii(mast.getDisplayName()), _ascii(exc))
             )
-        for token in parts[1:]:
-            low = token.lower()
-            try:
-                if low == "lit":
-                    mast.setLit(True)
-                elif low == "unlit":
-                    mast.setLit(False)
-                elif low == "held":
-                    mast.setHeld(True)
-                elif low == "unheld":
-                    mast.setHeld(False)
-            except Exception:
-                pass
+        if current != mast_aspect:
+            mast.setAspect(mast_aspect)
+    except Exception as exc:
+        _log_once(
+            "mqtt_signalhead: setAspect %s %s: %s"
+            % (_ascii(mast.getDisplayName()), _ascii(mast_aspect), _ascii(exc))
+        )
+    for token in words:
+        setter = _MAST_STATE_WORDS.get(token.lower())
+        if setter is None:
+            continue
+        try:
+            getattr(mast, setter[0])(setter[1])
+        except Exception as exc:
+            _log_once(
+                "mqtt_signalhead: %s(%s) %s: %s"
+                % (setter[0], setter[1], _ascii(mast.getDisplayName()), _ascii(exc))
+            )

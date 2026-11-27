@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_tables as bt  # noqa: E402
 import publish_draft as pd  # noqa: E402
-from hartlib import paths, tables  # noqa: E402
+from hartlib import paths, tables, tables_sml  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 from repo_read_only import repo_read_only  # noqa: E402
 
@@ -92,20 +92,20 @@ class Generated(unittest.TestCase):
         enabled as stock Discover stores them (the build disables them again), so both files come out the same."""
         store = self.tmp / "store.xml"
         doc = tables.load(paths.REPO_TABLES_XML)
-        masts = tb.digicon_masts(doc.root)
-        self.assertTrue(tb.disable_digicon(doc.root, masts)[1])        # the committed tables hold them disabled
+        masts = tables_sml.digicon_masts(doc.root)
+        self.assertTrue(tables_sml.disable_digicon(doc.root, masts)[1])        # the committed tables hold them disabled
         for logic in tables.mast_logics(doc.root):
             if logic.get("source") in masts:
                 for dest in logic.findall("destinationMast"):
                     dest.find("enabled").text = "yes"
         store.write_bytes(doc.tobytes())
         out, disc = self.tmp / "tables.xml", self.tmp / "discovered_sml.xml"
-        with mock.patch.object(bt, "OUT", out), mock.patch.object(tb, "DISCOVERED", disc), \
+        with mock.patch.object(bt, "OUT", out), mock.patch.object(tables_sml, "DISCOVERED", disc), \
                 mock.patch.object(bt.ble, "build", wraps=bt.ble.build), pd.cache_on():
             code, stdout, err = run("--discovered-from", str(store))
         self.assertEqual(0, code, err)
         self.assertEqual(paths.REPO_TABLES_XML.read_bytes(), out.read_bytes())
-        self.assertEqual(tb.DISCOVERED.read_bytes(), disc.read_bytes())
+        self.assertEqual(tables_sml.DISCOVERED.read_bytes(), disc.read_bytes())
         self.assertIn("wrote", stdout)
 
     def test_a_store_without_logic_writes_nothing(self) -> None:
@@ -116,7 +116,7 @@ class Generated(unittest.TestCase):
             box.remove(logic)
         store.write_bytes(doc.tobytes())
         out, disc = self.tmp / "tables.xml", self.tmp / "discovered_sml.xml"
-        with mock.patch.object(bt, "OUT", out), mock.patch.object(tb, "DISCOVERED", disc):
+        with mock.patch.object(bt, "OUT", out), mock.patch.object(tables_sml, "DISCOVERED", disc):
             code, _stdout, err = run("--discovered-from", str(store))
         self.assertEqual(2, code)
         self.assertIn("no Signal Mast Logic", err)
@@ -125,7 +125,7 @@ class Generated(unittest.TestCase):
     def discovered_copy(self, edit) -> Path:
         """A copy of the discovered file with `edit` (on its text) applied."""
         disc = self.tmp / "discovered_sml.xml"
-        text = tb.DISCOVERED.read_text(encoding="utf-8")
+        text = tables_sml.DISCOVERED.read_text(encoding="utf-8")
         new = edit(text)
         self.assertNotEqual(text, new)
         disc.write_text(new, encoding="utf-8")
@@ -136,7 +136,7 @@ class Generated(unittest.TestCase):
         discovery base, which reads no discovered file, still builds, so run_sml_discover.sh can repair it."""
         disc = self.discovered_copy(lambda t: t.replace('destination="Mast 24RA"', 'destination="Mast 24RX"', 1))
         out = self.tmp / "tables.xml"
-        with mock.patch.object(bt, "OUT", out), mock.patch.object(tb, "DISCOVERED", disc):
+        with mock.patch.object(bt, "OUT", out), mock.patch.object(tables_sml, "DISCOVERED", disc):
             code, _stdout, err = run("--check")
             self.assertEqual(2, code)
             self.assertIn("names masts the tables do not hold (Mast 24RX)", err)
@@ -156,7 +156,7 @@ class Generated(unittest.TestCase):
             start = text.index('<signalmastlogic source="Mast 4RA">')
             return text[:start] + text[text.index("</signalmastlogic>", start) + len("</signalmastlogic>\n  "):]
         disc = self.discovered_copy(drop_source)
-        with mock.patch.object(tb, "DISCOVERED", disc):
+        with mock.patch.object(tables_sml, "DISCOVERED", disc):
             code, _stdout, err = run("--check")
         self.assertEqual(2, code)
         self.assertIn("1 mast(s) with no discovered logic they need (Mast 4RA)", err)

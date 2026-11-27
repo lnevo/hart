@@ -1,9 +1,12 @@
 /* Extra East: the Ironton yard job under GCOR: the yard sketch and the job's scenes.
-   Runs inside its own function; the names it shares with run.js are on window.ExtraEast (see run.js). */
+   Runs inside its own function. It takes the names it uses from run.js with ExtraEast.take and hands back its own with
+   ExtraEast.give (see run.js, GIVES). */
 (function(){
 "use strict";
 const X=window.ExtraEast;
-const {fmt,$,randSetup,rnd,pick,state,addTime,renderStatus,finish,renderSheet,esc,push,next,log,ask,info}=X;
+const {fmt,$,randSetup,rnd,pick,state,addTime,renderStatus,finish,renderSheet,esc,push,next,log,ask,
+  info}=X.take("run-yard.js",["fmt","$","randSetup","rnd","pick","state","addTime","renderStatus","finish",
+  "renderSheet","esc","push","next","log","ask","info"]);
 /* ---------- the Ironton yard job (GCOR) ---------- */
 /* Places on the yard sketch: x,y in the sketch's units, n = name shown in the status line. */
 const YLOC={
@@ -181,5 +184,5 @@ function startYARD(){
   );
   next();
 }
-Object.assign(X,{YLOC,renderYardMap,startYARD});
+X.give("run-yard.js",{YLOC,renderYardMap,startYARD});
 })();

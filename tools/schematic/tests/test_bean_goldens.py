@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import le_tables as lt  # noqa: E402
-from hartlib import block_lengths, devices, level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import block_lengths, devices, level_devices, paths, railroad, startup_logixng, tables, tables_sections  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "main_upper_beans.txt"
@@ -39,7 +39,8 @@ LOGIXNG = ("LogixNG", "ConditionalNG", "DigitalMany", "ActionSensor", "ActionTur
 LEVELS = level_devices.LEVELS
 HELIX = ("Track Helix Inner", "Track Helix Outer")     # staging blocks with a row on every level they climb through
 # The sections a bean of the master lands in: the master's own and the template's that take master beans too
-BEAN_SECTIONS = tb.MASTER_SECTIONS + (tb.INTERNAL_SENSORS, tb.LOGIXNGS, tb.CONDITIONALNGS, tb.DIGITAL_ACTIONS)
+BEAN_SECTIONS = tables_sections.MASTER_SECTIONS + (tables_sections.INTERNAL_SENSORS, tables_sections.LOGIXNGS,
+                                      tables_sections.CONDITIONALNGS, tables_sections.DIGITAL_ACTIONS)
 
 
 def committed() -> ET.Element:
@@ -92,7 +93,7 @@ class EveryLevelBeans(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.base = tb.base().root
-        tb.jmri_sort(cls.base)              # the order build_tables.py writes
+        tables_sections.jmri_sort(cls.base)              # the order build_tables.py writes
 
     def test_the_template_and_master_beans_are_the_committed_bean_sections(self) -> None:
         built = {section_of(s): s for s in tables.elements(self.base)}
@@ -273,7 +274,7 @@ class StagingAlone(unittest.TestCase):
                 self.assertEqual(len(mine), len(level))
                 got = {tables.user_name(els[i]) for i in helix}
                 self.assertLessEqual(got, set(HELIX), diff(mine, level))
-                if key in (tb.BLOCKS, tb.LAYOUT_BLOCKS):
+                if key in (tables_sections.BLOCKS, tables_sections.LAYOUT_BLOCKS):
                     self.assertEqual(set(HELIX), got)
 
     def test_the_startup_actions_come_in_the_frames_socket_order(self) -> None:
@@ -283,7 +284,7 @@ class StagingAlone(unittest.TestCase):
         many = next(e for e in fixture if e.tag == "DigitalMany")
         sockets = [s.findtext("systemName") for s in many.find("Actions")]
         actions = tb.master_beans([r.cells() for r in devices.load()],
-                                  block_lengths.operating_lengths(tb.BLOCK_LENGTHS))[tb.START_ACTIONS]
+                                  block_lengths.operating_lengths(tb.BLOCK_LENGTHS))[startup_logixng.START_ACTIONS]
         self.assertEqual(sockets, [a.findtext("systemName") for a in actions])
 
 

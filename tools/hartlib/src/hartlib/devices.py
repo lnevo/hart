@@ -770,7 +770,7 @@ def is_unplaced(row: MasterRow | Mapping[str, str]) -> bool:
 def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
     """What a level-less row breaks: it carries its beans (jmri_bean), is a field device by its own system name, and
     has no cp, role, writer or other level's facts."""
-    from . import tables, tables_build          # tables_build reads this module
+    from . import jmri_bean, tables, tables_sections          # jmri_bean reads this module's rows
     bad = []
     if not r["jmri_bean"]:
         return ["level is one of " + ", ".join(LEVELS) + ", or empty for a device kept by its jmri_bean"]
@@ -781,8 +781,8 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
     if set_cols:
         bad.append(f"a level-less device has no {', '.join(set_cols)} (they come with its level)")
     try:
-        beans = tables_build.row_beans(r)
-    except tables_build.TablesBuildError as exc:
+        beans = jmri_bean.row_beans(r)
+    except tables_sections.TablesBuildError as exc:
         return bad + [str(exc).split(": ", 2)[-1]]
     names = {tables.system_name(el) for _, el in beans}
     own = {r["jmri_name"], r["layout_block"]} - {""}
