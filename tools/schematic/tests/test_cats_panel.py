@@ -137,7 +137,7 @@ class Helix(unittest.TestCase):
         """Each helix track is its block on staging: by track_block, and by helix_block on the
         staging band's strands of that plan name; any other track is Track <name>."""
         k = built()
-        helix = B.bdm.mast_rule.read_helix_tracks()          # by plan name, as dark_bindings reads them
+        helix = B.bdm.plan_bands.read_helix_tracks()          # by plan name, as dark_bindings reads them
         self.assertEqual(set(helix), {"Helix Outer", "Helix Inner"})
         self.assertEqual(k["F"].helix, {plan: h["block"] for plan, h in helix.items()})
         for plan, h in helix.items():

@@ -13,7 +13,7 @@ import device_map_master as master  # noqa: E402
 import device_map_plant as plant  # noqa: E402
 import device_map_records as rec  # noqa: E402
 from hartlib import block_numbering, devices  # noqa: E402
-from mast_rule import MapError  # noqa: E402
+from map_error import MapError  # noqa: E402
 
 
 def device_rows() -> list[rec.DeviceMapRow]:

@@ -16,7 +16,7 @@ from device_map_rows import follow_swaps, owner_over  # noqa: E402
 from hartlib import block_numbering, devices, railroad  # noqa: E402
 from hartlib.device_rows import DeviceRow  # noqa: E402
 from mast_plan import Bands  # noqa: E402  the plugin's solved bands
-from mast_rule import MapError  # noqa: E402
+from map_error import MapError  # noqa: E402
 
 WRITER = "build_device_map.py"      # the master's written_by of every row the builder makes
 

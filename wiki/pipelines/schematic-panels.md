@@ -45,7 +45,7 @@ until its ttlSize and drops the pair). `data/schematic/block_overrides.csv` (a `
 at its turnback, the owner's choice, not a rule), kind `track` (the wiring facts where the wiring says otherwise:
 13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39; `inside` yes on a track row keeps
 the piece inside its OS block) and kind `crossover_half` (the crossover halves with detectors of their own).
-`hartlib.hand_lists.read_block_overrides` reads it (through `mast_rule.read_block_overrides`, naming-layers step 6) and checks every row's shape for its kind, naming the file and line; it
+`hartlib.hand_lists.read_block_overrides` reads it (through `block_override_rows.read_block_overrides`, naming-layers step 6) and checks every row's shape for its kind, naming the file and line; it
 replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). What a reader sees for a track can differ from its
 plan name: `preferences.json[main_upper]` `track_labels` (the schematic-maps plugin's sheet-wide preference, since
 plugin 0.1.50; keyed by the staging helix block's ID, which the merged view names) maps a plan name to the label drawn, McKees Rocks for Helix Outer and McKeesport for Helix Inner until
