@@ -8,6 +8,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,7 +16,8 @@ from pathlib import Path
 SCRIPT = Path(__file__).resolve().parents[1] / "deploy_hartrailroad.sh"
 CI_PASS = Path(__file__).resolve().parents[3] / "tools/hosts/deploy/ci_pass.py"
 URL = "https://github.com/owner/repo/actions/runs/999"
-NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
+sys.path.insert(0, str(CI_PASS.parent))
+from ci_pass import NOT_BLOCKING  # noqa: E402
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -169,6 +171,16 @@ exit 1
         self.assertIn("main red check: could not ask GitHub (gh api -X failed (exit 1): HTTP 401: Bad credentials "
                       f"(stand-in)); {NOT_BLOCKING}", done.stdout)
         self.assertIn("gh api -X GET repos/owner/repo/actions/workflows/check.yml/runs", (self.tmp / "gh.log").read_text())
+
+
+    def test_a_crash_of_the_check_does_not_block(self):
+        """ci_pass.py --main-red that dies (an import error, exit 1) leaves the deploy going on to the build."""
+        self.main_run(conclusion="failure")
+        (self.repo / "tools/hosts/deploy/ci_pass.py").write_text("import not_a_module_here\n")
+        done = self.deploy()
+        self.assertEqual(done.returncode, 7, done.stderr)
+        self.assertIn("ModuleNotFoundError", done.stderr)
+        self.assertNotIn("main is red", done.stderr)
 
 
 if __name__ == "__main__":

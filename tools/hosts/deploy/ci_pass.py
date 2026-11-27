@@ -9,9 +9,9 @@
                                 the gate's G0c before any ssh, and the site deploy before it builds: exit 4 and print
                                 a STOP line naming the run when the newest push run of check.yml on main for SHA
                                 finished failure, cancelled or timed_out (main is red: fix forward or revert first).
-                                Exit 0 and print why not in every other case (the run passed, is still running, ended
-                                another way, there is no run yet, or GitHub could not be asked): not blocking, the
-                                owner's ruling. Exit 2 and 3 as above (the deploy goes on for both)
+                                Exit 0 and print a "main red check:" line saying why not in every other case (the run
+                                passed, is still running, ended another way, there is no run yet, GitHub could not be
+                                asked, a bad --commit, or a failure of this script): none of them blocks a deploy
 
 The gate (tools/hosts/deploy/gate.sh) asks this only for a real deploy to the Pi or Windows, after check_on_main
 (common.sh) has held the commit to origin/main. A skip needs all of these, read in this order; the first that fails
@@ -70,8 +70,9 @@ GH_TIMEOUT = 30
 # The conclusions of a finished push run that make main red: a deploy of that commit stops (--main-red, exit 4).
 RED = ("failure", "cancelled", "timed_out")
 MAIN_RED = 4
-# A run still going, no run yet and GitHub not answering never stop a deploy: the owner's ruling, which the line names.
-NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
+# Ends the --main-red line for every case that does not stop a deploy (a run still going, no run yet, GitHub not
+# answering, a failure of this script); the deploy scripts' tests import it.
+NOT_BLOCKING = "not blocking"
 LOG_TIMEOUT = 90
 
 
@@ -362,23 +363,31 @@ def main_red(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> tuple[bool, str]:
                    f"{', '.join(RED)}; {NOT_BLOCKING}")
 
 
+def main_red_verdict(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> int:
+    """Print the --main-red line; MAIN_RED when main is red, else 0, a bad commit and a bug here included."""
+    if not SHA.fullmatch(sha):
+        print(f"main red check: --commit must be a full 40-character commit sha, not {sha!r}; {NOT_BLOCKING}")
+        return 0
+    try:
+        red, line = main_red(sha, root, gh)
+    except Exception as e:  # a bug here: say so, and the deploy goes on
+        print(f"main red check: failed for {sha[:12]}: {type(e).__name__}: {e}; {NOT_BLOCKING}")
+        return 0
+    print(line)
+    return MAIN_RED if red else 0
+
+
 def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--commit", required=True, help="the 40-character commit the deploy ships")
     ap.add_argument("--main-red", action="store_true",
                     help="exit 4 when main's push run for the commit finished red (failure, cancelled, timed_out)")
     a = ap.parse_args(argv)
+    if a.main_red:
+        return main_red_verdict(a.commit, root, gh)
     if not SHA.fullmatch(a.commit):
         print(f"ci_pass.py: --commit must be a full 40-character commit sha, not {a.commit!r}", file=sys.stderr)
         return 2
-    if a.main_red:
-        try:
-            red, line = main_red(a.commit, root, gh)
-        except Exception as e:  # a bug here: say so (exit 3), and the gate goes on
-            print(f"main red check: failed for {a.commit[:12]}: {type(e).__name__}: {e}")
-            return 3
-        print(line)
-        return MAIN_RED if red else 0
     try:
         run_id = decide(a.commit, root, gh)
     except CiPassError as e:

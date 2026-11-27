@@ -17,7 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_deploy_gates import GateHarness  # noqa: E402
 from test_deploy_preflight import ROOT  # noqa: E402
 
-NOT_BLOCKING = "not blocking (owner ruling 2026-11-27)"
+sys.path.insert(0, str(ROOT / "tools/hosts/deploy"))
+from ci_pass import NOT_BLOCKING  # noqa: E402
 
 
 class OffHostRunsDoNotAskForG4(GateHarness):
@@ -122,7 +123,7 @@ exit 4
                 self.assertNotIn("main is red", done.stderr)
 
     def test_every_other_case_runs_g4_as_before(self) -> None:
-        """No run yet and a gh error do not block (owner ruling 2026-11-27); the line says which."""
+        """No run yet and a gh error do not block; the line says which."""
         (self.tmp / "tables_stale").touch()
         cases = {
             "no run yet": ({"total_count": 0, "workflow_runs": []},
@@ -145,6 +146,26 @@ exit 4
                 self.assertIn("STOP: tables.xml is not what", done.stderr)
                 self.assertNotIn("main is red", done.stderr)
                 self.assertNotIn("Traceback", done.stdout + done.stderr)
+
+    def test_a_crash_of_the_check_does_not_block(self) -> None:
+        """ci_pass.py --main-red that dies (an import error, exit 1) leaves the deploy going on to G4."""
+        (self.tmp / "tables_stale").touch()
+        self.main_run(conclusion="failure")
+        crash = self.tmp / "bin3/python3"
+        crash.parent.mkdir()
+        crash.write_text(f"""#!/bin/bash
+for a in "$@"; do
+  if [[ "$a" == --main-red ]]; then echo "Traceback (stand-in): ImportError" >&2; exit 1; fi
+done
+exec "{self.tmp / 'bin2/python3'}" "$@"
+""", encoding="utf-8")
+        crash.chmod(0o755)
+        self.env["PATH"] = f"{crash.parent}:{self.env['PATH']}"
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Traceback (stand-in): ImportError", done.stderr)
+        self.assertNotIn("main is red", done.stderr)
+        self.assertIn("ran G4: ", done.stdout)
+        self.assertIn("STOP: tables.xml is not what", done.stderr)
 
     def test_check_only_staging_and_the_mac_alone_do_not_ask(self) -> None:
         self.main_run(conclusion="failure")
