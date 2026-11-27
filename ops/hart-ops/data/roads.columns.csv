@@ -1,0 +1,6 @@
+column,description,type,required,key,refs,values
+road,"A roster road code, as the rosters and locos.csv give it (BO, CR, CSX). The key; locos.csv's road_name refers to it.",str,yes,yes,,
+marks,"The reporting marks a card shows for the road (B&O). Empty: a card shows the code (engine_lookup.ROAD_DISPLAY).",str,,,,
+car_spellings,"The spellings read off a car photo that mean this road, ; between them (process_car_images.ROAD_ALIASES). A spelling may be the code itself: the car matcher accepts a road only as one of its spellings. A spelling names one road.",id-list,,,,
+engine_spellings,"The spellings in a loco row that mean this road, ; between them (engine_lookup.ENGINE_ROAD_ALIASES).",id-list,,,,
+notes,"Free text.",str,,,,

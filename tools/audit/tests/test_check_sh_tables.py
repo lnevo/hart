@@ -88,8 +88,9 @@ class CheckShTables(unittest.TestCase):
         self.assertIn("            schematic-${{ steps.pin.outputs.pin }}-\n            schematic-\n", text)
         warm = text.index("name: Warm the schematic cache when its exact key missed")
         self.assertIn("bash tools/schematic/build_panels.sh --check --full", text[warm:])
-        # only when the exact cache missed, never on the docs-only path: no time added to a run whose key hit
-        self.assertIn("if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true'\n",
+        # only on the full path and when the exact cache missed: no time added to a run whose key hit, nor to a
+        # docs-only or light run
+        self.assertIn("if: steps.kind.outputs.kind == 'full' && steps.schematic-cache.outputs.cache-hit != 'true'\n",
                       text[warm:])
         self.assertLess(warm, text.index("run: ./tools/check.sh"))
 

@@ -2203,6 +2203,24 @@
    "path": "ops/hart-ops/data/locos.csv"
   },
   {
+   "id": "ops/hart-ops/data/roads.csv",
+   "label": "roads.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "The roster road codes the car pipeline names: the marks a card shows and the spellings the car photo and loco matchers turn into the code (hartlib.operations). locos.csv's road_name refers to it.",
+   "path": "ops/hart-ops/data/roads.csv"
+  },
+  {
+   "id": "ops/hart-ops/data/loco_models.csv",
+   "label": "loco_models.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Each locomotive model and its builder, in the order engine_lookup.manufacturer_for_model reads them (hartlib.operations).",
+   "path": "ops/hart-ops/data/loco_models.csv"
+  },
+  {
    "id": "ops/hart-ops/data/trains.csv",
    "label": "trains.csv",
    "kind": "structured",
@@ -11223,6 +11241,20 @@
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths_measured.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/roads.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules; locos.csv road_name refers to it",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "ops/hart-ops/data/loco_models.csv",
    "to": "tools/ops/check_data.py",
    "label": "rules",
    "side": "check",

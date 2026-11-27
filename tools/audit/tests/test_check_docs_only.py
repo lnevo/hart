@@ -29,6 +29,16 @@ FIELD_MASTER = devices.field_path().relative_to(ROOT).as_posix()   # a CSV maste
 
 manifest = check_stamps.pm      # tools/pipeline/manifest.py, as the stamps load it
 
+
+def kind_of(paths: list[str]) -> str:
+    return changed_kind.verdict(paths).kind
+
+
+def checkout_line(root: Path, base: str) -> str:
+    """changed_kind --git's line for the checkout at `root`."""
+    v = changed_kind.checkout(root, base)
+    return v if isinstance(v, str) else v.line
+
 # check.sh's variables that pick a path; the tests start each run without them.
 PATH_VARS = ("CI", "FULL", "CHECK_ONLY", "CHECK_AUDIT", "CHECK_AUDIT_FAILS", "HART_TABLES", "PORTAL_CHECK",
              "CHECK_RECORD_TO", "CHECK_SKIP_FROM", "CHECK_SKIP_NOTE", "CHECK_STAMPS_DIR", "PYTHONPATH")
@@ -74,7 +84,7 @@ class Scratch:
         git(self.repo, "commit", "-qm", message)
 
     def verdict(self) -> str:
-        return changed_kind.checkout_verdict(self.repo, "origin/main")
+        return checkout_line(self.repo, "origin/main")
 
     def check_sh(self, **env: str) -> subprocess.CompletedProcess:
         base = {k: v for k, v in os.environ.items() if k not in PATH_VARS}
@@ -92,8 +102,10 @@ class Verdict(unittest.TestCase):
     def test_a_docs_only_branch_is_docs(self) -> None:
         self.s.write("wiki/a.md", "# A\n\nmore\n")
         self.s.write("docs/decisions/ADR-1.md", "# ADR\n")
+        self.s.write(".claude/skills/s/SKILL.md", "# S\n")
+        self.s.write(".claude/agents/a.md", "# A\n")
         self.s.commit("docs")
-        self.assertEqual("docs: 2 changed paths, all Markdown docs", self.s.verdict())
+        self.assertEqual("docs: 4 changed paths, all Markdown docs", self.s.verdict())
 
     def test_uncommitted_and_untracked_markdown_count(self) -> None:
         self.s.write("wiki/a.md", "# A, edited\n")
@@ -108,7 +120,7 @@ class Verdict(unittest.TestCase):
         # a Markdown file under docs/pipeline-map/ is data to the light rule, whose declarations this scratch repo
         # does not hold: full, with that reason
         for rel, text, why in (("tools/x.py", "x = 2\n", "tools/x.py is code"),
-                               (".claude/skills/s/SKILL.md", "# S\n", ".claude/skills/s/SKILL.md is under .claude/"),
+                               (".claude/commands/s.md", "# S\n", ".claude/commands/s.md is under .claude/"),
                                ("AGENTS.md", "# A2\n", "AGENTS.md is code or agent rules"),
                                ("docs/pipeline-map/notes.md", "# Map\n", "the declarations cannot be read")):
             with self.subTest(rel):
@@ -139,7 +151,7 @@ class Verdict(unittest.TestCase):
         for err in (FileNotFoundError("git"), subprocess.TimeoutExpired(["git"], 60)):
             with self.subTest(err=type(err).__name__):
                 with mock.patch.object(portal_inputs.subprocess, "run", side_effect=err):
-                    verdict = changed_kind.checkout_verdict(self.s.repo, "origin/main")
+                    verdict = checkout_line(self.s.repo, "origin/main")
                 self.assertTrue(verdict.startswith("unknown: git merge-base could not run"), verdict)
                 self.assertNotIn("no merge base", verdict)
 
@@ -154,12 +166,12 @@ class Verdict(unittest.TestCase):
 class Paths(unittest.TestCase):
     def test_dot_segments_are_not_docs(self) -> None:
         for p in ("wiki/../tools/x.md", "docs/./a.md", "../a.md", "wiki//a.md", "docs/pipeline-map/../a.md"):
-            self.assertEqual("full", changed_kind.kind([p]), p)
-        self.assertEqual("docs", changed_kind.kind(["./wiki/a.md"]))
+            self.assertEqual("full", kind_of([p]), p)
+        self.assertEqual("docs", kind_of(["./wiki/a.md"]))
 
     def test_describe_names_the_first_path_that_is_not_light_and_why(self) -> None:
         self.assertEqual("full: tools/x.py is code or configuration (.py)",
-                         changed_kind.describe(["wiki/a.md", "tools/x.py", "AGENTS.md"]))
+                         changed_kind.verdict(["wiki/a.md", "tools/x.py", "AGENTS.md"]).line)
 
 
 class Cli(unittest.TestCase):
@@ -394,6 +406,40 @@ class DocsUnitTests(unittest.TestCase):
         self.assertFalse(covers(("docs/x.json",)))
         self.assertTrue(covers(("docs/jmri/*/**/*",)))     # a wildcard segment in the middle
         self.assertTrue(covers(("wiki/*/notes/*.md",)))
+        self.assertTrue(covers(check_stamps.AGENT_DOCS))
+        self.assertTrue(covers((".claude/skills/*/SKILL.md",)))
+        self.assertFalse(covers(check_stamps.CODE))
+
+    def test_the_tests_that_read_agent_docs_run_on_the_docs_path(self) -> None:
+        # a skill or subagent Markdown change is docs (changed_kind.CLAUDE_DOCS): every test declared on those files
+        # runs on the docs path or is left out with its reason
+        readers = {k for k, v in check_stamps.EXTRA.items() if set(check_stamps.AGENT_DOCS) <= set(v)}
+        self.assertIn("unit-guards test_agent_docs_map", readers)
+        run = {stamp for stamp, *_ in docs_unit_tests.tests()}
+        self.assertEqual(set(), readers - run - set(docs_unit_tests.LEFT_OUT))
+
+    def test_every_claude_file_is_code_or_an_agent_doc(self) -> None:
+        # the unit suites declare .claude/ code whole (check_stamps.CLAUDE_CODE in CODE) and the agent docs only where
+        # read: each tracked file under .claude/ is in exactly one, and the agent docs are what changed_kind calls docs
+        files = subprocess.run(["git", "-C", str(ROOT), "ls-files", ".claude"], capture_output=True, text=True,
+                               check=True).stdout.splitlines()
+        self.assertTrue(files)
+        for path in files:
+            with self.subTest(path):
+                code = any(_glob(path, pat) for pat in check_stamps.CODE)
+                doc = any(_glob(path, pat) for pat in check_stamps.AGENT_DOCS)
+                self.assertNotEqual(code, doc, "in both or in neither of check_stamps.CLAUDE_CODE and AGENT_DOCS: "
+                                    "add its kind to CLAUDE_CODE, or name it so changed_kind.is_docs agrees")
+                self.assertEqual(doc, changed_kind.is_docs(path))
+
+    def test_a_skill_doc_reruns_no_whole_suite_and_a_hook_reruns_them_all(self) -> None:
+        units = {k: v for k, v in check_stamps.BY_KIND.items() if k.startswith("unit-")}
+        for doc in (".claude/skills/deploy/SKILL.md", ".claude/agents/panel-tracer.md"):
+            with self.subTest(doc):
+                self.assertEqual([], [k for k, pats in units.items() if any(_glob(doc, p) for p in pats)])
+        for code in (".claude/hooks/main_guard.py", ".claude/settings.json", ".claude/skills/dashboard/sampler.sh"):
+            with self.subTest(code):
+                self.assertEqual([], [k for k, pats in units.items() if not any(_glob(code, p) for p in pats)])
 
     def test_check_sh_lists_are_read(self) -> None:
         self.assertIn("test_build_layout_le", check_sh_list("LE_TESTS"))
@@ -416,38 +462,52 @@ START_MENU_PRESETS = [
 
 class Kinds(unittest.TestCase):
     def test_docs_only(self):
-        self.assertEqual(changed_kind.kind(["wiki/STATUS.md", "docs/INDEX.md", "tools/README.md", "www/notes.md"]), "docs")
+        self.assertEqual(kind_of(["wiki/STATUS.md", "docs/INDEX.md", "tools/README.md", "www/notes.md"]), "docs")
 
     def test_only_markdown_counts(self):
         # other file types under wiki/ or docs/ are read by full-run checks (tracked-policy, page builders)
-        self.assertEqual(changed_kind.kind(["wiki/img/a.png"]), "full")
-        self.assertEqual(changed_kind.kind(["docs/wiring/bench/x.csv"]), "full")
-        self.assertEqual(changed_kind.kind(["docs/x.json", "wiki/a.md"]), "full")
+        self.assertEqual(kind_of(["wiki/img/a.png"]), "full")
+        self.assertEqual(kind_of(["docs/wiring/bench/x.csv"]), "full")
+        self.assertEqual(kind_of(["docs/x.json", "wiki/a.md"]), "full")
 
     def test_mixed_is_full(self):
-        self.assertEqual(changed_kind.kind(["wiki/STATUS.md", "tools/check.sh"]), "full")
+        self.assertEqual(kind_of(["wiki/STATUS.md", "tools/check.sh"]), "full")
 
     def test_agent_rules_are_full(self):
-        for p in ("AGENTS.md", "CLAUDE.md", "cats/AGENTS.md", ".claude/skills/x/SKILL.md", ".claude/agents/a.md"):
-            self.assertEqual(changed_kind.kind([p]), "full", p)
+        for p in ("AGENTS.md", "CLAUDE.md", "cats/AGENTS.md", ".claude/skills/AGENTS.md"):
+            self.assertEqual(kind_of([p]), "full", p)
+
+    def test_skill_and_subagent_markdown_is_docs(self):
+        for p in (".claude/skills/x/SKILL.md", ".claude/skills/x/notes/a.md", ".claude/agents/a.md"):
+            self.assertEqual(kind_of([p]), "docs", p)
+        self.assertEqual(kind_of(["wiki/a.md", ".claude/skills/x/SKILL.md", ".claude/agents/a.md"]), "docs")
+
+    def test_the_rest_of_claude_is_full(self):
+        for p in (".claude/commands/done.md", ".claude/hooks/a.md", ".claude/hooks/main_guard.py", ".claude/a.md",
+                  ".claude/skills/x/run.sh", ".claude/skills/x/page.html", ".claude/agents/a.json",
+                  ".claude/settings.json", ".claude/skillsx/a.md", ".claude/skills/../hooks/a.md"):
+            self.assertEqual(kind_of([p]), "full", p)
+        v = changed_kind.verdict([".claude/commands/done.md"])
+        self.assertEqual("full: .claude/commands/done.md is under .claude/, where every file is code, JMRI or CATS "
+                         "data, or agent rules", v.line)
 
     def test_pipeline_map_is_full_without_a_base_to_compare(self):
-        self.assertEqual(changed_kind.kind([MAP]), "full")
-        self.assertEqual(changed_kind.kind(["docs/pipeline-map/x.md"]), "full")
+        self.assertEqual(kind_of([MAP]), "full")
+        self.assertEqual(kind_of(["docs/pipeline-map/x.md"]), "full")
 
     def test_python_is_full(self):
-        self.assertEqual(changed_kind.kind(["tools/ci/changed_kind.py"]), "full")
+        self.assertEqual(kind_of(["tools/ci/changed_kind.py"]), "full")
 
     def test_empty_is_full(self):
-        self.assertEqual(changed_kind.kind([]), "full")
-        self.assertEqual(changed_kind.kind(["", "\n"]), "full")
+        self.assertEqual(kind_of([]), "full")
+        self.assertEqual(kind_of(["", "\n"]), "full")
 
     def test_not_a_prefix_trick(self):
-        self.assertEqual(changed_kind.kind(["wikipedia/x.py"]), "full")
-        self.assertEqual(changed_kind.kind(["docsx/a.py"]), "full")
+        self.assertEqual(kind_of(["wikipedia/x.py"]), "full")
+        self.assertEqual(kind_of(["docsx/a.py"]), "full")
 
     def test_git_quoted_path_is_full(self):
-        self.assertEqual(changed_kind.kind(['"wiki/caf\\303\\251.md"']), "full")
+        self.assertEqual(kind_of(['"wiki/caf\\303\\251.md"']), "full")
 
     def test_cli(self):
         script = ROOT / "tools" / "ci" / "changed_kind.py"
@@ -491,10 +551,22 @@ class RealDeclarations(unittest.TestCase):
         self.assertEqual(want, list(self.d.static))
 
     def test_public_text_reads_everything_and_is_on_the_docs_path(self) -> None:
-        pats, ok = self.d.jobs["public-text"]
-        self.assertTrue(ok)
-        self.assertFalse(self.d.jobs["portal"][1])
-        self.assertFalse(self.d.jobs["mypy"][1])
+        self.assertTrue(self.d.jobs["public-text"].on_light_path)
+        self.assertIn("**/*", self.d.jobs["public-text"].patterns)
+        self.assertFalse(self.d.jobs["portal"].on_light_path)
+        self.assertFalse(self.d.jobs["mypy"].on_light_path)
+
+    def test_unit_declarations_match_as_the_stamps_match_them(self) -> None:
+        # the unit jobs' patterns go through manifest.covers here; on plain repo paths it must agree with the
+        # stamps' own glob rule (panel_stamps), on every declared pattern
+        paths = subprocess.run(["git", "-C", str(ROOT), "ls-files"], capture_output=True, text=True,
+                               check=True).stdout.splitlines()
+        paths += [".claude/skills/x/SKILL.md", "a.md", "x/y/z.md", "AGENTS.md.bak"]
+        plain = [p for p in paths if changed_kind.plain(p) == p]
+        pats = sorted({pat for v in self.d.units.values() for pat in v})
+        self.assertTrue(pats)
+        differ = [(pat, p) for pat in pats for p in plain if self.d.covers(pat, p) != _glob(p, pat)]
+        self.assertEqual([], differ[:5])
 
 
 class StandIns(unittest.TestCase):
@@ -502,8 +574,10 @@ class StandIns(unittest.TestCase):
 
     def decl(self, **over) -> changed_kind.Declarations:
         base = dict(
-            jobs={"lint": (("data/a.csv",), True), "panels-x": (("data/a.csv",), True), "public-text": (("**/*",), True),
-                  "portal": (("site/**",), False)},
+            jobs={"lint": changed_kind.JobDecl(("data/a.csv",), True),
+                  "panels-x": changed_kind.JobDecl(("data/a.csv",), True),
+                  "public-text": changed_kind.JobDecl(("**/*",), True),
+                  "portal": changed_kind.JobDecl(("site/**",), False)},
             static=("lint", "other"), units={"unit-guards": ("tools/**/*",)}, live=("ship",),
             nodes=[{"id": "data", "path": "data", "kind": "structured"},
                    {"id": "site", "path": "site", "kind": "output"},
@@ -513,7 +587,7 @@ class StandIns(unittest.TestCase):
                    {"id": "tools", "path": "tools", "kind": "unstructured"}],
             edges=[{"from": "make.py", "to": "built.csv"}, {"from": "data", "to": "make.py"},
                    {"from": "make.py", "to": "data", "side": "pointer"}],
-            covers=_covers, glob_match=_glob)
+            covers=_covers)
         base.update(over)
         return changed_kind.Declarations(**base)
 
@@ -592,6 +666,21 @@ class PipelineMap(unittest.TestCase):
                 v = self.edit(**changes)
                 self.assertEqual("full", v.kind)
                 self.assertIn(f"it changes {key}", v.why)
+
+    def test_a_map_whose_keys_do_not_change_is_full(self) -> None:
+        # the same JSON, laid out another way: not a presets change, so not the light case
+        v = self.edit()
+        self.assertNotEqual((ROOT / MAP).read_text(encoding="utf-8"), self.map.read_text(encoding="utf-8"))
+        self.assertEqual("full", v.kind)
+        self.assertIn("its keys are the base's, presets included", v.why)
+
+    def test_map_display_only(self) -> None:
+        base = json.dumps({"nodes": [], "presets": [1]})
+        self.assertIsNone(changed_kind.map_display_only(base, json.dumps({"nodes": [], "presets": [2]})))
+        self.assertIn("its keys are the base's", changed_kind.map_display_only(base, base) or "")
+        self.assertIn("it changes 'nodes'", changed_kind.map_display_only(base, json.dumps({"presets": [1]})) or "")
+        self.assertEqual("the map is gone", changed_kind.map_display_only(base, None))
+        self.assertEqual("a copy of the map is not a JSON object", changed_kind.map_display_only("[]", base))
 
     def test_no_base_copy_or_bad_json_is_full(self) -> None:
         self.assertIn("no base copy", changed_kind.verdict([MAP], root=self.repo, compare=None,
