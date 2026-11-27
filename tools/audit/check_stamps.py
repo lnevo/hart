@@ -98,7 +98,14 @@ STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or cache_dir("check-stamps", ROO
 # Folder groups. TOOLS is the code and its tests; LAYOUT the shared source and generated data every build reads.
 TOOLS = ("tools/**/*",)
 LAYOUT = ("jmri/**/*", "cats/**/*")
-REPO_FILES = ("Makefile", "AGENTS.md", "requirements.txt", ".github/**/*", ".githooks/**/*", ".claude/**/*",
+# Under .claude/: the code (settings, hooks, commands, the skills' scripts and pages) is in CODE. The skills' and
+# subagents' Markdown is AGENT_DOCS, declared only by the tests that read it, so a change to it alone is docs
+# (tools/ci/changed_kind.py CLAUDE_DOCS) and the docs path runs those tests (tools/ci/docs_unit_tests.py). A test
+# checks that every tracked file under .claude/ is in one of the two.
+CLAUDE_CODE = (".claude/*", ".claude/hooks/**/*", ".claude/commands/**/*", ".claude/skills/**/*.sh",
+               ".claude/skills/**/*.html")
+AGENT_DOCS = (".claude/skills/**/*.md", ".claude/agents/**/*.md")
+REPO_FILES = ("Makefile", "AGENTS.md", "requirements.txt", ".github/**/*", ".githooks/**/*", *CLAUDE_CODE,
               ".cursor/**/*", ".vscode/**/*")
 CODE = (*TOOLS, *LAYOUT, *REPO_FILES)       # what a unit job reads unless it says more
 SITE = ("www/**/*", "ops/**/*", "docs/**/*", "wiki/**/*", "media/**/*", "archive/**/*", "external/**/*")
@@ -150,27 +157,29 @@ EXTRA: dict[str, tuple[str, ...]] = {
     # of the map, docs/pipeline-map/pipeline_map.json)
     "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
                                       "docs/INDEX.md", "ops/hart-ops/AGENTS.md", ".gitmodules",
-                                      "ops/hart-ops/card_pipeline/**/*"),
+                                      "ops/hart-ops/card_pipeline/**/*", *AGENT_DOCS),
     # the map and the entry files outside CODE (www/scripts/deploy_hartrailroad.sh); its output roots are in CODE
     "unit-guards test_pipeline_map_coverage": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*",
-                                               "docs/INDEX.md", "ops/hart-ops/AGENTS.md"),
+                                               "docs/INDEX.md", "ops/hart-ops/AGENTS.md", *AGENT_DOCS),
     # the step manifest's loader checks domains, edge sides and local nodes against the map (manifest.repo())
     "unit-guards test_pipeline_manifest": ("docs/pipeline-map/pipeline_map.json",),
-    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json",),
+    # and its DocsUnitTests list every tracked file under .claude/ (CLAUDE_CODE or AGENT_DOCS, never neither)
+    "unit-guards test_check_docs_only": ("docs/pipeline-map/pipeline_map.json", ".claude/**/*"),
     # check_sh_problems takes the steps' scripts from manifest.repo(), which reads the map
     "unit-guards test_stamp_gate": ("docs/pipeline-map/pipeline_map.json",),
     # SkipConditionTest reads every tracked tests/test*.py (git ls-files), ops/ and www/ included: .py files only
     "unit-guards test_stamps_keys": ("**/*.py",),
     # the scanners' scan lists against the manifest: the map (manifest.repo()), the site build's sources and imports
     "unit-guards test_manifest_scans": ("docs/pipeline-map/pipeline_map.json", "www/scripts/**/*",
-                                        "ops/hart-ops/card_pipeline/**/*"),
+                                        "ops/hart-ops/card_pipeline/**/*", *AGENT_DOCS),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
-                                        "ops/hart-ops/AGENTS.md", ".gitmodules"),
+                                        "ops/hart-ops/AGENTS.md", ".gitmodules", *AGENT_DOCS),
     # it builds the committed map with both lanes, as test_agent_docs_map does
     "unit-guards test_map_lane": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
-                                  "ops/hart-ops/AGENTS.md", ".gitmodules"),
+                                  "ops/hart-ops/AGENTS.md", ".gitmodules", *AGENT_DOCS),
     # the agent-doc cells it checks are in the wiki (home.md, the decisions, pipelines, projects, STATUS.md)
-    "unit-guards test_agent_docs_cells": ("wiki/**/*",),
+    # and check_agent_docs.py's PATTERNS hold .claude/**, the skills and subagents included
+    "unit-guards test_agent_docs_cells": ("wiki/**/*", *AGENT_DOCS),
     # check_ai_speak.DEFAULT_GLOBS (a test keeps the two the same): it lists their folders and fails a glob that
     # matches nothing
     "unit-guards test_ai_speak": ("www/ai/*.html", "www/library/*.html", "www/behind/*.html", "www/guides/*.html",
@@ -200,7 +209,9 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-jmri test_speedmatch_site_export": ("docs/jmri/**/*", "www/ai/**/*"),
 }
 # "kind test" of EXTRA -> the -k filter tools/ci/docs_unit_tests.py runs it with: the one class that reads docs
-DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource."}  # RUNBOOK.md's log tags
+DOCS_K: dict[str, str] = {"unit-jmri test_speedmatch_distance": "RunnerSource.",
+                          "unit-guards test_check_docs_only": "DocsUnitTests.",
+                          "unit-guards test_agent_docs_map": "AgentFrontMatter."}  # RUNBOOK.md's log tags
 
 
 # "kind test" -> folders the job only lists (a bare exists-or-not look; no file in them is read), left out of the stamp.
