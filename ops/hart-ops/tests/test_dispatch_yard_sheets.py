@@ -6,11 +6,14 @@ import unittest
 from pathlib import Path
 
 from docx import Document
+from docx.oxml.ns import qn
+from docx.shared import Inches, Pt
 
 PUB = Path(__file__).resolve().parents[1] / "publications"
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PUB))
 
+import hart_pub_styles as styles  # noqa: E402
 import rebuild_dispatcher_train_list as ds  # noqa: E402
 import rebuild_yardmaster_sequence as ym  # noqa: E402
 
@@ -66,6 +69,71 @@ class DispatcherTrainList(unittest.TestCase):
         self.assertTrue(runs[0].bold)
         self.assertEqual(runs[0].text.strip(), ds.LINEUP[0][2])
         self.assertIn(ds.RULES, "\n".join(p.text for p in doc.paragraphs))
+
+
+def row_heights(table):
+    return [int(r._tr.trPr.find(qn("w:trHeight")).get(qn("w:val"))) for r in table.rows]
+
+
+def margins(cell):
+    return {e.tag.split("}")[1]: int(e.get(qn("w:w"))) for e in cell._tc.tcPr.find(qn("w:tcMar"))}
+
+
+class CrewSheetStyles(unittest.TestCase):
+    """The shared pieces in hart_pub_styles that DS-01 and YM-01 build their page 1 from."""
+
+    def test_section_heading_is_upper_case_accent_bold(self):
+        doc = Document()
+        styles.add_section_heading(doc, "1. Train Lineup", space_before=6, size_pt=10.5)
+        p = doc.paragraphs[-1]
+        self.assertEqual(p.text, "1. TRAIN LINEUP")
+        self.assertEqual((p.paragraph_format.space_before, p.paragraph_format.space_after), (Pt(6), Pt(2)))
+        run = p.runs[0]
+        self.assertEqual((run.bold, run.font.size, run.font.color.rgb), (True, Pt(10.5), styles.ACCENT))
+
+    def test_soft_pad_is_an_empty_spaced_paragraph(self):
+        doc = Document()
+        styles.add_soft_pad(doc, before=4, after=2)
+        p = doc.paragraphs[-1]
+        self.assertEqual((p.text, p.paragraph_format.space_before, p.paragraph_format.space_after), ("", Pt(4), Pt(2)))
+
+    def test_header_paint_fix_rows_and_widths(self):
+        table = Document().add_table(rows=3, cols=2)
+        styles.fill_header_row(table.rows[0], ["A", "B"])
+        styles.paint_header_row(table.rows[0], size_pt=8.5)
+        styles.fix_table_rows(table, header_pt=16, body_pt=23, margin=32, side_margin=40)
+        styles.set_column_widths(table, [Inches(0.3), Inches(1.0)])
+        run = table.rows[0].cells[0].paragraphs[0].runs[0]
+        self.assertEqual((run.bold, run.font.size, run.font.color.rgb), (True, Pt(8.5), styles.WHITE))
+        self.assertEqual(row_heights(table), [320, 460, 460])
+        self.assertEqual(margins(table.rows[2].cells[1]), {"top": 32, "left": 40, "bottom": 32, "right": 40})
+        self.assertEqual([c.width for c in table.rows[1].cells], [Inches(0.3), Inches(1.0)])
+
+
+class SheetLayout(unittest.TestCase):
+    """Row heights and cell margins as the rebuilt documents carry them."""
+
+    def build(self, module):
+        with tempfile.TemporaryDirectory() as tmp:
+            return Document(str(module.rebuild(Path(tmp) / "out.docx")))
+
+    def test_lineup_rows_and_margins(self):
+        lineup = self.build(ds).tables[0]
+        self.assertEqual(row_heights(lineup), [320] + [460] * len(ds.LINEUP))
+        self.assertEqual(margins(lineup.rows[1].cells[0]), {"top": 32, "left": 40, "bottom": 32, "right": 40})
+        header = lineup.rows[0].cells[0].paragraphs[0].runs
+        self.assertTrue(all(r.font.size == Pt(8.5) for r in header if r.text))
+
+    def test_sequence_and_legend_rows_margins_and_swatches(self):
+        doc = self.build(ym)
+        sequence, legend = doc.tables[0], doc.tables[1]
+        self.assertEqual(row_heights(sequence), [340] + [560] * len(ym.SEQUENCE))
+        self.assertEqual(row_heights(legend), [320] + [360] * len(ym.BLOCK_LEGEND))
+        self.assertEqual(margins(legend.rows[1].cells[0]), {"top": 28, "left": 45, "bottom": 28, "right": 45})
+        for row, (label, fill, _t, dests, block) in zip(legend.rows[1:], ym.BLOCK_LEGEND):
+            self.assertEqual([c.text for c in row.cells], [label, dests, block])
+            self.assertEqual(row.cells[0]._tc.tcPr.findall(qn("w:shd"))[-1].get(qn("w:fill")), fill)
+            self.assertTrue(all(r.font.size == Pt(9) for r in row.cells[0].paragraphs[0].runs))
 
 
 @unittest.skipUnless((CALIBRI / "Calibri.ttf").exists(), "Calibri not installed (Microsoft Office)")

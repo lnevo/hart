@@ -55,7 +55,6 @@
  "ops/hart-ops/card_pipeline/waybill_data.py": 4,
  "ops/hart-ops/card_pipeline/waybill_sheet.py": 1,
  "ops/hart-ops/publications/rebuild_crew_instructions.py": 1,
- "ops/hart-ops/publications/rebuild_local_station_maps.py": 3,
  "ops/hart-ops/publications/rebuild_station_map_full.py": 1,
  "ops/hart-ops/tests/test_cars_merge.py": 14,
  "tools/anyrail/tests/test_levels_page.py": 1,

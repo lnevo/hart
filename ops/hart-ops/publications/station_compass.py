@@ -1,7 +1,12 @@
-"""The compass rose of the station maps (SM-01 to SM-05), in the linear5 panel style.
+"""The compass roses of the station maps.
 
-One drawing serves every orientation: ``north`` names where the gold needle points, and the
-cardinal letters follow it while staying upright.
+``compass_rose`` is the rose of SM-01 to SM-05, in the linear5 panel style. One drawing serves
+every orientation: ``north`` names where the gold needle points, and the cardinal letters
+follow it while staying upright.
+
+``draw_sheet_compass`` draws the two ring compasses of the sheets in ops/station_maps/scripts
+straight onto their canvas: ``"kite"`` (Barn) and ``"split"`` (Shenango, which turns with the
+plan).
 """
 
 from __future__ import annotations
@@ -44,8 +49,8 @@ ORIENTATIONS: dict[str, Orientation] = {
 def _orientation(north: str) -> Orientation:
     try:
         return ORIENTATIONS[north]
-    except KeyError:
-        raise ValueError(f"compass north must be one of {sorted(ORIENTATIONS)}, not {north!r}") from None
+    except KeyError as exc:
+        raise ValueError(f"compass north must be one of {sorted(ORIENTATIONS)}, not {north!r}") from exc
 
 
 def _needle(
@@ -117,3 +122,85 @@ def paste_compass(
     """Paste the rose centred on (cx, cy), its letters in a font from ``load_font``."""
     rose = compass_rose(size, north, load_font)
     base.paste(rose, (int(cx - size / 2), int(cy - size / 2)), rose)
+
+
+# The ring compasses of ops/station_maps/scripts (draw_sheet_compass).
+SheetCompassStyle = Literal["kite", "split"]
+
+SHEET_GOLD = (201, 154, 40)
+KITE_RING = (40, 70, 110)
+KITE_SOUTH = (70, 110, 160)
+KITE_LETTERS = (16, 20, 24)
+KITE_LETTER_PX = 14
+SPLIT_RING = (40, 58, 88)
+SPLIT_GOLD_D = (168, 126, 28)
+SPLIT_SOUTH_D = (60, 82, 112)
+SPLIT_SOUTH_L = (150, 165, 185)
+SPLIT_LETTER_PX = 28
+SPLIT_NEEDLE = 58  # needle length in px, whatever the ring radius
+
+
+def _kite_compass(draw: ImageDraw.ImageDraw, cx: float, cy: float, r: float, letter_font: ImageFont.ImageFont) -> None:
+    """Two rings, a gold kite needle north (up) and a blue one south; letters outside the ring."""
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=KITE_RING, width=3)
+    draw.ellipse([cx - r + 8, cy - r + 8, cx + r - 8, cy + r - 8], outline=KITE_RING, width=2)
+    needle = r - 14
+    draw.polygon([(cx, cy - needle), (cx + 9, cy + 4), (cx, cy + 8), (cx - 9, cy + 4)], fill=SHEET_GOLD)
+    draw.polygon([(cx, cy + needle - 4), (cx + 8, cy - 2), (cx, cy + 6), (cx - 8, cy - 2)], fill=KITE_SOUTH)
+    draw.text((cx, cy - r - 5), "N", font=letter_font, fill=KITE_LETTERS, anchor="ms")
+    draw.text((cx, cy + r + 5), "S", font=letter_font, fill=KITE_LETTERS, anchor="mt")
+    draw.text((cx - r - 7, cy), "W", font=letter_font, fill=KITE_LETTERS, anchor="rm")
+    draw.text((cx + r + 7, cy), "E", font=letter_font, fill=KITE_LETTERS, anchor="lm")
+
+
+def _split_compass(
+    draw: ImageDraw.ImageDraw, cx: float, cy: float, r: float, turned: bool, letter_font: ImageFont.ImageFont
+) -> None:
+    """Two rings with an east-west bar and diagonal ticks, two-tone needles and a pivot.
+
+    ``turned`` points north down, with the letters kept upright (S on top).
+    """
+    k = -1 if turned else 1
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=SPLIT_RING, width=4)
+    draw.ellipse([cx - r + 12, cy - r + 12, cx + r - 12, cy + r - 12], outline=SPLIT_RING, width=2)
+    draw.line([(cx - r + 12, cy), (cx + r - 12, cy)], fill=SPLIT_RING, width=2)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            draw.line([(cx + sx * (r - 12) * 0.707, cy + sy * (r - 12) * 0.707),
+                       (cx + sx * (r - 1) * 0.707, cy + sy * (r - 1) * 0.707)], fill=SPLIT_RING, width=2)
+    n = SPLIT_NEEDLE
+    draw.polygon([(cx, cy - k * n), (cx + 11, cy), (cx, cy + k * 2), (cx - 11, cy)], fill=SHEET_GOLD)
+    draw.polygon([(cx, cy - k * n), (cx - 11, cy), (cx, cy + k * 2)], fill=SPLIT_GOLD_D)
+    draw.polygon([(cx, cy + k * n), (cx + 11, cy), (cx, cy - k * 2), (cx - 11, cy)], fill=SPLIT_SOUTH_D)
+    draw.polygon([(cx, cy + k * n), (cx - 11, cy), (cx, cy - k * 2)], fill=SPLIT_SOUTH_L)
+    draw.ellipse([cx - 5, cy - 5, cx + 5, cy + 5], fill=SPLIT_RING)
+    top, bot, left, right = ("S", "N", "E", "W") if turned else ("N", "S", "W", "E")
+    off = r + 28
+    draw.text((cx, cy - off), top, font=letter_font, fill=SPLIT_RING, anchor="mm")
+    draw.text((cx, cy + off), bot, font=letter_font, fill=SPLIT_RING, anchor="mm")
+    draw.text((cx - off, cy), left, font=letter_font, fill=SPLIT_RING, anchor="mm")
+    draw.text((cx + off, cy), right, font=letter_font, fill=SPLIT_RING, anchor="mm")
+
+
+def draw_sheet_compass(
+    draw: ImageDraw.ImageDraw,
+    cx: float,
+    cy: float,
+    r: float,
+    *,
+    style: SheetCompassStyle,
+    load_font: FontLoader,
+    turned: bool = False,
+) -> None:
+    """Draw a ring compass of radius ``r`` centred on (cx, cy), its letters in Arial Bold from ``load_font``.
+
+    ``turned`` (north down) exists for the ``"split"`` style only.
+    """
+    if style == "kite":
+        if turned:
+            raise ValueError("the kite compass has no turned form; north always points up")
+        _kite_compass(draw, cx, cy, r, load_font(ARIAL_BOLD, KITE_LETTER_PX))
+    elif style == "split":
+        _split_compass(draw, cx, cy, r, turned, load_font(ARIAL_BOLD, SPLIT_LETTER_PX))
+    else:
+        raise ValueError(f"sheet compass style must be 'kite' or 'split', not {style!r}")

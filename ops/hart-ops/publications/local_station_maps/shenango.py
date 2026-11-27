@@ -4,7 +4,7 @@
 End's (kit.DOT_R): the mid point of 113 is 3/8″ from each rail and Princess ↔ 115 is 3/4″.
 K-1 and K-2 end at an open octagon, missing the side between 114 and 115.
 
-meta['rotate180'] turns the track plan 180° about its centre; labels stay upright and the
+``rotate180`` turns the track plan 180° about its centre; labels stay upright and the
 compass is flipped.
 """
 
@@ -216,11 +216,11 @@ def _draw_switches_and_octagon(plan: _Plan, g: _Layout, fonts: _Fonts) -> None:
     plan.badge((g.t114[0] - 48, g.y2 + 28), "37", fonts.sw)
 
 
-def draw_shenango(meta: dict, hooks: Hooks) -> Image.Image:
-    """The Shenango sheet, upright or turned 180° (meta['rotate180'])."""
+def draw_shenango(title: str, hooks: Hooks, *, rotate180: bool = False) -> Image.Image:
+    """The Shenango sheet titled ``title``, upright or turned 180° (``rotate180``)."""
     img, draw = hooks.canvas(SHEET_W, SHEET_H)
-    rot = bool(meta.get("rotate180"))
-    _title(draw, SHEET_W // 2, meta["title"], hooks)
+    rot = rotate180
+    _title(draw, SHEET_W // 2, title, hooks)
     fonts = _Fonts(
         track=hooks.font(ARIAL_BOLD, 22),
         note=hooks.font(GEORGIA, 18),

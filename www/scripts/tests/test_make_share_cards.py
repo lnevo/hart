@@ -9,6 +9,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import make_share_cards as gen  # noqa: E402
 import share_cards  # noqa: E402
+from share_card_recipes import CardError  # noqa: E402
 
 
 class Recipes(unittest.TestCase):
@@ -47,15 +48,15 @@ class Drawing(unittest.TestCase):
         self.assertEqual(out.size, (221, 64))
 
     def test_station_crop_stops_when_a_heading_reaches_the_window_top(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(CardError):
             gen._crop_drawing(self._sheet(52, 120), (0, 50, 400, 250), "sheet")
 
     def test_station_crop_stops_when_the_drawing_runs_past_the_window_bottom(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(CardError):
             gen._crop_drawing(self._sheet(120, 248), (0, 50, 400, 250), "sheet")
 
     def test_station_crop_stops_on_a_blank_window(self):
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(CardError):
             gen._crop_drawing(self._sheet(), (0, 50, 400, 250), "sheet")
 
     def test_route_map_names_every_station_in_the_plan(self):
@@ -116,7 +117,7 @@ class ExamRunTitleTest(unittest.TestCase):
 
     def test_title_capture_stops_when_the_head_tag_changes(self):
         with mock.patch.object(gen.Path, "read_text", return_value="<html><head lang=en></head></html>"):
-            with self.assertRaises(SystemExit):
+            with self.assertRaises(CardError):
                 gen.link_exam_run_title()
 
 

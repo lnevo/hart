@@ -296,9 +296,6 @@
  "www/scripts/png_stamp.py": {
   "lost-cause": 2
  },
- "www/scripts/share_card_recipes/composites.py": {
-  "import-exit": 3
- },
  "www/scripts/site_views.py": {
   "lost-cause": 2
  },

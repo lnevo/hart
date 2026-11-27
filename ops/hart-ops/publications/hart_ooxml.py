@@ -1,7 +1,7 @@
 """OOXML cell and table helpers shared by the card pipeline and the publications.
 
-python-docx has no API for cell shading, exact cell widths in twips, cell margins or nil table borders, so these
-write the WordprocessingML elements directly. card_pipeline reaches this module through car_paths, which puts
+python-docx has no API for cell shading, exact cell widths in twips, cell margins, exact row heights or nil table
+borders, so these write the WordprocessingML elements directly. card_pipeline reaches this module through car_paths, which puts
 publications/ on sys.path.
 """
 from __future__ import annotations
@@ -9,7 +9,7 @@ from __future__ import annotations
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.oxml.table import CT_TcPr
-from docx.table import Table, _Cell
+from docx.table import Table, _Cell, _Row
 
 
 def tc_pr(cell: _Cell) -> CT_TcPr:
@@ -60,6 +60,18 @@ def set_cell_margins(cell: _Cell, *, top: int = 0, left: int = 0, bottom: int = 
         s.set(qn("w:type"), "dxa")
         el.append(s)
     pr.append(el)
+
+
+def set_row_height(row: _Row, height_pt: float) -> None:
+    """Replace the row's w:trHeight with an exact height in points (whole twips, rounded down)."""
+    tr_pr = row._tr.get_or_add_trPr()
+    old = tr_pr.find(qn("w:trHeight"))
+    if old is not None:
+        tr_pr.remove(old)
+    el = OxmlElement("w:trHeight")
+    el.set(qn("w:val"), str(int(height_pt * 20)))
+    el.set(qn("w:hRule"), "exact")
+    tr_pr.append(el)
 
 
 def clear_table_borders(table: Table) -> None:

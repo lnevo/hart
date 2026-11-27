@@ -16,16 +16,21 @@ from __future__ import annotations
 import sys
 from functools import partial
 from pathlib import Path
+from typing import Literal, NamedTuple
 
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sheet_kit  # noqa: E402  (sibling module)
+from sheet_kit import Corner, Point  # noqa: E402
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
 ROOT = paths.REPO_ROOT
+sys.path.insert(0, str(ROOT / sheet_kit.PUBLICATIONS_REL))
+import station_compass  # noqa: E402
+
 OUT_CATS = ROOT / "ops/station_maps/maps/Neville_Island_Station_Map_Barn_0.png"
 HOPS = ROOT / sheet_kit.HOPS_REL
 DOCX_NAME = "Neville_Island_Station_Map_Barn.docx"
@@ -39,9 +44,6 @@ TRACK, INK, BADGE, BADGE_INK = sheet_kit.TRACK, sheet_kit.INK, sheet_kit.BADGE, 
 DOT_R = 16
 # Clear air between the frog and the pill (103/111 sit off the circle, not on it).
 BADGE_GAP = 18
-COMPASS_RING = (40, 70, 110)
-COMPASS_GOLD = sheet_kit.COMPASS_GOLD
-COMPASS_N = (70, 110, 160)
 
 # Shared slope: down-right (screen y grows down). Reverse is up-left.
 # Matches East End 111 / 110–107.
@@ -65,7 +67,7 @@ SW9 = (4.55 * IN, Y_EH3)
 _along = partial(sheet_kit.along, run=RUN, rise=RISE)
 
 
-def _mid(a, b):
+def _mid(a: Point, b: Point) -> Point:
     return ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
 
 
@@ -76,97 +78,110 @@ EH1_JOIN = _along(SW13, Y_EH1 - Y_BARN)
 EH2_JOIN = _along(SW9, Y_EH2 - Y_EH3)
 
 
+class Track(NamedTuple):
+    """One straight piece of track, drawn with round caps."""
+
+    a: Point
+    b: Point
+    width: int
+
+
+class Badge(NamedTuple):
+    """A switch number pill beside its frog dot."""
+
+    frog: Point
+    number: str
+    corner: Corner
+
+
+class Label(NamedTuple):
+    """Text at (x, y) on the sheet, in the font named by ``size``."""
+
+    text: str
+    x: float
+    y: float
+    size: Literal["track", "dest"]
+    anchor: str
+
+
+# Drawn in this order: the horizontals, then the one slope (7 xover, 13→EH-1, EH-2→9).
+TRACKS = (
+    Track((X_WEST, Y_BARN), (X_EAST, Y_BARN), 6),
+    Track((X_WEST, Y_MAIN), (X_EAST, Y_MAIN), 6),
+    Track((X_EH, Y_EH1), EH1_JOIN, 5),
+    Track((X_EH, Y_EH2), EH2_JOIN, 5),
+    Track((X_EH, Y_EH3), SW11, 5),
+    Track(SW7_TOP, SW7_BOT, 6),
+    Track(SW13, EH1_JOIN, 5),
+    Track(EH2_JOIN, SW9, 5),
+)
+ARROWS: tuple[tuple[Point, Literal["left", "right"]], ...] = (
+    ((X_WEST, Y_BARN), "left"),
+    ((X_WEST, Y_MAIN), "left"),
+    ((X_EAST, Y_BARN), "right"),
+    ((X_EAST, Y_MAIN), "right"),
+)
+FROGS = (SW7_TOP, SW7_MID, SW7_BOT, SW9, SW11, SW13)
+# 7 like East End 111 (west of the xover); 9/11 like 103 (NE); 13 like 110 (NW).
+BADGES = (
+    Badge(SW7_MID, "7", "w"),
+    Badge(SW9, "9", "ne"),
+    Badge(SW11, "11", "ne"),
+    Badge(SW13, "13", "nw"),
+)
+LABEL_GAP = 10  # track names sit this far above their rail
+DEST_RISE = 36  # "to ..." names sit this far above their rail
+X_LABEL_MID = 4.55 * IN
+X_LABEL_EH = 2.35 * IN
+X_DEST_EAST = X_EAST - 0.08 * IN
+LABELS = (
+    Label("Scale", SW7_TOP[0] - 0.55 * IN, Y_BARN - LABEL_GAP, "track", "ms"),
+    Label("Barn", X_LABEL_MID, Y_BARN - LABEL_GAP, "track", "ms"),
+    Label("Main East", X_LABEL_MID, Y_MAIN - LABEL_GAP, "track", "ms"),
+    Label("EH-1", X_LABEL_EH, Y_EH1 - LABEL_GAP, "track", "ms"),
+    Label("EH-2", X_LABEL_EH, Y_EH2 - LABEL_GAP, "track", "ms"),
+    Label("EH-3", X_LABEL_EH, Y_EH3 - LABEL_GAP, "track", "ms"),
+    Label("to Plane", (X_WEST + SW7_TOP[0]) / 2, (Y_BARN + Y_MAIN) / 2, "dest", "mm"),
+    Label("to South Yard", X_DEST_EAST, Y_BARN - DEST_RISE, "dest", "rm"),
+    Label("to East End", X_DEST_EAST, Y_MAIN - DEST_RISE, "dest", "rm"),
+)
+TITLE = "BARN"
+TITLE_Y = 37  # SM titles sit at y≈16 with 42 px ink (Arial Black 56)
+COMPASS = (0.82 * IN, 4.52 * IN, 50)  # centre x, centre y, ring radius
+
+
 _font = sheet_kit.arial
 _line = partial(sheet_kit.capped_line, fill=TRACK)
-
-
 _arrow = partial(sheet_kit.arrow, fill=TRACK)
-
-
 _dot = partial(sheet_kit.dot, r=DOT_R, fill=TRACK)
 _badge_near = partial(sheet_kit.badge_near, dot_r=DOT_R, gap=BADGE_GAP, fill=BADGE, ink=BADGE_INK)
 
 
-def _compass(d, cx, cy, r=58):
-    d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=COMPASS_RING, width=3)
-    d.ellipse(
-        [cx - r + 8, cy - r + 8, cx + r - 8, cy + r - 8],
-        outline=COMPASS_RING,
-        width=2,
-    )
-    needle = r - 14
-    d.polygon(
-        [(cx, cy - needle), (cx + 9, cy + 4), (cx, cy + 8), (cx - 9, cy + 4)],
-        fill=COMPASS_GOLD,
-    )
-    d.polygon(
-        [(cx, cy + needle - 4), (cx + 8, cy - 2), (cx, cy + 6), (cx - 8, cy - 2)],
-        fill=COMPASS_N,
-    )
-    f = _font(14, bold=True)
-    d.text((cx, cy - r - 5), "N", font=f, fill=INK, anchor="ms")
-    d.text((cx, cy + r + 5), "S", font=f, fill=INK, anchor="mt")
-    d.text((cx - r - 7, cy), "W", font=f, fill=INK, anchor="rm")
-    d.text((cx + r + 7, cy), "E", font=f, fill=INK, anchor="lm")
+def draw_plan(d: ImageDraw.ImageDraw) -> None:
+    """Title, track, frogs, switch pills, labels and compass onto ``d``."""
+    f_title = _font(56, black=True)
+    fonts = {"track": _font(22, bold=True), "dest": _font(16)}
+    f_num = _font(20, bold=True)
+
+    d.text((W / 2, TITLE_Y), TITLE, font=f_title, fill=INK, anchor="mm")
+    for track in TRACKS:
+        _line(d, track.a, track.b, track.width)
+    for tip, direction in ARROWS:
+        _arrow(d, tip, direction)
+    for pt in FROGS:
+        _dot(d, pt)
+    for badge in BADGES:
+        _badge_near(d, badge.frog, badge.number, f_num, badge.corner)
+    for label in LABELS:
+        d.text((label.x, label.y), label.text, font=fonts[label.size], fill=INK, anchor=label.anchor)
+    cx, cy, r = COMPASS
+    station_compass.draw_sheet_compass(d, cx, cy, r, style="kite", load_font=sheet_kit.load_font)
 
 
 def render(out: Path) -> None:
+    """Draw the Barn sheet and write it to ``out`` as PNG."""
     img = Image.new("RGB", (W, H), (255, 255, 255))
-    d = ImageDraw.Draw(img)
-    f_title = _font(56, black=True)
-    f_track = _font(22, bold=True)
-    f_dest = _font(16)
-    f_num = _font(20, bold=True)
-
-    # Official SM titles sit at y≈16 with 42 px ink (Arial Black 56).
-    d.text((W / 2, 37), "BARN", font=f_title, fill=INK, anchor="mm")
-
-    # Horizontals
-    _line(d, (X_WEST, Y_BARN), (X_EAST, Y_BARN), 6)
-    _line(d, (X_WEST, Y_MAIN), (X_EAST, Y_MAIN), 6)
-    _line(d, (X_EH, Y_EH1), EH1_JOIN, 5)
-    _line(d, (X_EH, Y_EH2), EH2_JOIN, 5)
-    _line(d, (X_EH, Y_EH3), SW11, 5)
-
-    # One slope: 7 xover, 13→EH-1, EH-2→9
-    _line(d, SW7_TOP, SW7_BOT, 6)
-    _line(d, SW13, EH1_JOIN, 5)
-    _line(d, EH2_JOIN, SW9, 5)
-
-    _arrow(d, (X_WEST, Y_BARN), "left")
-    _arrow(d, (X_WEST, Y_MAIN), "left")
-    _arrow(d, (X_EAST, Y_BARN), "right")
-    _arrow(d, (X_EAST, Y_MAIN), "right")
-
-    for pt in (SW7_TOP, SW7_MID, SW7_BOT, SW9, SW11, SW13):
-        _dot(d, pt)
-
-    # 7 like East End 111 (west of the xover); 9/11 like 103 (NE); 13 like 110 (NW).
-    _badge_near(d, SW7_MID, "7", f_num, "w")
-    _badge_near(d, SW9, "9", f_num, "ne")
-    _badge_near(d, SW11, "11", f_num, "ne")
-    _badge_near(d, SW13, "13", f_num, "nw")
-
-    gap = 10
-    d.text((SW7_TOP[0] - 0.55 * IN, Y_BARN - gap), "Scale", font=f_track, fill=INK, anchor="ms")
-    d.text((4.55 * IN, Y_BARN - gap), "Barn", font=f_track, fill=INK, anchor="ms")
-    d.text((4.55 * IN, Y_MAIN - gap), "Main East", font=f_track, fill=INK, anchor="ms")
-    d.text((2.35 * IN, Y_EH1 - gap), "EH-1", font=f_track, fill=INK, anchor="ms")
-    d.text((2.35 * IN, Y_EH2 - gap), "EH-2", font=f_track, fill=INK, anchor="ms")
-    d.text((2.35 * IN, Y_EH3 - gap), "EH-3", font=f_track, fill=INK, anchor="ms")
-
-    d.text(
-        ((X_WEST + SW7_TOP[0]) / 2, (Y_BARN + Y_MAIN) / 2),
-        "to Plane",
-        font=f_dest,
-        fill=INK,
-        anchor="mm",
-    )
-    d.text((X_EAST - 0.08 * IN, Y_BARN - 36), "to South Yard", font=f_dest, fill=INK, anchor="rm")
-    d.text((X_EAST - 0.08 * IN, Y_MAIN - 36), "to East End", font=f_dest, fill=INK, anchor="rm")
-
-    _compass(d, 0.82 * IN, 4.52 * IN, r=50)
-
+    draw_plan(ImageDraw.Draw(img))
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG")
     print(f"wrote {out} ({W}x{H})")
