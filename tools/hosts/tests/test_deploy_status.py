@@ -65,8 +65,9 @@ class DeployStatus(unittest.TestCase):
         self.assertIn("not in this checkout", done.stdout)
 
     def test_dirty_warning_survives_a_stamp_past_the_pipe_buffer(self) -> None:
-        # With more than a pipe buffer (64 KiB) after dirty=yes, a printf piped into
-        # grep -q is cut off by SIGPIPE once grep matches, and pipefail drops the warning.
+        # grep -q exits on its first match. Piped from a writer that writes again after
+        # that (more than a pipe buffer, 64 KiB, after dirty=yes), the writer's next write
+        # takes SIGPIPE and pipefail fails the pipeline, which drops the warning.
         pad = "pad=" + "x" * 80_000 + "\n"
         self.fake_ssh(self.stamp("0" * 40, dirty="yes") + pad)
         done = self.run_status("--pi")
