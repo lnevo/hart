@@ -25,9 +25,6 @@
  "jmri/layouts/hart/scripts/jmri_cmd_watcher.py": {
   "exec-parts": 1
  },
- "jmri/layouts/hart/scripts/lcc_turnout_contract.py": {
-  "dated-note": 1
- },
  "jmri/layouts/hart/scripts/panelpro_smoke_test.py": {
   "dated-note": 2
  },
