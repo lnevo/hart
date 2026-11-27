@@ -1261,6 +1261,33 @@
    "gen": "manifest"
   },
   {
+   "id": "jmri/layouts/hart/scripts/audit_panel_base.py",
+   "label": "audit_panel_base.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of audit_panel_contracts.py: the Audit record its checks fill and the XML text helpers.",
+   "path": "jmri/layouts/hart/scripts/audit_panel_base.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/audit_panel_tables.py",
+   "label": "audit_panel_tables.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of audit_panel_contracts.py: the checks of the tables' own settings (MQTT sensors, turnout feedback and lookups, LCC aliases, occupancy bindings, continuing legs, labels).",
+   "path": "jmri/layouts/hart/scripts/audit_panel_tables.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/audit_panel_graph.py",
+   "label": "audit_panel_graph.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of audit_panel_contracts.py: the checks of what Discover and Stage 1 store (SML, Entry/Exit, the Dispatcher graph and traininfo) and their expected counts.",
+   "path": "jmri/layouts/hart/scripts/audit_panel_graph.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py",
    "label": "disable_digicon_sml_in_tables.py",
    "kind": "generator",
@@ -12636,8 +12663,33 @@
    "label": "imports"
   },
   {
-   "from": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
+   "from": "jmri/layouts/hart/scripts/audit_panel_base.py",
    "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/audit_panel_base.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_tables.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/audit_panel_base.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_graph.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/audit_panel_tables.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/audit_panel_graph.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_tables.py",
    "label": "imports"
   },
   {
@@ -12725,7 +12777,7 @@
   },
   {
    "from": "jmri/layouts/hart/scripts/nx_contract.py",
-   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_graph.py",
    "label": "imports"
   },
   {

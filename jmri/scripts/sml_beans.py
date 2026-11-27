@@ -8,6 +8,7 @@
 
 import jmri
 import re
+from collections import namedtuple
 
 TOPIC_PREFIX = "track/signalhead/"
 MAST_TOPIC_PREFIX = "track/signalmast/"
@@ -29,6 +30,10 @@ _LCOS_SIGNAL_UID_MIN = 32
 _LCOS_SIGNAL_UID_MAX = 47
 
 _HEAD_IN_MAST = re.compile(r"\(IH\d+\)")
+
+# One destination of a source mast's Signal Mast Logic: its system name, the bean, and
+# whether its Enabled box is checked.
+DestState = namedtuple("DestState", "name dest enabled")
 
 _ASPECT_TO_APPEARANCE = {
     "stop": "Red",
@@ -180,6 +185,14 @@ def _bean_label(bean):
     return _ascii(bean)
 
 
+def _logic_label(sml):
+    """The source mast of a Signal Mast Logic, for failure lines."""
+    try:
+        return _bean_label(sml.getSourceMast())
+    except Exception:
+        return _ascii(sml)
+
+
 class SmlBeans(object):
     """DigiconMqttSml's bean roster: the Digicon masts, their heads and SML sources."""
 
@@ -205,6 +218,80 @@ class SmlBeans(object):
         self._mast_sml_was_enabled = state
         self._source_field_owned = owned
         self._dest_enable_maps = dest_maps
+
+    def _mast_for_head(self, head):
+        if head is None:
+            return None
+        return self._head_to_mast.get(head.getSystemName())
+
+    def _sml_for_mast(self, mast):
+        if mast is None:
+            return None
+        return self._sml_by_mast.get(mast)
+
+    def _dest_states(self, sml):
+        """Every destination of one source logic whose Enabled box could be read (DestState).
+
+        A destination, or a destination list, that cannot be read is left out and printed
+        once (_dest_read_failed): the callers then count it as off, so the field owns it.
+        """
+        out = []
+        if sml is None:
+            return out
+        try:
+            dests = sml.getDestinationList()
+            if dests is None or dests.isEmpty():
+                return out
+            it = dests.iterator()
+            while it.hasNext():
+                dest = it.next()
+                try:
+                    out.append(DestState(dest.getSystemName(), dest, bool(sml.isEnabled(dest))))
+                except Exception as exc:
+                    self._dest_read_failed(sml, _bean_label(dest), exc)
+        except Exception as exc:
+            self._dest_read_failed(sml, "its destination list", exc)
+        return out
+
+    def _dest_read_failed(self, sml, what, exc):
+        """Print a Signal Mast Logic read that failed, once per source and destination: the
+        reads run on every property change."""
+        key = (_logic_label(sml), what)
+        seen = getattr(self, "_dest_read_failures", None)
+        if seen is None:
+            seen = set()
+            self._dest_read_failures = seen
+        if key in seen:
+            return
+        seen.add(key)
+        print(
+            "mqtt_signalhead: cannot read SML %s -> %s (left out, counted as off): %s"
+            % (key[0], what, _ascii(exc))
+        )
+
+    def _enabled_dest_count(self, mast):
+        return len([d for d in self._dest_states(self._sml_for_mast(mast)) if d.enabled])
+
+    def _mast_logic_enabled(self, mast):
+        """True if Digicon source mast has any destination Enabled in the SML table."""
+        return self._enabled_dest_count(mast) > 0
+
+    def _dest_enable_map(self, sml):
+        """dest systemName -> isEnabled for one source logic."""
+        return dict((d.name, d.enabled) for d in self._dest_states(sml))
+
+    def _mqtt_heads_on_mast(self, mast):
+        heads = []
+        hm = _head_manager()
+        if hm is None or mast is None:
+            return heads
+        for sys_name in _head_names_on_mast(mast):
+            if sys_name not in self.mqtt_wanted:
+                continue
+            head = hm.getSignalHead(sys_name)
+            if head is not None:
+                heads.append(head)
+        return heads
 
     def _collect_beans(self):
         """Digicon plants = SHSM masts with LCOS Virtual IH heads (tables, not a static list).

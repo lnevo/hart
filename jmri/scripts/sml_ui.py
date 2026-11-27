@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # JMRI jython -- part of signal_coordinator.py: the Swing side: the SML Enabled / Disabled button on
-# the PanelPro main-window strip and the stored-Enabled warning popup.
+# the PanelPro main-window strip, the stored-Enabled warning popup and the force-override confirm.
 #
 # signal_coordinator.py loads this from preference:jython after sml_quit and reloads it on every run
 # (jython_siblings.py).
@@ -12,7 +12,7 @@ from sml_beans import _ascii
 
 
 class SmlUi(object):
-    """DigiconMqttSml's main-window button and stored-Enabled popup."""
+    """DigiconMqttSml's main-window button, stored-Enabled popup and override confirm."""
 
     def _stored_enabled_source_names(self):
         """UserNames of Digicon sources that loaded with any dest Enabled."""
@@ -171,3 +171,45 @@ class SmlUi(object):
                 self._button.setEnabled(True)
 
         SwingUtilities.invokeLater(_Set())
+
+    def _ask_force_override_edt(self):
+        """Show override confirm on the EDT. Return True if Yes."""
+        holder = [JOptionPane.NO_OPTION]
+        msg = (
+            "track/bridge/sml_mode is already enabled "
+            "(another Digicon session or stale retain).\n"
+            "Force override Digicon control?"
+        )
+        title = "SML Enabled"
+
+        class _Ask(Runnable):
+            def run(_self):
+                try:
+                    from jmri.util.swing import JmriJOptionPane
+
+                    holder[0] = JmriJOptionPane.showConfirmDialog(
+                        None,
+                        msg,
+                        title,
+                        JmriJOptionPane.YES_NO_OPTION,
+                        JmriJOptionPane.WARNING_MESSAGE,
+                    )
+                except Exception as exc:
+                    print("mqtt_signalhead: JMRI dialog failed (%s) -- plain Swing dialog" % _ascii(exc))
+                    holder[0] = JOptionPane.showConfirmDialog(
+                        None,
+                        msg,
+                        title,
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE,
+                    )
+
+        try:
+            if SwingUtilities.isEventDispatchThread():
+                _Ask().run()
+            else:
+                SwingUtilities.invokeAndWait(_Ask())
+        except Exception as exc:
+            print("mqtt_signalhead: override dialog failed: " + _ascii(exc))
+            return False
+        return holder[0] == JOptionPane.YES_OPTION

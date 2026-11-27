@@ -90,32 +90,20 @@ _UNMARKED_CLASSES = ("_TurnoutListener", "_PowerListener", "_PanelLampClick")
 
 
 def _ours(listener):
-    if getattr(listener, _MARK, False):
-        return True
-    try:
-        return listener.__class__.__name__ in _UNMARKED_CLASSES
-    except Exception:
-        return False
+    return bool(getattr(listener, _MARK, False)) or type(listener).__name__ in _UNMARKED_CLASSES
 
 
 # A re-run's id, kept on __main__ (shared by every script run in this JMRI). The arm and click retry timers of an
 # earlier run see a newer id there and stop, so two runs never arm against each other.
-try:
-    import __main__ as _main
+import __main__ as _main  # noqa: E402
 
-    _RUN_ID = getattr(_main, "hart_panel_status_run", 0) + 1
-    _main.hart_panel_status_run = _RUN_ID
-except Exception:
-    _main = None
-    _RUN_ID = 0
+_RUN_ID = getattr(_main, "hart_panel_status_run", 0) + 1
+_main.hart_panel_status_run = _RUN_ID
 
 
 def _superseded(run_id):
     """True when a later run of this script has started."""
-    try:
-        return _main is not None and getattr(_main, "hart_panel_status_run", run_id) != run_id
-    except Exception:
-        return False
+    return getattr(_main, "hart_panel_status_run", run_id) != run_id
 
 
 def _drop_ours(listeners, remove, keep=None):
@@ -289,10 +277,8 @@ def toggle_sml_mode():
 
 
 def _power_manager():
-    try:
-        return jmri.InstanceManager.getDefault(jmri.PowerManager)
-    except Exception:
-        return None
+    """The default PowerManager (the LCC connection's), or None when JMRI has none."""
+    return jmri.InstanceManager.getNullableDefault(jmri.PowerManager)
 
 
 def _sync_track_power_sensor():
@@ -307,7 +293,8 @@ def _sync_track_power_sensor():
         return
     try:
         on = pm.getPower() == jmri.PowerManager.ON
-    except Exception:
+    except Exception as e:
+        print("panel_status: Track Power state unreadable, lamp left as it is: %s" % e)
         return
     want = jmri.Sensor.ACTIVE if on else jmri.Sensor.INACTIVE
     try:
@@ -337,6 +324,7 @@ def _arm_power_listener():
         return
     pm = _power_manager()
     if pm is None:
+        print("panel_status: no PowerManager -- the Track Power lamp is not driven")
         return
     _power_listener = _PowerListener()
     _drop_ours(pm.getPropertyChangeListeners(), pm.removePropertyChangeListener)
@@ -446,8 +434,8 @@ def _arm_listeners():
         try:
             _drop_ours(to.getPropertyChangeListeners(), to.removePropertyChangeListener)
             to.addPropertyChangeListener(_listener)
-        except Exception:
-            pass
+        except Exception as e:
+            print("panel_status: listener not attached to %s: %s" % (to.getSystemName(), e))
     _armed = True
     print("panel_status: armed (plantFB=%d)" % _plant_count)
     return True
