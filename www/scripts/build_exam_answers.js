@@ -40,7 +40,7 @@ function lex(f, i, until) {
   const src = f.src, start = i, toks = [], stack = [];
   const regexMayStart = () => {
     const p = toks[toks.length - 1];
-    return !p || (p.t === "punct" && !")]}".includes(p.v)) || (p.t === "name" && REGEX_AFTER.has(p.v));
+    return !p || (p.t === "punct" && !")]}".includes(p.v) && p.v !== "++" && p.v !== "--") || (p.t === "name" && REGEX_AFTER.has(p.v));
   };
   const sticky = (re) => { re.lastIndex = i; return re.exec(src)[0]; };
   while (i < src.length) {
@@ -129,7 +129,8 @@ class Slot {
 }
 /* The names a question may use for real: the figures it may show under its text, and Math. */
 const REAL = { semSvg: DATA.semSvg, Math };
-const RUNS_FOR_REAL = new Set([DATA.semSvg, ...Object.getOwnPropertyNames(Math).map(k => Math[k]).filter(v => typeof v === "function")]);
+/* Math.random is left out: a question drawn at random would make the key differ from build to build. */
+const RUNS_FOR_REAL = new Set([DATA.semSvg, ...Object.getOwnPropertyNames(Math).filter(k => k !== "random").map(k => Math[k]).filter(v => typeof v === "function")]);
 const LITERALS = { true: true, false: false, null: null, undefined };
 
 /* Reads one value from tokens: strings, numbers, templates, arrays, objects, + and unary -, and names with their
@@ -195,6 +196,7 @@ class Reader {
   call(fn, args) {
     if (fn instanceof Slot) return `[${fn.name}(…)]`;
     if (RUNS_FOR_REAL.has(fn)) return fn(...args);
+    if (fn === Math.random) return this.fail("calls Math.random, which the key does not run");
     return this.fail("calls a function the key does not run");
   }
   primary() {
@@ -204,7 +206,7 @@ class Reader {
     if (t.t === "tpl") return t.quasis.reduce((s, q, k) => s + q + (k < t.exprs.length ? String(new Reader(this.f, t.exprs[k]).all()) : ""), "");
     if (t.t === "name") {
       if (this.is("=>")) this.fail("a function");
-      if (t.v in LITERALS) return LITERALS[t.v];
+      if (Object.hasOwn(LITERALS, t.v)) return LITERALS[t.v];
       if (Object.hasOwn(REAL, t.v)) return REAL[t.v];
       if (t.v in globalThis) this.fail(`uses ${t.v}, which the key does not run`);
       return new Slot(t.v);

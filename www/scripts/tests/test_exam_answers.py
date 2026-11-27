@@ -114,6 +114,7 @@ class ExamAnswers(unittest.TestCase):
             "get body(){x();return 1}": "a getter that does more than return one value",
             "...extra,body:1": "a spread or a computed key",
             'body:"a",body:"b"': "body is set twice",
+            "body:Math.random()": "Math.random",
         }
         for field, err in cases.items():
             src = 'ask({sec:"def",src:"SC",title:"t",%s,right:"r",wrong:[["w"]],why:"y"});' % field
@@ -121,6 +122,19 @@ class ExamAnswers(unittest.TestCase):
                 self.mini(src)
         # a call on a play-time name is itself a play-time value
         self.assertEqual(self.mini(self.Q.replace('body:"b"', "body:run(1)") % "")[0]["body"], "[…]")
+
+    def test_object_prototype_names_are_not_literals(self):
+        # toString and constructor are not the key's literals: they stop the build like any global the key does not run,
+        # and no longer come back as the function itself.
+        for name in ("toString", "constructor", "hasOwnProperty"):
+            src = self.Q.replace('body:"b"', f"body:{name}") % ""
+            with self.subTest(name), self.assertRaisesRegex(AssertionError, f"uses {name}, which the key does not run"):
+                self.mini(src)
+
+    def test_slash_after_increment_is_division(self):
+        # i++/2 must not start a regex literal that runs to a later slash or fails as unclosed
+        q = self.mini(self.Q % ",after:o=>{s.a=i++/2;s.b=j--/3}")
+        self.assertEqual(len(q), 1)
 
     def test_unclosed_question_names_its_line(self):
         with self.assertRaisesRegex(AssertionError, "run.js line 2: no closing bracket"):
