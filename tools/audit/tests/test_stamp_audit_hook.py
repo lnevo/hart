@@ -1,7 +1,7 @@
 """tools/audit/stamp_audit/sitecustomize.py, the CHECK_AUDIT hook: it logs the repo files a Python process reads, then
 runs the next sitecustomize on sys.path through tools/audit/trace_hook/hook_chain.py, as tools/audit/trace_hook's
-does. Homebrew's Python adds its site-packages from its own sitecustomize, so a hook that hid it left an audited job
-without Pillow (test_check_stamps.AuditTest on the Mac)."""
+does: Homebrew's Python adds its site-packages from its own sitecustomize, so a hook that stops the chain hides
+the installed packages from every audited job."""
 from __future__ import annotations
 
 import importlib.util
