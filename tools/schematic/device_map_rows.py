@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Mapping, NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mast_rule import MapError  # noqa: E402
+from map_error import MapError  # noqa: E402
 from hartlib import device_ids, devices, level_devices, railroad  # noqa: E402
 from hartlib.level_masts import SHSM, mast_heads  # noqa: E402  a mast's name over its heads; its heads, in order
 from hartlib.tables_build import with_direction  # noqa: E402  a mast's comment names the way it faces

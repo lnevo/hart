@@ -42,13 +42,19 @@ from typing import Any, Literal, NotRequired, TypedDict
 import device_map_level_masts as dmlm
 import le_names as ln
 import mast_plan
-import mast_rule
+import block_override_rows
+from map_error import MapError
+import plan_bands
+import plan_tracks
 import publish_draft as pd
 import staging_device_map as sdm
-from device_map_level_masts import mast_system_name
+from device_map_level_masts import head_users, mast_system_name
+from device_map_records import OldVirtual
 from hartlib import device_ids, devices, level_masts, railroad, wiring
-from mast_plan import Band, Intermediate, MastPlan
-from mast_rule import HomeMast, Leg
+from mast_plan import Intermediate, MastPlan
+from plan_bands import Band
+from mast_rule import HomeMast
+from plan_tracks import Leg
 
 WRITER = "build_device_map.py"              # the one writer of every level's mast and head rows
 LEVEL = sdm.LEVEL                           # staging
@@ -63,7 +69,7 @@ VIRTUAL_KIND = "one-low"
 LAYERS = ("mast", "head")
 
 
-class RuleError(mast_rule.MapError):
+class RuleError(MapError):
     """A staging mast or head the rule cannot place or name; the message names it."""
 
 
@@ -139,7 +145,7 @@ class MissingLengths(RuleError):
 def levels() -> dict[str, int]:
     """{band title: level} of staging's plan overrides, read on first use (not on import)."""
     if not _LEVELS:
-        _LEVELS.update(mast_rule.band_levels(sdm.overrides()))
+        _LEVELS.update(plan_bands.band_levels(sdm.overrides()))
     return _LEVELS
 
 
@@ -154,12 +160,6 @@ def internal_head(user: str, level: int = LEVEL) -> str:
         return level_masts.head_name(user, level)
     except ValueError as exc:
         raise RuleError(str(exc)) from exc
-
-
-def head_users(mast: str, heads: int) -> list[str]:
-    """A mast's head user names, in order: Top and Bottom on a two-head mast."""
-    key = mast.removeprefix("Mast ")
-    return [f"Head {key}"] if heads == 1 else [f"Head {key} {p}" for p in ("Top", "Bottom")]
 
 
 def field_by_id(files: devices.Files) -> dict[str, dict]:
@@ -180,7 +180,7 @@ def wired_heads(field: Mapping[str, Mapping[str, str]], path: Path | None = None
         heads = [w for w in wiring.read(path, levels=(1,), files=files) if w.level == LEVEL and w.kind == "head"]
         import device_map_inputs as dmi
         nodes = dmi.staging_nodes()
-    except (railroad.FactsError, mast_rule.MapError) as exc:
+    except (railroad.FactsError, MapError) as exc:
         raise RuleError(str(exc)) from exc
     bad = [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
            f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
@@ -288,7 +288,7 @@ def home_entry(band: Band, m: HomeMast, names: BlockNames, seqs: Seqs, chains: M
     return StagingMast(mast=f"Mast {m['name']}", cp=m["cp"], switch=m["switch"] if at_turnout else "",
                        facing=facing, protects=own, kind=m["kind"], heads=m["heads"],
                        dir=m["dir"], toward=m["switch"],
-                       run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
+                       run=f"{m['switch']};{plan_tracks.base(far_label) if far_label else ''}", names=names_,
                        edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
                        leg=p, strand=m["strand"], running=m["running"], role="home")
 
@@ -391,14 +391,15 @@ def mast_ids(band: Band, placed: Sequence[Mapping[str, Any]], block_ids: Mapping
 def owner_names(placed: Sequence[StagingMast], ids: Sequence[str], field: Mapping[str, Mapping[str, str]]) -> None:
     """Give each mast of `placed` the owner's name, its field row's user_name by its ID (`field`, field_by_id), in
     place: the owner's name wins, and its heads are named from it. RuleError on a name out of
-    the grammar (level_masts.MAST_USER) or one two masts would take."""
+    the grammar (device_map_level_masts.owner_name, every level's rule) or one two masts would take."""
     bad = []
     for m, ident in zip(placed, ids):
-        name = (field.get(ident) or {}).get("user_name")
-        if name and name != m["mast"]:
-            if not level_masts.MAST_USER.fullmatch(name):
-                bad.append(f"{devices.FIELD_FILE}: mast {ident} named {name!r}, not Mast <number>[L|R][letter]")
-                continue
+        try:
+            name = dmlm.owner_name(ident, m["mast"], (field.get(ident) or {}).get("user_name") or "")
+        except MapError as exc:
+            bad.append(str(exc))
+            continue
+        if name:
             m["generated"], m["mast"] = m["mast"], name
     taken = [m["mast"] for m in placed]
     bad += [f"two masts are named {x} (an owner's name in {devices.FIELD_FILE} takes a generated one?)"
@@ -415,7 +416,7 @@ def virtual_names(vgen: Sequence[Mapping[str, Any]], ids: Mapping[str, str], old
     The memory is every level's one rule (device_map_level_masts.virtual_memory): an old row whose ID the rule no
     longer places keeps its old name, so mast_plan asks for it in retired_virtual_masts.csv. RuleError when that old
     name is now another mast's, or an old name is no virtual mast's of a level."""
-    old = {r["id"]: (r["user_name"], r["system_name"]) for r in old_rows
+    old = {r["id"]: OldVirtual(r["user_name"], r["system_name"]) for r in old_rows
            if r["layer"] == "mast" and level_masts.virtual_ordinal(r["system_name"])}
     now = [dmlm.NamedMast(id=ids[m["mast"]], name=m["mast"].removeprefix("Mast ")) for m in vgen]
     try:
@@ -427,7 +428,7 @@ def virtual_names(vgen: Sequence[Mapping[str, Any]], ids: Mapping[str, str], old
         memory = by_level.get(LEVEL, {})
         return {f"Mast {k}": v for k, v in mast_plan.virtual_system_names(
             [m["name"] for m in now], LEVEL, memory).items()}
-    except mast_rule.MapError as exc:
+    except MapError as exc:
         raise RuleError(str(exc)) from exc
 
 
@@ -508,13 +509,13 @@ def plan(band: Band, bands, joined, runs, names: BlockNames, locks: Mapping[str,
     interlockings (`locks`), its block layer (`names`, of `band`, the staging band of `bands`) and block lengths
     (`cm`), the owner's block splits. RuleError when `band` is not the staging band `bands` holds."""
     import device_map_schematic as dms
-    found = mast_rule.tracks(bands, runs, joined, {1: "H"}, levels=levels())
-    mast_rule.track_names(found)
-    bi = [i for i, (title, _b, _o) in enumerate(bands) if mast_rule.band_level(title, levels())]
+    found = plan_tracks.tracks(bands, runs, joined, {1: "H"}, levels=levels())
+    plan_tracks.track_names(found)
+    bi = [i for i, (title, _b, _o) in enumerate(bands) if plan_bands.band_level(title, levels())]
     if len(bi) != 1 or set(bands[bi[0]][1]["strands"]) != set(band["strands"]):
         raise RuleError(f"the solved sheet has {len(bi)} staging band(s), or its staging band is not the device map's")
     return mast_plan.plan(bands, joined, found, levels=levels(), cp_of=locks, layer={bi[0]: names}, cm=cm,
-                          split=mast_rule.read_block_splits(dms.block_overrides(), found, levels()))
+                          split=block_override_rows.read_block_splits(dms.block_overrides(), found, levels()))
 
 
 def plan_facts(placed: Iterable[StagingMast]) -> dict[tuple[int, str], PlanFacts]:

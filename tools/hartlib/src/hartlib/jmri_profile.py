@@ -1,7 +1,8 @@
 """Edits to a JMRI profile's own files: profile.xml's Start Up list and user-interface.xml's saved panel windows.
 
 Start Up (profile.xml): insert or remove a PerformScript entry, point script entries at preference:jython/, point
-the tables load at a path. Each edit keeps the attribute order of the neighbouring entry and rewrites nothing else.
+the tables load at a path. Each edit keeps the attribute order of the neighbouring entry, rewrites nothing else, and
+replaces the file through a temporary file in its folder.
 
 Panel windows (user-interface.xml): JMRI keeps every window's size, position and zoom in <windowDetails>, one
 <window class="jmri.jmrit.display.layoutEditor.LayoutEditor:<panel>"> per panel, saved whenever a window moves, and
@@ -75,12 +76,16 @@ _PERFORM = re.compile(r"\n?[ \t]*<perform\b[^>]*/>")
 _NAME = re.compile(r'\bname="([^"]*)"')
 
 
+def _names(tag: str, name: str) -> bool:
+    """True when the name= of the <perform> `tag` is `name`, or its part after the last /, \\ or : is `name`
+    (preference:jython/x.py and C:\\jython\\x.py name x.py; old_x.py does not)."""
+    found = _NAME.search(tag)
+    return found is not None and name in (found.group(1), re.split(r"[/\\:]", found.group(1))[-1])
+
+
 def _runs(tag: str, basename: str) -> bool:
-    """True when the <perform> `tag` is a PerformScript entry whose name= runs the file `basename`: the part after
-    the last /, \\ or : equals it (preference:jython/x.py runs x.py; old_x.py does not)."""
-    name = _NAME.search(tag)
-    return ("PerformScriptModelXml" in tag and name is not None
-            and re.split(r"[/\\:]", name.group(1))[-1] == basename)
+    """True when the <perform> `tag` is a PerformScript entry whose name= runs the file `basename` (_names)."""
+    return "PerformScriptModelXml" in tag and _names(tag, basename)
 
 
 def _script_entries(txt: str, basename: str) -> list[str]:
@@ -88,28 +93,36 @@ def _script_entries(txt: str, basename: str) -> list[str]:
     return [m.group(0) for m in _PERFORM.finditer(txt) if _runs(m.group(0), basename)]
 
 
+def _write_profile(profile: Path, text: str) -> None:
+    """Replace profile.xml through a temporary file in its folder (hartlib.files.write_atomic), so JMRI or a stopped
+    deploy never finds half a Start Up list."""
+    try:
+        write_atomic(profile, text)
+    except OSError as exc:
+        raise StartupPatchError(f"cannot write {profile}: {exc}") from exc
+
+
 def insert_after(profile: Path, script_path: str, after: str) -> str:
-    """Add a Start Up entry running `script_path` after the entry naming `after`: "inserted", or "already" when a
-    Start Up entry runs the script."""
+    """Add a Start Up entry running `script_path` on the line after the one Start Up entry whose name= is `after`
+    (the whole name, or the file name after its last /, \\ or :): "inserted", or "already" when a Start Up entry
+    runs the script. No such entry, or more than one, is a StartupPatchError."""
     if not after:
         raise StartupPatchError(f"{profile}: no Start Up entry given to insert {script_path} after")
     txt = profile.read_text(encoding="utf-8")
     needle = _script_basename(script_path)
     if _script_entries(txt, needle):
         return "already"
-    idx = txt.find(after)
-    if idx < 0:
-        raise StartupPatchError(f"{profile}: no Start Up entry containing {after!r}")
-    end = txt.find("/>", idx)
-    if end < 0:
-        raise StartupPatchError(f"{profile}: malformed perform tag at {after!r}")
-    end += 2
-    sample = txt[txt.rfind("<perform", 0, idx) : end]
-    insert = "\n" + _perform_for(sample, script_path)
-    new = txt[:end] + insert + txt[end:]
+    anchors = [m for m in _PERFORM.finditer(txt) if _names(m.group(0), after)]
+    if not anchors:
+        raise StartupPatchError(f"{profile}: no Start Up entry named {after!r} to insert {needle} after")
+    if len(anchors) > 1:
+        raise StartupPatchError(f"{profile}: {len(anchors)} Start Up entries named {after!r}; cannot tell which one "
+                                f"to insert {needle} after")
+    end = anchors[0].end()
+    new = txt[:end] + "\n" + _perform_for(anchors[0].group(0), script_path) + txt[end:]
     if len(_script_entries(new, needle)) != 1:
         raise StartupPatchError(f"{profile}: the entry for {needle} after {after!r} is not one Start Up entry")
-    profile.write_text(new, encoding="utf-8")
+    _write_profile(profile, new)
     return "inserted"
 
 
@@ -122,7 +135,7 @@ def remove_script(profile: Path, script_path: str) -> str:
     new = _PERFORM.sub(lambda m: "" if _runs(m.group(0), needle) else m.group(0), txt)
     if _script_entries(new, needle):
         raise StartupPatchError(f"{profile}: could not remove {needle}")
-    profile.write_text(new, encoding="utf-8")
+    _write_profile(profile, new)
     return "removed"
 
 
@@ -176,7 +189,7 @@ def retarget_to_preference_jython(profile: Path, scripts: list[str]) -> list[str
 
     txt = re.sub(r"<perform\b[^>]*/>", repl, txt)
     if txt != orig:
-        profile.write_text(txt, encoding="utf-8")
+        _write_profile(profile, txt)
     return notes
 
 
@@ -192,7 +205,7 @@ def load_tables_from(profile: Path, path: str) -> str:
         raise StartupPatchError(f"expected one tables load in {profile}, found {count}")
     if new == text:
         return "already"
-    profile.write_text(new, encoding="utf-8")
+    _write_profile(profile, new)
     return "changed"
 
 

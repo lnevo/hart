@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Literal, NotRequired, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mast_plan import Leg  # noqa: E402  a band end (node, port)
+from plan_tracks import Leg  # noqa: E402  a band end (node, port)
 
 Ref = tuple[str, bool]              # a strand's (piece reference, whether it runs against the piece): piece_refs
 Beyond = Callable[[Leg], str]       # the key of what is beyond a connector end (band_refs)

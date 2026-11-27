@@ -33,8 +33,9 @@ from typing import Any, NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import block_layer  # noqa: E402  the one block process for every level
-import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
-from mast_rule import MapError, band_levels  # noqa: E402
+import block_override_rows  # noqa: E402
+from map_error import MapError  # noqa: E402
+from plan_bands import band_levels  # noqa: E402
 from device_map_inputs import (  # noqa: E402  the readers
     CPS, NODES, PINS, STAGING_NAMES, STATIONS, WIRING, Places, StagingPin, helix_pins, read_places, read_staging_pins,
     staging_nodes, wiring_rows)
@@ -141,7 +142,7 @@ def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from exc
     _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
-                                  mast_rule.read_block_splits(exceptions, found, levels))
+                                  block_override_rows.read_block_splits(exceptions, found, levels))
     split = block_layer.split_edges(found, levels, exceptions, bdm.OVERRIDES.parent)
     lay = block_layer.layer(bands, runs, found, levels, split,
                             block_layer.read_exceptions(found, bands, levels, exceptions), posts=posts,
@@ -612,7 +613,7 @@ def _part_block_row(s: StagingBlocks, beans: Mapping[str, tuple[str, str]], name
     was = [(layer, k, s.prior[layer, k]["user_name"]) for layer, k in
            (("block", s.ids[name]), ("occupancy", device_ids.det_id(s.ids[name]))) if (layer, k) in s.prior]
     if was:
-        s.bad.append(f"staging block {name} is now part of {part['part_of']} ({mast_rule.OVERRIDES_NAME}), but "
+        s.bad.append(f"staging block {name} is now part of {part['part_of']} ({block_override_rows.OVERRIDES_NAME}), but "
                      f"{devices.FIELD_FILE} still has its "
                      + " and ".join(f"{layer} row {n}" for layer, _k, n in was)
                      + ": remove them (its detector's input becomes a spare)")

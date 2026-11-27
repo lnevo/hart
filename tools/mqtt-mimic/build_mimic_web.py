@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lcos_mqtt_mimic import load_layout  # noqa: E402
+from lcos_mqtt_mimic import MimicError, load_layout  # noqa: E402
 
 FILENAME = "mimic_layout.json"
 
@@ -29,7 +29,10 @@ def write(out_dir: Path) -> Path:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", required=True, type=Path, help="folder that holds index.html")
-    path = write(ap.parse_args().out)
+    try:
+        path = write(ap.parse_args().out)
+    except MimicError as exc:      # tables.xml is missing, or a device-map row the page cannot place
+        raise SystemExit(str(exc)) from exc
     layout = json.loads(path.read_text(encoding="utf-8"))
     print(f"{path}: {len(layout['turnouts'])} turnouts, {len(layout['blocks'])} blocks, {len(layout['heads'])} heads")
     return 0

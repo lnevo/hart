@@ -16,7 +16,7 @@ Step 5 part 2 changed only staging 8RA, from an anchor mast on Scale to a turnou
 (OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
 the masts facing them keep their facing blocks.
 Naming-layers step 12 (2026-11-25, my call under the owner's rule of 2026-11-25) letters two masts of one number and
-direction in the plan order of the tracks they face (mast_rule.letter_order), not by drawn row: upper level 204R,
+direction in the plan order of the tracks they face (plan_tracks.letter_order), not by drawn row: upper level 204R,
 212L, 218R, 222L, 230L and the virtual 210L, 216L, 244R, 246L traded their A and B (Mast 210LA now faces Track 209
 Spur 1). Staging's 6L and 8R pairs would too; the owner's names in the field file keep them.
 """
@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
 import build_masts as bsm  # noqa: E402
-import mast_rule  # noqa: E402
+import mast_rule  # noqa: E402  reaches_signal, patched out to see every mast the rule would place
 from hartlib import level_masts  # noqa: E402
 from plugin_needed import skip_or_fail  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
@@ -152,7 +152,7 @@ MAIN_UPPER_VIRTUAL = (
 )
 INTERMEDIATES = {"67", "68", "A83", "A84", "B92", "B93"}
 # masts the rule must not place: 126L faces Track 121-125 into Switch 125, and every route it would clear ends at
-# Switch 129's spur bumpers (mast_rule.reaches_signal)
+# Switch 129's spur bumpers (mast_routes.reaches_signal)
 DROPPED = {"126L"}
 
 SYSTEM = re.compile(r"IF\$(shsm|vsm):basic:([\w-]+)\(")

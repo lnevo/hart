@@ -79,10 +79,11 @@ from typing import Any, TypeVar
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
 import le_names as ln  # noqa: E402  runs and crossovers
-import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
+import plan_bands  # noqa: E402
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
 from hartlib import device_ids, devices, drawing_keys, layer_files, level_masts, paths, railroad, tables, track_names  # noqa: E402
-from mast_plan import Band, Bands, Leg  # noqa: E402  the plugin's solved band shapes
+from plan_bands import Band, Bands  # noqa: E402  the plugin's solved band shapes
+from plan_tracks import Leg  # noqa: E402
 from staging_records import (  # noqa: E402,F401  the records; re-exported: callers read them from this module
     Beyond, Idents, Joined, MastFact, MastKind, Ref, Row, SignalMast, StagingMast, StagingNames, TrackRuns)
 
@@ -334,7 +335,7 @@ def check_helix(band: Band, names: StagingNames, stored: Mapping[str, str],
     """Each helix track of plan_overrides.json is drawn on the staging band from its staging_switch, and its staging
     piece is that file's block (load()'s names). A strand is the helix track the name store names it by its ID
     (`stored`: staging_names of the band, from the caller's data folder). The problems, one per track."""
-    helix = mr.read_helix_tracks() if helix is None else helix
+    helix = plan_bands.read_helix_tracks() if helix is None else helix
     bad: list[str] = []
     for plan, h in sorted(helix.items()):
         sids = [sid for sid in band["strands"] if stored.get(sid) == plan]
@@ -346,7 +347,7 @@ def check_helix(band: Band, names: StagingNames, stored: Mapping[str, str],
                   if band["nodes"][e[0]]["kind"] == "switch"]
         if labels != [h["staging_switch"]] or names["blocks"].get(sids[0]) != [h["block"]]:
             bad.append(f"helix track {plan}: from switch {', '.join(map(str, labels)) or 'none'} in block(s) "
-                       f"{names['blocks'].get(sids[0])}, {mr.HELIX_SOURCE.name} says Switch {h['staging_switch']}, "
+                       f"{names['blocks'].get(sids[0])}, {plan_bands.HELIX_SOURCE.name} says Switch {h['staging_switch']}, "
                        f"{h['block']}")
     return bad
 
