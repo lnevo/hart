@@ -6349,7 +6349,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "hosts",
-   "desc": "The one list of the jython the Mac and the Pi install into preference:jython, by role (startup, pi, sibling, part).",
+   "desc": "The one list of the jython the Mac, the Pi and Windows install into preference:jython, by role (startup, macpi, pi, sibling, part).",
    "path": "tools/hosts/pi/jython_scripts.txt"
   },
   {

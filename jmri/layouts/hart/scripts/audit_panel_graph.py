@@ -7,6 +7,7 @@ audit_source.
 
 from __future__ import annotations
 
+import functools
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -123,10 +124,14 @@ class PanelCounts(NamedTuple):
 PANEL_COUNTS = paths.LAYOUT_SCRIPTS / "panel_counts.json"
 
 
+class PanelCountsError(FactsError):
+    """PANEL_COUNTS (or the file load_panel_counts reads) is missing, not JSON, or not the counts PanelCounts holds."""
+
+
 def _count(value: object, where: str) -> int:
     """`value` when it is a whole number of 0 or more (not a bool); FactsError naming `where` otherwise."""
     if type(value) is not int or value < 0:
-        raise FactsError(f"{where}: expected a whole number of 0 or more, found {value!r}")
+        raise PanelCountsError(f"{where}: expected a whole number of 0 or more, found {value!r}")
     return value
 
 
@@ -134,7 +139,7 @@ def _keys(value: object, keys: tuple[str, ...], where: str) -> dict[str, object]
     """`value` when it is an object with exactly `keys`; FactsError naming `where` and what it holds otherwise."""
     if not isinstance(value, dict) or sorted(value) != sorted(keys):
         found = sorted(value) if isinstance(value, dict) else type(value).__name__
-        raise FactsError(f"{where}: expected the keys {sorted(keys)}, found {found}")
+        raise PanelCountsError(f"{where}: expected the keys {sorted(keys)}, found {found}")
     return value
 
 
@@ -144,37 +149,48 @@ def _stored(value: object, where: str) -> StoredCounts:
 
 
 def load_panel_counts(path: Path = PANEL_COUNTS) -> PanelCounts:
-    """The counts in `path`; FactsError naming the file and the key when it is missing or not JSON, or holds a key
+    """The counts in `path`; PanelCountsError naming the file and the key when it is missing or not JSON, or holds a key
     more or fewer than PanelCounts or a count that is not a whole number."""
     where = paths.rel(path)
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
-        raise FactsError(f"{where}: cannot read the panel counts: {exc}") from exc
+        raise PanelCountsError(f"{where}: cannot read the panel counts: {exc}") from exc
     top = _keys(data, PanelCounts._fields, where)
     return PanelCounts(_count(top["masts"], f"{where} masts"), _stored(top["hand_drawn"], f"{where} hand_drawn"),
                        _stored(top["generated"], f"{where} generated"),
                        _count(top["traininfo"], f"{where} traininfo"))
 
 
-COUNTS = load_panel_counts()
-# The hand-drawn staging panel: 100 destinations.
-HAND_DRAWN = COUNTS.hand_drawn
-# The generated three-level panel: 177 destinations from stock discovery from an empty list, with virtual masts only
-# as destinations on every level (staging 5, main 10, upper 14) and the Scale running track.
-GENERATED = COUNTS.generated
-# The same counts by panel kind (True: generated). tools/audit/check_sml_invariants.py reads EXPECTED_SML[True].
-# A generated panel before stock discovery carries the Signal Mast Logic of the live tables.xml it was built on,
-# less every logic and destination that names a main or upper object: exactly the live tables' destinations between
-# staging masts (carried_destinations), allowed with a warning that discovery is still to run. The audit reads that
-# set from the live tables, so a later discovery moves it too.
-EXPECTED_SML = {False: HAND_DRAWN.sml, True: GENERATED.sml}
-# A generated panel before its Stage 1, with the Dispatcher System unparked, still carries the hand-drawn graph:
-# allowed, with the same kind of warning. While the Dispatcher graph is parked (hartlib.parked) the tables hold no
-# section or transit.
-EXPECTED_GRAPH = {False: (HAND_DRAWN.sections, HAND_DRAWN.transits), True: (GENERATED.sections, GENERATED.transits)}
-# The traininfo files in TRAININFO (panelpro_smoke_test.py holds the runtime copies to the same count).
-EXPECTED_TRAININFO = COUNTS.traininfo
+@functools.cache
+def panel_counts() -> PanelCounts:
+    """The counts in PANEL_COUNTS, read on the first call and kept; PanelCountsError as load_panel_counts."""
+    return load_panel_counts(PANEL_COUNTS)
+
+
+def expected_sml(generated: bool) -> int:
+    """The SML destinations a panel holds after stock discovery: the hand-drawn staging panel's (100), or the generated
+    three-level panel's (177, from stock discovery from an empty list, with virtual masts only as destinations on every
+    level: staging 5, main 10, upper 14, and the Scale running track). tools/audit/check_sml_invariants.py reads the
+    generated one. A generated panel before stock discovery carries the Signal Mast Logic of the live tables.xml it was
+    built on, less every logic and destination that names a main or upper object: exactly the live tables'
+    destinations between staging masts (carried_destinations), allowed with a warning that discovery is still to
+    run. The audit reads that set from the live tables, so a later discovery moves it too."""
+    counts = panel_counts()
+    return (counts.generated if generated else counts.hand_drawn).sml
+
+
+def expected_graph(generated: bool) -> tuple[int, int]:
+    """(sections, transits) of the panel kind's Dispatcher graph. A generated panel before its Stage 1, with the
+    Dispatcher System unparked, still carries the hand-drawn graph: allowed, with the same kind of warning. While the
+    Dispatcher graph is parked (hartlib.parked) the tables hold no section or transit."""
+    counts = panel_counts().generated if generated else panel_counts().hand_drawn
+    return counts.sections, counts.transits
+
+
+def expected_traininfo() -> int:
+    """The traininfo files in TRAININFO (panelpro_smoke_test.py holds the runtime copies to the same count)."""
+    return panel_counts().traininfo
 
 
 class SmlPair(NamedTuple):
@@ -212,7 +228,7 @@ def carried_destinations(destinations: list[SmlDestination]) -> list[SmlPair]:
 
 def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool = False,
               live: ET.Element | None = None) -> None:
-    """The stored SML destinations against EXPECTED_SML, or, on a generated panel that holds no main or upper one
+    """The stored SML destinations against expected_sml, or, on a generated panel that holds no main or upper one
     yet, against the live tables' carried_destinations (`live`: their root; default this checkout's tables.xml)."""
     found = sml_destinations(root)
     destinations = [d.pair for d in found]
@@ -220,7 +236,7 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool
     manual = sum(use_le == "no" for _, _, use_le in destinations)
     unknown = len(destinations) - auto - manual
     # Every destination comes from Discover: no manual pair is kept.
-    want = EXPECTED_SML[generated]
+    want = expected_sml(generated)
     before = generated and len(carried_destinations(found)) == len(found)       # nothing on main or upper yet
     carried = carried_destinations(sml_destinations(live if live is not None else tables.read(paths.TABLES_XML))) \
         if before else []
@@ -293,10 +309,10 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
         )
     sections = len(root.findall("./sections/section"))
     transits = len(root.findall("./transits/transit"))
-    want_sections, want_transits = EXPECTED_GRAPH[generated]
+    want_sections, want_transits = expected_graph(generated)
     if "dispatcher" in left_out:
         want_sections, want_transits = 0, 0
-    if generated and (sections, transits) == EXPECTED_GRAPH[False] and "dispatcher" not in left_out:
+    if generated and (sections, transits) == expected_graph(False) and "dispatcher" not in left_out:
         audit.warn(f"Dispatcher graph is the hand-drawn panel's {sections} sections / {transits} transits: run "
                    f"Stage 1 on this generated panel (expect {want_sections} / {want_transits})")
     elif (sections, transits) != (want_sections, want_transits):
@@ -319,8 +335,8 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
         ]
         if values != ["TRAINDETECTION_HEADANDTAIL"]:
             bad_detection.append(path.name)
-    if len(files) != EXPECTED_TRAININFO:
-        audit.error(f"expected {EXPECTED_TRAININFO} generated traininfo files, found {len(files)}")
+    if len(files) != expected_traininfo():
+        audit.error(f"expected {expected_traininfo()} generated traininfo files, found {len(files)}")
     if bad_detection:
         audit.error("traininfo not HEAD_AND_TAIL: " + first_items(bad_detection, ", "))
     audit.facts["dispatcher_generated"] = (

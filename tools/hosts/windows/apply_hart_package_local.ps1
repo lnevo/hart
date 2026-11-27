@@ -37,6 +37,11 @@ function Find-Python {
 $python = Find-Python
 # Get-JmriProcesses: the JMRI and CATS Java processes by command line, as kill_cats.ps1 finds them
 . (Join-Path $hart 'cats\scripts\windows\jmri_processes.ps1')
+# The jython to install: the startup, sibling and part rows of jython_scripts.txt, the list the Mac and the Pi read
+# (cats/scripts/pi in the package), checked before anything changes. A missing list, a row it cannot read or a
+# listed script the package lacks stops here.
+. (Join-Path $hart 'cats\scripts\windows\jython_list.ps1')
+$jythonSrc = Get-JythonSources -List (Join-Path $hart 'cats\scripts\pi\jython_scripts.txt') -Package $hart
 
 $src = Join-Path $hart 'tables.xml'
 if (Test-Path $src) {
@@ -226,25 +231,6 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
   Write-Host 'No ctc icons in the drop (parked or absent): ctc left as it is'
 }
 
-$jythonSrc = @(
-  (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\hide_band_panels.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status.py'),
-  # panel_status.py's PARTS: installed beside it, not Start Up items.
-  (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status_clicks.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status_turnouts.py'),
-  (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
-  (Join-Path $hart 'jmri\scripts\signal_coordinator.py'),
-  # signal_coordinator.py's SIBLING_MODULES: installed beside it, not Start Up items.
-  (Join-Path $hart 'jmri\scripts\sml_beans.py'),
-  (Join-Path $hart 'jmri\scripts\sml_claims.py'),
-  (Join-Path $hart 'jmri\scripts\sml_handoff.py'),
-  (Join-Path $hart 'jmri\scripts\sml_events.py'),
-  (Join-Path $hart 'jmri\scripts\sml_quit.py'),
-  (Join-Path $hart 'jmri\scripts\sml_ui.py'),
-  # The loader signal_coordinator.py and panel_status.py import their siblings with: not a Start Up item.
-  (Join-Path $hart 'jmri\scripts\jython_siblings.py')
-)
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]
 [void]$roots.Add($UserFiles)
@@ -253,9 +239,7 @@ foreach ($r in ($roots | Select-Object -Unique)) {
   $dest = Join-Path $r 'jython'
   New-Item -ItemType Directory -Force -Path $dest | Out-Null
   foreach ($src in $jythonSrc) {
-    if (Test-Path $src) {
-      Copy-Item $src (Join-Path $dest (Split-Path $src -Leaf)) -Force
-    }
+    Copy-Item -LiteralPath $src (Join-Path $dest (Split-Path $src -Leaf)) -Force
     # Jython's compiled copy of a module it imported: Copy-Item keeps the source's time, so a class
     # not older than the new .py (a rollback, a clock skew) would be reused.
     $compiled = Join-Path $dest ([System.IO.Path]::GetFileNameWithoutExtension($src) + '$py.class')
