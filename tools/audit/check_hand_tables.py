@@ -24,9 +24,10 @@ How it classes a table (classify):
 - unclear: anything else (sentences, numbers by item, lists of repo files, rows of values). It must be listed; `unreviewed` until the
   owner decides, then `move` or `keep` with the reason.
 
-A listed table may not grow: its entries may not pass the row's. A row for a table no longer found fails, so the
-list only shrinks (--update drops such rows and lowers entries; it never adds a row or raises one). A new table that
-must stay in code is added by hand with status keep and the reason.
+A listed table may not grow: its entries may not pass the row's. A row for a table no longer found is a note, not a
+failure, so a branch that removes a table need not touch the list (ADR-041: the queue holder's wave-end
+`make baselines` sweep runs --update, which drops such rows and lowers entries; it never adds a row or raises one). A
+new table that must stay in code is added by hand with status keep and the reason.
 """
 from __future__ import annotations
 
@@ -224,22 +225,24 @@ def found_tables(root: Path = REPO) -> list[Table]:
 def problems(tables: list[Table], names: dict[str, str], listed: dict[tuple[str, str], Listed],
              tops: frozenset[str] = frozenset()) -> list[str]:
     out = []
-    seen = set()
     for t in tables:
         cls, why = classify(t, names, tops)
         key = (t.file, t.name)
         row = listed.get(key)
         if row is not None:
-            seen.add(key)
             if t.entries > row.entries:
                 out.append(f"{t.file}:{t.line}: {t.name} has {t.entries} entries, more than its {row.entries} in "
                            "hand_tables.csv: a listed table may not grow; put the new entries in a CSV")
         elif cls != "setting":
             out.append(f"{t.file}:{t.line}: {t.name} is {'an' if cls == 'unclear' else 'a'} {cls} table ({why}); railroad data goes in a CSV read "
                        "through hartlib, or list it in tools/audit/hand_tables.csv with status keep and the reason")
-    for key in sorted(set(listed) - seen):
-        out.append(f"tools/audit/hand_tables.csv: {key[0]} {key[1]} is no longer found; drop its row (--update)")
     return out
+
+
+def gone(tables: list[Table], listed: dict[tuple[str, str], Listed]) -> list[str]:
+    """The listed (file, table) pairs no longer found, as notes: --update drops their rows. Not a failure."""
+    found = {(t.file, t.name) for t in tables}
+    return [f"{file} {table}" for file, table in sorted(set(listed) - found)]
 
 
 def updated(tables: list[Table], listed: dict[tuple[str, str], Listed]) -> list[Listed]:
@@ -278,6 +281,9 @@ def main(argv: list[str] | None = None, root: Path = REPO) -> int:
     found = problems(tables, names, listed, tops)
     for line in found:
         print(line)
+    left = gone(tables, listed)
+    for line in left:
+        print(f"check_hand_tables: note: {LISTED} lists {line}, no longer found; --update drops the row")
     counts = {s: sum(1 for r in listed.values() if r.status == s) for s in hand_tables.STATUSES}
     print(f"check_hand_tables: {len(tables)} tables, {len(listed)} listed "
           f"({', '.join(f'{n} {s}' for s, n in counts.items())}); {len(found)} problems")

@@ -1,6 +1,6 @@
 """tools/audit/check_hand_tables.py, run on a small checkout: a new table of railroad names fails, a table of code
-words passes, a listed table may not grow, a row for a table gone fails and --update drops it, and the real repo
-passes."""
+words passes, a listed table may not grow, a row for a table gone is a note and --update drops it, a row listed
+twice stops the check, and the real repo passes."""
 from __future__ import annotations
 
 import contextlib
@@ -72,17 +72,28 @@ class Checkout(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("STOPS has 5 entries, more than its 4", out)
 
-    def test_a_row_for_a_table_gone_fails_and_update_drops_it(self):
+    def test_a_row_for_a_table_gone_is_a_note_and_update_drops_it(self):
         self.write("tools/stops.py", NAMES_PY)
         self.write("tools/audit/hand_tables.csv",
                    HEADER + "tools/stops.py,STOPS,9,move,stations\ntools/old.py,OLD,5,keep,gone\n")
         code, out = self.run_check()
-        self.assertEqual(code, 1)
-        self.assertIn("tools/old.py OLD is no longer found", out)
+        self.assertEqual(code, 0)
+        self.assertIn("note: tools/audit/hand_tables.csv lists tools/old.py OLD, no longer found", out)
+        self.assertIn("0 problems", out)
         self.assertEqual(self.run_check("--update")[0], 0)
         self.assertEqual((self.root / "tools/audit/hand_tables.csv").read_text(),
                          HEADER + "tools/stops.py,STOPS,4,move,stations\n")
-        self.assertEqual(self.run_check()[0], 0)
+        code, out = self.run_check()
+        self.assertEqual(code, 0)
+        self.assertNotIn("note:", out)
+
+    def test_a_row_listed_twice_stops_with_exit_2(self):
+        self.write("tools/stops.py", NAMES_PY)
+        self.write("tools/audit/hand_tables.csv",
+                   HEADER + "tools/stops.py,STOPS,4,move,stations\ntools/stops.py,STOPS,3,move,stations\n")
+        code, out = self.run_check()
+        self.assertEqual(code, 2)
+        self.assertIn("tools/stops.py STOPS is listed twice", out)
 
     def test_javascript_tables_and_tests_and_archive(self):
         self.write("www/play/game.js", 'const STN = [\n  "South Yard", // a comment, with commas\n  "East End",'

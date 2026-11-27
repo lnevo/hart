@@ -4438,7 +4438,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: a top-level table in a .py or www .js file that holds railroad names (from the CSV masters in entities.csv), or that it cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it; a listed table may not grow and a row for a table gone fails, so the list only shrinks.",
+   "desc": "Audit: a top-level table in a .py or www .js file that holds railroad names (from the CSV masters in entities.csv), or that it cannot tell from a code setting, fails unless tools/audit/hand_tables.csv lists it; a listed table may not grow, a row for a table gone is a note, and --update (make baselines) drops such rows, so the list only shrinks.",
    "path": "tools/audit/check_hand_tables.py",
    "gen": "manifest"
   },
@@ -15744,6 +15744,13 @@
   {
    "from": "wiki/decisions",
    "to": ".claude/agents/schematic-builder.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": ".claude/agents/tool-fixer.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
