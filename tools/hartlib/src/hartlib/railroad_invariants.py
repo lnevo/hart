@@ -104,11 +104,11 @@ def device_row_problems(lines: Iterable[tuple[int, Mapping[str, str]]], helix_bl
 
 
 def master_rows(rr: Railroad) -> list[tuple[int, Mapping[str, str]]]:
-    """(line, row) of every level's rows of the device master that a device map holds (hartlib.devices): not a level-less
-    device, which is on no level's map yet."""
+    """(line, row as the master's text: MasterRow.cells) of every level's rows of the device master that a device map
+    holds (hartlib.devices): not a level-less device, which is on no level's map yet."""
     from . import devices
-    return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2)
-            if r["role"] not in devices.OUT_OF_MAPS and not devices.is_unplaced(r)]
+    return [(n, r.cells()) for n, r in enumerate(devices.load(rr.sources.devices), 2)
+            if r.role not in devices.OUT_OF_MAPS and r.level is not None]
 
 
 # ---------------------------------------------------------------- invariants
