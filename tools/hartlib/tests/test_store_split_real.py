@@ -82,7 +82,7 @@ def edited(root: ET.Element, *edits: Callable[[ET.Element], None]) -> ET.Element
 
 def bean_edits(root: ET.Element) -> None:
     """Rename, re-comment or delete every STEP-th bean of each device-master section (offsets 0, 3 and 6)."""
-    for sk in tb.MASTER_SECTIONS:
+    for sk in ts.MASTER_SECTIONS:
         sec = section(root, sk)
         for n, el in enumerate(beans(sec)):
             if n % STEP == 0:
@@ -96,14 +96,14 @@ def bean_edits(root: ET.Element) -> None:
 def added_devices(root: ET.Element) -> None:
     """A new turnout, a new block with its layout block, and a layout block with no block."""
     section(root, ts.LCC_TURNOUTS).append(new_bean("turnout", NEW_TURNOUT, "Yard Lead Test", feedback="DIRECT"))
-    blocks = section(root, tb.BLOCKS)
+    blocks = section(root, ts.BLOCKS)
     blocks.append(new_bean("block", NEW_BLOCK, "Test Siding", systemName=NEW_BLOCK))
     full = new_bean("block", NEW_BLOCK, "Test Siding", systemName=NEW_BLOCK, length="100.0", curve="0")
     ET.SubElement(full, "permissive").text = "no"
     blocks.append(full)
-    section(root, tb.LAYOUT_BLOCKS).append(new_bean("layoutblock", NEW_LAYOUT_BLOCK, "Test Siding",
+    section(root, ts.LAYOUT_BLOCKS).append(new_bean("layoutblock", NEW_LAYOUT_BLOCK, "Test Siding",
                                                     systemName=NEW_LAYOUT_BLOCK))
-    section(root, tb.LAYOUT_BLOCKS).append(new_bean("layoutblock", LONE_LAYOUT_BLOCK, "Nowhere Block",
+    section(root, ts.LAYOUT_BLOCKS).append(new_bean("layoutblock", LONE_LAYOUT_BLOCK, "Nowhere Block",
                                                     systemName=LONE_LAYOUT_BLOCK))
 
 
@@ -112,7 +112,7 @@ def template_edits(root: ET.Element) -> None:
     memories = next(s for s in tables.elements(root) if s.tag == "memories")
     memories.append(new_bean("memory", NEW_MEMORY, "Split test"))
     next(s for s in tables.elements(root) if s.tag == "timebase").set("rate", "4.0")
-    set_child(section(root, tb.BLOCKS), "defaultspeed", "Restricted")
+    set_child(section(root, ts.BLOCKS), "defaultspeed", "Restricted")
     ET.SubElement(root, "extrathing", {"class": "test.ExtraXml"}).text = "x"
 
 
@@ -138,13 +138,13 @@ def unplaced_rows(real: Real) -> tuple[ET.Element, list[dict[str, str]]]:
     if len(adds) != 2:
         raise AssertionError(f"{len(adds)} rows added, not 2")
     rows = real.rows + [e.row for e in adds]
-    return edited(real.repo, added_devices, lambda r: section(r, tb.LAYOUT_BLOCKS).remove(
-        next(el for el in beans(section(r, tb.LAYOUT_BLOCKS)) if tables.system_name(el) == LONE_LAYOUT_BLOCK))), rows
+    return edited(real.repo, added_devices, lambda r: section(r, ts.LAYOUT_BLOCKS).remove(
+        next(el for el in beans(section(r, ts.LAYOUT_BLOCKS)) if tables.system_name(el) == LONE_LAYOUT_BLOCK))), rows
 
 
 def unplaced_edits(root: ET.Element) -> None:
     """Rename the level-less block, re-feedback the level-less turnout."""
-    for el in beans(section(root, tb.BLOCKS)):
+    for el in beans(section(root, ts.BLOCKS)):
         if tables.system_name(el) == NEW_BLOCK:
             set_child(el, "userName", "Test Siding 2")
     for el in beans(section(root, ts.LCC_TURNOUTS)):
@@ -248,7 +248,7 @@ class RealTables(unittest.TestCase):
     def test_every_edited_bean_gives_one_item(self) -> None:
         kinds = kind_of(self.plans["base"])
         also = {k for i in self.plans["base"].items for k, _ in i.also}
-        for sk in tb.MASTER_SECTIONS:
+        for sk in ts.MASTER_SECTIONS:
             for n, el in enumerate(beans(section(self.real.repo, sk))):
                 if n % STEP not in (0, 3, 6) or (n % STEP == 3 and ts.sort_group(el) == "block-names"):
                     continue

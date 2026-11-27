@@ -50,7 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_layout_le as ble  # noqa: E402  the Layout Editor build (and hartlib on the path)
 import band_panels  # noqa: E402  the three band panels copied from the built panel
 import publish_draft as pd  # noqa: E402  the plugin's cache
-from hartlib import devices, paths, tables, tables_sections, tables_sml  # noqa: E402
+from hartlib import devices, paths, tables, tables_normal, tables_sections, tables_sml  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 OUT = paths.REPO_TABLES_XML
@@ -64,7 +64,7 @@ def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[
     data, P, _names, bands = ble.build(levels="all", as_live=True)
     doc = tables.loads(data)
     root = doc.root
-    if doc.prolog != tb.PROLOG or doc.epilog != tb.EPILOG:
+    if doc.prolog != tables_normal.PROLOG or doc.epilog != tables_normal.EPILOG:
         raise tb.TablesBuildError("the Layout Editor build changed the envelope")
     band_panels.add(root, P, bands, ble.plugin()[1].CHROME)
     if with_logic:
@@ -142,7 +142,7 @@ def check(root) -> None:
     """The output's invariants: the envelope is the fixed one, no name is given twice, every row of the master that
     gives a bean (any level, assignment not none) has it in the output by its bean name (tb.bean_name), and every
     Digicon destination is disabled."""
-    held = tb.envelope_items(root)
+    held = tables_normal.envelope_items(root)
     if held:
         raise tb.TablesBuildError(f"the output holds {', '.join(held)}")
     tb.check_names(root)

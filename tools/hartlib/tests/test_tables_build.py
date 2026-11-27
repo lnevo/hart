@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import (devices as D, jmri_bean, level_devices, paths, tables, tables_build as tb,  # noqa: E402
-                     tables_normal, tables_roundtrip, tables_sections as ts, tables_sml)
+                     startup_logixng, tables_normal, tables_roundtrip, tables_sections as ts, tables_sml)
 
 
 def blank(**cells) -> dict:
@@ -69,7 +69,7 @@ class Template(unittest.TestCase):
         doc = tb.read_template()
         got = [tb.section_key(s) for s in tables.elements(doc.root)]
         # the known sections in order; a split may keep an extra one the owner made (a Route table, audio)
-        self.assertEqual([k for k in got if k in tb.SECTIONS], list(tb.SECTIONS))
+        self.assertEqual([k for k in got if k in ts.SECTIONS], list(ts.SECTIONS))
         held = tb.bean_names(doc.root)
         self.assertIn("ISCLOCKRUNNING", held)
         self.assertIn("IQ:AUTO:0001", held)
@@ -389,7 +389,7 @@ class ShapeByColumn(unittest.TestCase):
                      assignment="virtual", jmri_name="IS:HART:C3:B:Twin", blocks="OS Switch 1", start="inactive",
                      bean_comment="x")
         beans = self.beans([twin])
-        full = {tables.system_name(b): b.findtext("occupancysensor") for b in beans[tb.BLOCKS]}
+        full = {tables.system_name(b): b.findtext("occupancysensor") for b in beans[ts.BLOCKS]}
         self.assertEqual(("BS Switch 1", "BS Helix Outer"), (full["IB:AUTO:0033"], full["IB23"]))
 
     def test_feedback_rows_are_found_on_the_turnouts_own_level(self) -> None:
@@ -414,33 +414,33 @@ class ShapeByColumn(unittest.TestCase):
         beans = self.beans()
         self.assertEqual("Main and upper level, internal",
                          self.named(beans, ts.INTERNAL_TURNOUTS)["IT:HART:C3:101"].findtext("comment"))
-        full = {tables.system_name(b): b for b in beans[tb.BLOCKS]}
+        full = {tables.system_name(b): b for b in beans[ts.BLOCKS]}
         self.assertEqual("Main and upper level, internal", full["IB:C3:0001"].findtext("comment"))   # not "Peninsula"
         self.assertEqual("Brick CP, Switch 1", full["IB:AUTO:0033"].findtext("comment"))           # wiring columns
         self.assertEqual("x", tb.row_comment(blank(layer="sensor", bean_comment="x", jmri_comment="y")))
 
     def test_a_block_gives_three_beans_and_a_part_its_blocks_sensor(self) -> None:
         beans = self.beans()
-        names = [tables.system_name(b) for b in beans[("blocks-names",) + tb.BLOCKS]]
+        names = [tables.system_name(b) for b in beans[("blocks-names",) + ts.BLOCKS]]
         self.assertIn("IB:C3:0001", names)
-        full = {tables.system_name(b): b for b in beans[tb.BLOCKS]}
+        full = {tables.system_name(b): b for b in beans[ts.BLOCKS]}
         self.assertEqual(("254.0", "BS Switch 101"), (full["IB:C3:0075"].get("length"),
                                                       full["IB:C3:0075"].findtext("occupancysensor")))
-        lbs = {tables.system_name(b): b for b in beans[tb.LAYOUT_BLOCKS]}
+        lbs = {tables.system_name(b): b for b in beans[ts.LAYOUT_BLOCKS]}
         self.assertEqual("BS Switch 101", lbs["ILB1075"].get("occupancysensor"))
 
     def test_a_helix_block_is_staging_s_bean_on_the_main_or_upper_sensor(self) -> None:
         beans = self.beans()
-        full = [b for b in beans[tb.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
+        full = [b for b in beans[ts.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
         self.assertEqual([("IB23", "BS Helix Outer")], [(tables.system_name(b), b.findtext("occupancysensor"))
                                                         for b in full])
         alone = tb.master_beans(rows() + [STAGING_HELIX] + main_rows(), ALL_LENGTHS, ("1",))      # staging alone
-        full = [b for b in alone[tb.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
+        full = [b for b in alone[ts.BLOCKS] if tables.user_name(b) == "Track Helix Outer"]
         self.assertEqual([None], [b.find("occupancysensor") for b in full])
-        self.assertNotIn(tb.START_ACTIONS, alone)
+        self.assertNotIn(startup_logixng.START_ACTIONS, alone)
 
     def test_a_virtual_row_with_a_start_is_set_when_the_tables_load(self) -> None:
-        actions = self.beans()[tb.START_ACTIONS]
+        actions = self.beans()[startup_logixng.START_ACTIONS]
         got = [(a.tag, a.findtext("systemName"), a.findtext("namedBean/name"), a.findtext("state/enum"))
                for a in actions]
         self.assertEqual([("ActionSensor", "IQDA$HART:C3:B:Helix_Outer", "IS:HART:C3:B:Helix_Outer", "Inactive"),
@@ -798,14 +798,14 @@ class Envelope(unittest.TestCase):
         root = tables.loads(STORE.replace(b"<signalmasts>", b'<timebase time="x" /><memories><memory value="1">'
                                           b"<systemName>IM1</systemName></memory></memories><signalmasts>")).root
         self.assertEqual(["filehistory", "the 'Written by' comment", "timebase@time", "memory@value"],
-                         tb.envelope_items(root))
+                         tables_normal.envelope_items(root))
         tables_normal.strip_envelope(root)
-        self.assertEqual([], tb.envelope_items(root))
+        self.assertEqual([], tables_normal.envelope_items(root))
 
     def test_the_generated_file_has_the_fixed_envelope(self) -> None:
         doc = tables.load(paths.REPO_TABLES_XML)
-        self.assertEqual((tb.PROLOG, tb.EPILOG), (doc.prolog, doc.epilog))
-        self.assertEqual([], tb.envelope_items(doc.root))
+        self.assertEqual((tables_normal.PROLOG, tables_normal.EPILOG), (doc.prolog, doc.epilog))
+        self.assertEqual([], tables_normal.envelope_items(doc.root))
 
 
 if __name__ == "__main__":

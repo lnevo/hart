@@ -333,7 +333,7 @@ def _examples(root: ET.Element) -> dict:
 
 def _logixng(root: ET.Element) -> dict:
     """Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
-    that sets the main and upper virtual block sensors clear (hartlib.tables_build.start_logixng)."""
+    that sets the main and upper virtual block sensors clear (hartlib.startup_logixng.start_logixng)."""
     f: dict = {}
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
     ngs = tables.section(root, "LogixNGs", "LogixNG")

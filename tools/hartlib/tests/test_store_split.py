@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from hartlib import devices as D, jmri_bean, tables, tables_sections  # noqa: E402
+from hartlib import devices as D, jmri_bean, tables, tables_normal, tables_sections  # noqa: E402
 from hartlib import store_plan as sp  # noqa: E402
 from hartlib import store_split as ss  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
@@ -299,7 +299,7 @@ class UnplacedRows(unittest.TestCase):
         self.assertEqual([], p.items)
 
     def test_the_build_gives_the_stores_bean_back(self) -> None:
-        kept = tb.kept_beans(self.rows)
+        kept = jmri_bean.kept_beans(self.rows)
         [el] = kept[tables_sections.LCC_TURNOUTS]
         self.assertEqual(ss.canon(self.repo.find("turnouts").find("turnout[systemName='MTT999']")), ss.canon(el))
 
@@ -459,7 +459,7 @@ class Choices(unittest.TestCase):
 class NewTemplate(unittest.TestCase):
     def tdoc(self) -> tables.Tables:
         root = doc(template=True)
-        return tables.Tables(root=root, prolog=tb.PROLOG, epilog=tb.EPILOG)
+        return tables.Tables(root=root, prolog=tables_normal.PROLOG, epilog=tables_normal.EPILOG)
 
     def test_changes_land_in_place(self) -> None:
         routes = '<routes class="jmri.managers.configurexml.DefaultRouteManagerXml"><route systemName="IO1">' \
