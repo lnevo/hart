@@ -2,14 +2,12 @@
 """Generate filled HART car cards for every row in image_metadata.csv.
 
 Reads cropped images from CarImagesCardFillPrint/, CarImagesCardFill/ and CarImagesFinal/ (then the row's
-cropped_image), sticker-sheet layout (9 cards per page), and writes a single review document. A photo listed in
-data/card_overrides.csv prints the card that file gives instead.
+cropped_image), sticker-sheet layout (9 cards per page), and writes a single review document.
 """
 
 from __future__ import annotations
 
 import csv
-import functools
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import NamedTuple, TypedDict
@@ -38,7 +36,6 @@ BASE = car_paths.ROOT
 DATA = car_paths.DATA
 OUTPUT_DIR = car_paths.OUTPUT_DIR
 METADATA_CSV = DATA / "image_metadata.csv"
-CARD_OVERRIDES_CSV = DATA / "card_overrides.csv"
 ROSTER_XML = DATA / "OperationsCarRoster.xml"
 OUTPUT = OUTPUT_DIR / "HART_All_Car_Cards.docx"
 CARDS_PER_PAGE = card_template_sheet.CARDS_PER_PAGE
@@ -50,9 +47,6 @@ CARD_FILL_PRINT_DIR = BASE / "CarImagesCardFillPrint"
 # Omit from print sheet — unidentified / decorative cars kept in manifest for review only.
 EXCLUDE_FROM_DOC: frozenset[str] = frozenset({"IMG_9152.png"})
 
-OVERRIDE_COLUMNS = ("source_image", "image", "card_type", "road_name", "road_number", "description")
-
-
 class RosterCar(TypedDict):
     """One car of OperationsCarRoster.xml, as the card reads it."""
 
@@ -61,13 +55,6 @@ class RosterCar(TypedDict):
     road_number: str
     car_type: str
     roster_length_ft: str
-
-
-class CardOverride(NamedTuple):
-    """A card data/card_overrides.csv gives for one photo, in place of the one its metadata row would give."""
-
-    record: CardRecord
-    image: Path
 
 
 class CardEntry(NamedTuple):
@@ -90,36 +77,6 @@ def load_roster() -> dict[str, RosterCar]:
             "roster_length_ft": el.get("length", ""),
         }
     return cars
-
-
-def read_card_overrides(path: Path) -> dict[str, CardOverride]:
-    """data/card_overrides.csv by photo file name; each image is relative to ops/hart-ops and must exist."""
-    with path.open(newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        if tuple(reader.fieldnames or ()) != OVERRIDE_COLUMNS:
-            raise CardPipelineError(f"{path}: columns are {reader.fieldnames}, expected {list(OVERRIDE_COLUMNS)}")
-        overrides: dict[str, CardOverride] = {}
-        for line, row in enumerate(reader, start=2):
-            photo = row["source_image"].strip()
-            if photo in overrides:
-                raise CardPipelineError(f"{path}:{line}: {photo} is listed twice")
-            image = car_paths.HART_OPS_ROOT / row["image"].strip()
-            if not image.is_file():
-                raise CardPipelineError(f"{path}:{line}: the image {image} for {photo} is missing")
-            record: CardRecord = {
-                "Type": row["card_type"],
-                "RoadName": row["road_name"],
-                "RoadNumber": row["road_number"],
-                "Description": row["description"],
-            }
-            overrides[photo] = CardOverride(record, image)
-    return overrides
-
-
-@functools.cache
-def card_overrides() -> dict[str, CardOverride]:
-    """The overrides file, read once per run."""
-    return read_card_overrides(CARD_OVERRIDES_CSV)
 
 
 def format_description(row: Mapping[str, str], car: RosterCar | None,
@@ -183,10 +140,6 @@ def resolve_image(row: Mapping[str, str]) -> Path | None:
 def row_to_card(row: Mapping[str, str], roster: Mapping[str, RosterCar],
                 engine_by_key: Mapping[EngineKey, EngineRecord]) -> tuple[CardRecord, Path | None]:
     """The card fields and picture for one repository row (or a loco row in its shape)."""
-    override = card_overrides().get(row.get("source_image", "").strip())
-    if override is not None:
-        return override.record.copy(), override.image
-
     car = roster.get(row.get("roster_id", ""))
     ctype = normalize_car_type(row.get("car_type") or (car["car_type"] if car else ""))
     record: CardRecord = {

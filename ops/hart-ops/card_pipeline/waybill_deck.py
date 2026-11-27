@@ -1,7 +1,8 @@
 """Waybill deck logic for generate_waybill_cards.py: spot parsing, routing and deck order.
 
 Pure functions over the tables in waybill_data.py. The CSV reader (load_spot_groups) stays in
-generate_waybill_cards.py because tests patch SPOT_CSV there.
+generate_waybill_cards.py because tests patch SPOT_CSV there. A deck card is a plain dict keyed as
+card_template_records.WaybillCardRecord is, plus the build keys GroupKey, DirectionKey and PartyPool.
 """
 
 from __future__ import annotations
@@ -11,8 +12,10 @@ import random
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Sequence
 from copy import deepcopy
 from pathlib import Path
+from typing import TypedDict
 
 # generate_waybill_cards loads waybill_data by path before this module, so this name
 # resolves to the sibling file in this checkout.
@@ -33,12 +36,35 @@ from waybill_data import (
     SPOT_WAYBILL,
     Party,
     WaybillSpec,
-    _norm,
+    norm,
     normalize_spec,
 )
 
+class SpotGroup(TypedDict):
+    """Spots of one industry that share a usage and a car-type list, as load_spot_groups merges them."""
+
+    Industry: str
+    Usage: str
+    CarTypes: tuple[str, ...]
+    Spots: str  # the spot numbers as format_spots writes them
+
+
+class DeckSummaryRow(TypedDict):
+    """One industry's line of the deck report: its card count and the values its cards use, joined."""
+
+    industry: str
+    cards: int
+    kinds: str
+    flows: str
+    usages: str
+    spots: str
+    commodities: str
+    car_types: str
+    vias: str
+
+
 def _is_layout_party(name: str) -> bool:
-    n = _norm(name)
+    n = norm(name)
     if not n:
         return False
     if n in _LAYOUT_PARTY_NAMES:
@@ -71,12 +97,12 @@ def build_interchange_deck() -> list[dict]:
 
 
 
-def _parse_spot_num(raw: str) -> int:
+def parse_spot_num(raw: str) -> int:
     return int(re.sub(r"\D", "", raw) or "0")
 
 
 def normalize_car_type(raw: str) -> str:
-    name = _norm(raw)
+    name = norm(raw)
     lower = name.lower()
     if lower in {"loaded hopper", "empty hopper", "coal hopper"}:
         return "Hopper"
@@ -85,7 +111,7 @@ def normalize_car_type(raw: str) -> str:
     return name
 
 
-def _parse_car_types(raw: str) -> tuple[str, ...]:
+def parse_car_types(raw: str) -> tuple[str, ...]:
     seen: set[str] = set()
     out: list[str] = []
     for part in raw.split(";"):
@@ -96,7 +122,7 @@ def _parse_car_types(raw: str) -> tuple[str, ...]:
     return tuple(out)
 
 
-def _format_spots(nums: list[int]) -> str:
+def format_spots(nums: list[int]) -> str:
     nums = sorted(set(n for n in nums if n))
     if not nums:
         return ""
@@ -159,7 +185,7 @@ def _commodity_from_usage(usage: str, industry: str = "") -> str:
     return usage
 
 
-def _waybill_spec(industry: str, usage: str) -> WaybillSpec:
+def waybill_spec(industry: str, usage: str) -> WaybillSpec:
     """The table entry for a spot, else a generic one built from the usage text."""
     spec = SPOT_WAYBILL.get((industry, usage))
     if spec:
@@ -212,7 +238,7 @@ def _apply_load_summary(card: dict, summary_load: str = "") -> None:
         card["LoadSummary"] = summary
 
 
-def _party_pool(flow: str, load: str, spec: WaybillSpec) -> list[Party]:
+def party_pool(flow: str, load: str, spec: WaybillSpec) -> list[Party]:
     """Copies of the parties a direction's cards are spread over: customers route an inbound empty."""
     if load == EMPTY and flow == "IN":
         return [Party(**p) for p in spec["customers"]]
@@ -223,7 +249,7 @@ def _party_pool(flow: str, load: str, spec: WaybillSpec) -> list[Party]:
     return [Party(**p) for p in spec["customers"]]
 
 
-def _spread_parties(pool: list[Party], count: int) -> list[Party]:
+def spread_parties(pool: list[Party], count: int) -> list[Party]:
     """Assign one party per card, shuffled and spread when pool is smaller."""
     blank: Party = {"name": "", "via": "", "entry": "", "commodity": ""}
     if not pool or count <= 0:
@@ -242,7 +268,7 @@ def _spread_parties(pool: list[Party], count: int) -> list[Party]:
     return out
 
 
-def _apply_route(
+def apply_route(
     card: dict, flow: str, load: str, party: Party, industry: str = ""
 ) -> None:
     if card.get("CardKind") == "interchange":
@@ -279,7 +305,7 @@ def _apply_route(
 
 def _spots_from_label(label: str) -> set[int]:
     nums: set[int] = set()
-    label = _norm(label)
+    label = norm(label)
     if not label:
         return nums
     for part in label.split(","):
@@ -294,7 +320,7 @@ def _spots_from_label(label: str) -> set[int]:
     return nums
 
 
-def _industry_spot_counts(groups: list[dict]) -> dict[str, int]:
+def _industry_spot_counts(groups: Sequence[SpotGroup]) -> dict[str, int]:
     """Unique active car spots per industry (groups already omit off spot / storage)."""
     by_industry: dict[str, set[int]] = defaultdict(set)
     for group in groups:
@@ -306,17 +332,17 @@ def _industry_spot_counts(groups: list[dict]) -> dict[str, int]:
     }
 
 
-def _industry_inbound_empty_spots(groups: list[dict]) -> dict[str, set[int]]:
+def _industry_inbound_empty_spots(groups: Sequence[SpotGroup]) -> dict[str, set[int]]:
     """Spots that receive dedicated inbound EMPTY cards (load tracks)."""
     by_industry: dict[str, set[int]] = defaultdict(set)
     for group in groups:
-        spec = _waybill_spec(group["Industry"], group["Usage"])
+        spec = waybill_spec(group["Industry"], group["Usage"])
         if spec["inbound_load"] == EMPTY:
             by_industry[group["Industry"]].update(_spots_from_label(group["Spots"]))
     return dict(by_industry)
 
 
-def _industry_outbound_empty_counts(groups: list[dict]) -> dict[str, int]:
+def industry_outbound_empty_counts(groups: Sequence[SpotGroup]) -> dict[str, int]:
     """Outbound empties = total spots minus load spots that use inbound empties."""
     all_spots: dict[str, set[int]] = defaultdict(set)
     for group in groups:
@@ -334,9 +360,9 @@ def _spot_count(spots: str) -> int:
     return len(_spots_from_label(spots)) or 1
 
 
-def build_industry_empty_cards(groups: list[dict]) -> list[dict]:
+def build_industry_empty_cards(groups: Sequence[SpotGroup]) -> list[dict]:
     """One generic outbound EMPTY per spot not covered by an inbound-empty load track."""
-    counts = _industry_outbound_empty_counts(groups)
+    counts = industry_outbound_empty_counts(groups)
     cards: list[dict] = []
     for industry in sorted(counts, key=lambda name: INDUSTRY_ORDER.get(name, 99)):
         routing = OUTBOUND_EMPTY_RETURN.get(industry, {})
@@ -367,13 +393,13 @@ def _pad_designs(designs: list[dict], count: int = CARDS_PER_DIRECTION) -> list[
     return [deepcopy(designs[i % n]) for i in range(count)]
 
 
-def build_waybill_records(groups: list[dict]) -> tuple[list[dict], list[tuple]]:
+def build_waybill_records(groups: Sequence[SpotGroup]) -> tuple[list[dict], list[tuple]]:
     """IN + OUT waybill per car type for each spot group."""
     records: list[dict] = []
     group_order: list[tuple] = []
 
     for group in groups:
-        spec = _waybill_spec(group["Industry"], group["Usage"])
+        spec = waybill_spec(group["Industry"], group["Usage"])
         group_key = (group["Industry"], group["Spots"], group["Usage"])
         if group_key not in group_order:
             group_order.append(group_key)
@@ -386,7 +412,7 @@ def build_waybill_records(groups: list[dict]) -> tuple[list[dict], list[tuple]]:
         for flow, load in directions:
             if load == EMPTY and flow != "IN":
                 continue
-            pool = _party_pool(flow, load, spec)
+            pool = party_pool(flow, load, spec)
             for car_type in group["CarTypes"]:
                 records.append(
                     {
@@ -446,8 +472,8 @@ def expand_copies(waybills: list[dict], group_order: list[tuple]) -> list[dict]:
             load = designs[0]["Commodity"]
             if load == EMPTY:
                 copy_count = CARDS_PER_DIRECTION
-                spec = _waybill_spec(group_key[0], group_key[2])
-                pool = _party_pool("IN", EMPTY, spec)
+                spec = waybill_spec(group_key[0], group_key[2])
+                pool = party_pool("IN", EMPTY, spec)
             else:
                 pool = by_direction[direction_key][0].get("PartyPool", [])
                 # One shipment per supplier/customer — do not duplicate routes when
@@ -456,8 +482,8 @@ def expand_copies(waybills: list[dict], group_order: list[tuple]) -> list[dict]:
                 if pool:
                     copy_count = min(CARDS_PER_DIRECTION, max(len(pool), len(designs)))
             padded = _pad_designs(designs, copy_count)
-            parties = _spread_parties(pool, len(padded))
-            spec = _waybill_spec(group_key[0], group_key[2])
+            parties = spread_parties(pool, len(padded))
+            spec = waybill_spec(group_key[0], group_key[2])
             summary_load = (
                 spec["inbound_load"] if flow == "IN" else spec["outbound_load"]
             )
@@ -469,12 +495,12 @@ def expand_copies(waybills: list[dict], group_order: list[tuple]) -> list[dict]:
                 elif party["commodity"]:
                     card["Commodity"] = party["commodity"]
                 _apply_load_summary(card, summary_load)
-                _apply_route(card, flow, load, party, group_key[0])
+                apply_route(card, flow, load, party, group_key[0])
                 deck.append(card)
     return deck
 
 
-def _card_kind(card: dict) -> str:
+def card_kind(card: dict) -> str:
     kind = card.get("CardKind")
     if kind in ("interchange", "outbound_empty", "inbound_empty"):
         return kind
@@ -487,7 +513,7 @@ def _card_kind(card: dict) -> str:
 
 def _deck_sort_key(card: dict) -> tuple:
     industry = card.get("Industry", "")
-    kind = _card_kind(card)
+    kind = card_kind(card)
     if kind == "outbound_empty":
         section = 2
     elif kind == "interchange":
@@ -525,7 +551,7 @@ def _card_to_csv_row(card: dict, card_id: int) -> dict[str, str]:
     return {
         "card_id": str(card_id),
         "industry": card.get("Industry", ""),
-        "card_kind": _card_kind(card),
+        "card_kind": card_kind(card),
         "usage": card.get("Usage", ""),
         "spots": card.get("Spots", ""),
         "flow": card.get("Flow", ""),
@@ -561,20 +587,20 @@ def export_waybill_csv(deck: list[dict], path: Path) -> None:
             writer.writerow(_card_to_csv_row(card, i))
 
 
-def _summarize_deck(deck: list[dict]) -> list[dict]:
+def summarize_deck(deck: list[dict]) -> list[DeckSummaryRow]:
     """Aggregate card attributes per industry for reporting."""
     by_industry: dict[str, list[dict]] = defaultdict(list)
     for card in deck:
         by_industry[card.get("Industry", "")].append(card)
 
-    rows: list[dict] = []
+    rows: list[DeckSummaryRow] = []
     industries = sorted(
         by_industry,
         key=lambda name: (INDUSTRY_ORDER.get(name, 99), name),
     )
     for industry in industries:
         cards = by_industry[industry]
-        kinds = sorted({_card_kind(c) for c in cards})
+        kinds = sorted({card_kind(c) for c in cards})
         flows = sorted({c.get("Flow", "") for c in cards if c.get("Flow")})
         commodities = sorted(
             {c.get("Commodity", "") for c in cards if c.get("Commodity") != EMPTY}

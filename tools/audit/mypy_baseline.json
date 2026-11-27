@@ -46,7 +46,6 @@
  "ops/hart-ops/card_pipeline/cars.py": 34,
  "ops/hart-ops/card_pipeline/crop_car_image.py": 1,
  "ops/hart-ops/card_pipeline/generate_operator_sheet.py": 6,
- "ops/hart-ops/card_pipeline/generate_waybill_cards.py": 4,
  "ops/hart-ops/card_pipeline/intake_stages.py": 2,
  "ops/hart-ops/card_pipeline/loco_backdrop.py": 1,
  "ops/hart-ops/card_pipeline/locos.py": 5,
