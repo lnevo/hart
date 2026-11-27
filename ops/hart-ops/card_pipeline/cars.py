@@ -142,8 +142,9 @@ def cmd_cards(args: argparse.Namespace) -> int:
         import train_cards
 
         # train_cards gives (fields, None, {}) tuples in CardEntry's order, typed as plain dicts.
-        cards.extend(cast("list[gen.CardEntry]", train_cards.train_cards()))
-        print(f"  + {len(train_cards.TRAINS)} train cards")
+        trains = cast("list[gen.CardEntry]", train_cards.train_cards())
+        cards.extend(trains)
+        print(f"  + {len(trains)} train cards")
     PRINT_DIR.mkdir(parents=True, exist_ok=True)
     gen.OUTPUT = PRINT_DIR / f"HART_New_Car_Cards_{today()}.docx"
     gen.generate(cards)

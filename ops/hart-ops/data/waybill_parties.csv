@@ -1,0 +1,37 @@
+industry_id,usage,role,party,name,via,entry,commodity
+calgon,Coal Unload,supplier,1,"Consol Energy (Pittsburgh, PA)",,,
+calgon,Coal Unload,supplier,2,"R&P Coal (Brady Twp, PA)",,,
+calgon,Coal Unload,supplier,3,"Hillman Coal (Canton Twp, PA)",,POHC,
+calgon,Carbon Load,customer,1,"Univar (Salem, MA)",NS,,
+calgon,Carbon Load,customer,2,"Houghton Chemical (Allston, MA)",CSX,,
+calgon,Carbon Load,customer,3,"Calgon Corp (Columbus, OH)",CSX,,
+calgon,Chemical Unload,supplier,1,"Dow Chemical (Midland, MI)",,CSX,Phosphoric Acid
+calgon,Chemical Unload,supplier,2,"Houghton Chemical (Allston, MA)",,POHC,Caustic Soda
+calgon,Chemical Unload,supplier,3,"General Chemical (Parsippany, NJ)",,POHC,Hydrochloric Acid
+kosmos,Cement Unload,supplier,1,"Kosmos Cement (Canton, OH)",,POHC,
+kosmos,Cement Unload,supplier,2,"Lehigh Cement (Mitchell, IN)",,POHC,
+kosmos,Cement Unload,supplier,3,"Medusa Cement (Charlevoix, MI)",,,
+kosmos,Aggregate Unload,supplier,1,"US Aggregates (Indianapolis, IN)",,,
+kosmos,Aggregate Unload,supplier,2,"Michigan Limestone (Rogers City, MI)",,POHC,
+kosmos,Aggregate Unload,supplier,3,"Martin Marietta (Clairton, PA)",,,
+ferrellgas,LPG Unload,supplier,1,"Ferrellgas Co (Taneytown, MD)",,POHC,
+ferrellgas,LPG Unload,supplier,2,Ferrellgas pipeline terminal,,,
+aristech,Pellet Unload,supplier,1,"Dow Chemical (Midland, MI)",,CSX,
+aristech,Pellet Unload,supplier,2,"BASF (Wyandotte, MI)",,,
+aristech,Pellet Unload,supplier,3,"Novacor (Indian Orchard, MA)",,POHC,
+aristech,Chemical Unload,supplier,1,"Dow Chemical (Midland, MI)",,CSX,Styrene Monomer
+aristech,Chemical Unload,supplier,2,"Exxon Chemical (Bayonne, NJ)",,POHC,Methyl Methacrylate
+aristech,Chemical Unload,supplier,3,"Dow Chemical (Midland, MI)",,CSX,Ethyl Acrylate
+aristech,Shipping Door,customer,1,"Owens-Illinois (Toledo, OH)",NS,,
+aristech,Shipping Door,customer,2,"Bemis Company (Flemington, NJ)",NS,,
+aristech,Shipping Door,customer,3,"Owens-Illinois (Ottawa, IL)",CSX,,
+stucki,Crane Track,supplier,1,"Allegheny Ludlum (Brackenridge, PA)",,POHC,
+stucki,Crane Track,supplier,2,"Republic Steel (Cleveland, OH)",,POHC,
+stucki,Crane Track,supplier,3,"Metal Service Co. (Apollo, PA)",,,
+stucki,Team Track,supplier,1,Ryerson Steel Service,,,Steel Coils
+stucki,Team Track,supplier,2,"McConway & Torley (Pittsburgh, PA)",,POHC,Steel Billets
+stucki,Team Track,supplier,3,"Washington Steel (Washington, PA)",,,Steel Plate
+stucki,Team Track,customer,1,Ryerson Steel Service,CSX,,Steel Coils
+stucki,Team Track,customer,2,"Metal Service Co. (Apollo, PA)",CSX,,Machined Parts
+stucki,Team Track,customer,3,"McConway & Torley (Pittsburgh, PA)",NS,,Forged Components
+stucki,Team Track,customer,4,"Pittsburgh Forge (McKees Rocks, PA)",NS,,Railway Springs

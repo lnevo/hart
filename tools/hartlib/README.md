@@ -148,8 +148,10 @@ path, names)`: `main_lines.csv`, each stop's block IDs named from the name store
 `retired_virtual_masts.csv`, `{mast: system name}` of the dropped virtual masts, each ordinal once
 (`mast_plan.read_retired` wraps it, a `MapError`); `read_sheet_rows(path)`: `sheets.csv` as `(line, row)` pairs
 (`railroad_facts.read_rows`, a `FactsError` on a missing column; `build_staging_sets.read_sheets` checks the cells);
-`read_panel_items(path)`: `panel_items.json` parsed (`panel_items.load` checks the items, an `ItemsError`). Their
-paths are `RETIRED_MASTS`, `SHEETS_FILE` and `PANEL_ITEMS`.
+`read_panel_items(path)`: `panel_items.json` parsed (`panel_items.load` checks the items, an `ItemsError`).
+`read_panel_lamps(path)`: `panel_lamps.csv`, one `PanelLamp` per status lamp keyed by system name, each value checked
+(`panel_items.status_rows` writes their device master rows). Their paths are `RETIRED_MASTS`, `SHEETS_FILE`,
+`PANEL_ITEMS` and `PANEL_LAMPS`.
 
 ### `hartlib.hand_tables`
 
@@ -457,6 +459,20 @@ It also reads the operator sheet's industry tables, kept by hand beside them: `r
 order, logo and width), `read_industry_notes(path)` the history paragraphs of `industry_notes.csv` by industry_id, and
 `read_spot_usages(path)` the label for each spot usage of `spot_usages.csv`. `operator_sheet_data.py`,
 `generate_operator_sheet.py` and `waybill_data.py` build their tables from them.
+
+It also reads the train master `trains.csv`: `read_trains(path)` gives `{train_symbol: Train}` in file order (`name`,
+`road`, `card_number`, `on_desks`), stopping with `OpsDataError` on an empty or repeated symbol, a bad `on_desks`, a
+train on the desks with no `road_name` and a `card_number` given twice. `train_cards.py` takes each card's road and
+number from it.
+
+### `hartlib.sml_qa`
+
+The native SML QA's steps, `jmri/layouts/hart/data/native_sml_qa.csv` (sidecar beside it): `read(path)` gives the
+`Step`s in run order (tag, description, `(mast, want)` checks, `Change`s before and after), and `drives(steps, rows)`
+the staging devices they drive, by device ID from the device master: each one's user name, LCOS MQTT address and, for
+a turnout, its feedback sensors' addresses from its `fb:<n>:N` and `fb:<n>:R` rows. `QAError` names the file and
+line, or the device. `tools/mqtt-mimic/qa/run_native_sml_qa.py` reads it; `--list` prints the steps and publishes
+nothing.
 
 ### `hartlib.parked`
 

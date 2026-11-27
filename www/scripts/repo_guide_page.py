@@ -128,6 +128,8 @@ HARTLIB_OTHER = {
     "store_keys": "the typed keys that pair a Store's items with the template's",
     "device_row_checks": "the device master's row checks",
     "switch_rows": "the switch list's rows, read and checked",
+    "waybills": "the spot waybill rules, parties, empty returns and interchange cards the waybill deck is built from",
+    "sml_qa": "the native SML QA's steps and the staging devices they drive",
 }
 
 

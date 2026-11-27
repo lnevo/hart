@@ -9,6 +9,7 @@ HandListError naming the file and line (every read of layout data goes through h
     hand_lists.read_retired_masts()                # retired_virtual_masts.csv: the virtual masts dropped from a level
     hand_lists.read_sheet_rows()                   # sheets.csv: the station detail sheets, as rows
     hand_lists.read_panel_items()                  # panel_items.json: the Layout Editor panel's own items, as loaded
+    hand_lists.read_panel_lamps()                  # panel_lamps.csv: the status lamps those items show
 
 - block_overrides.csv (schematic/): read_block_overrides. Every level's rows, keyed by switch numbers, so a new
   export moves a row with its track; a track row's `block` is an OS block's device ID, named here from the plan and
@@ -26,6 +27,8 @@ HandListError naming the file and line (every read of layout data goes through h
   (read_sheets) checks them against the stations.
 - panel_items.json (schematic/): read_panel_items, the parsed file; tools/schematic/panel_items.py (load) checks its
   items, for build_layout_le.py.
+- panel_lamps.csv (schematic/): read_panel_lamps, one PanelLamp per status lamp, keyed by system name;
+  tools/schematic/panel_items.py (status_rows) writes their device master rows and checks an item shows each one.
 """
 from __future__ import annotations
 
@@ -35,7 +38,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Literal, NamedTuple, cast, get_args
 
 from . import level_masts, paths
 from .railroad_facts import natural, read_rows
@@ -371,6 +374,71 @@ def read_panel_items(path: Path = PANEL_ITEMS) -> Any:     # the JSON as json.lo
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise HandListError(f"cannot read {Path(path).name}: {exc}") from exc
+
+
+# ---------------------------------------------------------------- panel_lamps.csv
+
+PANEL_LAMPS = SCHEMATIC / "panel_lamps.csv"
+PANEL_LAMP_COLUMNS = ["system_name", "layer", "user_name", "assignment", "icon", "jmri_comment", "description"]
+LampLayer = Literal["sensor", "head"]
+LampAssignment = Literal["field", "virtual"]
+LampIcon = Literal["sensor", "signalhead"]
+LAMP_ICONS: dict[LampLayer, LampIcon] = {"sensor": "sensor", "head": "signalhead"}    # a layer's icon attribute
+LAMP_ASSIGNMENTS: tuple[LampAssignment, ...] = get_args(LampAssignment)
+
+
+class PanelLamp(NamedTuple):
+    """One status lamp of the Layout Editor panel: a row of panel_lamps.csv."""
+    system_name: str
+    layer: LampLayer
+    user_name: str
+    assignment: LampAssignment
+    icon: LampIcon               # the icon attribute that names it in panel_items.json
+    jmri_comment: str
+    description: str
+
+
+def read_panel_lamps(path: Path = PANEL_LAMPS) -> list[PanelLamp]:
+    """The panel's status lamps in file order (PANEL_LAMP_COLUMNS, values stripped). HandListError naming the file
+    and line on other columns, a row of the wrong length, an empty cell, a layer other than sensor or head, an icon
+    that is not its layer's (LAMP_ICONS), an assignment other than field or virtual, a system name or user name
+    listed twice, or a file with no rows."""
+    name = Path(path).name
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)
+    except OSError as exc:
+        raise HandListError(f"cannot read {name}: {exc}") from exc
+    if reader.fieldnames != PANEL_LAMP_COLUMNS:
+        raise HandListError(f"{name}: columns {reader.fieldnames}, not {PANEL_LAMP_COLUMNS}")
+    out: list[PanelLamp] = []
+    seen: dict[str, set[str]] = {"system_name": set(), "user_name": set()}
+    for n, r in enumerate(rows, 2):
+        if None in r or None in r.values():
+            raise HandListError(f"{name} line {n}: not {len(PANEL_LAMP_COLUMNS)} fields, as the header has")
+        cells = {c: r[c].strip() for c in PANEL_LAMP_COLUMNS}
+        empty = [c for c, v in cells.items() if not v]
+        if empty:
+            raise HandListError(f"{name} line {n}: {', '.join(empty)} empty")
+        layer, icon, assignment = cells["layer"], cells["icon"], cells["assignment"]
+        if layer not in LAMP_ICONS:
+            raise HandListError(f"{name} line {n}: layer {layer!r} is not one of {', '.join(LAMP_ICONS)}")
+        lamp_layer = cast(LampLayer, layer)
+        if icon != LAMP_ICONS[lamp_layer]:
+            raise HandListError(f"{name} line {n}: icon {icon!r}; a {layer} lamp's is {LAMP_ICONS[lamp_layer]}")
+        if assignment not in LAMP_ASSIGNMENTS:
+            raise HandListError(f"{name} line {n}: assignment {assignment!r} is not one of "
+                                f"{', '.join(LAMP_ASSIGNMENTS)}")
+        for col, names in seen.items():
+            if cells[col] in names:
+                raise HandListError(f"{name} line {n}: {col} {cells[col]!r} is listed twice")
+            names.add(cells[col])
+        out.append(PanelLamp(cells["system_name"], lamp_layer, cells["user_name"], cast(LampAssignment, assignment),
+                             LAMP_ICONS[lamp_layer], cells["jmri_comment"], cells["description"]))
+    if not out:
+        raise HandListError(f"{name}: no lamps")
+    return out
 
 
 # ---------------------------------------------------------------- the USS CTC board (parked)
