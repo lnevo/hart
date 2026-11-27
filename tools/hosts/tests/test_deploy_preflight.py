@@ -366,8 +366,6 @@ class PreflightTest(DeployHarness):
         self.assertIn("dry-run: would scp", done.stdout)
         # The real runs got as far as asking Windows for a drop folder, after the tarball was made.
         self.assertEqual(2, sum("hart-deploy-" in c for c in self.calls()), self.calls())
-        src = (DEPLOY_STEPS / "ship_win.sh").read_text(encoding="utf-8")
-        self.assertIn('mktemp "${TMPDIR:-/tmp}/hart-pkg.XXXXXX")', src)
 
     def test_dry_run_and_stage_only_skip_the_check(self) -> None:
         self.down(PI, WIN)

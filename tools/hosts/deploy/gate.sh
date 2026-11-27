@@ -71,13 +71,17 @@ if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$DRY_RUN" -eq 0 && "$CHECK_ONLY"
 fi
 
 # G0c: main is not red. ci_pass.py --main-red decides and prints the line; only its exit 4 (the commit's push run of
-# check.yml on main finished red) stops the deploy, before any ssh. Any other exit, a crash included, goes on. A
+# check.yml on main finished red) stops the deploy, before any ssh. Any other exit, a crash included, goes on; when
+# the script did not end with its verdict (another exit, or no line), the gate says so in a line of its own. A
 # deploy or dry run to the Pi or Windows asks; a redeploy, --check-only, --stage-only and the Mac alone do not.
 main_not_red() {
   local line rc=0
   line="$(python3 "$DEPLOY_STEPS_DIR/ci_pass.py" --main-red --commit "$DEPLOY_COMMIT")" || rc=$?
   if [[ "$rc" -eq 4 ]]; then echo "$line" >&2; return 1; fi
   [[ -z "$line" ]] || echo "$line"
+  if [[ "$rc" -ne 0 || -z "$line" ]]; then
+    echo "main red check: ci_pass.py --main-red exited $rc without its verdict (see any error above); not blocking"
+  fi
 }
 if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$CHECK_ONLY" -eq 0 && "$STAGE_ONLY" -eq 0 && -z "${HART_REDEPLOY_FROM:-}" ]]; then
   main_not_red || exit 1
@@ -142,7 +146,7 @@ if [[ -n "$TABLES" && -f "$TABLES_BUILD" && -n "${HART_REDEPLOY_FROM:-}" ]]; the
 elif [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
   # A real deploy to a host ships origin/main itself (G0b), and CI ran the full check.sh, the same
   # build_tables.py --check included, on that commit: ci_pass.py reads that record and the regeneration is skipped
-  # when it covers the exact commit and clean checkout shipped. Any doubt runs G4 as before.
+  # when it covers the exact commit and clean checkout shipped. Any doubt runs G4.
   tables_rc=0
   if ! g4_covered_by_ci; then
     SCHEMATIC_REQUIRED=1 python3 "$TABLES_BUILD" --check || tables_rc=$?
@@ -157,8 +161,8 @@ elif [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
     echo "STOP: tables.xml is not what tools/schematic/build_tables.py writes from its sources; run make panels (or the script) and commit, then deploy. Nothing was sent to any host." >&2
     exit 1
   fi
-  # G4b: the panel and the CATS desks are the ones the owner approved (approval.py; the staging guard that build()
-  # ran is retired, 2026-11-22, so the approval is checked here, not only in make panels and check.sh)
+  # G4b: the panel and the CATS desks are the ones the owner approved (check_approved.py, as make panels and check.sh
+  # check them)
   if ! python3 "$ROOT/tools/schematic/check_approved.py" --check; then
     echo "STOP: the Layout Editor panel or a CATS desk is not the one the owner approved (check_approved.py names it above); get the owner's approval and record it (check_approved.py --approve <key>), then deploy. Nothing was sent to any host." >&2
     exit 1

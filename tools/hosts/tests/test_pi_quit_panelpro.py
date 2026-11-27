@@ -220,5 +220,46 @@ class PiQuitSeesTheProfile(unittest.TestCase):
         self.assertEqual(done.returncode, 5, done.stderr)
         self.assertIn("Cannot tell whether PanelPro runs on the Pi", done.stderr)
 
+
+class PiQuitRefusesUnknownArguments(unittest.TestCase):
+    """Any argument but --for-deploy or --print stops the script before ssh, naming the argument (exit 64)."""
+
+    def run_it(self, *args: str) -> tuple[subprocess.CompletedProcess[str], list[str]]:
+        with tempfile.TemporaryDirectory() as name:
+            tmp = Path(name)
+            stub = tmp / "bin"
+            stub.mkdir()
+            log = tmp / "ssh.log"
+            (stub / "ssh").write_text(f'#!/bin/sh\necho "$*" >> "{log}"\nexit 1\n', encoding="utf-8")
+            (stub / "ssh").chmod(0o755)
+            done = subprocess.run(["bash", str(SCRIPT), *args], capture_output=True, text=True, cwd=tmp, timeout=60,
+                                  env={"PATH": f"{stub}:/usr/bin:/bin", "HART_PI_SSH": "pi.example.invalid",
+                                       "HART_ENV_FILE": str(tmp / "hart.env"), "HOME": str(tmp)})
+            return done, log.read_text(encoding="utf-8").splitlines() if log.exists() else []
+
+    def test_an_unknown_argument_is_named_and_nothing_runs(self) -> None:
+        for args in (["--for-deploi"], ["--for-deploy", "now"], ["-h"], [""]):
+            with self.subTest(args=args):
+                done, calls = self.run_it(*args)
+                self.assertEqual(64, done.returncode, done.stderr)
+                self.assertIn(f"pi_quit_panelpro.sh: unknown argument: {args[-1]}\n", done.stderr)
+                self.assertIn("usage: pi_quit_panelpro.sh [--for-deploy | --print]", done.stderr)
+                self.assertEqual("", done.stdout)
+                self.assertEqual([], calls)
+
+    def test_for_deploy_and_print_together_are_refused(self) -> None:
+        done, calls = self.run_it("--print", "--for-deploy")
+        self.assertEqual(64, done.returncode, done.stderr)
+        self.assertIn("--for-deploy and --print exclude each other", done.stderr)
+        self.assertEqual("", done.stdout)
+        self.assertEqual([], calls)
+
+    def test_for_deploy_reaches_the_pi(self) -> None:
+        done, calls = self.run_it("--for-deploy")
+        self.assertEqual(1, done.returncode, done.stderr)      # the stub ssh's exit
+        self.assertEqual(1, len(calls), calls)
+        self.assertTrue(calls[0].endswith(" 1"), calls[0])      # the remote part's for_deploy argument
+
+
 if __name__ == "__main__":
     unittest.main()

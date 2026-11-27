@@ -10,8 +10,16 @@
 # Apple virtualization), the same architecture as the Pi 5: no emulation.
 # Output: $HART_PI_OS_WORK/out/hart-pi-os-<date>.img and its .sha256. The image holds
 # the Wi-Fi passwords and ssh host keys, so it never leaves the Mac or goes in the repo.
-# Nothing here touches the running Pi.
+# Nothing here touches the running Pi. Any argument but one --stop is refused with exit 64.
 set -euo pipefail
+USAGE="usage: build_image.sh [--stop]"
+STOP=0
+case "$#:${1:-}" in
+  0:) ;;
+  1:--stop) STOP=1 ;;
+  1:*) printf 'build_image.sh: unknown argument: %s\n%s\n' "$1" "$USAGE" >&2; exit 64 ;;
+  *) printf 'build_image.sh: one argument at most, got %s: %s\n%s\n' "$#" "$*" "$USAGE" >&2; exit 64 ;;
+esac
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PRIV="${HART_PI_OS_PRIVATE:-$HOME/.config/hart/pi-os}"
@@ -22,7 +30,7 @@ STAGE="$WORK/stage"
 ts() { date +%H:%M; }
 log() { echo "[$(ts)] $*"; }
 
-if [[ "${1:-}" == "--stop" ]]; then
+if (( STOP )); then
   limactl stop "$VM"
   exit 0
 fi

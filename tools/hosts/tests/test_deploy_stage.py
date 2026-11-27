@@ -21,7 +21,7 @@ from typing import ClassVar
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pi_drop import jython_rows  # noqa: E402
+from pi_drop import LOGGER, applied, jython_rows  # noqa: E402
 from win_jython import windows_jython  # noqa: E402
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
 STEPS = ROOT / "tools/hosts/deploy"   # the entry point's steps: gate, stage, ship_mac, ship_pi, ship_win; common.sh is shared
@@ -119,6 +119,8 @@ def keep_repo_tables(tmp: Path) -> None:
 
 
 def stage_env(tmp: Path) -> dict[str, str]:
+    """The environment of a test deploy: hosts that cannot resolve (fake_bin), and HOME and JMRI_HOME in `tmp`, so the
+    Mac's own JMRI profile and JMRI_UserFiles are `tmp`/home's (empty until a test fills them), never the real ones."""
     env = dict(os.environ)
     for name in list(env):
         if name.startswith(("HART_", "_hart")) or name in ("MQTT_HOST", "JMRI_JSON", "PI_HOST"):
@@ -126,6 +128,8 @@ def stage_env(tmp: Path) -> dict[str, str]:
     env.update(
         PATH=f"{fake_bin(tmp)}{os.pathsep}{env.get('PATH', '')}",
         HART_ENV_FILE=str(tmp / "no-hart.env"),
+        HOME=str(tmp / "home"),
+        JMRI_HOME=str(tmp / "jmri"),
         HART_PI_SSH="pi.example.invalid",
         HART_WIN_SSH="nobody@win.example.invalid",
         HART_WIN_SSH_PORT="1",
@@ -158,11 +162,20 @@ def tree(root: Path) -> list[str]:
     return sorted(str(p.relative_to(root)) for p in root.rglob("*"))
 
 
+def common_sh(tmp: Path, script: str, *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    """`script` run in bash after sourcing deploy/common.sh, as a deploy step does, in stage_env(`tmp`)."""
+    return subprocess.run(["bash", "-c", f'set -euo pipefail\nsource "$1"\n{script}', "common_sh",
+                           str(STEPS / "common.sh")], cwd=ROOT, env=env or stage_env(tmp), capture_output=True,
+                          text=True, timeout=60)
+
+
 def live_panels() -> list[str]:
-    """The panels the deploy ships: the LIVE_PANELS array in the script."""
-    src = (STEPS / "common.sh").read_text(encoding="utf-8")
-    block = src[src.index("LIVE_PANELS=(") + len("LIVE_PANELS=("):]
-    return block[:block.index(")")].split()
+    """The panels the deploy ships: common.sh's LIVE_PANELS, as a step that sources it reads them."""
+    with tempfile.TemporaryDirectory() as name:
+        done = common_sh(Path(name), 'printf "%s\\n" "${LIVE_PANELS[@]}"')
+    if done.returncode != 0:
+        raise RuntimeError(f"sourcing common.sh failed (exit {done.returncode}): {done.stderr.strip()}")
+    return done.stdout.split()
 
 
 def git(*args: str, repo: Path = ROOT, raw: bool = False):
@@ -317,10 +330,8 @@ class StageOnly(unittest.TestCase):
             self.assertEqual((pkg / "ctc").exists(), not uss, host)
             self.assertTrue((pkg / "jmri/layouts/hart/scripts/hide_cats_desk_windows.py").is_file(), host)
 
-    def test_apply_scripts_are_where_deploy_calls_them(self) -> None:
-        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
-        self.assertIn("${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh", source)
-        self.assertIn("\\\\cats\\\\scripts\\\\windows\\\\apply_hart_package_local.ps1", source)
+    def test_apply_scripts_are_in_the_package(self) -> None:
+        """Where the ship steps call them from: test_deploy_gates.WhatShipsWhere."""
         self.assertTrue((self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh").is_file())
         self.assertTrue((self.out / "win/cats/scripts/windows/apply_hart_package_local.ps1").is_file())
 
@@ -559,15 +570,28 @@ class StageOnlyRefusals(unittest.TestCase):
                 self.assertIn("--stage-only needs a folder", done.stderr, flags)
             self.assertFalse((Path(tmp) / "network.log").exists())
 
-    def test_apply_steps_get_the_configured_user_files(self) -> None:
-        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
-        self.assertIn("JMRI_USERFILES='${PI_USERFILES}'", source)
-        self.assertIn('-UserFiles \\"${WIN_USERFILES}\\"', source)
+    def test_the_windows_apply_installs_into_the_user_files_it_is_given(self) -> None:
+        """PowerShell does not run on the Mac or in CI, so this reads the Windows apply step's source; the ship steps
+        passing the configured folders is tested in test_deploy_gates.WhatShipsWhere."""
         win = (WIN_SRC / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
         self.assertIn("[string]$UserFiles = ''", win)
         # Only the default when the deploy passes nothing; every install path uses $UserFiles.
         self.assertEqual(win.count("Join-Path $env:USERPROFILE 'JMRI_UserFiles"), 1)
         self.assertIn("& $desk -UserFiles $UserFiles", win)
+
+    def test_the_mac_profile_read_is_the_temporary_one(self) -> None:
+        """stage_env's HOME holds the Mac's JMRI profile the deploy reads: a PanelPro wrapper run's leftover backup
+        there stops the stage before anything is staged."""
+        with tempfile.TemporaryDirectory() as tmp:
+            env = stage_env(Path(tmp))
+            profile = Path(env["HOME"]) / "Library/Preferences/JMRI/My_JMRI_Railroad.jmri/profile/profile.xml"
+            profile.parent.mkdir(parents=True)
+            Path(f"{profile}.hart-run.bak").write_text("<profile/>\n", encoding="utf-8")
+            done = run(SYNC, Path(tmp) / "stage", env)
+            self.assertEqual(1, done.returncode, done.stderr[-2000:])
+            self.assertIn(f"STOP: {profile}.hart-run.bak is left from a PanelPro wrapper run", done.stderr)
+            self.assertFalse((Path(tmp) / "stage").exists())
+            self.assertFalse((Path(tmp) / "network.log").exists())
 
     def test_refuses_a_folder_with_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -581,13 +605,24 @@ class StageOnlyRefusals(unittest.TestCase):
 
 
 class HostApplyInstallsStampLast(unittest.TestCase):
+    """The deploy stamp lands after every other install step, so a host whose apply stopped part way never claims
+    the deploy."""
+
     def test_pi(self) -> None:
-        source = (PI_SRC / "apply_hart_package_local.sh").read_text(encoding="utf-8")
-        stamp = source.index('cp -f "$HART/cats/deploy_stamp.txt" "$CATS_HOME/deploy_stamp.txt"')
-        self.assertGreater(stamp, source.index("install_desktop_icons.sh"))
-        self.assertGreater(stamp, source.index("install_ops_files.sh"))
+        """The Pi's apply step, run on a made-up drop (pi_drop): its Operations and desktop icon steps log whether the
+        stamp is already installed when they run."""
+        probe = (LOGGER + 'if [[ -e "$JMRI_USERFILES/cats/deploy_stamp.txt" ]]; then where=present; else where=absent; fi\n'
+                 'echo "stamp $where in $(basename "$0")" >>"$PI_DROP_LOG"\n')
+        package = {"cats/deploy_stamp.txt": "commit=abc\n", "cats/scripts/install_ops_files.sh": probe,
+                   "cats/scripts/pi/install_desktop_icons.sh": probe}
+        with applied(package) as pi:
+            self.assertEqual(0, pi.code, pi.out[-2000:])
+            self.assertEqual("commit=abc\n", (pi.user_files / "cats/deploy_stamp.txt").read_text(encoding="utf-8"))
+            probes = [c for c in pi.calls if c.startswith("stamp ")]
+        self.assertEqual(["stamp absent in install_ops_files.sh", "stamp absent in install_desktop_icons.sh"], probes)
 
     def test_windows(self) -> None:
+        """PowerShell does not run on the Mac or in CI, so the Windows apply step's order is read from its source."""
         source = (WIN_SRC / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
         stamp = source.index("'cats\\deploy_stamp.txt'")
         self.assertGreater(stamp, source.index("& $desk"))
@@ -595,18 +630,21 @@ class HostApplyInstallsStampLast(unittest.TestCase):
 
 
 class DirtyListUnderPipefail(unittest.TestCase):
-    """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141)."""
+    """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141): common.sh's deploy_facts, with
+    git answering 20000 changed paths."""
+
+    GIT = ('git() { case " $* " in *" status "*) seq 1 20000 | sed "s/^/ M file/" ;; '
+           '*" --abbrev-ref "*) echo a-branch ;; *) echo 0123456789abcdef0123456789abcdef01234567 ;; esac; }')
 
     def test_long_list_prints_ten_and_exits_zero(self) -> None:
-        line = next(l for l in (STEPS / "common.sh").read_text(encoding="utf-8").splitlines()
-                    if 'printf \'%s\\n\' "$changes" |' in l and "wc -l" not in l)
-        script = ("set -euo pipefail\n"
-                  "changes=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
-                  + line.strip() + "\necho done\n")
-        done = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
-        self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertEqual(done.stdout.splitlines()[-1], "done")
-        self.assertEqual(len(done.stdout.splitlines()), 11)
+        with tempfile.TemporaryDirectory() as name:
+            done = common_sh(Path(name), f'{self.GIT}\ndeploy_facts 1\necho "done $DEPLOY_DIRTY $DEPLOY_DIRTY_PATHS"')
+        self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+        self.assertEqual(done.stdout, "done yes 20000\n")
+        listed = [line for line in done.stderr.splitlines() if line.startswith("     M file")]
+        self.assertEqual(listed, [f"     M file{n}" for n in range(1, 11)])
+        self.assertIn("WARNING: this checkout has 20000 uncommitted or untracked path(s).", done.stderr)
+        self.assertEqual(done.stderr.splitlines()[-1], "    ...")
 
 
 if __name__ == "__main__":

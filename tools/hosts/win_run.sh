@@ -102,7 +102,9 @@ keep_logs="${WIN_RUN_KEEP_LOGS:-20}"
 # The remote script goes over stdin to bash inside WSL, so no quoting passes through Windows' shell; the command
 # itself reads /dev/null, or it would eat the rest of the script. Exit codes: a setup failure there is 3 (use the
 # Mac); the command's own 3 or 255 becomes 1, so 3 and 255 always mean the box, never the command.
-remote_script() {
+# The script is printed in parts (remote_script runs them in order); each part fills in this run's values ($sha,
+# $run_id, $keep, $stamps, $slots, $cmd) and escapes what the remote shell expands.
+remote_setup() {   # the shell options, the worktree for $sha and its links and submodules; ends in the worktree
   cat <<EOF
 set -euo pipefail
 trap 'echo "win_run.sh: setup on Windows failed; run the command on the Mac." >&2; exit 3' ERR
@@ -132,11 +134,15 @@ git -C "\$wt" config -f .gitmodules --get-regexp '\.path\$' | while read -r _ su
   fi
 done
 cd "\$wt"
+EOF
+}
+remote_stamps() {   # the run's CHECK_STAMPS_DIR
+  cat <<EOF
 # --- stamps (tests run this block alone)
-# check.sh's stamps (tools/audit/check_stamps.py, CHECK_STAMPS_DIR). A shared folder was overwritten by whichever
-# branch ran last (2026-11-25: eleven stamps held reads of files only another branch has), so main's runs keep the
-# shared folder (<cache>/check-stamps) and each other ref gets <cache>/check-stamps-by-ref/<name>, copied from the
-# shared one on its first run: a copy, never a link, so one ref's records never change another's. A copied stamp is
+# check.sh's stamps (tools/audit/check_stamps.py, CHECK_STAMPS_DIR). One folder for every branch would hold whichever
+# branch ran last, with reads of files only that branch has, so main's runs keep the shared folder
+# (<cache>/check-stamps) and each other ref gets <cache>/check-stamps-by-ref/<name>, copied from the shared one on
+# its first run: a copy, never a link, so one ref's records never change another's. A copied stamp is
 # safe: a job is skipped only when its key and every hash of its read set match this checkout (check_stamps.py
 # why_not_current, traced.mismatch). filehash.json is not copied: its keys are other runs' worktree paths.
 # Under one lock: folders untouched for 14 days are removed first, the copy goes to a temp folder that is renamed
@@ -193,6 +199,10 @@ else
   [[ -d "\$CHECK_STAMPS_DIR" ]] || { echo "win_run.sh: \$CHECK_STAMPS_DIR is missing after setup" >&2; exit 3; }
 fi
 # --- end stamps
+EOF
+}
+remote_ruff() {   # the ruff the commit pins, first on PATH
+  cat <<EOF
 # --- ruff (tests run this block alone)
 # The ruff this commit pins (requirements.txt, read by tools/audit/check_ruff.py --pin), installed once per version in
 # ~/.cache/hart/ruff/<version> with uv and put first on PATH: runs of commits that pin other versions never share an
@@ -217,6 +227,10 @@ if [[ -f tools/audit/check_ruff.py ]]; then
   fi
 fi
 # --- end ruff
+EOF
+}
+remote_venv() {   # ~/hart/.venv brought up to the commit's requirements.txt
+  cat <<EOF
 # --- venv (tests run this block alone)
 # ~/hart/.venv follows the requirements.txt of the commit being run: when that file's sha256 differs from the one the
 # venv last took, uv installs it (under a lock, so two runs never install at once) and records the sha256. A failed
@@ -235,10 +249,13 @@ if [[ -f requirements.txt ]]; then
   fi
 fi
 # --- end venv
+EOF
+}
+remote_slots() {   # a free run slot and the run's CHECK_MAX_JOBS
+  cat <<EOF
 # --- slots (tests run this block alone)
-# At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down (2026-11-21:
-# four checks at once each took three times as long). A run waits here for a free slot; the slot is held on fd 9
-# until the command ends.
+# At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down. A run waits
+# here for a free slot; the slot is held on fd 9 until the command ends.
 got=""; waited=0
 while [[ -z "\$got" ]]; do
   for i in \$(seq 0 $((slots - 1))); do
@@ -253,6 +270,10 @@ while [[ -z "\$got" ]]; do
 done
 export CHECK_MAX_JOBS=\$(( \$(nproc) / $slots > 1 ? \$(nproc) / $slots : 2 ))
 # --- end slots
+EOF
+}
+remote_command() {   # the command itself, and its exit code
+  cat <<EOF
 trap - ERR
 echo "win_run.sh: $sha on \$(hostname) (WSL, \$(nproc) CPUs, slot \$got of $slots, \$CHECK_MAX_JOBS jobs): $cmd" >&2
 set +e
@@ -263,11 +284,14 @@ if [[ \$rc -eq 3 || \$rc -eq 255 ]]; then echo "win_run.sh: the command exited \
 exit \$rc
 EOF
 }
+remote_script() {   # the whole script, its parts in order
+  remote_setup && remote_stamps && remote_ruff && remote_venv && remote_slots && remote_command
+}
 
 if [[ $print_script -eq 1 ]]; then remote_script; exit 0; fi
 # --- log (tests run this block alone)
-# Every run's whole output (its stderr too) is saved, so a failed run never has to be repeated to see which job failed
-# (2026-11-25: a caller kept only `| tail -6`): <cache>/remote-logs/<stamp name>-<YYYYmmdd-HHMMSS>-<pid>.log, the
+# Every run's whole output (its stderr too) is saved, so a failed run never has to be repeated to see which job failed,
+# even when the caller keeps only the last lines: <cache>/remote-logs/<stamp name>-<YYYYmmdd-HHMMSS>-<pid>.log, the
 # newest WIN_RUN_KEEP_LOGS (default 20) kept. The run ends with every "--- <job> FAILED" line and, last, "log: <path>",
 # so even a caller's tail shows where to look. A log that cannot be written is a warning; the run goes on.
 start_log() {   # <folder> <name>: prints the log's path, or nothing when it cannot be made

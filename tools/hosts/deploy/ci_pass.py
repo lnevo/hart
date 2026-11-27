@@ -2,7 +2,7 @@
 """Whether CI's full check.sh pass covers the commit a deploy ships, so the gate may skip G4 (build_tables.py --check).
 
     ci_pass.py --commit SHA     exit 0 and print "skipped G4: CI full pass for <sha> ..." when every point below holds;
-                                exit 1 and print "ran G4: <why>" when one does not (the gate then runs G4 as before);
+                                exit 1 and print "ran G4: <why>" when one does not (the gate then runs G4);
                                 exit 2 for a bad call, 3 for a failure of this script itself (the gate runs G4
                                 for both)
     ci_pass.py --main-red --commit SHA
@@ -11,7 +11,8 @@
                                 finished failure, cancelled or timed_out (main is red: fix forward or revert first).
                                 Exit 0 and print a "main red check:" line saying why not in every other case (the run
                                 passed, is still running, ended another way, there is no run yet, GitHub could not be
-                                asked, a bad --commit, or a failure of this script): none of them blocks a deploy
+                                asked, a bad call or --commit, or a failure of this script): none of them blocks a
+                                deploy
 
 The gate (tools/hosts/deploy/gate.sh) asks this only for a real deploy to the Pi or Windows, after check_on_main
 (common.sh) has held the commit to origin/main. A skip needs all of these, read in this order; the first that fails
@@ -51,7 +52,10 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable
+from contextlib import redirect_stdout
+from dataclasses import dataclass
 from pathlib import Path
+from typing import NoReturn
 
 ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW = ".github/workflows/check.yml"
@@ -161,7 +165,10 @@ def plugin_pin(root: Path, sha: str) -> str:
     return pin
 
 
-def _json(text: str, what: str) -> dict:
+Json = dict[str, object]
+
+
+def _json(text: str, what: str) -> Json:
     try:
         data = json.loads(text)
     except ValueError as e:
@@ -171,45 +178,133 @@ def _json(text: str, what: str) -> dict:
     return data
 
 
-def _field(obj: dict, key: str, kind: type, what: str):
+def _int(obj: Json, key: str, what: str) -> int:
     value = obj.get(key)
-    if not isinstance(value, kind) or isinstance(value, bool) and kind is not bool:
-        raise Unreadable(f"{what} has no {kind.__name__} {key!r}")
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise Unreadable(f"{what} has no int {key!r}")
     return value
 
 
-def newest_run(slug: str, sha: str, gh: Gh) -> dict:
-    """The newest push run of check.yml on main for `sha`; NoPass when GitHub has none."""
+def _str(obj: Json, key: str, what: str) -> str:
+    value = obj.get(key)
+    if not isinstance(value, str):
+        raise Unreadable(f"{what} has no str {key!r}")
+    return value
+
+
+def _str_or_none(obj: Json, key: str, what: str) -> str | None:
+    """A field GitHub sends as a string or null (a conclusion before the run ends); missing counts as null."""
+    value = obj.get(key)
+    if value is not None and not isinstance(value, str):
+        raise Unreadable(f"{what} has {key!r} {value!r}, not a string or null")
+    return value
+
+
+def _url_or_none(obj: Json, key: str) -> str | None:
+    """A link field: only a string counts, anything else is no link (the caller then builds one), never an error."""
+    value = obj.get(key)
+    return value if isinstance(value, str) else None
+
+
+def _list(obj: Json, key: str, what: str) -> list[object]:
+    value = obj.get(key)
+    if not isinstance(value, list):
+        raise Unreadable(f"{what} has no list {key!r}")
+    return value
+
+
+def _objects(entries: list[object], what: str) -> list[Json]:
+    """`entries`, every one a JSON object."""
+    objects = [entry for entry in entries if isinstance(entry, dict)]
+    if len(objects) != len(entries):
+        raise Unreadable(f"{what} hold an entry that is not an object")
+    return objects
+
+
+def _entries(obj: Json, key: str, what: str) -> list[Json]:
+    """The list `key` of `obj`, every entry an object."""
+    return _objects(_list(obj, key, what), what)
+
+
+@dataclass(frozen=True)
+class WorkflowRun:
+    """A run of a workflow, as GitHub's workflow runs list gives it."""
+    id: int
+    run_number: int
+    status: str
+    conclusion: str | None
+    html_url: str | None
+
+    @classmethod
+    def parse(cls, obj: Json) -> WorkflowRun:
+        what = "a check.yml run"
+        return cls(run_number=_int(obj, "run_number", what), status=_str(obj, "status", what),
+                   id=_int(obj, "id", what), conclusion=_str_or_none(obj, "conclusion", what),
+                   html_url=_url_or_none(obj, "html_url"))
+
+
+@dataclass(frozen=True)
+class JobStep:
+    name: str
+    conclusion: str | None
+
+
+@dataclass(frozen=True)
+class Job:
+    """A job of a run, as GitHub's jobs list gives it."""
+    id: int
+    head_sha: str | None
+    conclusion: str | None
+    steps: tuple[JobStep, ...]
+
+    @classmethod
+    def parse(cls, obj: Json, run_id: int) -> Job:
+        job_id = _int(obj, "id", f"run {run_id}'s job")
+        what = f"job {job_id}"
+        steps = tuple(JobStep(_str(s, "name", f"a step of {what}"), _str_or_none(s, "conclusion", f"a step of {what}"))
+                      for s in _entries(obj, "steps", what))
+        return cls(id=job_id, head_sha=_str_or_none(obj, "head_sha", what),
+                   conclusion=_str_or_none(obj, "conclusion", what), steps=steps)
+
+
+@dataclass(frozen=True)
+class CacheEntry:
+    """An actions/cache entry, as GitHub's cache list gives it."""
+    key: str
+    ref: str
+
+    @classmethod
+    def parse(cls, obj: Json) -> CacheEntry:
+        what = "a CI cache entry"
+        return cls(key=_str(obj, "key", what), ref=_str(obj, "ref", what))
+
+
+def newest_run(slug: str, sha: str, gh: Gh) -> WorkflowRun:
+    """The newest push run of check.yml on main for `sha`; NoPass when GitHub has none. Only the newest matching run is
+    read as a record: an older run's other fields never decide, so they cannot turn a red main into "unreadable"."""
     what = "the check.yml runs"
     data = _json(gh(["api", "-X", "GET", f"repos/{slug}/actions/workflows/check.yml/runs", "-f", f"head_sha={sha}",
                      "-f", "event=push", "-f", "branch=main", "-f", "per_page=100"], GH_TIMEOUT), what)
-    runs = _field(data, "workflow_runs", list, what)
-    total = _field(data, "total_count", int, what)
-    if total > len(runs):
+    listed = _list(data, "workflow_runs", what)
+    total = _int(data, "total_count", what)
+    if total > len(listed):
         raise Unreadable(f"{total} check.yml runs for {sha[:12]}, more than one page")
-    mine = []
-    for run in runs:
-        if not isinstance(run, dict):
-            raise Unreadable(f"{what} hold an entry that is not an object")
-        if (run.get("head_sha"), run.get("event"), run.get("head_branch"), run.get("path")) == (sha, "push", "main",
-                                                                                                WORKFLOW):
-            mine.append(run)
+    mine = [run for run in _objects(listed, what)
+            if (run.get("head_sha"), run.get("event"), run.get("head_branch"), run.get("path")) == (sha, "push", "main",
+                                                                                                   WORKFLOW)]
     if not mine:
         raise NoPass(f"CI has no push run of {WORKFLOW} on main for it (not merged yet, or another commit)")
-    return max(mine, key=lambda r: _field(r, "run_number", int, "a check.yml run"))
+    return WorkflowRun.parse(max(mine, key=lambda r: _int(r, "run_number", "a check.yml run")))
 
 
 def find_run(slug: str, sha: str, gh: Gh) -> int:
     """The id of the newest push run of check.yml on main for `sha`, which must have passed."""
     run = newest_run(slug, sha, gh)
-    run_id = _field(run, "id", int, "a check.yml run")
-    status = _field(run, "status", str, f"run {run_id}")
-    if status != "completed":
-        raise NoPass(f"CI's run {run_id} is {status}, not completed")
-    conclusion = run.get("conclusion")
-    if conclusion != "success":
-        raise NoPass(f"CI's run {run_id} ended {conclusion}")
-    return run_id
+    if run.status != "completed":
+        raise NoPass(f"CI's run {run.id} is {run.status}, not completed")
+    if run.conclusion != "success":
+        raise NoPass(f"CI's run {run.id} ended {run.conclusion}")
+    return run.id
 
 
 def find_job(slug: str, sha: str, run_id: int, gh: Gh) -> int:
@@ -217,21 +312,20 @@ def find_job(slug: str, sha: str, run_id: int, gh: Gh) -> int:
     what = f"run {run_id}'s jobs"
     data = _json(gh(["api", "-X", "GET", f"repos/{slug}/actions/runs/{run_id}/jobs", "-f", "filter=latest",
                      "-f", "per_page=100"], GH_TIMEOUT), what)
-    jobs = [j for j in _field(data, "jobs", list, what) if isinstance(j, dict) and j.get("name") == JOB]
+    jobs = [Job.parse(j, run_id) for j in _entries(data, "jobs", what) if j.get("name") == JOB]
     if len(jobs) != 1:
         raise Unreadable(f"{what} hold {len(jobs)} jobs named {JOB!r}, not one")
     job = jobs[0]
-    job_id = _field(job, "id", int, f"run {run_id}'s job")
-    if job.get("head_sha") != sha:
-        raise Unreadable(f"job {job_id} names commit {str(job.get('head_sha'))[:12]}, not {sha[:12]}")
-    if job.get("conclusion") != "success":
-        raise NoPass(f"CI's job {job_id} ended {job.get('conclusion')}")
-    steps = [s for s in _field(job, "steps", list, f"job {job_id}") if isinstance(s, dict) and s.get("name") == CHECK_STEP]
+    if job.head_sha != sha:
+        raise Unreadable(f"job {job.id} names commit {str(job.head_sha)[:12]}, not {sha[:12]}")
+    if job.conclusion != "success":
+        raise NoPass(f"CI's job {job.id} ended {job.conclusion}")
+    steps = [step for step in job.steps if step.name == CHECK_STEP]
     if len(steps) != 1:
-        raise Unreadable(f"job {job_id} has {len(steps)} steps named {CHECK_STEP!r}, not one")
-    if steps[0].get("conclusion") != "success":
-        raise NoPass(f"CI's check.sh step in job {job_id} ended {steps[0].get('conclusion')}")
-    return job_id
+        raise Unreadable(f"job {job.id} has {len(steps)} steps named {CHECK_STEP!r}, not one")
+    if steps[0].conclusion != "success":
+        raise NoPass(f"CI's check.sh step in job {job.id} ended {steps[0].conclusion}")
+    return job.id
 
 
 def check_stamps(slug: str, sha: str, gh: Gh) -> None:
@@ -240,8 +334,8 @@ def check_stamps(slug: str, sha: str, gh: Gh) -> None:
     what = "CI's cache list"
     data = _json(gh(["api", "-X", "GET", f"repos/{slug}/actions/caches", "-f", f"key={key}",
                      "-f", "ref=refs/heads/main", "-f", "per_page=100"], GH_TIMEOUT), what)
-    caches = _field(data, "actions_caches", list, what)
-    if not any(isinstance(c, dict) and c.get("key") == key and c.get("ref") == "refs/heads/main" for c in caches):
+    caches = [CacheEntry.parse(c) for c in _entries(data, "actions_caches", what)]
+    if CacheEntry(key, "refs/heads/main") not in caches:
         raise NoPass(f"no check stamps {key[:25]} on main in CI's cache (not saved, or expired)")
 
 
@@ -329,12 +423,11 @@ def decide(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> int:
     return run_id
 
 
-def run_url(slug: str, run: dict) -> str:
+def run_url(slug: str, run: WorkflowRun) -> str:
     """The run's page on GitHub: its html_url, else the page its id names."""
-    url = run.get("html_url")
-    if isinstance(url, str) and url.startswith("https://"):
-        return url
-    return f"https://github.com/{slug}/actions/runs/{run.get('id')}"
+    if run.html_url is not None and run.html_url.startswith("https://"):
+        return run.html_url
+    return f"https://github.com/{slug}/actions/runs/{run.id}"
 
 
 def main_red(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> tuple[bool, str]:
@@ -343,13 +436,12 @@ def main_red(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> tuple[bool, str]:
     try:
         slug = repo_slug(root)
         run = newest_run(slug, sha, gh)
-        status = _field(run, "status", str, "a check.yml run")
     except NoPass:
         return False, f"main red check: no push run of check.yml on main for {sha[:12]} yet; {NOT_BLOCKING}"
     except CiPassError as e:
         return False, f"main red check: could not ask GitHub ({e}); {NOT_BLOCKING}"
     url = run_url(slug, run)
-    conclusion = run.get("conclusion")
+    status, conclusion = run.status, run.conclusion
     if status != "completed":
         return False, (f"main red check: main's push run for {sha[:12]} is {status} ({url}); not waiting for it, "
                        f"{NOT_BLOCKING}")
@@ -377,27 +469,66 @@ def main_red_verdict(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> int:
     return MAIN_RED if red else 0
 
 
-def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+class BadCall(Exception):
+    """Arguments this script does not take (argparse's message)."""
+
+
+class _Parser(argparse.ArgumentParser):
+    """argparse that raises BadCall instead of exiting, so a bad --main-red call still prints the gate's line."""
+
+    def error(self, message: str) -> NoReturn:
+        raise BadCall(message)
+
+
+def parser() -> _Parser:
+    ap = _Parser(prog="ci_pass.py", allow_abbrev=False, description="Whether CI's full check.sh pass covers the commit a deploy ships "
+                                                "(--commit), or whether main is red for it (--main-red).")
     ap.add_argument("--commit", required=True, help="the 40-character commit the deploy ships")
     ap.add_argument("--main-red", action="store_true",
                     help="exit 4 when main's push run for the commit finished red (failure, cancelled, timed_out)")
-    a = ap.parse_args(argv)
-    if a.main_red:
-        return main_red_verdict(a.commit, root, gh)
-    if not SHA.fullmatch(a.commit):
-        print(f"ci_pass.py: --commit must be a full 40-character commit sha, not {a.commit!r}", file=sys.stderr)
+    return ap
+
+
+def g4_verdict(sha: str, root: Path = ROOT, gh: Gh = run_gh) -> int:
+    """Print the gate's G4 line; 0 skips G4, 1 runs it, 2 a bad commit, 3 a bug here."""
+    if not SHA.fullmatch(sha):
+        print(f"ci_pass.py: --commit must be a full 40-character commit sha, not {sha!r}", file=sys.stderr)
         return 2
     try:
-        run_id = decide(a.commit, root, gh)
+        run_id = decide(sha, root, gh)
     except CiPassError as e:
-        print(f"ran G4: {e.lead} for {a.commit[:12]}: {e}")
+        print(f"ran G4: {e.lead} for {sha[:12]}: {e}")
         return 1
     except Exception as e:  # a bug here: say so in the gate's line (exit 3), never as exit 1 with no reason
-        print(f"ran G4: the CI pass check failed for {a.commit[:12]}: {type(e).__name__}: {e}")
+        print(f"ran G4: the CI pass check failed for {sha[:12]}: {type(e).__name__}: {e}")
         return 3
-    print(f"skipped G4: CI full pass for {a.commit[:12]} (check.yml run {run_id}, stamps check-stamps-{a.commit[:12]}...)")
+    print(f"skipped G4: CI full pass for {sha[:12]} (check.yml run {run_id}, stamps check-stamps-{sha[:12]}...)")
     return 0
+
+
+def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> int:
+    args = sys.argv[1:] if argv is None else argv
+    if "--main-red" not in args:
+        try:
+            a = parser().parse_args(args)
+        except BadCall as e:
+            print(f"ci_pass.py: {e} (see --help)", file=sys.stderr)
+            return 2
+        return g4_verdict(a.commit, root, gh)
+    # --main-red: from here on every way out prints the gate's line, and only a red main exits MAIN_RED
+    try:
+        with redirect_stdout(sys.stderr):  # --help text goes to stderr: the gate reads stdout as the verdict
+            a = parser().parse_args(args)
+    except BadCall as e:
+        print(f"main red check: a bad call ({e}); {NOT_BLOCKING}")
+        return 0
+    except SystemExit:  # --help: argparse printed it and asked to exit
+        print(f"main red check: help only, no check; {NOT_BLOCKING}")
+        return 0
+    except Exception as e:  # a bug before the check's own handler: say so, and the deploy goes on
+        print(f"main red check: failed before the check: {type(e).__name__}: {e}; {NOT_BLOCKING}")
+        return 0
+    return main_red_verdict(a.commit, root, gh)
 
 
 if __name__ == "__main__":
