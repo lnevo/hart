@@ -1,25 +1,26 @@
 """The main and upper mast and head rows of the device map: each mast's device ID and name, the virtual masts'
 system names, and the home, intermediate and virtual masts' rows with their heads' (staging's: device_map_masts).
 
-build_device_map.build() calls name_masts, head_rows and virtual_mast_rows, in that order, over the masts
-mast_plan.plan placed and one MapBuild (device_map_records), once every switch, OS block and track has its row
-(device_map_plant): heads take the 5V board room left after the turnouts' 12V boards.
+build_device_map.build() calls plan_rows over the masts mast_plan.plan placed (a mast_plan.MastPlan) and one MapBuild
+(device_map_records), once every switch, OS block and track has its row (device_map_plant): heads take the 5V board
+room left after the turnouts' 12V boards. plan_rows runs name_masts, head_rows and virtual_mast_rows, in that order.
 """
 from __future__ import annotations
 
 import sys
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, TypeIs
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common  # noqa: E402  bare: a switch label as the plan prints it
 import mast_plan  # noqa: E402  virtual_system_names
 from device_map_nodes import NoBoardRoom  # noqa: E402
 from device_map_plant import add  # noqa: E402
-from device_map_records import Group, MapBuild, MastEntry, MastKind, VirtualNames  # noqa: E402
+from device_map_records import Group, LineMast, MapBuild, PlacedMast, VirtualNames, VisibleMast  # noqa: E402
 from hartlib import device_ids, devices, level_masts, railroad  # noqa: E402
-from mast_rule import MapError  # noqa: E402
+from mast_plan import Intermediate, MastPlan, VirtualMast  # noqa: E402
+from mast_rule import HomeMast, MapError  # noqa: E402
 
 HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 LEVELS = ("2", "3")     # the main and upper levels, as the master writes them
@@ -66,7 +67,7 @@ def owner_mast_names(files: devices.Files) -> dict[str, str]:
             if f["level"] in LEVELS and f["layer"] == "mast" and f["user_name"]}
 
 
-def virtual_memory(virtual: Iterable[Mapping[str, object]], old: Mapping[str, tuple[str, str]]
+def virtual_memory(virtual: Iterable[VirtualMast], old: Mapping[str, tuple[str, str]]
                    ) -> dict[int, dict[str, str]]:
     """{level: {"Mast <name>": system name}} of the virtual masts' old system names (`old`: master_virtual_names,
     by ID), each under its mast's name now (`virtual`: the planned virtual masts, each with its `id` and final
@@ -103,21 +104,45 @@ def facing_id(st: MapBuild, level: int | str, block: str) -> str:
     return got
 
 
-def mast_id(st: MapBuild, m: MastEntry, kind: MastKind) -> str:
-    """A mast's device ID (hartlib.device_ids): a home mast's by its switch label, leg and way, others' by block."""
-    if kind != "home":
-        return device_ids.block_mast_id(facing_id(st, m["level"], m["facing"]), m["dir"])
+def line_mast(m: Intermediate) -> LineMast:
+    """An intermediate of the plan as the device map places it: one searchlight head, no switch."""
+    return LineMast(**m, heads=1, kind="one-searchlight", switch="", intermediate=True)
+
+
+def is_line(m: VisibleMast) -> TypeIs[LineMast]:
+    """Whether a mast with heads is an intermediate (line_mast's) and not a home mast."""
+    return bool(m.get("intermediate"))
+
+
+def home_mast_id(st: MapBuild, m: HomeMast) -> str:
+    """A home mast's device ID (hartlib.device_ids): by its switch label, leg and way."""
     label = le_common.bare(st.bands[m["band"]][1]["nodes"][m["node"]].get("label"))
     return device_ids.home_mast_id(label, m["leg"], m["dir"])
 
 
-def owner_renames(st: MapBuild, masts: Iterable[tuple[MastEntry, MastKind]], owner: Mapping[str, str]
-                  ) -> dict[str, str]:
-    """Give each mast its `id` (mast_id) and, where the owner names that ID, the owner's name. Returns {generated
-    name: the owner's}. MapError on an owner's name out of the grammar."""
+def block_mast_id(st: MapBuild, m: LineMast | VirtualMast) -> str:
+    """An intermediate or virtual mast's device ID (hartlib.device_ids): by the block it faces and its way."""
+    return device_ids.block_mast_id(facing_id(st, m["level"], m["facing"]), m["dir"])
+
+
+def mast_ids(st: MapBuild, home: Iterable[HomeMast], line: Iterable[LineMast], virtual: Iterable[VirtualMast]
+             ) -> Iterator[tuple[PlacedMast, str]]:
+    """Each mast with its device ID, the home masts first, then the intermediates, then the virtual masts; each ID
+    is worked out as its mast is reached. MapError as facing_id stops."""
+    for h in home:
+        yield h, home_mast_id(st, h)
+    for m in line:
+        yield m, block_mast_id(st, m)
+    for v in virtual:
+        yield v, block_mast_id(st, v)
+
+
+def owner_renames(masts: Iterable[tuple[PlacedMast, str]], owner: Mapping[str, str]) -> dict[str, str]:
+    """Give each mast its `id` (`masts`: mast_ids) and, where the owner names that ID, the owner's name. Returns
+    {generated name: the owner's}. MapError on an owner's name out of the grammar."""
     renamed = {}
-    for mast, kind in masts:
-        mast["id"] = mast_id(st, mast, kind)
+    for mast, ident in masts:
+        mast["id"] = ident
         name = owner.get(mast["id"], "")
         if name and name != f"Mast {mast['name']}":
             if not level_masts.MAST_USER.fullmatch(name):
@@ -126,17 +151,16 @@ def owner_renames(st: MapBuild, masts: Iterable[tuple[MastEntry, MastKind]], own
     return renamed
 
 
-def name_masts(st: MapBuild, ms: list[MastEntry], virtual: list[MastEntry], owner: Mapping[str, str],
-               old_names: VirtualNames) -> dict[str, str]:
+def name_masts(st: MapBuild, home: list[HomeMast], line: list[LineMast], virtual: list[VirtualMast],
+               owner: Mapping[str, str], old_names: VirtualNames) -> dict[str, str]:
     """Every mast's ID, then the owner's name by it (the field file): a mast and its heads take it, as on staging
     (device_map_masts.owner_names); a virtual mast's needed_by follows the renames. Returns {virtual mast name: its
     system name}, each level's ordinals from its own thousand (hartlib.level_masts); `old_names`: the virtual masts
     that have a name already (master_virtual_names). MapError on an owner's name out of the grammar or two masts
     with one name."""
-    kinds: list[tuple[MastEntry, MastKind]] = [(m, "intermediate" if m.get("intermediate") else "home") for m in ms]
-    kinds += [(m, "virtual") for m in virtual]
-    renamed = owner_renames(st, kinds, owner)
-    taken = [m["name"] for m in ms + virtual]
+    renamed = owner_renames(mast_ids(st, home, line, virtual), owner)
+    placed: list[PlacedMast] = [*home, *line, *virtual]
+    taken = [m["name"] for m in placed]
     twice = sorted({x for x in taken if taken.count(x) > 1}, key=railroad.natural)
     if twice:
         raise MapError(f"two masts are named {', '.join('Mast ' + x for x in twice)} (an owner's name in "
@@ -151,7 +175,7 @@ def name_masts(st: MapBuild, ms: list[MastEntry], virtual: list[MastEntry], owne
     return vnames
 
 
-def head_rows(st: MapBuild, cps: Sequence[railroad.Interlocking], ms: list[MastEntry]) -> None:
+def head_rows(st: MapBuild, cps: Sequence[railroad.Interlocking], ms: Sequence[VisibleMast]) -> None:
     """The home and intermediate masts' rows and their heads', last, once every node's boards are known: each
     group's masts in name order, but every two-head mast of every group before any one-head mast (a stable sort),
     since a two-head mast takes six of a board's eight pins and a one-head mast placed first would take a board of
@@ -167,15 +191,15 @@ def head_rows(st: MapBuild, cps: Sequence[railroad.Interlocking], ms: list[MastE
         mast_rows(st, group, first, m)
 
 
-def head_wiring(st: MapBuild, group: Group, first: str, m: MastEntry, users: Sequence[str]) -> HeadWiring:
+def head_wiring(st: MapBuild, group: Group, first: str, m: VisibleMast, users: Sequence[str]) -> HeadWiring:
     """Where the heads `users` of mast `m` are wired: a frozen mast's heads on their wiring.csv node, else a node
     with board room (Nodes.pick_mast, its first switch's node first). With no board room left in the area
     (NoBoardRoom) they wait for the wiring plan: no node. MapError on a mast frozen in part, or on two nodes."""
-    frozen = [st.nodes.take_frozen("head", u) for u in users]
+    frozen = [w for u in users if (w := st.nodes.take_frozen("head", u))]
     try:
-        if any(frozen):                          # wired and frozen (wiring.csv): every head of the mast, one node
-            if not all(frozen) or len({w.node for w in frozen}) != 1:
-                raise MapError(f"Mast {m['name']}: wiring.csv freezes {sum(map(bool, frozen))} of its "
+        if frozen:                               # wired and frozen (wiring.csv): every head of the mast, one node
+            if len(frozen) != len(users) or len({w.node for w in frozen}) != 1:
+                raise MapError(f"Mast {m['name']}: wiring.csv freezes {len(frozen)} of its "
                                f"{len(users)} head(s), or puts them on two nodes; freeze the mast whole")
             node = frozen[0].node
             heads = [Head(u, w.address, w.index, w.port_text) for u, w in zip(users, frozen)]
@@ -193,7 +217,7 @@ def mast_system_name(kind: str, heads: Iterable[str]) -> str:
     return f"IF$shsm:basic:{kind}(" + ")(".join(heads) + ")"
 
 
-def mast_rows(st: MapBuild, group: Group, first: str, m: MastEntry) -> None:
+def mast_rows(st: MapBuild, group: Group, first: str, m: VisibleMast) -> None:
     """One home or intermediate mast's row and its heads' rows (head_wiring). Heads with no board room keep their
     virtual names and wait as HEAD_NOT_WIRED, the comment saying where the mast stands."""
     lv, cp = group.level, group.cp
@@ -201,16 +225,17 @@ def mast_rows(st: MapBuild, group: Group, first: str, m: MastEntry) -> None:
     users = [f"Head {m['name']}" + (f" {part}" if part else "") for part in parts]
     wired = head_wiring(st, group, first, m, users)
     virtual = mast_system_name(m["kind"], [head_name(u, lv) for u in users])
-    stands = "intermediate" if m.get("intermediate") else f"Switch {m['switch']}"
-    if m.get("intermediate"):
+    facts: dict[str, str] = {}
+    if is_line(m):
+        stands, role = "intermediate", "intermediate"
         notes = f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} {m['milepost']:.2f}"
-        facts: dict[str, str] = {}
     else:
+        stands, role = f"Switch {m['switch']}", "home"
         notes = f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else "")
         facts = {"switch": m["switch"]}
     add(st, lv, cp, "mast", f"Mast {m['name']}", system=wired.mast, node=wired.node,
         comment=f"{group.place} | {stands}", notes=notes, jmri=virtual, facing=m["facing"], protects=m["protects"],
-        dir=m["dir"], role="intermediate" if m.get("intermediate") else "home", ident=m["id"], **facts)
+        dir=m["dir"], role=role, ident=m["id"], **facts)
     for i, head in enumerate(wired.heads):
         ident = device_ids.head_id(m["id"], device_ids.head_place(i, len(users)))
         if not head.system:             # no node yet: the mast's comment says where it stands
@@ -223,7 +248,7 @@ def mast_rows(st: MapBuild, group: Group, first: str, m: MastEntry) -> None:
             role="head", ident=ident)
 
 
-def virtual_mast_rows(st: MapBuild, virtual: list[MastEntry], vnames: Mapping[str, str]) -> None:
+def virtual_mast_rows(st: MapBuild, virtual: Iterable[VirtualMast], vnames: Mapping[str, str]) -> None:
     """Each virtual mast's row: a destination for the visible masts' routes, hidden, with no heads and no node."""
     for m in virtual:
         sw = st.switches[m["switch"]]
@@ -233,3 +258,14 @@ def virtual_mast_rows(st: MapBuild, virtual: list[MastEntry], vnames: Mapping[st
             notes=f"virtual bumper mast facing {m['facing']} at its buffer stop: the destination of "
                   f"{', '.join('Mast ' + x for x in m['needed_by'])}",
             jmri=system, facing=m["facing"], dir=m["dir"], role="hidden", ident=m["id"])
+
+
+def plan_rows(st: MapBuild, cps: Sequence[railroad.Interlocking], planned: MastPlan, owner: Mapping[str, str],
+              old_names: VirtualNames) -> None:
+    """Every mast and head row of the plan's masts into st.rows: each mast named (name_masts; `owner` and
+    `old_names` its), the home and intermediate masts with their heads (head_rows), then the virtual masts.
+    MapError as those stop."""
+    line = [line_mast(m) for m in planned["intermediates"]]
+    vnames = name_masts(st, planned["home"], line, planned["virtual"], owner, old_names)
+    head_rows(st, cps, [*planned["home"], *line])
+    virtual_mast_rows(st, planned["virtual"], vnames)

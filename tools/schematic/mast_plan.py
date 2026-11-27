@@ -26,8 +26,9 @@ the level's block layer:
 
 The block layer is each level's own: staging's from its device map's block rows and
 block_lengths.csv (device_map_masts.py), main and upper's generated one block per track, loop and split halves
-(build_device_map.track_layer). One writer turns these masts into every level's device rows, build_device_map.py
-(staging's through device_map_masts.py, with their plan facts; main and upper's in its build steps); build_masts.py writes masts.csv, every level, from those rows.
+(device_map_schematic.main_upper_layer). One writer turns these masts into every level's device rows,
+build_device_map.py (staging's through device_map_masts.py, with their plan facts; main and upper's through
+device_map_level_masts.plan_rows); build_masts.py writes masts.csv, every level, from those rows.
 """
 from __future__ import annotations
 
@@ -36,7 +37,7 @@ import sys
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Literal, NamedTuple, TypedDict
+from typing import Any, Literal, NamedTuple, NotRequired, TypedDict
 
 import le_names as ln
 import mast_rule as mr
@@ -71,7 +72,7 @@ class Intermediate(TypedDict):
     """An intermediate mast (intermediates): its name (with the line code, no "Mast "), level, band, dir, the blocks it
     protects and faces, milepost, the run's start and end, `to` (the end it heads for), toward and other (their switch
     numbers), dist (cm from `to` to the boundary), total (the run's cm) and cp (the interlocking of `toward`, else of
-    `other`). The device map's builders read it by key."""
+    `other`). The device map's builders read it by key; `id` is filled by the device map's build."""
     name: str
     level: int
     band: int
@@ -87,6 +88,7 @@ class Intermediate(TypedDict):
     dist: float
     total: float
     cp: str
+    id: NotRequired[str]
 
 
 class UnnamedIntermediate(TypedDict):
@@ -131,8 +133,10 @@ class VirtualFields(TypedDict):
 
 
 class VirtualMast(VirtualFields):
-    """A virtual mast (virtual_masts): VirtualFields and its name (no "Mast ")."""
+    """A virtual mast (virtual_masts): VirtualFields and its name (no "Mast "); `id` is filled by the device map's
+    build."""
     name: str
+    id: NotRequired[str]
 
 
 class MastPlan(TypedDict):
@@ -474,8 +478,8 @@ def plan(bands: Bands, joined: mr.Joined, found: list[mr.Track], *, levels: Mapp
     """Every mast of `levels` ({band key: level}) by the one process (module text). `found`: the named tracks
     (mast_rule.tracks, track_names); `cp_of`: {switch: interlocking} of those levels; `layer`: {band index: {"os":
     {switch node: OS block}, "blocks": {strand: [block]}}}, the level's block layer, for every band of `levels`; `cm`:
-    {block: cm}; `corner_blocks`: a double crossover's corner blocks (build_device_map.xover_corners); `split`: the
-    owner's block splits (mast_rule.read_block_splits). `home`: home_masts' masts when the caller has them already
+    {block: cm}; `corner_blocks`: a double crossover's corner blocks (device_map_schematic.corner_blocks_of); `split`:
+    the owner's block splits (mast_rule.read_block_splits). `home`: home_masts' masts when the caller has them already
     (the block layer reads where they stand: home_posts). MapError when a band of `levels` has no block layer or the
     masts' names are not all different."""
     wanted = {bi for bi, (title, _b, _o) in enumerate(bands) if mr.band_level(title, levels)}

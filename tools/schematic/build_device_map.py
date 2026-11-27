@@ -137,7 +137,7 @@ import sys
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import NamedTuple, cast
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
@@ -169,14 +169,14 @@ from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
     split_tracks, xover_corners)
 from device_map_records import (  # noqa: E402,F401  build()'s records; re-exported: callers read them here
-    Corners, DeviceMapRow, Drawing, MapBuild, MapInputs, MapOutput, MastEntry, MastKind, MasterCells, Runs,
-    VirtualNames)
+    Corners, DeviceMapRow, Drawing, LineMast, MapBuild, MapInputs, MapOutput, MasterCells, PlacedMast, Runs,
+    VirtualNames, VisibleMast)
 from device_map_plant import (  # noqa: E402,F401  main and upper's switch, block and track rows; re-exported
     CORNER, NO_DETECTOR, NOT_WIRED, PIN_RE, VIRTUAL_TURNOUT, assign_ports, block_sensor, check_frozen_cps,
     occupancy_user, part_rows, switch_and_os_rows, track_rows)
 from device_map_level_masts import (  # noqa: E402,F401  main and upper's mast and head rows; re-exported
-    HEAD_NOT_WIRED, head_name, head_rows, master_virtual_names, name_masts, owner_mast_names, virtual_mast_rows,
-    virtual_memory)
+    HEAD_NOT_WIRED, head_name, head_rows, master_virtual_names, name_masts, owner_mast_names, plan_rows,
+    virtual_mast_rows, virtual_memory)
 from device_map_master import (  # noqa: E402,F401  the rows in the master's form; re-exported
     WRITER, block_beans, check_switch_ids, check_virtual, master_rows, owned_rows, startup_thrown)
 
@@ -335,17 +335,11 @@ def _fill_rows(st: MapBuild, cps: Sequence[railroad.Interlocking], planned: mast
                owner: Mapping[str, str] | None, virtual_names: VirtualNames | None) -> list[MasterCells]:
     """Every row of the map into st.rows, in the order the nodes' boards fill (turnouts' 12V boards before the
     heads' 5V ones); returns the parts' master rows. `owner` and `virtual_names`: build()'s."""
-    # the stages read mast_plan's records by key and give each its device ID and final name
-    placed = cast(Mapping[str, list[MastEntry]], planned)
     switch_and_os_rows(st, cps)
     parts = part_rows(st)
     track_rows(st)
-    visible = placed["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
-                               for m in placed["intermediates"]]
-    vnames = name_masts(st, visible, placed["virtual"], owner_mast_names(device_files()) if owner is None else owner,
-                        master_virtual_names(device_files()) if virtual_names is None else virtual_names)
-    head_rows(st, cps, visible)
-    virtual_mast_rows(st, placed["virtual"], vnames)
+    plan_rows(st, cps, planned, owner_mast_names(device_files()) if owner is None else owner,
+              master_virtual_names(device_files()) if virtual_names is None else virtual_names)
     return parts
 
 

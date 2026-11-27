@@ -287,7 +287,8 @@ class TheSplit(TempFiles):
 
     def test_the_build_records_are_device_map_records(self):
         import device_map_records as rec
-        for name in ("Corners", "DeviceMapRow", "Drawing", "MapBuild", "MapInputs", "MapOutput", "MastKind", "Runs"):
+        for name in ("Corners", "DeviceMapRow", "Drawing", "LineMast", "MapBuild", "MapInputs", "MapOutput",
+                     "PlacedMast", "Runs", "VisibleMast"):
             with self.subTest(name=name):
                 self.assertIs(getattr(bdm, name), getattr(rec, name))
 

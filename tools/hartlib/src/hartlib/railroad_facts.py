@@ -39,7 +39,7 @@ DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name
 #   switch, facing, protects   mast rows: the switch whose leg it stands at (none for an intermediate or a buffer stop
 #              or anchor mast), the block it faces and the blocks it protects (LIST separated)
 #   dir        mast rows: the way the mast looks, "east" or "west", set where the direction is known (mast_rule for a
-#              home mast, build_device_map.intermediates for an APB one); the name's L/R or odd/even only labels it
+#              home mast, mast_plan.intermediates for an APB one); the name's L/R or odd/even only labels it
 DEVICE_FACTS = DEVICE_COLUMNS[11:]
 MAST_DIRS = ("east", "west")
 DETECTORS = ("wired", "planned", "not_wired", "none")
