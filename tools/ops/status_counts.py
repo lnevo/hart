@@ -88,7 +88,7 @@ def line(c: dict) -> str:
 def rebase(text: str, src: str, dst: str) -> str:
     """`text` with each relative Markdown link written from folder `src` rewritten to lead to the same file from folder
     `dst` (both repo-relative). Web addresses, mailto:, absolute paths and anchors in the same page stay as they are."""
-    def one(m: re.Match) -> str:
+    def one(m: re.Match[str]) -> str:
         target = m.group(2)
         if "://" in target or target.startswith(("#", "/", "mailto:")):
             return m.group(0)

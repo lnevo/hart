@@ -52,11 +52,14 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Container
 from pathlib import Path, PurePosixPath
 from typing import Callable, Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("build_pipeline_map", ROOT / "tools/ops/build_pipeline_map.py")
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load {ROOT / 'tools/ops/build_pipeline_map.py'}")
 BUILD = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(BUILD)
 ME = "tools/ops/pipeline_map_coverage.py"
@@ -74,7 +77,7 @@ OUTPUT_ROOTS = (
     "cats/panels",
 )
 # Deliberate exceptions: path (a file, or a folder for every file under it) -> why the map leaves it out.
-ALLOWED = {
+ALLOWED: dict[str, str] = {
     # hand-kept files in an output folder
 }
 # The every-script rule: what it checks, and the folder nodes that stand for every script under them.
@@ -322,7 +325,7 @@ def scan(files: frozenset[str], submodules: tuple[str, ...], read: Callable[[str
     return scripts, outputs
 
 
-def _first_above(path: str, keys, top: int) -> str | None:
+def _first_above(path: str, keys: Container[str], top: int) -> str | None:
     """The longest of the path and the folders above it, down to `top` parts, that is in keys."""
     parts = PurePosixPath(path).parts
     for k in range(len(parts), top - 1, -1):

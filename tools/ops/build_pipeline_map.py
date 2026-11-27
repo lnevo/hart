@@ -123,6 +123,7 @@ MANIFEST_LANE = _load("map_lane", ROOT / "tools" / "pipeline" / "map_lane.py")
 EFF = _load("pipeline_map_eff", Path(__file__).resolve().with_name("pipeline_map_eff.py"))
 # the graph's record types and fixed sets live in map_lane.py
 if TYPE_CHECKING:
+    from tools.ops.pipeline_map_eff import StepRef
     from tools.pipeline.map_lane import Edge, Graph, Node
 else:
     Node, Edge, Graph = MANIFEST_LANE.Node, MANIFEST_LANE.Edge, MANIFEST_LANE.Graph
@@ -192,7 +193,8 @@ def regenerate(data: Graph) -> Graph:
     except AGENT_DOCS.AgentDocsMapError as err:
         raise GraphError(f"agent-doc lane: {err}") from err
     try:
-        return MANIFEST_LANE.regenerate(data)
+        fresh: Graph = MANIFEST_LANE.regenerate(data)
+        return fresh
     except MANIFEST_LANE.MapLaneError as err:
         raise GraphError(f"manifest lane: {err}") from err
 
@@ -398,7 +400,7 @@ html.dark #stage{--paper:#0f172a;--paper-2:#0b1220;--card:#1e293b;--ink:#e2e8f0;
 
 def public_copy(data: Graph) -> Graph:
     """The graph with every mirror path in PUBLIC_NAMES renamed, in ids, paths, labels, descriptions and links."""
-    def fix(value):
+    def fix(value: object) -> object:
         if isinstance(value, str):
             for real, shown in PUBLIC_NAMES.items():
                 value = value.replace(real, shown)
@@ -409,11 +411,11 @@ def public_copy(data: Graph) -> Graph:
             return {k: fix(v) for k, v in value.items()}
         return value
 
-    return fix(data)
+    return cast(Graph, fix(data))    # fix keeps the shape: only text inside the strings changes
 
 
 @functools.cache
-def _site_build():
+def _site_build() -> ModuleType:
     """www/scripts/prepare_github_pages.py, loaded once, for its leak patterns and private-name check."""
     path = ROOT / "www/scripts/prepare_github_pages.py"
     for name in ("prepare_github_pages", "__main__"):
@@ -421,6 +423,8 @@ def _site_build():
         if loaded is not None and Path(getattr(loaded, "__file__", "") or ".").resolve() == path.resolve():
             return loaded    # the site build itself is running: use it, do not load a second copy
     spec = importlib.util.spec_from_file_location("prepare_github_pages", path)
+    if spec is None or spec.loader is None:
+        raise GraphError(f"cannot load the website's checks from {path.relative_to(ROOT)}")
     site = importlib.util.module_from_spec(spec)
     try:
         spec.loader.exec_module(site)
@@ -457,10 +461,11 @@ def code_links() -> dict:
 
 
 @functools.cache
-def manifest_steps() -> tuple[Any, ...]:
+def manifest_steps() -> tuple[StepRef, ...]:
     """The steps of both manifests as the page needs them (pipeline_map_eff.StepRef), loaded once."""
     try:
-        return EFF.manifest_steps(MANIFEST_LANE.MANIFEST)
+        steps: tuple[StepRef, ...] = EFF.manifest_steps(MANIFEST_LANE.MANIFEST)
+        return steps
     except MANIFEST_LANE.MANIFEST.ManifestError as err:
         raise GraphError(f"the step manifests: {err}") from err
 
@@ -471,7 +476,9 @@ def page_extras(data: Graph) -> dict[str, Any]:
         timings = EFF.read_timings()
     except EFF.TimingsError as err:
         raise GraphError(f"docs/pipeline-map/{err}") from err
-    return EFF.page_extras(data, manifest_steps(), timings, frozenset(MANIFEST_LANE.MANIFEST.SHARED_OUTPUTS))
+    extras: dict[str, Any] = EFF.page_extras(data, manifest_steps(), timings,
+                                             frozenset(MANIFEST_LANE.MANIFEST.SHARED_OUTPUTS))
+    return extras
 
 
 def render(data: Graph, back: str = "", site: bool = False) -> str:

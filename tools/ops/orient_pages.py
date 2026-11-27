@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -36,7 +37,7 @@ class Page:
 
 # ---------------------------------------------------------------- Markdown
 
-def readable_lines(text: str):
+def readable_lines(text: str) -> Iterator[tuple[int, str]]:
     """Yield (line number, text) for every line outside code fences, with HTML comments cut out (a line wholly
     inside a comment yields ""). Fenced lines are not yielded, so callers judge adjacency by line number."""
     fence: str | None = None
@@ -80,7 +81,8 @@ def comment_start(text: str) -> int:
             return start
         span = CODE_SPAN.match(text, tick)
         if span is None:  # an unclosed backtick run is literal text
-            pos = tick + len(re.match(r"`+", text[tick:]).group(0))
+            run = text[tick:]
+            pos = tick + len(run) - len(run.lstrip("`"))
         else:
             pos = span.end()
 

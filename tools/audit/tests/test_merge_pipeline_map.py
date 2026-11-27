@@ -195,6 +195,14 @@ class MergeTest(unittest.TestCase):
         self.assertIn("top-level key 'updated'", err)
         self.assertIn('<<<<<<< ours: top-level key \'updated\'\n "updated": "today",\n=======\n', out)
 
+    def test_updated_removed_or_not_text_is_a_conflict(self) -> None:
+        removed = {k: v for k, v in BASE.items() if k != "updated"}
+        for ours in (removed, {**BASE, "updated": 20261121}):
+            rc, err, _ = self.merge(ours, {**BASE, "updated": "2026-11-22"})
+            self.assertEqual(rc, 1, err)
+            self.assertIn("top-level key 'updated'", err)
+            self.assertNotIn("Traceback", err)
+
     def test_domains_and_presets_by_key_in_order(self) -> None:
         pre = [{"label": "P", "focus": "x", "up": 1, "down": 1}]
         base = {**BASE, "presets": pre}

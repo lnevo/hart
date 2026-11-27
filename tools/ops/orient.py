@@ -44,6 +44,8 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from types import ModuleType
+from typing import TYPE_CHECKING
 
 from orient_pages import BRANCH, Claim, parse_page  # this folder is on sys.path when the script runs; the tests add it
 
@@ -54,6 +56,8 @@ GIT_TIMEOUT = 20
 FETCH_TIMEOUT = 20
 NET_TIMEOUT = 40  # gh, the deploy stamps and the ingest checks (their ssh ConnectTimeout is 10 s per host)
 SHORT_LIMIT = 10  # lines per section in --short, then "and N more"
+if TYPE_CHECKING:
+    from tools.agent.worktrees import Worktree
 
 
 class OrientError(Exception):
@@ -68,6 +72,13 @@ class Tree:
     lock: str  # "", "session running", "session ended", or "locked: <reason>" for a lock with no session pid
     ahead: int | None = 0  # None when origin/main is not in the repo, so the count is unknown
     last: datetime | None = None
+
+
+@dataclass
+class DeployNote:
+    """A line of a host's deploy status; paths counts the path lines listed under it when it ends in ":"."""
+    text: str
+    paths: int = 0
 
 
 # ---------------------------------------------------------------- git
@@ -87,18 +98,20 @@ def git(*args: str, cwd: str | Path | None = None, timeout: int = GIT_TIMEOUT) -
     return done.stdout.strip()
 
 
-def load_worktrees_module():
+def load_worktrees_module() -> ModuleType:
     path = ROOT / "tools/agent/worktrees.py"
     if not path.is_file():
         raise OrientError(f"{path} is missing; orient reads worktree locks with it")
     spec = importlib.util.spec_from_file_location("hart_agent_worktrees", path)
+    if spec is None or spec.loader is None:
+        raise OrientError(f"cannot load {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module  # its dataclass looks the module up by name
     spec.loader.exec_module(module)
     return module
 
 
-def lock_state(wt, tree) -> str:
+def lock_state(wt: ModuleType, tree: Worktree) -> str:
     if not tree.locked:
         return ""
     if not wt.LOCK_PID.search(tree.lock_reason):
@@ -106,7 +119,7 @@ def lock_state(wt, tree) -> str:
     return "session ended" if wt.lock_session_gone(tree.lock_reason) else "session running"
 
 
-def read_trees(wt) -> list[Tree]:
+def read_trees(wt: ModuleType) -> list[Tree]:
     """Every worktree with its lock state, commits ahead of origin/main and last commit time."""
     try:
         raw = wt.worktrees(ROOT)
@@ -155,7 +168,7 @@ def in_progress(trees: list[Tree]) -> list[Tree]:
     if any(t.ahead is None for t in trees):
         busy = trees[1:]
     else:
-        busy = [t for t in trees if t.ahead > 0 or t.lock == "session running"]
+        busy = [t for t in trees if (t.ahead is not None and t.ahead > 0) or t.lock == "session running"]
     return sorted(busy, key=lambda t: t.last or datetime.min, reverse=True)
 
 
@@ -165,7 +178,7 @@ def same_path(a: str, b: str) -> bool:
     return os.path.realpath(os.path.normpath(a)) == os.path.realpath(os.path.normpath(b))
 
 
-def read_claims(trees: list[Tree], wt) -> tuple[list[tuple[Claim, str]], list[str]]:
+def read_claims(trees: list[Tree], wt: ModuleType) -> tuple[list[tuple[Claim, str]], list[str]]:
     """Every claim in any worktree's wiki/projects/, each once, with its state against the worktree list; and the
     problem lines. A worktree folder that is gone is a problem unless git no longer lists it (the session-start
     sweep may remove one while orient reads); one without wiki/projects/ has nothing to read."""
@@ -292,7 +305,7 @@ def deploy_summary() -> list[str]:
 def summarize_deploy(out: str, code: int, err: str) -> list[str]:
     """Per host: a head line (commit, date, source) and its other lines; a list of paths after a line ending in ":"
     becomes a count on that line."""
-    blocks: list[tuple[str, dict[str, str], list[str]]] = []
+    blocks: list[tuple[str, dict[str, str], list[DeployNote]]] = []
     for raw in out.splitlines():
         if raw.startswith("== "):
             blocks.append((raw[3:].strip(), {}, []))
@@ -300,21 +313,22 @@ def summarize_deploy(out: str, code: int, err: str) -> list[str]:
             continue
         elif raw.startswith("    "):
             notes = blocks[-1][2]
-            if notes and notes[-1][1].endswith(":"):
-                notes[-1][0] += 1
+            if notes and notes[-1].text.endswith(":"):
+                notes[-1].paths += 1
             else:
-                notes.append([0, raw.strip()])
+                notes.append(DeployNote(raw.strip()))
         elif re.match(r"^  [a-z_0-9]+=", raw):
             key, _, value = raw.strip().partition("=")
             blocks[-1][1][key] = value
         else:
-            blocks[-1][2].append([0, raw.strip()])
+            blocks[-1][2].append(DeployNote(raw.strip()))
     lines = []
     for host, fields, notes in blocks:
         commit = fields.get("commit")
         lines.append(f"{host}: {commit[:8]} at {fields.get('date', '?')} ({fields.get('source', '?')})" if commit
                      else f"{host}:")
-        for count, text in notes:
+        for note in notes:
+            text, count = note.text, note.paths
             if count:
                 text = f"{text[:-1]} {count} path{'s' if count > 1 else ''} (make deploy-status lists them)"
             lines.append("  " + text)
@@ -333,8 +347,8 @@ def site_deploy_lines() -> list[str]:
         record = json.loads(path.read_text(encoding="utf-8")).get("deploy")
     except FileNotFoundError:
         return ["website: no deploy record"]
-    except (OSError, ValueError) as err:
-        return [f"website: cannot read {path.name} ({err})"]
+    except (OSError, ValueError) as exc:
+        return [f"website: cannot read {path.name} ({exc})"]
     if not isinstance(record, dict) or not record.get("commit"):
         return ["website: the last deploy kept counts only (before ADR-040)"]
     commit = str(record["commit"])
@@ -489,8 +503,10 @@ def report(short: bool, here: str) -> list[str]:
     ingest: list[str] = []
     if not short:
         with ThreadPoolExecutor(max_workers=6) as pool:
-            jobs = [pool.submit(f) for f in (open_prs, deploy_summary, operating, pi_unpulled, mac_tables)]
-            prs, deploys, flag, pi, mac = (j.result() for j in jobs)
+            prs_job, deploys_job, flag_job = pool.submit(open_prs), pool.submit(deploy_summary), pool.submit(operating)
+            pi_job, mac_job = pool.submit(pi_unpulled), pool.submit(mac_tables)
+            prs, deploys, flag = prs_job.result(), deploys_job.result(), flag_job.result()
+            pi, mac = pi_job.result(), mac_job.result()
         ingest = ingest_lines(pi, mac)
         note = ingest_base_note()
         ingest += [note] if note else []

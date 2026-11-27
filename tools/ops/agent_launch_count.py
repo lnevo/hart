@@ -29,7 +29,9 @@ import re
 import subprocess
 import sys
 from collections import Counter
+from collections.abc import Iterable
 from pathlib import Path
+from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_TYPE = "general-purpose"
@@ -38,6 +40,15 @@ LAUNCH_TOOLS = ("Agent", "Task")
 
 class CountError(Exception):
     """A problem the caller can fix: a missing folder, a bad date range, no repo checkout."""
+
+
+class Summary(TypedDict):
+    """One count: launches in all, how many were general-purpose (and the share, None for no launches), and per type
+    from most to fewest."""
+    total: int
+    general_purpose: int
+    general_purpose_pct: float | None
+    by_type: dict[str, int]
 
 
 def main_checkout(root: Path = ROOT) -> Path:
@@ -50,7 +61,7 @@ def main_checkout(root: Path = ROOT) -> Path:
     return Path(common).parent
 
 
-def project_key(path) -> str:
+def project_key(path: str | Path) -> str:
     """Claude Code's folder name for a project: the absolute path with every character but a letter or digit made a -."""
     return re.sub(r"[^A-Za-z0-9]", "-", str(path))
 
@@ -85,7 +96,7 @@ def repo_project_dirs(projects: Path, checkout: Path) -> list[Path]:
     return dirs
 
 
-def _local_date(stamp) -> dt.date | None:
+def _local_date(stamp: object) -> dt.date | None:
     if not isinstance(stamp, str):
         return None
     try:
@@ -94,7 +105,7 @@ def _local_date(stamp) -> dt.date | None:
         return None
 
 
-def launches(files, since: dt.date, until: dt.date) -> tuple[dict[str, str], int]:
+def launches(files: Iterable[Path], since: dt.date, until: dt.date) -> tuple[dict[str, str], int]:
     """tool call id -> agent type for the launches dated since..until; also how many launch lines could not be read.
     A call repeated in a resumed session keeps its earliest date."""
     if until < since:
@@ -130,7 +141,7 @@ def launches(files, since: dt.date, until: dt.date) -> tuple[dict[str, str], int
     return {i: kind for i, (day, kind) in first.items() if since <= day <= until}, unreadable
 
 
-def every_launch(files, since: dt.date, until: dt.date) -> tuple[list[str], int]:
+def every_launch(files: Iterable[Path], since: dt.date, until: dt.date) -> tuple[list[str], int]:
     """The agentType of every subagent (one *.meta.json each) started since..until; also how many could not be read."""
     if until < since:
         raise CountError(f"--until {until} is before --since {since}")
@@ -165,7 +176,7 @@ def _first_day(transcript: Path) -> dt.date | None:
     return None
 
 
-def summary(found) -> dict:
+def summary(found: dict[str, str] | list[str]) -> Summary:
     by_type = Counter(found.values() if isinstance(found, dict) else found)
     total = sum(by_type.values())
     gp = by_type.get(DEFAULT_TYPE, 0)
@@ -177,8 +188,8 @@ def summary(found) -> dict:
 def _date(text: str) -> dt.date:
     try:
         return dt.date.fromisoformat(text)
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"{text!r} is not a date (YYYY-MM-DD)") from None
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a date (YYYY-MM-DD)") from exc
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -197,17 +208,17 @@ def main(argv: list[str] | None = None) -> int:
     except CountError as e:
         print(f"agent_launch_count: {e}", file=sys.stderr)
         return 2
+    chosen, all_started = summary(found), summary(every)
     out = {"since": str(args.since), "until": str(args.until), "project_dirs": len(dirs), "transcripts": len(files),
-           "chosen": summary(found), "every": summary(every),
+           "chosen": chosen, "every": all_started,
            "unreadable_lines": bad_lines, "unreadable_subagents": bad_metas,
            "baseline": {"window": "2026-10-31 to 2026-11-21", "general_purpose": 404, "general_purpose_pct": 68}}
     if args.json:
         print(json.dumps(out, indent=2))
         return 0
     print(f"{out['since']} to {out['until']}, from {len(files)} transcripts in {len(dirs)} project folders")
-    for key, label in (("chosen", "launches a session chose (Agent calls; compare with the baseline)"),
-                       ("every", "every launch (skill forks and their reviewers included)")):
-        s = out[key]
+    for s, label in ((chosen, "launches a session chose (Agent calls; compare with the baseline)"),
+                     (all_started, "every launch (skill forks and their reviewers included)")):
         print(f"\n{label}: {s['total']}")
         if s["total"]:
             print(f"general-purpose: {s['general_purpose']} ({s['general_purpose_pct']}%), target under 50%")

@@ -190,7 +190,8 @@ def listed(text: str) -> set[tuple[str, str]]:
 
 def prose(text: str) -> dict[str, int]:
     """Per area, how many prose lines (a folder README's summary) the index text holds."""
-    area, count = "", {}
+    area = ""
+    count: dict[str, int] = {}
     for line in text.splitlines():
         if line.startswith("## "):
             area = line[3:]
