@@ -11,7 +11,7 @@
 For a one-line memory, clock or manager setting, use this instead of PanelPro, Store, make tables-pull and
 split_store.py (ADR-029). Each edit is checked, written through hartlib.tables (the bytes JMRI writes), and followed by
 build_tables.py and build_tables.py --check. --dry-run shows the change and writes nothing; --no-build skips the
-rebuild. A memory's value is not kept: a Store drops it (hartlib.tables_build.ENVELOPE_DROPS), so a value is set in
+rebuild. A memory's value is not kept: a Store drops it (hartlib.tables_normal.ENVELOPE_DROPS), so a value is set in
 JMRI at run time. Items outside what the template holds (turnouts, masts, blocks, the panel) come from the device master.
 Exit 0 done, 1 refused or the rebuild failed (the template is put back), 2 usage.
 """
@@ -26,11 +26,11 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hartlib" / "src"))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import paths, tables, tables_sections  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 MEMORIES = ("memories", "jmri.managers.configurexml.DefaultMemoryManagerXml")
-SENSORS = tb.INTERNAL_SENSORS
+SENSORS = tables_sections.INTERNAL_SENSORS
 TIMEBASE = ("timebase", "jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml")
 LAYOUT_BLOCKS = ("layoutblocks", "jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml")
 LOGICS = ("signalmastlogics", "jmri.managers.configurexml.DefaultSignalMastLogicManagerXml")
@@ -332,7 +332,7 @@ def edit(args) -> str | None:
         summary = clock_set(root, pairs_of(args.pairs))
     else:
         summary = setting_set(root, pairs_of(args.pairs))
-    tb.jmri_sort(root)
+    tables_sections.jmri_sort(root)
     ET.indent(root, space="  ")
     if args.dry_run:
         return "dry run, nothing written: " + summary

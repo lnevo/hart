@@ -2,7 +2,7 @@
 archive/history/wiki/projects/project-health-handoff.md, "R9d redesign").
 
 A Store mostly holds settings the owner made in PanelPro that must survive the next deploy, so the default is to keep
-it. Three files are compared item by item, all normalised (tables_build.normalise_store):
+it. Three files are compared item by item, all normalised (tables_normal.normalise_store):
 
     base   what the host had before the owner's session: the tables the last deploy shipped (or an earlier Store);
            None when it is not known, and then every difference is reviewed
@@ -52,8 +52,7 @@ import xml.etree.ElementTree as ET
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
-from . import devices, tables
-from . import tables_build as tb
+from . import devices, tables, tables_sections
 from .store_items import LOGIC, PANEL, SplitError, index, index_section, label, normalised, value  # noqa: F401
 from .store_keys import (BY_CONTENT, BY_ID, AttrsKey, BeanKey, ByContent, ById, ItemKey, LogicKey,  # noqa: F401
                          PanelKey, SecKey, SectionKey, SettingKey, canon)
@@ -145,7 +144,7 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
     store_top = [c for c in tables.elements(store)]
 
     def sections() -> dict[SecKey, ET.Element]:
-        return {tb.section_key(s): s for s in tables.elements(root) if s.tag != PANEL}
+        return {tables_sections.section_key(s): s for s in tables.elements(root) if s.tag != PANEL}
 
     for item in changes:
         key, s = item.key, item.store
@@ -179,8 +178,8 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
             sec.insert(_slot(sec, key), copy.deepcopy(s))
         else:
             raise SplitError(f"{item.id} {label(key)}: deleted in the Store, but the template has no such item")
-    tb.jmri_sort(root)
-    tb.finish(root)
+    tables_sections.jmri_sort(root)
+    tables_sections.finish(root)
     return doc
 
 
@@ -300,7 +299,7 @@ def show(i: Item) -> list[str]:
         if el is None:
             return []
         c = copy.deepcopy(el)
-        tb.finish(c)
+        tables_sections.finish(c)
         return ET.tostring(c, encoding="unicode").splitlines()
     before = i.repo if i.repo is not None else i.base
     return list(difflib.unified_diff(lines(before), lines(i.store), "repo", "store", lineterm="", n=2))

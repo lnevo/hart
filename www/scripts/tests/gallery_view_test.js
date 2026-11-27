@@ -3,9 +3,10 @@
 "use strict";
 const assert = require("assert");
 const path = require("path");
-const { loadPage, same, WWW } = require("./stub_page.js");
+const { StubEl, loadPage, same, WWW } = require("./stub_page.js");
 
 const GALLERY_JS = path.join(WWW, "js", "gallery.js");
+const BEFORE = [path.join(WWW, "js", "photo-viewer.js")];
 const DATA = {
   title: "Photos",
   lede: "From the layout.",
@@ -22,7 +23,7 @@ const ok = async () => ({ ok: true, json: async () => ({}) });
 const NO_STORAGE = { getItem() { throw new Error("denied"); }, setItem() { throw new Error("denied"); } };
 
 async function page(mountOpts, opts) {
-  const p = loadPage(GALLERY_JS, Object.assign({ ids: ["bar", "grid", "views", "gallery-title", "gallery-lede"], json: { "data/gallery.json": DATA } }, opts));
+  const p = loadPage(GALLERY_JS, Object.assign({ before: BEFORE, ids: ["bar", "grid", "views", "gallery-title", "gallery-lede", "gallery-toast"], json: { "data/gallery.json": DATA } }, opts));
   await p.ctx.HARTGallery.mount(mountOpts);
   return p;
 }
@@ -92,6 +93,27 @@ async function main() {
   desk.fire("keydown", { key: "Escape" });
   assert.ok(!lb.classList.contains("open"));
   assert.strictEqual(opener("nope"), false);
+
+  // A curation save: an answer without the gallery is not saved; a good one replaces the page's photos.
+  const answers = [{ ok: true, json: async () => ({ saved: true }) },
+    { ok: true, json: async () => ({ gallery: Object.assign({}, DATA, { items: DATA.items.slice(1) }) }) }];
+  const cur = loadPage(GALLERY_JS, { before: BEFORE, ids: ["bar", "grid", "views", "gallery-toast"], json: { "data/gallery.json": DATA }, site: { public: false },
+    fetch: async (url, init) => (init.method === "POST" ? answers.shift() : { ok: true }) });
+  const up = new StubEl("button", "");
+  Object.assign(up.attrs, { "data-c-move": "up", "data-src": "assets/a.jpg" });
+  cur.els.grid.all["[data-c-move]"] = [up];
+  await cur.ctx.HARTGallery.mount(PHOTOS);
+  const press = async () => { up.listeners.click[0](); await new Promise((r) => setImmediate(r)); }; // the save runs after the click returns
+  await press();
+  assert.strictEqual(cur.els["gallery-toast"].textContent, "Not saved: the review server sent back no gallery");
+  assert.match(cur.els.bar.innerHTML, /All \(4\)/);
+  await press();
+  assert.strictEqual(cur.els["gallery-toast"].textContent, "Reordered");
+  assert.match(cur.els.bar.innerHTML, /All \(3\)/);
+
+  // On the desk the curation tools report through the toast, so a desk page without one is an error.
+  const noToast = loadPage(GALLERY_JS, { before: BEFORE, ids: ["bar", "grid", "views"], json: { "data/gallery.json": DATA }, site: { public: false }, fetch: ok });
+  await assert.rejects(noToast.ctx.HARTGallery.mount(PHOTOS), /photo viewer: the page has no toast element/);
 
   // The page's own heading is filled unless heading is false.
   const plain = await page({ grid: "#grid" });

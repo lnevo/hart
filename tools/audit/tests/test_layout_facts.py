@@ -1,6 +1,6 @@
 """check_layout_facts.py passes on the repo and catches a flipped switch sense.
 
-The Switch 9 rewiring (2026-11-12) took three commits to bring tables.xml, the
+The Switch 9 rewiring took three commits to bring tables.xml, the
 CATS desks and the generators back into agreement. Each test below flips one
 side of Switch 9 in a temporary copy and expects the check to name Switch 9 and
 the two sources that disagree.
@@ -17,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
+import layout_facts_desks as desks  # noqa: E402
 from hartlib import devices, hand_lists  # noqa: E402
 
 DATA_FILES = ("switches.csv", devices.MASTER_FILE, "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
@@ -371,7 +372,7 @@ class LayoutFactsTest(unittest.TestCase):
                     io.set("DECADDR", "3399")
         desk = self.write(tree)
         self.assertTrue([m for m in self.failures(tables=tables, desks=(desk,)) if "101-111" in m])
-        with unittest.mock.patch.object(check, "field_sensors", lambda: frozenset({"M2S3399"})):
+        with unittest.mock.patch.object(desks, "field_sensors", lambda: frozenset({"M2S3399"})):
             self.assertEqual([m for m in self.failures(tables=tables, desks=(desk,)) if "101-111" in m], [])
 
     def desk_block(self, name: str, change) -> list[str]:

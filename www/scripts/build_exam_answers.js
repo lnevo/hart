@@ -2,7 +2,7 @@
 /* Builds www/exam/answers.html, the answer key for the Extra East game, from the ask({...}) calls in the game's scripts
    (www/exam/run.js and the run files). Each call is evaluated with every unknown name stubbed, so values the game fills
    in at play time (station, train, clock time) show as [station], [train] or […]. The reference panels come from the
-   game's data literals (STATIONS, REGULARS, TIME_ORDER, TWC_PLAN) and the track warrant form (js/track-warrant.js).
+   game's data literals (STATIONS, REGULARS, TIME_ORDER, SHEET_NOTES, TWC_PLAN) and the track warrant form (js/track-warrant.js).
    `--check` exits 1 when answers.html is out of date. */
 "use strict";
 const fs = require("fs");
@@ -263,17 +263,12 @@ ${plates.join("\n")}
 /* A question names one with ref:"<id>" in run.js; the game ignores the field. Each is drawn from run.js's own data. */
 
 
-/* The special instructions on the 1949 train sheet: renderSheet's state.era==="tto" branch, up to its }else{. */
-function specialInstructions(src) {
-  const sheet = src.indexOf("function renderSheet(");
-  if (sheet < 0) throw new Error("run.js: function renderSheet not found");
-  const from = src.indexOf('if(state.era==="tto"){', sheet);
-  const to = src.indexOf("}else{", from);
-  if (from < 0 || to < 0) throw new Error('run.js: renderSheet\'s state.era==="tto" branch not found');
-  const branch = src.slice(from, to).replace(/`\+\n\s*`/g, ""); // run.js wraps a long template as `…`+`…`
-  const m = /<div class="xw-si"><b>Special instructions<\/b><ul>(.*?)<\/ul><\/div>/.exec(branch);
-  if (!m) throw new Error("run.js: special instructions not found in the 1949 branch of renderSheet");
-  return m[1];
+/* The special instructions on the 1949 train sheet, as list items: run.js SHEET_NOTES.tto, which renderSheet prints. */
+function specialInstructions(core) {
+  const notes = literal(core, "const SHEET_NOTES=").tto;
+  if (!Array.isArray(notes) || !notes.length || notes.some(t => typeof t !== "string" || !t))
+    throw new Error("run.js: SHEET_NOTES.tto is not a list of special instructions");
+  return notes.map(t => `<li>${t}</li>`).join("");
 }
 
 /* A warrant of the modern run's TWC_PLAN (run-modern.js) as the key shows it: {no, at, boxes: {n: {vals, some}}}.
@@ -348,7 +343,7 @@ function references(files) {
     tt: {
       label: "Show the time-table",
       title: "Time-table No 12, Kestrel Valley Second Subdivision",
-      html: `<p>Ashby to Ironton: single track, with double track from Hollis to Ironton. The train columns change from run to run, so they are left out here.</p>${stations}<p><b>Special instructions</b></p><ul>${specialInstructions(core.src)}</ul>`,
+      html: `<p>Ashby to Ironton: single track, with double track from Hollis to Ironton. The train columns change from run to run, so they are left out here.</p>${stations}<p><b>Special instructions</b></p><ul>${specialInstructions(core)}</ul>`,
     },
     order: {
       label: "Show the order",
@@ -507,4 +502,4 @@ function main() {
 if (require.main === module) {
   try { main(); } catch (e) { console.error(`build_exam_answers: ${e.message}`); process.exit(1); }
 }
-module.exports = { readRun, extract, render, references, warrant, warrantHtml, loadSignals, generatedHtml };
+module.exports = { readRun, extract, render, references, specialInstructions, warrant, warrantHtml, loadSignals, generatedHtml };

@@ -89,8 +89,9 @@ SETTINGS = {"2": "Closed", "4": "Thrown"}  # JMRI turnout states in a block path
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
 
-class PageError(SystemExit):
-    """The page and the file disagree in a way only a person can fix."""
+class PageError(Exception):
+    """The page and the file disagree in a way only a person can fix. build_tables_browser.page_text gives it as a
+    BrowserDataError, which its main and the site build turn into the exit."""
 
 
 class Row(TypedDict):
@@ -332,7 +333,7 @@ def _examples(root: ET.Element) -> dict:
 
 def _logixng(root: ET.Element) -> dict:
     """Two LogixNGs: the one in the Initialization Table, its ConditionalNGs and their single actions; and the one
-    that sets the main and upper virtual block sensors clear (hartlib.tables_build.start_logixng)."""
+    that sets the main and upper virtual block sensors clear (hartlib.startup_logixng.start_logixng)."""
     f: dict = {}
     init = [x.text for m in root.findall("LogixNGs") for it in m.findall("InitializationTable") for x in it.findall("LogixNG")]
     ngs = tables.section(root, "LogixNGs", "LogixNG")

@@ -1,7 +1,7 @@
 /* The track warrant form of Extra East: HART Railroad, "Up the Chartiers", for the 1997 PIR run. The dispatcher reads a
    warrant out a line at a time; the player checks the boxes he gives, fills in their blanks and repeats it back. It is the
-   form of the Extra West game (exam/run.js: BOXES, SAY, the copy step), ported with this run's places and trains. The pure
-   check is compare(); copy() is the scene. A wrong copy costs 2 minutes and one miss (GCOR 14.9), not a mark.
+   form of the Extra West game (BOXES and SAY in js/track-warrant.js, the copy step in exam/run-modern.js), ported with this run's places and trains. The pure
+   check is compare() and the blank form formHtml(), both from js/track-warrant.js; copy() is the scene. A wrong copy costs 2 minutes and one miss (GCOR 14.9), not a mark.
    It loads after road-engine.js and js/track-warrant.js (the form's BOXES and SAY) and before pir.js, and adds
    RoadEngine.twc.
  */
@@ -18,21 +18,8 @@ const reduced=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motio
 const TW_SEL={s:["Duff Junction","McKees Rocks","Carnegie","Bridgeville","Hills","Canonsburg","Houston","Arden"],t:["Main"],w:["112","114","118","121","125"],
   train:["Local 1","Local 2","PIR work train"],time:BASE_TIMES.slice(),mph:["10","15","20","25","30"],
   txt:["Joint with PIR work train between Hills and Canonsburg","Joint with Local 2 between Bridgeville and Canonsburg","Joint with Local 1 between Duff Junction and Bridgeville"]};
-/* The form's boxes and the dispatcher's words: www/js/track-warrant.js. */
-const {BOXES,SAY}=window.TrackWarrant;
-
-/* The check: w.boxes is {box: [values]} for the boxes the dispatcher gave; got is {box: {on, v}} as the player filled the
-   form. Returns the numbers of the boxes that are wrong: checked when not given, not checked when given, or with a blank
-   that differs. */
-function compare(w,got){
-  const bad=[];
-  BOXES.forEach(([n])=>{
-    const want=w.boxes[n],g=got[n]||{on:false,v:[]};
-    if(!!want!==!!g.on){bad.push(n);return}
-    if(want&&want.some((x,i)=>(g.v||[])[i]!==x))bad.push(n);
-  });
-  return bad;
-}
+/* The form's boxes, the dispatcher's words, the blank form and the copy check: www/js/track-warrant.js. */
+const {BOXES,SAY,formHtml,compare}=window.TrackWarrant;
 /* The form as the player filled it in. The play-through test replaces this, since its fake page has no checkboxes. */
 const api={BOXES,SAY,TW_SEL,compare,
   read(w,el){
@@ -62,11 +49,7 @@ const api={BOXES,SAY,TW_SEL,compare,
       let tries=0;
       const to=w.to||"PIR Local 1";
       const lines=[`Track warrant number ${w.no.split("").join(" ")}, to ${to} at ${w.at}.`,...api.words(w),"Dispatcher RK. Read it back."];
-      const form=BOXES.map(([n,txt])=>{
-        let k=0;
-        const body=esc(txt).replace(/\{(\w+)\}/g,(_,t)=>{const id=`b${n}_${k++}`;return `<select id="${id}" aria-label="Box ${n} blank ${k}"><option value="">—</option>${TW_SEL[t].map(v=>`<option>${esc(v)}</option>`).join("")}</select>`});
-        return `<label class="box" id="row${n}"><input type="checkbox" id="c${n}"><span class="n">${n}</span><span>${body}</span></label>`;
-      }).join("");
+      const form=formHtml(TW_SEL,esc);
       const el=H.scene(w.at,"Copy track warrant "+w.no,`<p>The dispatcher reads the warrant at copying speed, slowly enough for you to write it down. Check each box he gives and fill in its blanks, then repeat it back.</p><div class="xw-dict" id="dict"></div>
       <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · Oct 15 1997<br><span style="font-weight:400">To ${esc(to)} at ${esc(w.at)}</span></div>${form}<div class="okline">OK ____  Dispatcher ____</div></div>
       <div class="choices"><button class="xw-btn primary" id="rb">Repeat it to the dispatcher</button></div><div class="result" hidden></div>`);
