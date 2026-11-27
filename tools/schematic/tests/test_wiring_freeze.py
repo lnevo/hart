@@ -100,6 +100,32 @@ class TheNodes(unittest.TestCase):
         with self.assertRaisesRegex(bdm.MapError, "Switch 9 is on node 13, which lcos_nodes.csv does not list"):
             self.nodes().freeze(wires('2,turnout,switch:9,,,,,,13,0,OU1,"1,2",wired,\n'))
 
+    def test_what_a_node_gives_out_is_read_by_field(self):
+        nodes = self.nodes()
+        slot = nodes.take(42, "sensor")
+        self.assertEqual((slot.slot, slot.packed), (0, 4267))
+        (top, bottom) = nodes.place_mast(42, 2)
+        self.assertEqual((top.signal, top.packed, top.board, top.pin), (0, 4232, 1, 1))
+        self.assertEqual((bottom.signal, bottom.board, bottom.pin), (1, 1, 4))
+        nodes.pin({"Track A": (52, 3)})
+        got = nodes.detector("Track A", 2, "North", 42, {})
+        self.assertEqual((got.node, got.slot, got.packed), (52, 3, 5203))
+        free = nodes.detector("Track B", 2, "North", 42, {})
+        self.assertEqual((free.node, free.slot, free.packed), (42, 0, 4200))
+
+    def test_a_mast_placed_on_a_node_with_no_board_run_stops_by_name(self):
+        nodes = self.nodes()
+        for _ in range(8):                      # two heads a board: the node's four OU boards are full
+            nodes.place_mast(42, 1)
+        with self.assertRaisesRegex(bdm.MapError, "node 42: no 5V board run for a 1-head mast"):
+            nodes.place_mast(42, 1)
+        self.assertEqual(nodes.pick_mast(2, "North", 1), 52)     # pick_mast, asked first, passes the full node
+
+    def test_a_frozen_row_with_no_lcos_number_stops_by_name(self):
+        (wire,) = wires('2,turnout,switch:123,,,,,,42,0,OU1,"1,2",wired,\n')
+        with self.assertRaisesRegex(bdm.MapError, "Switch 123 has no LCOS number to freeze"):
+            self.nodes().freeze([wire._replace(index=None)])
+
     def test_a_frozen_row_the_map_does_not_use_stops(self):
         nodes = self.nodes()
         nodes.freeze(wires('2,turnout,switch:999,,,,,,42,0,OU1,"1,2",wired,\n'))

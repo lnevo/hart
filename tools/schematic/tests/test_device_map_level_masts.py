@@ -11,6 +11,7 @@ HERE = Path(__file__).resolve().parent
 sys.path[:0] = [str(HERE.parent), str(HERE.parents[2] / "tools/hartlib/src")]
 import device_map_level_masts as lm  # noqa: E402
 import device_map_records as rec  # noqa: E402
+import mast_plan  # noqa: E402
 from device_map_nodes import NoBoardRoom  # noqa: E402
 from hartlib import device_ids  # noqa: E402
 from mast_rule import MapError  # noqa: E402
@@ -81,16 +82,29 @@ class Names(unittest.TestCase):
         bands = [("Main", {"nodes": {"n1": {"label": "201A"}}}, {})]
         st = state(bands=bands, block_ids={("2", "Track 1-3"): "block:a"})
         mast = dict(band=0, node="n1", leg="B", dir="west", level=2, facing="Track 1-3")
-        self.assertEqual(lm.mast_id(st, mast, "home"), device_ids.home_mast_id("201A", "B", "west"))
-        for kind in ("intermediate", "virtual"):
-            self.assertEqual(lm.mast_id(st, mast, kind), device_ids.block_mast_id("block:a", "west"))
+        self.assertEqual(lm.home_mast_id(st, mast), device_ids.home_mast_id("201A", "B", "west"))
+        self.assertEqual(lm.block_mast_id(st, mast), device_ids.block_mast_id("block:a", "west"))
+        home, line, virtual = dict(mast), dict(mast), dict(mast)
+        got = list(lm.mast_ids(st, [home], [line], [virtual]))
+        self.assertEqual([ident for _m, ident in got], [device_ids.home_mast_id("201A", "B", "west")]
+                         + [device_ids.block_mast_id("block:a", "west")] * 2)
+        for (m, _ident), given in zip(got, (home, line, virtual)):
+            self.assertIs(m, given)
+
+    def test_a_mast_id_is_worked_out_as_its_mast_is_reached(self):
+        bands = [("Main", {"nodes": {"n1": {"label": "201"}}}, {})]
+        home = dict(band=0, node="n1", leg="B", dir="west")
+        ids = lm.mast_ids(state(bands=bands), [home], [dict(level=2, facing="Track 9-11", dir="west")], [])
+        self.assertEqual(next(ids)[1], device_ids.home_mast_id("201", "B", "west"))
+        with self.assertRaisesRegex(MapError, "a mast faces Track 9-11"):
+            next(ids)
 
     def named(self, owner, ms=None, virtual=()):
         bands = [("Main", {"nodes": {"n1": {"label": "201"}, "n2": {"label": "203"}}}, {})]
         ms = ms or [dict(home("202L"), band=0, node="n1", leg="B"), dict(home("204L"), band=0, node="n2", leg="B")]
         st = state(bands=bands)
         ids = [device_ids.home_mast_id(label, "B", "west") for label in ("201", "203")]
-        return ms, ids, lambda: lm.name_masts(st, ms, list(virtual), owner(ids), {})
+        return ms, ids, lambda: lm.name_masts(st, ms, [], list(virtual), owner(ids), {})
 
     def test_the_owners_name_goes_over_the_generated_one(self):
         ms, ids, run = self.named(lambda ids: {ids[0]: "Mast 300R", ids[1]: "Mast 204L"})
@@ -112,7 +126,7 @@ class Names(unittest.TestCase):
         st = state(bands=[("Main", {"nodes": {"n1": {"label": "201"}}}, {})], block_ids={("2", "Track 201 Spur"): "block:s"})
         virtual = [dict(name="2001", level=2, facing="Track 201 Spur", dir="east", needed_by=["202L"])]
         owner = {device_ids.home_mast_id("201", "B", "west"): "Mast 300R"}
-        self.assertEqual(lm.owner_renames(st, [(ms[0], "home"), (virtual[0], "virtual")], owner), {"202L": "300R"})
+        self.assertEqual(lm.owner_renames(lm.mast_ids(st, ms, [], virtual), owner), {"202L": "300R"})
         self.assertEqual(virtual[0]["id"], device_ids.block_mast_id("block:s", "east"))
 
 
@@ -217,6 +231,55 @@ class Rows(unittest.TestCase):
         self.assertEqual((row["comment"], row["notes"]),
                          ("Yard | buffer stop", "virtual bumper mast facing Track 201 Spur at its buffer stop: the "
                                                 "destination of Mast 202L, Mast 204L"))
+
+
+class PlanRows(unittest.TestCase):
+    """plan_rows over a mast_plan.MastPlan with one mast of each kind, as mast_plan.plan returns it."""
+
+    def plan(self) -> mast_plan.MastPlan:
+        home_mast = dict(home("202L", heads=2), band=0, node="n1", leg="B")
+        del home_mast["id"]                      # the plan gives no IDs: the device map does
+        line = mast_plan.Intermediate(name="A83", level=2, band=0, dir="west", protects="Track 3-5",
+                                      facing="Track 201-203", milepost=8.39, start=("n1", "A"), end=("n2", "A"),
+                                      to=("n1", "A"), toward="201", other="203", dist=120.0, total=400.0, cp="CP 201")
+        virtual = mast_plan.VirtualMast(name="952L", level=2, band=0, node="n1", leg="C", switch="201",
+                                        bumper="e1", dir="east", facing="Track 201 Spur", seq=["Track 201 Spur"],
+                                        total=90.0, needed_by=["202L"])
+        return mast_plan.MastPlan(home=[home_mast], intermediates=[line], virtual=[virtual])
+
+    def rows(self, owner):
+        st = state(bands=[("Main", {"nodes": {"n1": {"label": "201"}}}, {})],
+                   block_ids={("2", "Track 201-203"): "block:a", ("2", "Track 201 Spur"): "block:s"},
+                   switches={"201": SimpleNamespace(cp="CP 201", area="North")})
+        plan = self.plan()
+        lm.plan_rows(st, [SimpleNamespace(level=2, area="North", name="CP 201", switches=("201",))], plan, owner, {})
+        return plan, st.rows
+
+    def test_each_kind_of_mast_gets_its_rows_and_its_id(self):
+        plan, rows = self.rows({})
+        ids = {"home": device_ids.home_mast_id("201", "B", "west"), "line": device_ids.block_mast_id("block:a", "west"),
+               "virtual": device_ids.block_mast_id("block:s", "east")}
+        self.assertEqual([(r["layer"], r["user_name"], r["role"]) for r in rows],
+                         [("mast", "Mast 202L", "home"), ("head", "Head 202L Top", "head"),
+                          ("head", "Head 202L Bottom", "head"), ("mast", "Mast A83", "intermediate"),
+                          ("head", "Head A83", "head"), ("mast", "Mast 952L", "hidden")])
+        self.assertEqual([r["id"] for r in rows if r["layer"] == "mast"], list(ids.values()))
+        self.assertEqual((plan["home"][0]["id"], plan["virtual"][0]["id"]), (ids["home"], ids["virtual"]))
+        line = rows[3]
+        self.assertEqual((line["notes"], line["switch"], line["comment"]),
+                         ("intermediate signal from Track 201-203 into Track 3-5 at MP A 8.39", "",
+                          "CP 201 | intermediate"))
+        self.assertEqual(line["jmri_name"], "IF$shsm:basic:one-searchlight(IH:HART:C3:A83)")
+
+    def test_the_plans_intermediate_is_placed_as_a_copy(self):
+        plan, _rows = self.rows({})
+        self.assertEqual({"id", "heads", "kind", "switch", "intermediate"} & set(plan["intermediates"][0]), set())
+
+    def test_an_owners_name_reaches_the_heads_and_the_virtual_masts_note(self):
+        plan, rows = self.rows({device_ids.home_mast_id("201", "B", "west"): "Mast 300R"})
+        self.assertEqual([r["user_name"] for r in rows[:3]], ["Mast 300R", "Head 300R Top", "Head 300R Bottom"])
+        self.assertEqual(plan["virtual"][0]["needed_by"], ["300R"])
+        self.assertTrue(rows[-1]["notes"].endswith("the destination of Mast 300R"))
 
 
 if __name__ == "__main__":

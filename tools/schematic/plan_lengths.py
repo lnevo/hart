@@ -334,7 +334,7 @@ def threeway_bumper_inches(plan_parts: list) -> float | None:
 
 def main_upper_os(bands, graph: dict, parts: list, threeways: list[int]) -> dict:
     """{OS block: inches} of main and upper (module text), from the solved `bands` (a switch node's number, the graph
-    node it is) and the corner blocks of the double crossover (build_device_map.xover_corners). `threeways`: the plan
+    node it is) and the corner blocks of the double crossover (device_map_schematic.corner_blocks_of). `threeways`: the plan
     file's three-way parts (their graph nodes carry no part number)."""
     import build_device_map as bdm
     out, bad = defaultdict(float), []
