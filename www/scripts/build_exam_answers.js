@@ -16,7 +16,7 @@ const EXAM = path.join(__dirname, "..", "exam");
 const DATA = require(path.join(EXAM, "run-data.js"));
 /* The game's scripts in run.html's order, each with the run its questions belong to. A question in one of the event
    pools (POOLS) takes the pool's place instead. */
-const RUN_FILES = { "run.js": "1949 run", "run-1949.js": "1949 run", "run-modern.js": "Modern run", "run-signals.js": "Signals run", "run-yard.js": "Yard job" };
+const RUN_FILES = { "run-tto.js": "1949 run", "run-1949.js": "1949 run", "run-modern.js": "Modern run", "run-signals.js": "Signals run", "run-yard.js": "Yard job" };
 /* The scripts as [{file, where, src}]. */
 const readRun = () => Object.entries(RUN_FILES).map(([file, where]) => ({ file, where, src: fs.readFileSync(path.join(EXAM, file), "utf8") }));
 const OUT = path.join(EXAM, "answers.html");

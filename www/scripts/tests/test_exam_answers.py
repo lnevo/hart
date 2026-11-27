@@ -11,7 +11,7 @@ from pathlib import Path
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
 RUN = WWW / "exam" / "run.js"          # the game's core; the runs and pools are in RUN_FILES
-RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
+RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-tto.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
 
 
 def run_source() -> str:
