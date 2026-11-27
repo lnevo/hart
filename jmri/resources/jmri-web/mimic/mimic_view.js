@@ -8,16 +8,36 @@ const state = { sensors: {}, turnouts: {}, heads: {}, layout: null, level: "" };
 // Level tabs, in this order; a layout record carries `level` (build: lcos_mqtt_mimic.load_layout).
 const LEVEL_TITLES = { staging: "Staging", main: "Main", upper: "Upper" };
 
+// The record lists a layout holds; each record has `level` and `plant`.
+const KINDS = ["turnouts", "blocks", "heads"];
+
 const $ = (id) => document.getElementById(id);
 
-// Layout names and live JMRI values go into innerHTML and attributes; escape them.
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// Builds an element. Layout names and live JMRI values reach the page only as text
+// nodes and attribute values, never as markup. `attrs.class` sets className; other
+// keys are attributes. A null, undefined or false child is left out; any other
+// child that is not a node becomes text.
+function el(tag, attrs, ...kids) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs || {})) {
+    if (key === "class") node.className = value;
+    else node.setAttribute(key, String(value));
+  }
+  for (const kid of kids) {
+    if (kid === null || kid === undefined || kid === false) continue;
+    node.appendChild(typeof kid === "object" ? kid : document.createTextNode(String(kid)));
+  }
+  return node;
+}
+
+// A layout or state value as text; a missing value shows as nothing.
+const text = (v) => String(v ?? "");
+
+const isActive = (addr) => text(state.sensors[addr]).toUpperCase() === "ACTIVE";
 
 // Adds the shared markup ahead of the page's own <footer>. The page sets the
 // signal-head heading with <body data-heads-title="...">.
 function mountMimic() {
-  const headsTitle = document.body.dataset.headsTitle || "Signal heads";
   document.body.insertAdjacentHTML("afterbegin", `
   <header>
     <div>
@@ -39,9 +59,10 @@ function mountMimic() {
     </section>
   </div>
   <div class="heads">
-    <h2>${esc(headsTitle)}</h2>
+    <h2 id="heads-title"></h2>
     <div id="heads"></div>
   </div>`);
+  $("heads-title").textContent = document.body.dataset.headsTitle || "Signal heads";
   $("q").addEventListener("input", render);
   $("tabs").addEventListener("click", (e) => {
     const tab = e.target.closest("[data-level]");
@@ -57,10 +78,17 @@ function mountMimic() {
   });
 }
 
+// A layout without one of its record lists is a build fault; name the list.
+function checkLayout(layout) {
+  for (const kind of KINDS) {
+    if (!Array.isArray(layout[kind])) throw new Error(`mimic layout has no "${kind}" list`);
+  }
+}
+
 // The levels the layout holds, in tab order.
 function levels() {
   const have = new Set();
-  for (const kind of ["turnouts", "blocks", "heads"]) {
+  for (const kind of KINDS) {
     for (const it of state.layout[kind]) have.add(it.level);
   }
   return Object.keys(LEVEL_TITLES).filter((lv) => have.has(lv));
@@ -72,120 +100,105 @@ function onLevel(kind) {
   return state.layout[kind].filter((it) => it.level === state.level);
 }
 
-function plantGroups(items) {
+// Items grouped by one field, groups in first-seen order.
+function groupBy(items, field) {
   const map = new Map();
   for (const it of items) {
-    if (!map.has(it.plant)) map.set(it.plant, []);
-    map.get(it.plant).push(it);
+    if (!map.has(it[field])) map.set(it[field], []);
+    map.get(it[field]).push(it);
   }
   return map;
 }
 
 function matches(q, ...parts) {
   if (!q) return true;
-  const blob = parts.join(" ").toLowerCase();
-  return blob.includes(q);
+  return parts.join(" ").toLowerCase().includes(q);
+}
+
+const rowClass = (shown) => "row" + (shown ? "" : " hidden");
+
+function turnoutFeedback(t) {
+  if (t.virtual) return el("div", { class: "fb" }, "Virtual turnout, set in JMRI (no MQTT)");
+  if (!t.n_addr) return el("div", { class: "fb" }, "DIRECT — turnout topic only");
+  const sensor = (cls, addr) => {
+    const on = isActive(addr);
+    return el("span", { class: cls + (on ? " on" : "") }, text(addr) + (on ? " ACTIVE" : ""));
+  };
+  return el("div", { class: "fb" }, "FB N ", sensor("n", t.n_addr), " · R ", sensor("r", t.r_addr));
+}
+
+function turnoutRow(t, q) {
+  const st = text(state.turnouts[t.addr]).toUpperCase();
+  const button = (want, label) => el("button", {
+    class: "sw" + (st === want ? " on-" + want.toLowerCase() : ""), "data-to": text(t.addr), "data-st": want,
+  }, label);
+  return el("div", { class: rowClass(matches(q, t.label, t.plant, t.addr, t.tip)) },
+    el("div", null,
+      el("div", { class: "name" }, text(t.label), " ", el("span", { class: "sub" }, text(t.name))),
+      !t.virtual && el("div", { class: "sub" }, text(t.tip || t.feedback)),
+      turnoutFeedback(t)),
+    el("div", { class: "btns" }, button("CLOSED", "Closed"), button("THROWN", "Thrown")));
+}
+
+function blockRow(b, q) {
+  const occ = isActive(b.addr);
+  return el("div", { class: rowClass(matches(q, b.label, b.userName, b.plant, b.addr)) },
+    el("div", null,
+      el("div", { class: "name" }, text(b.label)),
+      el("div", { class: "sub" }, `${text(b.userName)} · ${text(b.name)}`)),
+    el("div", { class: "btns" },
+      el("button", { class: "occ " + (occ ? "active" : "inactive"), "data-occ": text(b.addr),
+        "data-st": occ ? "INACTIVE" : "ACTIVE" }, occ ? "Occupied" : "Clear")));
+}
+
+// The aspect JMRI reports for a head, keyed by its packed id (IH dropped) or its id.
+// The first field of the reported value is the aspect; a head with no report is Dark.
+function headAspectOf(h) {
+  const packed = text(h.id).replace(/^IH/i, "");
+  return text(state.heads[packed] || state.heads[h.id] || "Dark").split(";")[0].trim();
+}
+
+function mastLamps(heads) {
+  const masts = [];
+  for (const [mast, group] of groupBy(heads, "mast")) {
+    const lamps = group.map((h) => {
+      const aspect = headAspectOf(h);
+      return el("i", { class: "lamp " + aspect, title: `${text(h.systemName || h.id)} ${aspect}` });
+    });
+    masts.push(el("div", { class: "mast" }, ...lamps, el("span", { class: "lbl", title: text(mast) }, text(mast))));
+  }
+  return el("div", { class: "lamps" }, ...masts);
+}
+
+// Redraws one section: a div.plant per plant on the shown level, each with its
+// heading and what `draw` makes of that plant's records.
+function renderPlants(kind, draw) {
+  const groups = [];
+  for (const [plant, rows] of groupBy(onLevel(kind), "plant")) {
+    groups.push(el("div", { class: "plant" }, el("h3", null, text(plant)), ...draw(rows)));
+  }
+  $(kind).replaceChildren(...groups);
+}
+
+function renderTabs(shown) {
+  const tabs = $("tabs");
+  tabs.hidden = shown.length < 2;
+  tabs.replaceChildren(...shown.map((lv) =>
+    el("button", { class: "tab" + (lv === state.level ? " on" : ""), "data-level": lv }, LEVEL_TITLES[lv])));
 }
 
 function render() {
   const q = $("q").value.trim().toLowerCase();
-  const layout = state.layout;
-  if (!layout) return;
+  if (!state.layout) return;
+  checkLayout(state.layout);
 
   const shown = levels();
   if (!shown.includes(state.level)) {
     const wanted = location.hash.slice(1);
     state.level = shown.includes(wanted) ? wanted : (shown[0] || "");
   }
-  const tabs = $("tabs");
-  tabs.hidden = shown.length < 2;
-  tabs.innerHTML = shown.map((lv) =>
-    `<button class="tab${lv === state.level ? " on" : ""}" data-level="${esc(lv)}">${esc(LEVEL_TITLES[lv])}</button>`).join("");
-
-  const tRoot = $("turnouts");
-  tRoot.innerHTML = "";
-  for (const [plant, rows] of plantGroups(onLevel("turnouts"))) {
-    const wrap = document.createElement("div");
-    wrap.className = "plant";
-    wrap.innerHTML = `<h3>${esc(plant)}</h3>`;
-    for (const t of rows) {
-      const st = (state.turnouts[t.addr] || "").toUpperCase();
-      const nOn = (state.sensors[t.n_addr] || "").toUpperCase() === "ACTIVE";
-      const rOn = (state.sensors[t.r_addr] || "").toUpperCase() === "ACTIVE";
-      const row = document.createElement("div");
-      row.className = "row" + (matches(q, t.label, t.plant, t.addr, t.tip) ? "" : " hidden");
-      const fb = t.virtual
-        ? `<div class="fb">Virtual turnout, set in JMRI (no MQTT)</div>`
-        : t.n_addr
-        ? `<div class="fb">FB N <span class="n${nOn ? " on" : ""}">${esc(t.n_addr)}${nOn ? " ACTIVE" : ""}</span>
-           · R <span class="r${rOn ? " on" : ""}">${esc(t.r_addr)}${rOn ? " ACTIVE" : ""}</span></div>`
-        : `<div class="fb">DIRECT — turnout topic only</div>`;
-      row.innerHTML = `
-        <div>
-          <div class="name">${esc(t.label)} <span class="sub">${esc(t.name)}</span></div>
-          ${t.virtual ? "" : `<div class="sub">${esc(t.tip || t.feedback)}</div>`}
-          ${fb}
-        </div>
-        <div class="btns">
-          <button class="sw ${st === "CLOSED" ? "on-closed" : ""}" data-to="${esc(t.addr)}" data-st="CLOSED">Closed</button>
-          <button class="sw ${st === "THROWN" ? "on-thrown" : ""}" data-to="${esc(t.addr)}" data-st="THROWN">Thrown</button>
-        </div>`;
-      wrap.appendChild(row);
-    }
-    tRoot.appendChild(wrap);
-  }
-
-  const bRoot = $("blocks");
-  bRoot.innerHTML = "";
-  for (const [plant, rows] of plantGroups(onLevel("blocks"))) {
-    const wrap = document.createElement("div");
-    wrap.className = "plant";
-    wrap.innerHTML = `<h3>${esc(plant)}</h3>`;
-    for (const b of rows) {
-      const occ = (state.sensors[b.addr] || "").toUpperCase() === "ACTIVE";
-      const row = document.createElement("div");
-      row.className = "row" + (matches(q, b.label, b.userName, b.plant, b.addr) ? "" : " hidden");
-      row.innerHTML = `
-        <div>
-          <div class="name">${esc(b.label)}</div>
-          <div class="sub">${esc(b.userName)} · ${esc(b.name)}</div>
-        </div>
-        <div class="btns">
-          <button class="occ ${occ ? "active" : "inactive"}" data-occ="${esc(b.addr)}" data-st="${occ ? "INACTIVE" : "ACTIVE"}">
-            ${occ ? "Occupied" : "Clear"}
-          </button>
-        </div>`;
-      wrap.appendChild(row);
-    }
-    bRoot.appendChild(wrap);
-  }
-
-  const hRoot = $("heads");
-  hRoot.innerHTML = "";
-  for (const [plant, rows] of plantGroups(onLevel("heads"))) {
-    const wrap = document.createElement("div");
-    wrap.className = "plant";
-    wrap.innerHTML = `<h3>${esc(plant)}</h3>`;
-    const lamps = document.createElement("div");
-    lamps.className = "lamps";
-    const byMast = new Map();
-    for (const h of rows) {
-      if (!byMast.has(h.mast)) byMast.set(h.mast, []);
-      byMast.get(h.mast).push(h);
-    }
-    for (const [mast, heads] of byMast) {
-      const el = document.createElement("div");
-      el.className = "mast";
-      const lampHtml = heads.map(h => {
-        const packed = (h.id || "").replace(/^IH/i, "");
-        const aspect = (state.heads[packed] || state.heads[h.id] || "Dark").split(";")[0].trim();
-        const sys = h.systemName || h.id;
-        return `<i class="lamp ${esc(aspect)}" title="${esc(sys)} ${esc(aspect)}"></i>`;
-      }).join("");
-      el.innerHTML = `${lampHtml}<span class="lbl" title="${esc(mast)}">${esc(mast)}</span>`;
-      lamps.appendChild(el);
-    }
-    wrap.appendChild(lamps);
-    hRoot.appendChild(wrap);
-  }
+  renderTabs(shown);
+  renderPlants("turnouts", (rows) => rows.map((t) => turnoutRow(t, q)));
+  renderPlants("blocks", (rows) => rows.map((b) => blockRow(b, q)));
+  renderPlants("heads", (rows) => [mastLamps(rows)]);
 }
