@@ -197,6 +197,7 @@ class TheInputsAreChecked(unittest.TestCase):
             (lambda m: m.update(cut_cm="12"), "cut_cm is str, expected int or float"),
             (lambda m: m["levels"]["main"].update(switches="22"), "main level 'switches' is str, expected int"),
             (lambda m: m["levels"]["main"].update(bbox=[1, "x"]), "main level 'bbox'\\[1\\] is str"),
+            (lambda m: m["levels"]["main"].update(bbox=[0, 0]), "main level 'bbox' has 2 values, expected 4"),
             (lambda m: m["levels"]["upper"].update(height_cm=True), "upper level 'height_cm' is bool"),
             (lambda m: m.update(helix={}), "helix is dict, expected list"),
             (lambda m: m["helix"][0].update(cm="far"), "helix\\[0\\] 'cm' is str"),

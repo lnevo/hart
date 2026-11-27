@@ -184,6 +184,9 @@ def read_meta(levels: Path) -> Meta:
         for key, want in LEVEL_TYPES.items():
             _expect(path, f"{level} level {key!r}", lv[key], want)
         _expect_all(path, f"{level} level 'bbox'", lv["bbox"], NUMBER)
+        if len(lv["bbox"]) != 4:
+            raise LevelsPageError(f"{path}: {level} level 'bbox' has {len(lv['bbox'])} values, expected 4 "
+                                  "(x0, y0, x1, y1); rerun levels_svg.py")
         _expect_all(path, f"{level} level 'labels'", lv["labels"], str)
     for key, rows in (("helix", HELIX_TYPES), ("ramps", RAMP_TYPES)):
         _expect(path, key, meta[key], list)
