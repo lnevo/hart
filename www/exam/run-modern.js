@@ -18,19 +18,9 @@ const TW_SEL={s:STATIONS.map(x=>x.n),t:["Main","Main 1","Main 2"],w:["101","102"
   "Joint with 2211 West between Dunmore and Elk Gap"]};
 /* The form's boxes, the dispatcher's words, the blank form and the copy check: www/js/track-warrant.js. */
 const {BOXES,SAY,formHtml,compare:wrongBoxes}=window.TrackWarrant;
+/* The run's three warrants: run-data.js TWC_PLAN, which the answer key reads too. */
+const {TWC_PLAN}=window.ExtraEastData;
 
-/* The run's three warrants. boxes are on the warrant every run. Each draw is a pair of box sets, the first taken when
-   the run draws true: box12 (Box 12, men or equipment; else Boxes 11 and 17, joint with work train 292) and hold (Box 8;
-   else Box 10). Box 5 of 101 is null until the crew calls: setBox5 sets it box5Lead minutes on, rounded up to 5.
-   build_exam_answers.js reads this literal for the answer key. */
-const TWC_PLAN={box5Lead:12,warrants:{
-  w1:{no:"101",at:"Ashby",boxes:{2:["Ashby","Dunmore","Main"],5:null,10:[],15:[]},
-    draws:{box12:[{12:["Birchwood","Cobb"]},
-      {11:["Birchwood","Cobb"],17:["Joint with work train 292 between Birchwood and Cobb"]}]}},
-  w2:{no:"102",at:"Dunmore",boxes:{2:["Dunmore","Granite","Main"],6:["9:00"],7:["2211 West","Dunmore"]},
-    draws:{hold:[{8:[]},{10:[]}]}},
-  w3:{no:"103",at:"Granite",boxes:{1:["102"],2:["Granite","Hollis","Main"],3:["Hollis","Ironton","Main 2"],
-    13:["40","Granite","Hollis"],14:["30","Hollis","Ironton"],16:[]}}}};
 
 /* One warrant of TWC_PLAN for this run: its boxes, with each draw's box set chosen by drawn[name]. */
 function drawWarrant(name,drawn){

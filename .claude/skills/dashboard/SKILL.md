@@ -21,6 +21,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
    - Three datasets, each with `source: {kind: "store", path: "data/<wave>/<name>"}`: `lanes`, `events` and `samples`.
    - `files/index.html`, whose `{text}` is [`index.html`](index.html). Before writing it, set its header for this wave: the subtitle, the start time, the wave page link, the `Coordinator:` line and the timeline chip.
    The page shows the time of the last data refresh and a Refresh button.
+   It opens in dark mode (owner, 2026-11-27); a reader's own Auto or Light choice is kept in their browser.
 3. Add the link to the wave's page in `wiki/projects/`, on the line under `Coordinator:`, and give it to the owner once.
 4. Start the sampler (see Samples).
 
