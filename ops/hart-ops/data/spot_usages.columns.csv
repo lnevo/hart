@@ -1,0 +1,3 @@
+column,description,type,required,key,refs,values
+usage,"A spot usage as spot_assignments.csv's Usage column gives it, in lower case (pellet unload). The key.",str,yes,yes,,
+label,"What the operator sheet prints for it (Pellet Unloading).",str,yes,,,
