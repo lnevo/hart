@@ -10,11 +10,12 @@ from pathlib import Path
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
 RUN = WWW / "exam" / "run.js"          # the game's core; the runs and pools are in RUN_FILES
-RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
+RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")] + [
+    WWW / "js" / "track-warrant.js"]
 
 
 def run_source() -> str:
-    """The game's scripts as one text, in run.html's order (readRun in build_exam_answers.js)."""
+    """The game's scripts as one text, as readRun in build_exam_answers.js reads them (the runs, then the form)."""
     return "\n".join(f.read_text() for f in RUN_FILES)
 RUN_PAGE = WWW / "exam" / "run.html"
 INDEX = WWW / "exam" / "index.html"
