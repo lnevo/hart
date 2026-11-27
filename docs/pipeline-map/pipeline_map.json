@@ -15246,6 +15246,13 @@
   },
   {
    "from": ".claude/commands/done.md",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/commands/done.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
@@ -15281,10 +15288,24 @@
   },
   {
    "from": ".claude/skills/coordinate/SKILL.md",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/coordinate/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
+  },
+  {
+   "from": ".claude/skills/coordinate/SKILL.md",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": ".claude/skills/dashboard/SKILL.md",
@@ -15320,6 +15341,13 @@
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
+  },
+  {
+   "from": ".claude/skills/handoff/SKILL.md",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": ".claude/skills/operating-flag/SKILL.md",
