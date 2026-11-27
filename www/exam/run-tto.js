@@ -157,7 +157,7 @@ function storeScene(){
     {t:"Sign out 4 fusees and 4 torpedoes",s:"6 min",min:6,f:4,tp:4},
     {t:"Sign out 2 fusees and 2 torpedoes",s:"3 min",min:3,f:2,tp:2},
     {t:"Leave with what is in the locker",s:"no delay",min:0,f:0,tp:0}];
-  $("stb").innerHTML=items.map((x,i)=>`<button class="xw-btn" data-i="${i}">${esc(x.t)}<small>${x.s}</small></button>`).join("");
+  $("stb").innerHTML=items.map((x,i)=>`<button class="xw-btn" data-i="${i}">${esc(x.t)}<small>${esc(x.s)}</small></button>`).join("");
   $("stb").querySelectorAll("button").forEach(b=>b.onclick=()=>{
     $("stb").querySelectorAll("button").forEach(z=>z.disabled=true);
     const x=items[+b.dataset.i];
