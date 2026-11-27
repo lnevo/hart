@@ -51,7 +51,7 @@ SKIP_PREFIXES = (
     DEVICES_REL, FIELD_REL,                       # the source of the names (the master's two files)
     TABLES_REL,                                   # JMRI's file; build_tables.py --check holds it to the master
     # stock discovery's output, written only by run_sml_discover.sh; build_tables.py stops on a mast it names that
-    # the tables do not hold (hartlib.tables_build.merge_discovered)
+    # the tables do not hold (hartlib.tables_sml.merge_discovered)
     "jmri/layouts/hart/data/schematic/discovered_sml.xml",
     # the generated files of the schematic data; its hand-kept files (the overrides) are read
     "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from masts.csv:

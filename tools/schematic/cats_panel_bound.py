@@ -244,7 +244,7 @@ def mast_bindings(opts: Mapping[str, Any], F: Facts) -> dict[str, MastBinding]:
     (a wired mast), else the template staging's masts of its appearance type take (mast_template), as main and
     upper masts get theirs. A name drawn twice stops."""
     out: dict[str, MastBinding] = {}
-    by_type = template_by_type(F)
+    by_type = template_by_type()
     for sg in opts.get("signals") or ():
         if sg["kind"] == "virtual":
             continue

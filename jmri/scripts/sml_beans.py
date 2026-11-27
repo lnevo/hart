@@ -31,6 +31,10 @@ _LCOS_SIGNAL_UID_MAX = 47
 
 _HEAD_IN_MAST = re.compile(r"\(IH\d+\)")
 
+# Failure lines already printed: the bean reads repeat on every property change and field
+# report, so a failure that repeats is printed once. A re-run reloads this module afresh.
+_logged = set()
+
 # One destination of a source mast's Signal Mast Logic: its system name, the bean, and
 # whether its Enabled box is checked.
 DestState = namedtuple("DestState", "name dest enabled")
@@ -47,18 +51,36 @@ _ASPECT_TO_APPEARANCE = {
 }
 
 
+def _log_once(msg):
+    """Print msg the first time only."""
+    if msg not in _logged:
+        _logged.add(msg)
+        print(msg)
+
+
 def _ascii(s):
+    """Text of s for a print line, non-ASCII replaced; repr(s) when its text is not ASCII-safe
+    (Jython 2: str() of non-ASCII unicode, or a byte string that is not ASCII). Never raises:
+    it builds the failure lines, so a bean whose toString() throws still gets a line."""
     if s is None:
         return ""
     if not isinstance(s, str):
         try:
             s = str(s)
-        except Exception:
-            return repr(s)
+        except Exception:  # toString() of a Java bean may throw anything
+            return _repr_or_placeholder(s)
     try:
         return s.encode("ascii", "replace").decode("ascii")
-    except Exception:
+    except UnicodeError:
+        return _repr_or_placeholder(s)
+
+
+def _repr_or_placeholder(s):
+    """repr(s), or "?" when repr() itself throws."""
+    try:
         return repr(s)
+    except Exception:
+        return "?"
 
 
 def _topic_suffix(sys_name):
@@ -85,7 +107,7 @@ def _packed_is_lcos_signal(packed):
         return False
     try:
         int(str(node), 8)
-    except Exception:
+    except ValueError:
         return False
     return True
 
@@ -101,6 +123,7 @@ def _is_lcos_ih_sys(sys_name):
 
 
 def _mqtt_adapter():
+    """The MQTT connection's adapter; None, printed, when PanelPro has no MQTT connection."""
     try:
         memo = jmri.InstanceManager.getDefault(
             jmri.jmrix.mqtt.MqttSystemConnectionMemo
@@ -108,7 +131,8 @@ def _mqtt_adapter():
         if memo is None:
             return None
         return memo.getMqttAdapter()
-    except Exception:
+    except Exception as exc:
+        _log_once("mqtt_signalhead: no MQTT adapter: %s" % _ascii(exc))
         return None
 
 
@@ -178,19 +202,22 @@ def _bean_label(bean):
     for getter in ("getUserName", "getSystemName"):
         try:
             name = getattr(bean, getter)()
-            if name:
-                return _ascii(name)
-        except Exception:
-            pass
+        except Exception as exc:
+            _log_once("mqtt_signalhead: cannot read %s of %s: %s" % (getter, _ascii(bean), _ascii(exc)))
+            continue
+        if name:
+            return _ascii(name)
     return _ascii(bean)
 
 
 def _logic_label(sml):
     """The source mast of a Signal Mast Logic, for failure lines."""
     try:
-        return _bean_label(sml.getSourceMast())
-    except Exception:
+        mast = sml.getSourceMast()
+    except Exception as exc:
+        _log_once("mqtt_signalhead: cannot read the source mast of SML %s: %s" % (_ascii(sml), _ascii(exc)))
         return _ascii(sml)
+    return _bean_label(mast)
 
 
 class SmlBeans(object):
@@ -337,15 +364,22 @@ class SmlBeans(object):
         for sml in self._smls:
             try:
                 sml.removePropertyChangeListener(self)
-            except Exception:
-                pass
+            except Exception as exc:
+                _log_once(
+                    "mqtt_signalhead: cannot stop watching SML %s: %s"
+                    % (_logic_label(sml), _ascii(exc))
+                )
         self._smls = []
         self._sml_by_mast = {}
         digicon = set(self._masts)
         for sml in smlm.getSignalMastLogicList():
             try:
                 src = sml.getSourceMast()
-            except Exception:
+            except Exception as exc:
+                _log_once(
+                    "mqtt_signalhead: cannot read the source mast of SML %s, not watched: %s"
+                    % (_ascii(sml), _ascii(exc))
+                )
                 continue
             if src not in digicon:
                 continue

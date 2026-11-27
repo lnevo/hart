@@ -3,7 +3,7 @@ words, and the desk's label clashes."""
 import copy
 import re
 import xml.etree.ElementTree as ET
-from collections.abc import Iterable, MutableMapping, Sequence
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from pathlib import Path
 from types import ModuleType
 from typing import NamedTuple
@@ -103,7 +103,6 @@ def station_plates(cats: ModuleType, root: ET.Element, stations: Iterable[tuple[
     cells = trace.track_cells(root.find("TRACKPLAN"))
     from hartlib import devices, tables_build
     plants = trace.desk_plants(cells, bound=True, level_turnouts=tables_build.level_turnouts(r.cells() for r in devices.load()))
-    cols, rows = fit
     out = []
     for name, switches in stations:
         mine = [xy for os_name, xy in plants.items()
@@ -111,26 +110,35 @@ def station_plates(cats: ModuleType, root: ET.Element, stations: Iterable[tuple[
         if not mine:
             raise CatsPanelError(f"stations.csv: {name}'s plate: none of its switches ({', '.join(switches)}) has a "
                              "plant on the desk")
-        cx, cy = sum(x for x, _ in mine) / len(mine), sum(y for _, y in mine) / len(mine)
+        centre = sum(x for x, _ in mine) / len(mine), sum(y for _, y in mine) / len(mine)
         text = name.upper()
-        found: Label | None = None
-        for cell in sorted(((x, y) for x in range(cols) for y in range(rows)),
-                           key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, c[1], c[0])):
-            box = plate_box(cats, cell, PLATE_LOC, text, PLATE_FONT)
-            spans = {(x, cell[1]) for x in range(box.left // cats.GRID_PX, (box.right - 1) // cats.GRID_PX + 1)}
-            if box.left < 0 or box.right > right_edge(cats, fit) or spans & set(used):
-                continue
-            if any(box.near(other.box) for other in boxes):
-                continue
-            found = Label(cell, box)
-            break
+        found = _free_cell(cats, text, centre, used, boxes, fit)
         if found is None:
             raise CatsPanelError(f"stations.csv: no free cell on the desk for {name}'s plate {text!r} (the desk keeps "
-                             f"its {cols} x {rows} cells)")
+                             f"its {fit[0]} x {fit[1]} cells)")
         used[found.cell] = None
         boxes.append(found)
         out.append((text, found.cell))
     return out
+
+
+def _free_cell(cats: ModuleType, text: str, centre: tuple[float, float], used: Mapping[Cell, ET.Element | None],
+               boxes: Sequence[Label], fit: Fit) -> Label | None:
+    """The plate label `text` in the free cell of the `fit` window nearest `centre` (ties to the cell above, then to
+    the left; free as station_plates says), or None when no cell is free."""
+    cx, cy = centre
+    cols, rows = fit
+    taken = set(used)
+    for cell in sorted(((x, y) for x in range(cols) for y in range(rows)),
+                       key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, c[1], c[0])):
+        box = plate_box(cats, cell, PLATE_LOC, text, PLATE_FONT)
+        spans = {(x, cell[1]) for x in range(box.left // cats.GRID_PX, (box.right - 1) // cats.GRID_PX + 1)}
+        if box.left < 0 or box.right > right_edge(cats, fit) or spans & taken:
+            continue
+        if any(box.near(other.box) for other in boxes):
+            continue
+        return Label(cell, box)
+    return None
 
 
 def dress(cats: ModuleType, root: ET.Element, header: Sequence[ET.Element], plate: Iterable[ET.Element],
@@ -140,6 +148,36 @@ def dress(cats: ModuleType, root: ET.Element, header: Sequence[ET.Element], plat
     element in the live desk's order, and the plate's labels on free cells of their row, clear of each other and of
     the labels there, within the `fit` columns; then each control point plate of `stations` (station_plates).
     desk "ABS": every CTC block ABS and the plate's ABS words."""
+    _merge_header(root, header)
+    tp = root.find("TRACKPLAN")
+    if tp is None:
+        raise CatsPanelError("the generated desk has no TRACKPLAN")
+    where: dict[Cell, ET.Element | None] = {_cell(sec): sec for sec in tp.findall("SECTION")}
+    boxes = []
+    for sec in tp.findall("SECTION"):
+        n = sec.find("SEC_NAME")
+        if n is not None:
+            cell = _cell(sec)
+            boxes.append(Label(cell, _name_box(cats, cell, n)))
+    for sec in plate:
+        _place_plate(cats, copy.deepcopy(sec), desk, fit, where, boxes)
+    for text, cell in station_plates(cats, root, stations or [], where, boxes, fit):
+        sec = ET.Element("SECTION", X=str(cell[0]), Y=str(cell[1]))
+        ET.SubElement(sec, "SEC_NAME", LOC_NAME=PLATE_LOC, NAME=text, FONT_NAME=PLATE_FONT)
+        where[cell] = sec
+    _restack(tp, where)
+    if desk == "ABS":
+        for b in root.iter("BLOCK"):
+            if b.get("DISCIPLINE") == "CTC":
+                b.set("DISCIPLINE", "ABS")
+    ET.indent(root, "  ")
+    return "<?xml version='1.0' encoding='UTF-8'?>\n" + ET.tostring(root, encoding="unicode") + "\n"
+
+
+def _merge_header(root: ET.Element, header: Sequence[ET.Element]) -> None:
+    """Put `header`'s elements in `root` in place of the plugin's copies, in the live desk's ORDER: a header font
+    the plugin also writes keeps the plugin's element, every other header element is a copy. CatsPanelError on an
+    element ORDER does not place."""
     fonts = {el.get("FONTKEY"): el for el in root.findall("FONTDEFINITION")}
     taken = {el.tag for el in header}           # a tag the header supplies replaces the plugin's copies
     kids = [el for el in root if el.tag != "FONTDEFINITION"]
@@ -158,41 +196,37 @@ def dress(cats: ModuleType, root: ET.Element, header: Sequence[ET.Element], plat
         raise CatsPanelError(f"the generated desk has elements {', '.join(unknown)}, which ORDER does not place; add them")
     for el in sorted(picked, key=lambda el: ORDER.index(el.tag)):
         root.append(el)
-    tp = root.find("TRACKPLAN")
-    if tp is None:
-        raise CatsPanelError("the generated desk has no TRACKPLAN")
-    where: dict[Cell, ET.Element | None] = {_cell(sec): sec for sec in tp.findall("SECTION")}
-    boxes = []
-    for sec in tp.findall("SECTION"):
-        n = sec.find("SEC_NAME")
-        if n is not None:
-            cell = _cell(sec)
-            boxes.append(Label(cell, _name_box(cats, cell, n)))
-    for sec in plate:
-        sec = copy.deepcopy(sec)
-        cell = _cell(sec)
-        n = sec.find("SEC_NAME")
-        if n is None or len(sec) != 1:
-            raise CatsPanelError(f"{HEADER.name}: plate cell {cell} holds one SEC_NAME and nothing else")
-        if desk == "ABS":
-            text = n.get("NAME", "")
-            for ctc, abs_ in ABS_PLATE.items():
-                text = text.replace(ctc, abs_)
-            n.set("NAME", text)
-        if cell in where:
-            raise CatsPanelError(f"{HEADER.name}: plate cell {cell} ({n.get('NAME')}) is a cell the desk uses")
-        box = _name_box(cats, cell, n)
-        hit = [other.cell for other in boxes if box.near(other.box)]
-        if hit:
-            raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
-        if box.right > right_edge(cats, fit):
-            raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
-        boxes.append(Label(cell, box))
-        where[cell] = sec
-    for text, cell in station_plates(cats, root, stations or [], where, boxes, fit):
-        sec = ET.Element("SECTION", X=str(cell[0]), Y=str(cell[1]))
-        ET.SubElement(sec, "SEC_NAME", LOC_NAME=PLATE_LOC, NAME=text, FONT_NAME=PLATE_FONT)
-        where[cell] = sec
+
+
+def _place_plate(cats: ModuleType, sec: ET.Element, desk: str, fit: Fit,
+                 where: MutableMapping[Cell, ET.Element | None], boxes: list[Label]) -> None:
+    """Put plate SECTION `sec` (one SEC_NAME, its ABS words on the ABS desk) in `where` and its label in `boxes`.
+    CatsPanelError when it holds more than its name, sits on a cell the desk uses, runs into another label or runs
+    past the `fit` columns."""
+    cell = _cell(sec)
+    n = sec.find("SEC_NAME")
+    if n is None or len(sec) != 1:
+        raise CatsPanelError(f"{HEADER.name}: plate cell {cell} holds one SEC_NAME and nothing else")
+    if desk == "ABS":
+        text = n.get("NAME", "")
+        for ctc, abs_ in ABS_PLATE.items():
+            text = text.replace(ctc, abs_)
+        n.set("NAME", text)
+    if cell in where:
+        raise CatsPanelError(f"{HEADER.name}: plate cell {cell} ({n.get('NAME')}) is a cell the desk uses")
+    box = _name_box(cats, cell, n)
+    hit = [other.cell for other in boxes if box.near(other.box)]
+    if hit:
+        raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
+    if box.right > right_edge(cats, fit):
+        raise CatsPanelError(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
+    boxes.append(Label(cell, box))
+    where[cell] = sec
+
+
+def _restack(tp: ET.Element, where: Mapping[Cell, ET.Element | None]) -> None:
+    """Replace the SECTIONs of TRACKPLAN `tp` by `where`'s, row by row. CatsPanelError on a cell held with no
+    SECTION (a station plate's cell before its SECTION is made)."""
     for sec in tp.findall("SECTION"):
         tp.remove(sec)
     for cell in sorted(where, key=lambda c: (c[1], c[0])):
@@ -200,12 +234,6 @@ def dress(cats: ModuleType, root: ET.Element, header: Sequence[ET.Element], plat
         if placed is None:
             raise CatsPanelError(f"desk cell {cell} holds a station plate with no SECTION")
         tp.append(placed)
-    if desk == "ABS":
-        for b in root.iter("BLOCK"):
-            if b.get("DISCIPLINE") == "CTC":
-                b.set("DISCIPLINE", "ABS")
-    ET.indent(root, "  ")
-    return "<?xml version='1.0' encoding='UTF-8'?>\n" + ET.tostring(root, encoding="unicode") + "\n"
 
 
 def label_clashes(log: Iterable[str]) -> list[str]:

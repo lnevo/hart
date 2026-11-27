@@ -257,8 +257,12 @@ def data_text(root: ET.Element) -> str:
 
 
 def page_text(raw: bytes, root: ET.Element, www: Path | str = WWW) -> str:
-    """The tables file page in `www` with its marked regions filled from the tables file."""
-    return tables_page.fill((Path(www) / PAGE_REL).read_text(encoding="utf-8"), tables_page.facts(raw, root))
+    """The tables file page in `www` with its marked regions filled from the tables file. BrowserDataError when the
+    page and the file disagree (tables_page.PageError)."""
+    try:
+        return tables_page.fill((Path(www) / PAGE_REL).read_text(encoding="utf-8"), tables_page.facts(raw, root))
+    except tables_page.PageError as exc:
+        raise BrowserDataError(str(exc)) from exc
 
 
 def outputs(www: Path | str = WWW, src: Path | str = SRC) -> dict[Path, str]:
