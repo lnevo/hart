@@ -1,7 +1,8 @@
 # Code-quality wave (2026-11-26)
 
-Status: done
-Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (wave 2's lanes, events and agents)
+Status: active (wave 3, from 2026-11-26 19:10)
+Coordinator: hart-bb, since 2026-11-26 14:15 (holds the merge queue and the deploys; a background coordinator runs the lanes)
+Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the background coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
 - helpers copied between files until the copies drift
@@ -100,4 +101,17 @@ Report card after wave 2 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE): th
 - `block_lengths_measured.csv` keeps its 5.3b values until the next `infer_block_lengths.py --apply` (owner's call).
 - `analyze.py` (788 of 800 lines) and the mimic (782) need a split before they grow.
 - Small review notes left in each PR's review comment.
+
+## Wave 3 (2026-11-26)
+
+The owner started a third round from the wave 2 report card, one PR per lane:
+
+| Lane | Scope |
+|---|---|
+| L1 | Card pipeline: the five card generators, `cars.py` and `card_template_waybill.py`; `build_card` and `build_waybill_card` as steps over typed records; the IMG_9088 case in data; no exits at import |
+| L2 | Station maps and publications: the three renderers on `station_compass.py` with behaviour tests; `rebuild_dispatcher_train_list`, `rebuild_yardmaster_sequence`, `rebuild_local_station_maps` |
+| L3 | Site share cards: `share_card_recipes/composites.py` and `forms.py` |
+| L4 | `render_cats_panel.py`, `cs105_consist.py`, `export_track_lengths.py` |
+| L5 | Garbled docstrings, source-text host tests, the film frame loop into `film_common` |
+| L6 | Types, after L1 to L5: device-row callers on attributes, `build_device_map` and `build_cats_panel` annotations, `tools/ops` to mypy strict if it fits |
 
