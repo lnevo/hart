@@ -127,6 +127,8 @@ Moved to a later wave (owner):
 - Narrow the folder-wide unit and portal declarations (www/, docs/, ops/, wiki/) so more data edits count as light (owner, 2026-11-26). Today the light kind means docs plus the map presets.
 - The coordinate skill calls Markdown under `.claude/skills/` docs-only, but `tools/ci/changed_kind.py` treats everything under `.claude/` as full, on main too.
 - `repo_guide_page.py` treats any argument other than `--check` as a write run.
+- `skip_or_fail` is copied in five `tools/schematic` tests; make it one shared helper.
+- From L11: `level_signals()` in `build_cats_panel.generate()` is still outside the `SchematicError` guard, and `device_map_inputs.read_pins` and `frozen_wires` are loosely typed.
 - From the L9 review: the `sheet_kit` SystemExit, the unused `_chrome`, the `test_cars_sync` temp folders and the `test_package_contents` check of the retired `archive/` folder.
 - From the L11 and L10 reviews: the `panels.toml` device-map description, the `device_map_masts` mast-name copy, `MastEntry` as `dict[str, Any]`, and the private imports and bare-tuple records in `changed_kind.py`.
 - Unverified review notes on main, to check before fixing:
