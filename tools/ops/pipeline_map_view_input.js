@@ -272,7 +272,7 @@
   /* ---- Start: a preset file view for each question people ask first; the tooltip says what it draws */
   const WORDS = ["no", "one", "two", "three", "four", "five"];
   const stepsText = (n, what) => (n === "all" ? `everything ${what}` : n === 0 ? "" : `${WORDS[n] || n} step${n === 1 ? "" : "s"} of ${what}`);
-  const presetTip = pr => `Draws ${byId[pr.focus].label} with ` +
+  const presetTip = pr => (pr.line ? `Lights the line from ${byId[pr.line[0]].label} to ${byId[pr.line[pr.line.length - 1]].label} through ${byId[pr.focus].label}, among ` : `Draws ${byId[pr.focus].label} with `) +
     ([stepsText(pr.up, "what feeds it"), stepsText(pr.down, "what it feeds")].filter(Boolean).join(" and ") || "nothing else");
   const presetBtns = DATA.presets.map((pr, i) =>
     `<button data-preset="${i}" title="${esc(presetTip(pr))}">${esc(pr.label)}</button>`).join("");
@@ -290,16 +290,16 @@
     fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
     syncControls(); render(false); writeHash();
   }
-  /* A Start button's view: the main line through the file (mainLine: the longest run from a source, through it, to an
-     end, stopping at hubs, runners, hosts, hand work and caches as a hover's chain does, and not along a link drawn
-     back to an earlier step) lit and grown when zoomed
-     out, the rest of the chain dimmed. Called by render while view.line is set and no box is picked; returns the
-     line's box ids. */
+  /* A Start button's view: the main line through the file lit and grown when zoomed out, the rest of the chain dimmed.
+     The line is the one the preset names (presetLine; subset() draws all of it), or else mainLine: the longest run
+     from a source, through the file, to an end, stopping at hubs, runners, hosts, hand work and caches as a hover's
+     chain does, and not along a link drawn back to an earlier step. Called by render while view.line is set and no
+     box is picked; returns the line's box ids. */
   function showLine() {
     const side = (adj, key, n) => reach(view.focus, adj, key, n, true);  // the steps drawn on each side, as subset() walks them
     // the links as laid out, less those drawn back to an earlier step, so the line runs left to right
-    const ids = mainLine(lay.edges.filter(e => !e.back && !overHub(e)), view.focus, { stops: endsHover,
-      up: side(ins1, "from", view.up), down: side(outs1, "to", view.down) }).filter(id => nodeEl[id]);
+    const ids = (presetLine(DATA.presets, view.focus) || mainLine(lay.edges.filter(e => !e.back && !overHub(e)), view.focus,
+      { stops: endsHover, up: side(ins1, "from", view.up), down: side(outs1, "to", view.down) })).filter(id => nodeEl[id]);
     const on = new Set(ids);
     const pairs = new Set(ids.slice(1).map((id, i) => ids[i] + "\u0000" + id));
     svg.classList.add("mline");
@@ -366,7 +366,7 @@
     { at: ["#file", "#browse"], title: "Pick a file",
       text: "Type a file's name, or find it by folder under Browse. The map then draws its chain: everything it is built from on the left, everything built from it on the right." },
     { at: ["#startmenu"], title: "Or start from a question",
-      text: "Start lists the questions people ask most, each drawing one chain" + (DATA.presets.length ? `, such as “${DATA.presets[0].label}”` : "") + "." },
+      text: "Start lists the questions people ask most, each drawing one chain" + (DATA.presets.length ? `, such as “${DATA.presets[0].label}”` : "") + ", with its main line lit from where the work starts to what it makes." },
     { at: [], title: "Click a box",
       text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
     { at: ["#viewmenu"], title: "Change how it looks",

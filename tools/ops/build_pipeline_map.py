@@ -312,9 +312,26 @@ def validate(data: Graph, tracked: bool = True) -> Graph:
             v = pr.get(side)
             if not (v == "all" or isinstance(v, int) and not isinstance(v, bool) and v >= 0):
                 problems.append(f"preset {pr.get('label')!r}: {side} must be a step count or \"all\"")
+        if "line" in pr:
+            problems.extend(f"preset {pr.get('label')!r}: {p}" for p in line_problems(pr["line"], pr.get("focus"), ids, seen_edges))
     if problems:
         raise GraphError("\n".join(problems))
     return data
+
+
+def line_problems(line: object, focus: object, ids: set[str], edges: set[tuple[str, str]]) -> list[str]:
+    """What is wrong with a preset's main line ("line": the box ids in order, which a Start button lights): each id a
+    node, the focus among them, no id twice, and each id linked to the next by an edge in that direction (any kind,
+    side links included)."""
+    if not isinstance(line, list) or not line or not all(isinstance(v, str) for v in line):
+        return ["line must be a list of node ids"]
+    problems = [f"line: {v!r} is not a node" for v in line if v not in ids]
+    if focus not in line:
+        problems.append(f"line does not hold the focus {focus!r}")
+    problems.extend(f"line: {v!r} is listed twice" for v in sorted({v for v in line if line.count(v) > 1}))
+    problems.extend(f"line: no link from {a!r} to {b!r}" for a, b in zip(line, line[1:])
+                    if a in ids and b in ids and (a, b) not in edges)
+    return problems
 
 
 def esc(s: str) -> str:

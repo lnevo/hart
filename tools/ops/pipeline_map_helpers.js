@@ -287,6 +287,26 @@ function mainLine(edges, focus, { stops = () => false, up = null, down = null } 
   return [...upRun, ...downRun.slice(1)];
 }
 
+/* The main line a preset names for a Start button on box focus ("line" in pipeline_map.json: box ids in order, which
+   build_pipeline_map.py checks), or null when no preset on focus names one (the page then lights mainLine). */
+function presetLine(presets, focus) {
+  const pr = (presets || []).find(p => p.focus === focus && Array.isArray(p.line) && p.line.length);
+  return pr ? pr.line : null;
+}
+/* A drawing (nodes, edges) with a preset's line joined to it: each line box and each link from one line box to the
+   next that the drawing left out (steps, hub stops, filters) is added from all (the whole map's nodes and edges), so
+   the whole line is drawn. What the drawing already holds is kept as it is, in its order; where all holds a box or a
+   link twice, the first copy is taken. */
+function withLine(nodes, edges, all, line) {
+  const key = e => e.from + "\u0000" + e.to, ids = new Set(nodes.map(n => n.id)), byId = new Map();
+  all.nodes.forEach(n => { if (!byId.has(n.id)) byId.set(n.id, n); });
+  const pairs = new Set(line.slice(1).map((id, i) => line[i] + "\u0000" + id));
+  const has = new Set(edges.map(key)), addEdges = [];
+  all.edges.forEach(e => { if (pairs.has(key(e)) && !has.has(key(e))) { has.add(key(e)); addEdges.push(e); } });
+  const addNodes = line.filter(id => !ids.has(id) && byId.has(id)).map(id => byId.get(id));
+  return { nodes: nodes.concat(addNodes), edges: edges.concat(addEdges) };
+}
+
 /* How faint a box or link steps links from a hovered line shows: "" (full) up to 2, "2" for 3 and 4, "3" beyond. */
 function fadeOf(steps) {
   return steps <= 2 ? "" : steps <= 4 ? "2" : "3";
@@ -506,5 +526,5 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, mainLine, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
+  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, mainLine, presetLine, withLine, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, laneTagTops, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, mergeLinks, groupByFolder, collapseLanes, laneOverview, githubUrl };
 }
