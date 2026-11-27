@@ -11,7 +11,7 @@ from pathlib import Path
 WWW = Path(__file__).resolve().parents[2]
 SCRIPT = WWW / "scripts" / "build_exam_answers.js"
 RUN = WWW / "exam" / "run.js"          # the game's core; the runs and pools are in RUN_FILES
-RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
+RUN_FILES = [RUN] + [WWW / "exam" / f for f in ("run-tto.js", "run-1949.js", "run-modern.js", "run-signals.js", "run-yard.js")]
 
 
 def run_source() -> str:
@@ -218,6 +218,21 @@ class ExamAnswers(unittest.TestCase):
         for f in RUN_FILES:
             self.assertLess(data_at, scripts.index(f.name), f"run.html loads run-data.js after {f.name}")
         self.assertLess(scripts.index("../js/game-engine.js"), data_at)
+
+    def test_a_question_outside_the_run_files_stops_the_build(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            for f in ("run.js", "run-data.js", "run-title.js", "run-tto.js"):
+                (Path(tmp) / f).write_text("// no questions\n")
+            check = f"require({json.dumps(str(SCRIPT))}).checkRunFiles({json.dumps(tmp)})"
+            node(check)
+            (Path(tmp) / "run.js").write_text('ask({sec:"def"});\n')
+            with self.assertRaisesRegex(AssertionError, "run.js asks a question"):
+                node(check)
+            (Path(tmp) / "run.js").write_text("// no questions\n")
+            (Path(tmp) / "run-new.js").write_text("// a new run\n")
+            with self.assertRaisesRegex(AssertionError, "run-new.js: a run file the answer key does not know"):
+                node(check)
 
     def test_broken_data_stops_the_build(self):
         with self.assertRaisesRegex(AssertionError, "run-data.js: STATIONS is not a list.*; TWC_PLAN has no box5Lead"):
