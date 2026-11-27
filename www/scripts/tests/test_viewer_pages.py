@@ -1,5 +1,6 @@
-"""The archive, gallery and wiring viewers (js/archive.js, js/gallery.js, js/wiring.js) in a stub page: runs each
-*_view_test.js with node; skipped when node is missing."""
+"""The archive, gallery and wiring viewers (js/archive.js, js/gallery.js, js/wiring.js) and the parts the photo
+viewers share (js/photo-viewer.js) in a stub page: runs each *_view_test.js and photo_viewer_test.js with node;
+skipped when node is missing."""
 import shutil
 import subprocess
 import unittest
@@ -19,6 +20,9 @@ class ViewerPages(unittest.TestCase):
 
     def test_gallery(self) -> None:
         self.run_js("gallery_view_test.js")
+
+    def test_photo_viewer(self) -> None:
+        self.run_js("photo_viewer_test.js")
 
     def test_wiring(self) -> None:
         self.run_js("wiring_view_test.js")
