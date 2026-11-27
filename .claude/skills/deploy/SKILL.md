@@ -24,6 +24,7 @@ Before you run it:
 - `--dry-run` shows what would be sent (it still connects to the hosts).
 - `--stage-only DIR` builds the Pi and Windows packages into `DIR/pi` and `DIR/win` and stops: no ssh, no Mac install, `tables.xml` only checked. Use it to look at or compare a package.
 - A deploy to the Pi or Windows ships `origin/main` itself: it fetches `origin/main` and stops before any ssh when HEAD is not on it, or is behind it (G0b; `ship_pi.sh` and `ship_win.sh` run alone check it too). Merge first and deploy from the updated main; an older commit goes through `redeploy_commit.sh`. `HART_ALLOW_UNMERGED=1` deploys another commit (a test on the hosts, a fix that cannot wait); say so in the report. `--dry-run`, `--check-only` and a Mac-only run are not held. Uncommitted files are not held either: see the next line.
+- A deploy or `--dry-run` to the Pi or Windows stops before any ssh when the commit's push run of `check.yml` on main ended failure, cancelled or timed out (G0c, owner 2026-11-27): `STOP: main is red: ... (<run URL>). Fix forward or revert first`. A run still going, no push run for the commit yet, another ending or a GitHub error (gh missing, logged out, a timeout, an odd answer) do not block (owner ruling 2026-11-27), and a pass goes on; the gate prints a `main red check:` line saying which, naming the error. `--check-only`, `--stage-only`, a Mac-only run and a redeploy do not ask. `python3 tools/hosts/deploy/ci_pass.py --main-red --commit $(git rev-parse HEAD)` shows the answer without deploying.
 - A checkout with uncommitted or untracked files prints a WARNING and deploys anyway; the stamp records `dirty=yes`. Commit first unless the owner wants a work-in-progress deploy.
 
 What it does:
@@ -67,6 +68,7 @@ Before you run it:
 
 - The build needs the gitignored originals in `media/` and `ops/car-cards/`. Only the main checkout has them. `make wt` links both into a new worktree; for an older worktree, symlink them from the main checkout first. Without them photos are stripped, and the run stops at the `--require-mirrors` check. `--force` does not skip that check.
 - `ops/hart-ops/operator_logos/` must exist, or the deploy refuses to run.
+- It stops before the build and the upload when HEAD's push run of `check.yml` on main ended failure, cancelled or timed out, with the same `STOP: main is red` line as the layout gate (G0c). A run still going, no run yet (a branch), another ending or a GitHub error do not block (owner ruling 2026-11-27); the `main red check:` line says which.
 - A real rsync is needed on the Mac (`brew install rsync`), or set `HART_WEB_HOST` and `HART_WEB_DOCROOT` (values in the owner's private notes, `private/web-server/` in the main checkout only; worktrees do not have it) for a normal login.
 
 What it does: builds with `prepare_github_pages.py`, checks links with `check_portal_build.py`, then rsyncs with `--delete`.
