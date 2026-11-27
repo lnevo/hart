@@ -14,6 +14,9 @@ class SmlInvariantsError(Exception):
 _HARTLIB = next((p / "tools/hartlib/src" for p in Path(__file__).resolve().parents
                  if (p / "tools/hartlib/src").is_dir()), None)
 if _HARTLIB is None:
+    if __name__ == "__main__":
+        print(f"FAIL: no tools/hartlib/src above {__file__}", file=sys.stderr)
+        raise SystemExit(2)
     raise SmlInvariantsError(f"no tools/hartlib/src above {__file__}")
 sys.path.insert(0, str(_HARTLIB))
 from hartlib import parked, paths, tables  # noqa: E402
@@ -23,7 +26,8 @@ TABLES = paths.TABLES_XML
 
 def expected_dests(root: ET.Element, tables_xml: Path = TABLES) -> int:
     """The SML destination count of the generated three-level panel: audit_panel_contracts.expected_sml (one place).
-    ValueError when the main panel is not a generated one or the panel counts file cannot be read."""
+    ValueError when the main panel is not a generated one or the panel counts are wrong, OSError when that file
+    cannot be read."""
     import importlib.util
     tables.require_generated_panel(root, paths.rel(tables_xml))
     spec = importlib.util.spec_from_file_location("audit_panel_contracts",
@@ -48,13 +52,13 @@ def run(tables_xml: Path) -> int:
     except (OSError, ET.ParseError, ValueError) as exc:
         print(f"FAIL: cannot read {paths.rel(tables_xml)}: {exc}", file=sys.stderr)
         return 2
-    dests = len(tables.mast_logic_pairs(root))
     try:
+        dests = len(tables.mast_logic_pairs(root))
         expected = expected_dests(root, tables_xml)
-    except ValueError as exc:
+        nx = [sn for sn in map(tables.system_name, tables.sensors(root)) if sn.startswith("ISNX:")]
+    except (OSError, ValueError) as exc:  # the tables' sections or the panel counts file
         print(f"FAIL: {exc}", file=sys.stderr)
         return 2
-    nx = [sn for sn in map(tables.system_name, tables.sensors(root)) if sn.startswith("ISNX:")]
 
     print(f"SML destinationMast entries: {dests} (expected {expected})")
     print(f"ISNX sensors: {len(nx)}")

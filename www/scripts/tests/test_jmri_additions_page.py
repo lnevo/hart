@@ -27,7 +27,7 @@ class JmriAdditions(unittest.TestCase):
 
     def test_lcos_heads_follow_the_coordinators_rule(self):
         rule = ja._lcos(ja.ROOT)
-        self.assertEqual(Path(rule.is_head.__code__.co_filename), ja.ROOT / "jmri/scripts/sml_lcos.py")   # no copy
+        self.assertEqual(Path(rule.is_head.__code__.co_filename).resolve(), (ja.ROOT / "jmri/scripts/sml_lcos.py").resolve())   # no copy
         self.assertEqual(ja.lcos_heads("IF$shsm:basic:one-searchlight(IH432)", rule), ["IH432"])   # node 4, signal 32: 6LB's head
         self.assertEqual(ja.lcos_heads("IF$shsm:basic:two-searchlight(IH432)(IH433)", rule), ["IH432", "IH433"])
         self.assertEqual(ja.lcos_heads("IF$shsm:basic:one-searchlight(IH431)", rule), [])      # signal 31 is below the LCOS range

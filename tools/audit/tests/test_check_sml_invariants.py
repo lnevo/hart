@@ -1,6 +1,6 @@
 """tools/audit/check_sml_invariants.py: the repo tables pass, an unreadable tables file gives a one-line message and
 exit 2, an ISNX sensor in the tables while NX is parked fails, NX unparked fails until its own check exists, and a
-copy of the script with no hartlib above it raises SmlInvariantsError. Every changed tables file is a temporary copy."""
+copy of the script with no hartlib above it raises SmlInvariantsError when imported and prints one line when run. Every changed tables file is a temporary copy."""
 from __future__ import annotations
 
 import contextlib
@@ -91,12 +91,33 @@ class CheckSmlInvariants(unittest.TestCase):
         self.assertIn("FAIL: NX is not parked", out)
         self.assertNotIn("OK: NX", out)
 
-    def test_no_hartlib_raises_own_error(self) -> None:
+    def test_unreadable_panel_counts_is_a_clean_message(self) -> None:
+        with mock.patch.object(C, "expected_dests", side_effect=FileNotFoundError("panel_counts.json")):
+            rc, out, err = self.run_check(C.TABLES)
+        self.assertEqual((rc, out), (2, ""))
+        self.assertEqual(err, "FAIL: panel_counts.json\n")
+
+    def test_tables_without_their_sections_is_a_clean_message(self) -> None:
+        with mock.patch.object(C.tables, "mast_logic_pairs", side_effect=ValueError("no signalmastlogics")):
+            rc, _, err = self.run_check(C.TABLES)
+        self.assertEqual(rc, 2)
+        self.assertEqual(err, "FAIL: no signalmastlogics\n")
+
+    def test_no_hartlib_run_is_a_one_line_message(self) -> None:
         copy = self.tmp / "check_sml_invariants.py"
         shutil.copy2(SCRIPT, copy)
         done = subprocess.run([sys.executable, "-I", str(copy)], capture_output=True, text=True, cwd=self.tmp)
-        self.assertNotEqual(done.returncode, 0)
-        self.assertIn("SmlInvariantsError: no tools/hartlib/src above", done.stderr)
+        self.assertEqual(done.returncode, 2)
+        self.assertEqual(done.stderr, f"FAIL: no tools/hartlib/src above {copy}\n")
+
+    def test_no_hartlib_import_raises_own_error(self) -> None:
+        copy = self.tmp / "check_sml_invariants.py"
+        shutil.copy2(SCRIPT, copy)
+        spec = importlib.util.spec_from_file_location("sml_copy", copy)
+        assert spec is not None and spec.loader is not None
+        with self.assertRaisesRegex(Exception, "no tools/hartlib/src above") as caught:
+            spec.loader.exec_module(importlib.util.module_from_spec(spec))
+        self.assertEqual(type(caught.exception).__name__, "SmlInvariantsError")
 
 
 if __name__ == "__main__":
