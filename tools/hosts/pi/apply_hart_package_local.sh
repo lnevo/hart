@@ -14,6 +14,23 @@ trap 'rm -rf "$HART"' EXIT
 chmod +x "$HART/cats/scripts/pi/"*.sh "$HART/cats/scripts/pi/JMRI_CATS" \
   "$HART/cats/scripts/install_jmri_web_override.sh" 2>/dev/null || true
 
+# The jython to install (jython_scripts.txt, the list the deploy ships the files from), checked before anything
+# changes: a package without one of them stops here.
+source "$HART/cats/scripts/pi/jython_list.sh"
+JYTHON=()
+jython_rows="$(jython_list "$HART/cats/scripts/pi/jython_scripts.txt")" || exit 1
+while read -r _role rel; do
+  JYTHON+=("$HART/$rel")
+done <<<"$jython_rows"
+missing=()
+for f in "${JYTHON[@]}"; do
+  [[ -f "$f" ]] || missing+=("${f#"$HART"/}")
+done
+if [[ ${#missing[@]} -gt 0 ]]; then
+  echo "The package lacks jython the Pi installs (cats/scripts/pi/jython_scripts.txt): ${missing[*]}" >&2
+  exit 1
+fi
+
 mkdir -p "$UF"
 
 # First, so unpulled session state stops the deploy before anything changes.
@@ -101,30 +118,9 @@ if [[ -f "$HART/jmri/mqtt_overlay/install_overlay.py" ]]; then
     --settings-dir "$HOME/.jmri" --jmri-home "${JMRI_HOME:-$HOME/JMRI}"
 fi
 
-JYTHON=(
-  "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
-  "$HART/jmri/layouts/hart/scripts/hide_band_panels.py"
-  "$HART/jmri/layouts/hart/scripts/panel_status.py"
-  # panel_status.py's PARTS: installed beside it, not Start Up items.
-  "$HART/jmri/layouts/hart/scripts/panel_status_clicks.py"
-  "$HART/jmri/layouts/hart/scripts/panel_status_turnouts.py"
-  "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
-  "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"
-  "$HART/jmri/layouts/hart/scripts/mimic_relay.py"
-  "$HART/jmri/scripts/signal_coordinator.py"
-  # signal_coordinator.py's SIBLING_MODULES: installed beside it, not Start Up items.
-  "$HART/jmri/scripts/sml_beans.py"
-  "$HART/jmri/scripts/sml_claims.py"
-  "$HART/jmri/scripts/sml_handoff.py"
-  "$HART/jmri/scripts/sml_events.py"
-  "$HART/jmri/scripts/sml_quit.py"
-  "$HART/jmri/scripts/sml_ui.py"
-  # The loader signal_coordinator.py and panel_status.py import their siblings with: not a Start Up item.
-  "$HART/jmri/scripts/jython_siblings.py"
-)
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
-  [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
+  cp -f "$f" "$UF/jython/"
   # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
   rm -f "$UF/jython/$(basename "$f" .py)\$py.class"
 done

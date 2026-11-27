@@ -8,12 +8,15 @@ from __future__ import annotations
 import importlib.util
 import os
 import re
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pi_drop import jython_rows  # noqa: E402
 SCRIPT = ROOT / "tools/hosts/panelpro_profile.py"
 LIVE_ID = "My_JMRI_Railroad.3ef75bfd"
 
@@ -98,9 +101,8 @@ class QuietStartup(HomeCase):
         self.assertIn("off: preference:jython/brand_new_publisher.py", notes)
 
     def test_every_deployed_startup_script_is_switched_off(self) -> None:
-        sync = (ROOT / "tools/hosts/deploy/common.sh").read_text(encoding="utf-8")
-        block = re.search(r"JYTHON_STARTUP_SCRIPTS=\((.*?)\)", sync, re.S).group(1)
-        deployed = {Path(s.strip().strip('"')).name for s in block.split() if s.strip()}
+        # the Start Up scripts of the one jython list (the Mac and the Pi), and what the Pi apply step starts
+        deployed = {Path(row.path).name for row in jython_rows() if row.role in ("startup", "pi")}
         pi = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
         deployed |= set(re.findall(r"--script preference:jython/(\w+\.py)", pi))
         self.assertIn("signal_coordinator.py", deployed)

@@ -5552,6 +5552,15 @@
    "path": "tools/schematic/staging_records.py"
   },
   {
+   "id": "tools/schematic/staging_mast_rows.py",
+   "label": "staging_mast_rows.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of staging_device_map.py: masts.csv's staging rows as the plugin, build_signals.py and the mast parity test read them (load_masts, load_signal_masts, mast_facts, signal_rows), which staging_device_map re-exports.",
+   "path": "tools/schematic/staging_mast_rows.py"
+  },
+  {
    "id": "tools/schematic/device_map_inputs.py",
    "label": "device_map_inputs.py",
    "kind": "generator",
@@ -5640,6 +5649,15 @@
    "domain": "layout",
    "desc": "Module of build_device_map.py: staging's device rows and wired turnout, alias and feedback rows.",
    "path": "tools/schematic/device_map_staging.py"
+  },
+  {
+   "id": "tools/schematic/device_map_staging_switches.py",
+   "label": "device_map_staging_switches.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Module of device_map_staging.py: staging's turnout, LCC alias and feedback rows, wired from wiring.csv with the owner's cells over them, and the constants and readers every staging row needs; device_map_staging re-exports them.",
+   "path": "tools/schematic/device_map_staging_switches.py"
   },
   {
    "id": "tools/schematic/cats_panel.py",
@@ -6324,6 +6342,33 @@
    "domain": "extras",
    "desc": "Live-dashboard sampler: every 2 minutes one JSON line with Mac and Windows load, remote runs, Claude sessions and agents, for the coordinator's dashboard (dashboard skill).",
    "path": ".claude/skills/dashboard/sampler.sh"
+  },
+  {
+   "id": "tools/hosts/pi/jython_scripts.txt",
+   "label": "jython_scripts.txt",
+   "kind": "structured",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The one list of the jython the Mac and the Pi install into preference:jython, by role (startup, pi, sibling, part).",
+   "path": "tools/hosts/pi/jython_scripts.txt"
+  },
+  {
+   "id": "tools/hosts/pi/jython_list.sh",
+   "label": "jython_list.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "The reader of jython_scripts.txt: its rows, or a stop naming the line it cannot read.",
+   "path": "tools/hosts/pi/jython_list.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/panel_counts.json",
+   "label": "panel_counts.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The masts, SML destinations, sections, transits and traininfo files the stored tables hold; read by the panel audit and the PanelPro smoke test.",
+   "path": "jmri/layouts/hart/scripts/panel_counts.json"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -8779,6 +8824,13 @@
    "from": "tools/audit/check_sml_invariants.py",
    "to": "tools/check.sh",
    "label": "check sml-invariants",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_counts.json",
+   "to": "tools/audit/check_sml_invariants.py",
+   "label": "expected counts",
    "side": "check",
    "gen": "manifest"
   },
@@ -12868,6 +12920,13 @@
    "label": "imports"
   },
   {
+   "from": "jmri/layouts/hart/scripts/panel_counts.json",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "expected counts",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/lcc_turnout_contract.py",
    "to": "jmri/layouts/hart/scripts/audit_panel_tables.py",
    "label": "imports"
@@ -14812,6 +14871,51 @@
   {
    "from": "tools/schematic/mast_rule.py",
    "to": "tools/schematic/mast_plan.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hosts/pi/jython_scripts.txt",
+   "to": "tools/hosts/pi/jython_list.sh",
+   "label": "the list it reads"
+  },
+  {
+   "from": "tools/hosts/pi/jython_list.sh",
+   "to": "tools/hosts/deploy/common.sh",
+   "label": "jython list"
+  },
+  {
+   "from": "tools/hosts/pi/jython_list.sh",
+   "to": "tools/hosts/pi/apply_hart_package_local.sh",
+   "label": "jython list"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_counts.json",
+   "to": "jmri/layouts/hart/scripts/audit_panel_graph.py",
+   "label": "expected counts"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/panel_counts.json",
+   "to": "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
+   "label": "expected counts (HART_PANEL_COUNTS)"
+  },
+  {
+   "from": "tools/schematic/device_map_staging_switches.py",
+   "to": "tools/schematic/device_map_staging.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_staging_switches.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_mast_rows.py",
+   "to": "tools/schematic/staging_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_records.py",
+   "to": "tools/schematic/staging_mast_rows.py",
    "label": "imports"
   },
   {

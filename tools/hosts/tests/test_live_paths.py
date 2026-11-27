@@ -28,6 +28,8 @@ GATE = (STEPS / "gate.sh").read_text(encoding="utf-8")                          
 COMMON = (STEPS / "common.sh").read_text(encoding="utf-8")
 STAGE = (STEPS / "stage.sh").read_text(encoding="utf-8")
 MAC = (STEPS / "ship_mac.sh").read_text(encoding="utf-8")
+# the jython the Mac and the Pi install, which common.sh reads (one "ROLE PATH" row each)
+JYTHON_LIST = (ROOT / "tools/hosts/pi/jython_scripts.txt").read_text(encoding="utf-8")
 
 
 def git(repo: Path, *args: str) -> str:
@@ -210,6 +212,9 @@ class RealList(unittest.TestCase):
         for f in ("sync_hart_package.sh", "live_paths.py", "profile_tables_guard.sh"):
             shutil.copy(ROOT / "tools/hosts" / f, hosts / f)
         shutil.copytree(STEPS, hosts / "deploy")
+        (hosts / "pi").mkdir()
+        for f in ("jython_list.sh", "jython_scripts.txt"):   # the jython list the steps' shared file reads
+            shutil.copy(ROOT / "tools/hosts/pi" / f, hosts / "pi" / f)
         (hosts / "live_paths.txt").write_text(listing, encoding="utf-8")
         args = [flag] + ([str(tmp / "stage")] if flag == "--stage-only" else [])
         env = {k: v for k, v in os.environ.items() if not k.startswith("HART_") and k != "PI_HOST"}
@@ -268,7 +273,7 @@ class RealList(unittest.TestCase):
     def test_deploy_script_paths_are_all_listed(self) -> None:
         """Every repo path stage_package and the jython lists name is under a live_paths.txt entry."""
         listed = live_paths.read_list()
-        text = (COMMON[COMMON.index("JYTHON_STARTUP_SCRIPTS=("):COMMON.index("# ---- the stamp")] + MAC
+        text = (COMMON[COMMON.index("JYTHON_STARTUP_SCRIPTS=("):COMMON.index("# ---- the stamp")] + MAC + JYTHON_LIST
                 + STAGE[STAGE.index("stage_package() {"):STAGE.index("# stage_host_finish")])
         region = "\n".join(line for line in text.splitlines()
                            if not line.strip().startswith("#") and "local sm=" not in line)
@@ -279,6 +284,7 @@ class RealList(unittest.TestCase):
         # bare-name patterns (lamp_*.png) end at the folder; the regex stops at "*"
         found = {t.rstrip("/") for t in tokens if not t.endswith("/") or t.count("/") > 2}
         self.assertGreater(len(found), 25, found)
+        self.assertIn("jmri/scripts/sml_beans.py", found)   # the jython list's rows are read
         unlisted = sorted(t for t in found
                           if not any(t == p or t.startswith(p + "/") for p in listed))
         self.assertEqual(unlisted, [], "named by the deploy steps (tools/hosts/deploy) but absent from tools/hosts/live_paths.txt")
