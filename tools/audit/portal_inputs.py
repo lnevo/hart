@@ -53,7 +53,9 @@ class GitCouldNotRun(ChangedFilesError):
     """git did not run or did not finish (missing, timed out): not an answer about the branch."""
 
 
-def _git(root: Path, *args: str) -> list[str]:
+def git_lines(root: Path, *args: str) -> list[str]:
+    """`git -C root ARGS`'s non-empty output lines; GitCouldNotRun when git does not run, ChangedFilesError when it
+    exits non-zero (the message names the command and git's last error line)."""
     try:
         done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as e:
@@ -69,18 +71,18 @@ def changed_files(root: Path, base: str = "origin/main") -> list[str]:
 
     Raises ChangedFilesError when git cannot say (no merge base with `base`: a shallow clone, no such branch)."""
     try:
-        merge_base = _git(root, "merge-base", base, "HEAD")
+        merge_base = git_lines(root, "merge-base", base, "HEAD")
     except GitCouldNotRun:
         raise
     except ChangedFilesError as e:
         raise ChangedFilesError(f"no merge base with {base} (a shallow clone, or no {base}): {e}") from e
     if len(merge_base) != 1:
         raise ChangedFilesError(f"no merge base with {base}: git merge-base printed {merge_base!r}")
-    committed = _git(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")
-    working = _git(root, "diff", "--name-only", "--no-renames", "--ignore-submodules=all", "HEAD")
+    committed = git_lines(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")
+    working = git_lines(root, "diff", "--name-only", "--no-renames", "--ignore-submodules=all", "HEAD")
     # a staged submodule move is a change of the branch (the working diff above leaves every submodule out)
-    staged = _git(root, "diff", "--cached", "--name-only", "--no-renames", "--ignore-submodules=dirty", "HEAD")
-    untracked = _git(root, "ls-files", "--others", "--exclude-standard")
+    staged = git_lines(root, "diff", "--cached", "--name-only", "--no-renames", "--ignore-submodules=dirty", "HEAD")
+    untracked = git_lines(root, "ls-files", "--others", "--exclude-standard")
     return sorted(set(committed) | set(working) | set(staged) | set(untracked))
 
 
