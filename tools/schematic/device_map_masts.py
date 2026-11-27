@@ -1,16 +1,15 @@
-"""Staging's mast and head rows of the device master, from the one mast process (mast_plan.plan): part 1 of
-build_masts.py until naming-layers step 12 (builder merge step 6), now build_device_map.py's, so one writer makes
-every level's mast and head rows. build_masts.py reads the same plan (staging_masts) for the plan facts it writes to
-masts.csv.
+"""Staging's mast and head rows of the device master, from the one mast process (mast_plan.plan), for
+build_device_map.py, so one writer makes every level's mast and head rows. build_masts.py reads the same plan
+(staging_masts) for the plan facts it writes to masts.csv.
 
-The rule (owner, 2026-11-18/19/20/21): home masts, running track and exit dwarfs by rule, intermediates and virtual
+The rule (ADR-024): home masts, running track and exit dwarfs by rule, intermediates and virtual
 masts only as destinations, over staging's interlockings (interlockings.csv, level 1: Brick 1, 3, 5; Barn 7; East
 End 23, 31, 33; Princess 35, 37, 39) and its block layer, read from the block rows build_device_map.py makes in the
 same run (not from its last output) with block_lengths.csv. A mast's cp names the control point of its switch (the
 stations the drawings group by). One anchor rule on every level:
 - a home mast stands at its switch's leg when the block boundary is there (a turnout mast), else on the anchor where
-  the switch's own OS block ends (an anchor mast, no switch: Mast 8RA on Scale, 25 cm from Switch 7, before
-  2026-11-20). Main and upper's OS blocks end at their switches, so every home mast there is a turnout mast;
+  the switch's own OS block ends (an anchor mast, no switch). Main and upper's OS blocks end at their switches, so
+  every home mast there is a turnout mast;
 - intermediates carry no line code on staging (prototype numbering: MP 6.7 gives Mast 67 west and Mast 68 east).
 
 Every device is keyed by its ID (hartlib.device_ids), never by its name: a home mast by the switch label, leg and way
@@ -27,8 +26,8 @@ Heads are internal, from the mast's name and level (level_masts.head_name: the l
 level_masts.HEAD_PREFIXES: IH:HART:C1:<n><L|R>[A|B][_Top|_Bottom] on staging, C3 on main and upper), so nothing
 unwired reaches MQTT: signal_coordinator.py publishes only IH and digits.
 
-Virtual masts (IF$vsm, hidden, one-low) only where a visible mast's route reaches a buffer stop first (mast_plan;
-owner, 2026-11-20): staging's 4LA, 4LB, 10LA, 10LB and 12L. Each keeps the system name its row had, by its ID; a new
+Virtual masts (IF$vsm, hidden, one-low) only where a visible mast's route reaches a buffer stop first (mast_plan,
+ADR-024): staging's 4LA, 4LB, 10LA, 10LB and 12L. Each keeps the system name its row had, by its ID; a new
 one takes the next ordinal of its level's thousand (mast_plan.virtual_system_names); a dropped one's ordinal stays in
 retired_virtual_masts.csv. The ordinals are the builder's one read-back of its own output (devices.allocated_names).
 """
@@ -52,9 +51,9 @@ from device_map_level_masts import head_users, mast_system_name
 from device_map_records import OldVirtual
 from hartlib import device_ids, devices, level_masts, railroad, wiring
 from mast_plan import Intermediate, MastPlan
-from plan_bands import Band
+from plan_bands import Band, Bands
 from mast_rule import HomeMast
-from plan_tracks import Leg
+from plan_tracks import Joined, Leg, Runs
 
 WRITER = "build_device_map.py"              # the one writer of every level's mast and head rows
 LEVEL = sdm.LEVEL                           # staging
@@ -324,7 +323,7 @@ def generate(band: Band, names: BlockNames, planned: MastPlan, cm: Mapping[str, 
 def virtual_masts(band: Band, planned: MastPlan, cps: Mapping[str, str], stored: Mapping[str, str]
                   ) -> list[StagingMast]:
     """Staging's hidden routing masts in the columns generate() gives, from mast_plan.plan's virtual masts (only where
-    a visible mast's route reaches a buffer stop first, owner 2026-11-20: 4LA, 4LB, 10LA, 10LB, 12L), `cps` naming
+    a visible mast's route reaches a buffer stop first: 4LA, 4LB, 10LA, 10LB, 12L), `cps` naming
     each switch's control point (the drawings'), `stored` the name store's strand names (generate)."""
     chains = run_strands(band)
     out = []
@@ -356,7 +355,7 @@ def interlockings(switches: set[str], path: Path = INTERLOCKINGS) -> dict[str, s
     return out
 
 
-def mast_ids(band: Band, placed: Sequence[Mapping[str, Any]], block_ids: Mapping[str, str]) -> list[str]:
+def mast_ids(band: Band, placed: Sequence[StagingMast], block_ids: Mapping[str, str]) -> list[str]:
     """The device ID of each mast of `placed` (generate's and virtual_masts', in order; hartlib.device_ids): a home
     mast's by the label of the switch node it stands at, its leg and the way it looks (an anchor mast too: the plan
     puts it at that leg), at a single crossover's half with the half its OS block's ID gives (mast:7:A-13C:B:east:
@@ -408,7 +407,7 @@ def owner_names(placed: Sequence[StagingMast], ids: Sequence[str], field: Mappin
         raise RuleError("; ".join(bad))
 
 
-def virtual_names(vgen: Sequence[Mapping[str, Any]], ids: Mapping[str, str], old_rows: Iterable[Mapping[str, str]]
+def virtual_names(vgen: Sequence[StagingMast], ids: Mapping[str, str], old_rows: Iterable[Mapping[str, str]]
                   ) -> dict[str, str]:
     """{mast: system name} of the virtual masts: each keeps the system name its row had by its ID (a
     VirtualSignalMast's ordinal, $1001 ...; `old_rows`: staging's mast rows as last written, allocated_names), and a
@@ -503,8 +502,8 @@ def device_rows(placed: list[StagingMast], ids: Mapping[str, str], wired: Mappin
     return sorted(masts, key=lambda r: r["user_name"]) + sorted(heads, key=lambda r: r["user_name"])
 
 
-def plan(band: Band, bands, joined, runs, names: BlockNames, locks: Mapping[str, str], cm: Mapping[str, float]
-         ) -> MastPlan:
+def plan(band: Band, bands: Bands, joined: Joined, runs: Runs, names: BlockNames, locks: Mapping[str, str],
+         cm: Mapping[str, float]) -> MastPlan:
     """mast_plan.plan over the staging level: its tracks by mast_rule (a helix end tagged H, no helix blocks), its
     interlockings (`locks`), its block layer (`names`, of `band`, the staging band of `bands`) and block lengths
     (`cm`), the owner's block splits. RuleError when `band` is not the staging band `bands` holds."""
@@ -527,6 +526,15 @@ def plan_facts(placed: Iterable[StagingMast]) -> dict[tuple[int, str], PlanFacts
                                           schematic_edge=m["edge"], schematic_toward_node=m["node"]) for m in placed}
 
 
+def check_control_points(gen: Iterable[StagingMast], planned: MastPlan, cp_of: Mapping[str, str]) -> None:
+    """RuleError naming the switches a visible mast (`gen`, toward) or a virtual mast of `planned` stands at that
+    `cp_of` ({switch: control point}, staging_device_map.switch_areas) gives no control point."""
+    at = {m["toward"] for m in gen} | {m["switch"] for m in planned["virtual"]}
+    missing = sorted(at - set(cp_of), key=railroad.natural)
+    if missing:
+        raise RuleError(f"masts stand at switch(es) {', '.join(missing)}, which no staging station names")
+
+
 def mast_number(name: str) -> int:
     """The first number in a mast name (level_masts.MAST_USER gives every name one); RuleError on a name with none."""
     m = re.search(r"\d+", name)
@@ -535,7 +543,8 @@ def mast_number(name: str) -> int:
     return int(m.group())
 
 
-def staging_masts(bands, joined, runs, rows: Sequence[Mapping[str, str]], files: devices.Files) -> StagingMasts:
+def staging_masts(bands: Bands, joined: Joined, runs: Runs, rows: Sequence[Mapping[str, str]], files: devices.Files
+                  ) -> StagingMasts:
     """Staging's masts by the rule over `rows` (the device master's rows as the builder writes them: its block layer,
     parts and block IDs; `bands`, `joined`, `runs` the solved sheet) and `files`' field file and its last generated
     rows (the virtual ordinals): {"placed": generate's and virtual_masts' masts, final names, in the rule's order,
@@ -556,6 +565,7 @@ def staging_masts(bands, joined, runs, rows: Sequence[Mapping[str, str]], files:
     planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
     stored = sdm.staging_names(band, pd.DATA)     # the name store's of the folder solved from, by each strand's ID
     gen = generate(band, names, planned, cm, parts, stored)
+    check_control_points(gen, planned, cp_of)
     for m in gen:                    # the cp column names the control point (the drawings') of the mast's switch
         m["cp"] = cp_of[m["toward"]]
     vgen = virtual_masts(band, planned, cp_of, stored)

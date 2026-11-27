@@ -392,6 +392,51 @@
    "path": "tools/audit/layout_facts_xml.py"
   },
   {
+   "id": "tools/audit/layout_facts_base.py",
+   "label": "layout_facts_base.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's shared part: the sources it reads (tables.xml, the desks, GUIObjects.xml, masts.csv, the device master) and the report its checks write to.",
+   "path": "tools/audit/layout_facts_base.py"
+  },
+  {
+   "id": "tools/audit/layout_facts_tables.py",
+   "label": "layout_facts_tables.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's Layout Editor part: tables.xml read once, and each switch's turnout, layout turnout, legs and stored block paths against switches.csv.",
+   "path": "tools/audit/layout_facts_tables.py"
+  },
+  {
+   "id": "tools/audit/layout_facts_desks.py",
+   "label": "layout_facts_desks.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's CATS desk part: staging plants against switches.csv, main and upper plants, masts and block sensors against tables.xml and masts.csv.",
+   "path": "tools/audit/layout_facts_desks.py"
+  },
+  {
+   "id": "tools/audit/layout_facts_uss.py",
+   "label": "layout_facts_uss.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's USS CTC part: code buttons in tables.xml and the USS panel in GUIObjects.xml and tables.xml against switches.csv and the board's grid.",
+   "path": "tools/audit/layout_facts_uss.py"
+  },
+  {
+   "id": "tools/audit/layout_facts_levels.py",
+   "label": "layout_facts_levels.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check_layout_facts.py's data and levels part: switches.csv against stations.csv and the device master, staging masts against mast_cells.csv, one level per control point, mast and block.",
+   "path": "tools/audit/layout_facts_levels.py"
+  },
+  {
    "id": "tools/audit/check_mqtt_no_static_lists.py",
    "label": "check_mqtt_no_static_lists",
    "kind": "generator",
@@ -13687,6 +13732,31 @@
   },
   {
    "from": "tools/audit/layout_facts_xml.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
+  },
+  {
+   "from": "tools/audit/layout_facts_base.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
+  },
+  {
+   "from": "tools/audit/layout_facts_tables.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
+  },
+  {
+   "from": "tools/audit/layout_facts_desks.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
+  },
+  {
+   "from": "tools/audit/layout_facts_uss.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imported"
+  },
+  {
+   "from": "tools/audit/layout_facts_levels.py",
    "to": "tools/audit/check_layout_facts.py",
    "label": "imported"
   },

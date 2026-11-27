@@ -2,6 +2,9 @@
 import sys
 import tempfile
 import unittest
+import unittest.mock as mock
+from contextlib import redirect_stderr
+from io import StringIO
 from pathlib import Path
 
 PUB = Path(__file__).resolve().parents[1] / "publications"
@@ -23,7 +26,7 @@ class Content(unittest.TestCase):
         self.assertNotIn("spacer_before", eq.CONTENT[h1[2]])
 
     def test_unknown_block_kind_is_refused(self):
-        with self.assertRaisesRegex(ValueError, "Unknown block kind: table"):
+        with self.assertRaisesRegex(eq.ScaleInstructionsError, "Unknown block kind: table"):
             eq._block_paragraphs({"kind": "table"}, None)
 
     def test_steps_restart_numbering(self):
@@ -39,7 +42,7 @@ class Content(unittest.TestCase):
     def test_missing_abstract_numbering_is_named(self):
         doc = Document()
         numbering = doc.part.numbering_part._element
-        with self.assertRaisesRegex(RuntimeError, "abstractNum 99 not found"):
+        with self.assertRaisesRegex(eq.ScaleInstructionsError, "abstractNum 99 not found"):
             eq._new_list_num(numbering, "99")
 
 
@@ -54,10 +57,22 @@ class Masthead(unittest.TestCase):
         self.assertEqual(texts, [eq.PUBLICATION["title_line"], eq.PUBLICATION["effective"],
                                  eq.PUBLICATION["eq"], eq.PUBLICATION["revision"], "Unrelated line"])
 
+    def test_body_after_official_is_replaced_by_one_page_break(self):
+        doc = Document()
+        official = doc.add_paragraph("Official Publication")
+        official.add_run().add_break()  # a line break stays
+        doc.add_paragraph("old body")
+        doc.add_paragraph("more old body")
+        self.assertIs(eq._strip_body_after_official(doc)._p, official._p)
+        self.assertEqual([p.text for p in doc.paragraphs], ["Official Publication\n"])
+        breaks = [br.get(qn("w:type")) for br in official._p.iter(qn("w:br"))]
+        self.assertEqual(breaks, [None, "page"])
+        self.assertEqual(doc.element.body[-1].tag, qn("w:sectPr"))
+
     def test_missing_official_publication_line_is_named(self):
         doc = Document()
         doc.add_paragraph("no masthead here")
-        with self.assertRaisesRegex(RuntimeError, "Official Publication paragraph not found"):
+        with self.assertRaisesRegex(eq.ScaleInstructionsError, "Official Publication paragraph not found"):
             eq._strip_body_after_official(doc)
 
 
@@ -75,3 +90,25 @@ class Rebuild(unittest.TestCase):
             cols = doc.element.body.find(qn("w:sectPr")).find(qn("w:cols"))
             self.assertEqual(cols.get(qn("w:num")), "2")
         self.assertEqual(eq.CANONICAL.read_bytes(), canonical_bytes)
+
+
+class Errors(unittest.TestCase):
+    def test_missing_template_names_the_candidates(self):
+        with mock.patch.object(eq, "TEMPLATE_CANDIDATES", [Path("/nonexistent/eq01.docx")]):
+            with self.assertRaisesRegex(eq.ScaleInstructionsError, "/nonexistent/eq01.docx"):
+                eq._find_template()
+
+    def test_main_reports_the_error_and_exits_1(self):
+        err = StringIO()
+        with mock.patch.object(eq, "TEMPLATE_CANDIDATES", [Path("/nonexistent/eq01.docx")]), redirect_stderr(err):
+            self.assertEqual(eq.main(), 1)
+        self.assertIn("No masthead template found", err.getvalue())
+
+    def test_failed_rebuild_leaves_no_work_copy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            template = Path(tmp) / "eq01.docx"
+            Document().save(str(template))  # no Official Publication line
+            with mock.patch.object(eq, "TEMPLATE_CANDIDATES", [template]):
+                with self.assertRaises(eq.ScaleInstructionsError):
+                    eq.rebuild(template)
+            self.assertEqual(sorted(p.name for p in Path(tmp).iterdir()), ["eq01.docx"])
