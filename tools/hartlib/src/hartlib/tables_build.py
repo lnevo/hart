@@ -1,6 +1,6 @@
 """The parts of the generated tables.xml that come from no drawing: the template, the fixed envelope and the
 device master's beans (ADR-029). The other jobs of the tables build are modules of their own: the sections and the
-Store's order (tables_sections), the panel rewrites a Store makes (panel_normal), the jmri_bean column (jmri_bean),
+Store's order (tables_sections), the panel rewrites a Store makes (tables_normal), the jmri_bean column (jmri_bean),
 the startup LogixNG (startup_logixng), the discovered Signal Mast Logic and the Digicon boot rule (tables_sml) and
 the PanelPro round trip (tables_roundtrip).
 

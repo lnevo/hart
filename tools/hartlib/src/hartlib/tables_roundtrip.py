@@ -16,6 +16,7 @@ from . import devices, paths, railroad, tables
 from .tables_normal import normalise_store
 from .tables_sections import TablesBuildError, finish
 
+
 def roundtrip_differences(store: bytes, generated: bytes, context: int = 40) -> list[str]:
     """[] when a PanelPro Store of the generated tables and the generated tables are the same bytes once both are
     normalised (normalise_store); else the first `context` lines of a unified diff (generated against Store).

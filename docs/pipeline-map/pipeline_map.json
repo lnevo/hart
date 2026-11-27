@@ -1519,6 +1519,15 @@
    "path": "tools/hartlib/src/hartlib/tables_build.py"
   },
   {
+   "id": "tools/hartlib/src/hartlib/tables_roundtrip.py",
+   "label": "hartlib tables_roundtrip.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The PanelPro round trip (ADR-029 gate 2): a Store of the generated tables.xml and the generated file compared as bytes once both are normalised, and every staging block given a derived path.",
+   "path": "tools/hartlib/src/hartlib/tables_roundtrip.py"
+  },
+  {
    "id": "tools/ops/pull_tables.sh",
    "label": "pull_tables.sh",
    "kind": "generator",
@@ -12192,9 +12201,9 @@
    "label": "the Jython it runs"
   },
   {
-   "from": "tools/hartlib/src/hartlib/tables_build.py",
+   "from": "tools/hartlib/src/hartlib/tables_roundtrip.py",
    "to": "tools/hosts/run_panelpro_roundtrip.sh",
-   "label": "tables_build roundtrip"
+   "label": "tables_roundtrip roundtrip"
   },
   {
    "from": "tools/hosts/run_panelpro_roundtrip.sh",
