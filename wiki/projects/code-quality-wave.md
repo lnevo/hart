@@ -1,7 +1,7 @@
 # Code-quality wave (2026-11-26)
 
-Status: active (wave 3, from 2026-11-26 19:10)
-Coordinator: hart-bb, since 2026-11-26 14:15 (holds the merge queue and the deploys; a background coordinator runs the lanes)
+Status: active (wave 4, from 2026-11-27 00:00)
+Coordinator: hart-e0, since 2026-11-26 23:56 (holds the merge queue and the deploys; took over from hart-bb)
 Dashboard: https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7 (lanes, events and agents, kept live by the background coordinator)
 
 A read-only review on 2026-11-26 graded the repo's 781 scripts at B- overall. The code was decent, with recurring AI habits:
@@ -149,3 +149,21 @@ Report card after wave 3 (https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE): th
 - 17 files at C: `gen_ctc_track_plan.py` (C-, parked by owner ruling, 2026-11-26, not regraded), `rebuild_station_map.py` (C), `sharpen_card_fill_images.py` (C), and C+ for `run-modern.js`, `rebuild_station_map_full.py`, `build_signals.py`, `panel_status_turnouts.py`, `build_masts.py`, `build_hart_signal_heads.py`, `mimic_view.js`, `launch_cats.sh`, `build_hands.py`, `clear_mqtt_cmd_sensor_retain.py`, `page_figures.py`, `sync_mqtt_turnouts_from_fb.py`, `panel_snapshot.py` and `fetch_cats_3.2.sh`. The reasons are on the report card.
 - The largest gaps to B+ by lines times points: `rebuild_station_map.py`, `audit_panel_contracts.py`, `store_split.py`, `crop_car_image.py`, `crew.js`, `build_wiring_json.py`, `mast_rule.py`, `staging_device_map.py`.
 
+## Wave 4 (2026-11-27)
+
+| Lane | Scope | PR |
+|------|-------|----|
+| 4-T1 | Website table moves (session lnevo-5f), then the Python table moves by area, one PR each | |
+| 4-L1 | `build_signals`, `build_masts`, `mast_rule`, `device_map_masts`: one mast-name source, typed `MastEntry` | |
+| 4-L2 | `build_cats_panel` `level_signals` guard, typed `read_pins` and `frozen_wires`, one `skip_or_fail` helper, `staging_device_map`, `build_hands`, `panels.toml` text, hartlib `store_split` | |
+| 4-L3 | Jython `panel_status_turnouts`, `build_hart_signal_heads`, `audit_panel_contracts`; tools/mqtt `clear_mqtt_cmd_sensor_retain`, `sync_mqtt_turnouts_from_fb` | |
+| 4-L4 | `launch_cats.sh` (both), `fetch_cats_3.2.sh`, `panel_snapshot.py`; the three unverified host notes, checked then fixed | |
+| 4-L5 | `changed_kind.py` records and the `.claude/skills` Markdown rule, `light_checks.sh` mode, `check.yml` warm-up gate, `repo_guide_page.py` arguments | |
+| 4-L6 | `rebuild_station_map` and `_full`, `sheet_kit`, `sharpen_card_fill_images`, `crop_car_image`, `test_cars_sync` and `test_package_contents` | |
+
+Later in the wave:
+- 4-L7: www JS (`run-modern.js`, `crew.js`, `mimic_view.js`), `page_figures.py`, `build_wiring_json.py`, after 4-T1.
+- 4-L8: the device-row callers that read by key, and `tools/ops` to mypy strict.
+- 4-L9: the owner tags in the `build_device_map` output strings.
+- 4-L10: narrower unit and portal declarations, so more data edits are light.
+- 4-RC: the report card.
