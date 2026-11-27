@@ -11,7 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
-import cars  # noqa: E402
+import car_repo  # noqa: E402
+import car_sync  # noqa: E402
+from car_live_sts import LiveCar, LiveCars  # noqa: E402
 
 ROW = {"roster_id": "NW2", "roster_road": "NW", "road_number": "2", "car_type": "Flatcar",
        "roster_length_ft": "52", "color": "Black", "notes": ""}
@@ -71,19 +73,20 @@ class SyncTests(unittest.TestCase):
         self.stack = contextlib.ExitStack()
         self.addCleanup(self.stack.close)
         env = self.stack.enter_context(unittest.mock.patch.dict(os.environ, {}))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "read_rows", lambda: ([ROW], [])))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "seed_helpers", lambda: (self.gen, None)))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "SEED_INPUTS", self.tmp / "no-seed"))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "OPS_MERGED", self.tmp / "ops.xml"))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "read_rows", lambda: ([ROW], [])))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "seed_helpers", lambda: (self.gen, None)))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "SEED_INPUTS", self.tmp / "no-seed"))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "OPS_MERGED", self.tmp / "ops.xml"))
         self.pi_problems = []
         self.stack.enter_context(
             unittest.mock.patch("publish_gate.pi_out_of_step", lambda *a, **k: list(self.pi_problems)))
         self.operating = None
-        self.stack.enter_context(unittest.mock.patch.object(cars, "operating_reason", lambda: self.operating))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "load_sts_api", lambda: self.api))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "operating_reason", lambda: self.operating))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "load_sts_api", lambda: self.api))
         self.live = [dict(self.api.car)]
         self.stack.enter_context(unittest.mock.patch.object(
-            cars, "fetch_live_cars", lambda: (LIVE_URL, "live", self.live)))
+            car_sync, "fetch_live_cars",
+            lambda: LiveCars(LIVE_URL, "live", [LiveCar.from_api(c, LIVE_URL) for c in self.live])))
         del env
 
     def run_sync(self, **kw):
@@ -91,7 +94,7 @@ class SyncTests(unittest.TestCase):
         ns.update(kw)
         out, err = io.StringIO(), io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            rc = cars.cmd_sync(types.SimpleNamespace(**ns))
+            rc = car_sync.cmd_sync(types.SimpleNamespace(**ns))
         return rc, out.getvalue(), err.getvalue()
 
     def test_dry_run_lists_changes_and_writes_nothing(self):
@@ -152,13 +155,13 @@ class SyncTests(unittest.TestCase):
     def test_missing_seed_folder_refuses_before_the_ops_edit(self):
         seed = self.tmp / "seed"
         seed.mkdir()
-        (seed / cars.MERGED.name).write_text(
+        (seed / car_repo.MERGED.name).write_text(
             '<operations-config><cars><car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" '
             'length="40" color="Black"/></cars></operations-config>')
         row = dict(ROW, notes="CarImagesFinal/x.png")
-        self.stack.enter_context(unittest.mock.patch.object(cars, "read_rows", lambda: ([row], [])))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "SEED_INPUTS", seed))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "METADATA", self.tmp / "absent.csv"))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "read_rows", lambda: ([row], [])))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "SEED_INPUTS", seed))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "METADATA", self.tmp / "absent.csv"))
         rc, _, err = self.run_sync(apply=True)
         self.assertEqual(rc, 2)
         self.assertIn("Master file is missing", err)
@@ -203,19 +206,19 @@ class SyncTests(unittest.TestCase):
     def test_seed_copies_are_refreshed_through_the_seed_copy_functions(self):
         seed = self.tmp / "seed"
         seed.mkdir()
-        (seed / cars.MERGED.name).write_text(
+        (seed / car_repo.MERGED.name).write_text(
             '<operations-config><cars><car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" '
             'length="40" color="Black"/></cars></operations-config>')
         row = dict(ROW, notes="CarImagesFinal/x.png")
-        self.stack.enter_context(unittest.mock.patch.object(cars, "read_rows", lambda: ([row], [])))
-        self.stack.enter_context(unittest.mock.patch.object(cars, "SEED_INPUTS", seed))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "read_rows", lambda: ([row], [])))
+        self.stack.enter_context(unittest.mock.patch.object(car_sync, "SEED_INPUTS", seed))
         self.ops.write_text(OPS_OLD.replace('length="50"', 'length="52"'))
         with unittest.mock.patch("build_car_roster_sor.main") as build, \
-                unittest.mock.patch.object(cars, "sync_seed_copies") as copy:
+                unittest.mock.patch.object(car_sync, "sync_seed_copies") as copy:
             rc, out, _ = self.run_sync(apply=True)
         self.assertEqual(rc, 0, out)
         build.assert_called_once()
-        copy.assert_called_once_with(seed, cars.SEED_COPIES)
+        copy.assert_called_once_with(seed, car_repo.SEED_COPIES)
 
 
 if __name__ == "__main__":

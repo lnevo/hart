@@ -10,7 +10,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
-import cars  # noqa: E402
+import car_compare  # noqa: E402
+import car_fields  # noqa: E402
+import car_ops_roster  # noqa: E402
+import car_repo  # noqa: E402
 
 LIVE = """<operations-config><roads><road name="PRR" /></roads><types /><colors />
 <cars><car id="PRR1" roadName="PRR" roadNumber="1" locationId="9" moves="7" /></cars>
@@ -24,20 +27,20 @@ MERGED = """<operations-config><cars>
 class QueueTests(unittest.TestCase):
     def test_new_car_needs_every_step(self):
         queue = []
-        cars.enqueue(queue, "NW2", "new car")
+        car_repo.enqueue(queue, "NW2", "new car")
         self.assertEqual((queue[0]["sts"], queue[0]["ops"]), ("", ""))
 
     def test_photo_only_needs_a_card(self):
         queue = []
-        cars.enqueue(queue, "NW2", "photo added")
+        car_repo.enqueue(queue, "NW2", "photo added")
         self.assertTrue(queue[0]["sts"] and queue[0]["ops"])
         self.assertEqual(queue[0]["card_built"], "")
 
     def test_requeue_resets_unprinted_card(self):
         queue = []
-        cars.enqueue(queue, "NW2", "new car")
+        car_repo.enqueue(queue, "NW2", "new car")
         queue[0]["card_built"] = "2026-10-31"
-        cars.enqueue(queue, "NW2", "photo added")
+        car_repo.enqueue(queue, "NW2", "photo added")
         self.assertEqual(len(queue), 1)
         self.assertEqual(queue[0]["card_built"], "")
         self.assertEqual(queue[0]["sts"], "")
@@ -51,8 +54,7 @@ class OpsMergeTests(unittest.TestCase):
             live.write_text(LIVE)
             merged = tmp / "merged.xml"
             merged.write_text(MERGED)
-            cars.MERGED, cars.OPS_MERGED = merged, tmp / "out.xml"
-            self.assertEqual(cars.merge_ops(live, ["PRR1", "NW2"]), ["NW2"])
+            self.assertEqual(car_ops_roster.merge_ops(live, ["PRR1", "NW2"], merged), ["NW2"])
             root = ET.parse(live).getroot()
             found = {c.get("id"): c for c in root.findall("./cars/car")}
             self.assertEqual(found["PRR1"].get("locationId"), "9")
@@ -67,8 +69,7 @@ class OpsMergeTests(unittest.TestCase):
             live.write_text(live_text)
             merged = tmp / "merged.xml"
             merged.write_text(MERGED)
-            cars.MERGED, cars.OPS_MERGED = merged, tmp / "out.xml"
-            self.assertEqual(cars.merge_ops(live, ["NW2"]), ["NW2"])
+            self.assertEqual(car_ops_roster.merge_ops(live, ["NW2"], merged), ["NW2"])
             self.assertIn("DOCTYPE", live.read_text())
 
 
@@ -80,11 +81,7 @@ class OutOfServiceTests(unittest.TestCase):
             live.write_text(live_text)
             merged = tmp / "merged.xml"
             merged.write_text(MERGED)
-            with (
-                unittest.mock.patch.object(cars, "MERGED", merged),
-                unittest.mock.patch.object(cars, "OPS_MERGED", tmp / "out.xml"),
-            ):
-                cars.merge_ops(live, [], out_of_service=out)
+            car_ops_roster.merge_ops(live, [], merged, out_of_service=out)
             return ET.parse(live).getroot().find("cars/car")
 
     def test_flag_set_and_session_state_kept(self):
@@ -98,7 +95,7 @@ class OutOfServiceTests(unittest.TestCase):
 
     def test_ids_come_from_the_column(self):
         rows = [{"roster_id": "NW2", "out_of_service": "yes"}, {"roster_id": "PRR1"}]
-        self.assertEqual(cars.out_of_service_ids(rows), {"NW2"})
+        self.assertEqual(car_repo.out_of_service_ids(rows), {"NW2"})
 
 
 class SeedCopyTests(unittest.TestCase):
@@ -116,53 +113,53 @@ class SeedCopyTests(unittest.TestCase):
             (self.inputs / m.name).write_text("master " + m.name)
 
     def test_same(self):
-        lines = cars.seed_copy_report(self.inputs, self.masters)
+        lines = car_compare.seed_copy_report(self.inputs, self.masters)
         self.assertEqual(lines, ["  a.csv: same", "  b.xml: same"])
 
     def test_differs_names_the_fix(self):
         (self.inputs / "b.xml").write_text("old")
-        lines = cars.seed_copy_report(self.inputs, self.masters)
+        lines = car_compare.seed_copy_report(self.inputs, self.masters)
         self.assertEqual(lines[0], "  a.csv: same")
         self.assertEqual(lines[1], "  b.xml: differs")
         self.assertIn("bin/cars seed-copy", lines[-1])
 
     def test_missing_copy_differs(self):
         (self.inputs / "a.csv").unlink()
-        lines = cars.seed_copy_report(self.inputs, self.masters)
+        lines = car_compare.seed_copy_report(self.inputs, self.masters)
         self.assertIn("differs", lines[0])
 
     def test_submodule_missing_is_said(self):
-        lines = cars.seed_copy_report(self.inputs / "nope", self.masters)
+        lines = car_compare.seed_copy_report(self.inputs / "nope", self.masters)
         self.assertEqual(len(lines), 1)
         self.assertIn("submodule", lines[0])
 
     def test_missing_master_is_reported_and_compare_continues(self):
         self.masters[0].unlink()
-        lines = cars.seed_copy_report(self.inputs, self.masters)
+        lines = car_compare.seed_copy_report(self.inputs, self.masters)
         self.assertEqual(lines[0], "  a.csv: master is missing")
         self.assertEqual(lines[1], "  b.xml: same")
 
     def test_hint_names_the_narrow_command(self):
         (self.inputs / "b.xml").write_text("old")
-        self.assertIn("bin/cars seed-copy", cars.seed_copy_report(self.inputs, self.masters)[-1])
+        self.assertIn("bin/cars seed-copy", car_compare.seed_copy_report(self.inputs, self.masters)[-1])
 
     def test_sync_copies_only_the_masters(self):
         (self.inputs / "b.xml").write_text("old")
         (self.inputs / "other.txt").write_text("keep")
-        cars.sync_seed_copies(self.inputs, self.masters)
+        car_repo.sync_seed_copies(self.inputs, self.masters)
         self.assertEqual((self.inputs / "b.xml").read_text(), "master b.xml")
         self.assertEqual((self.inputs / "other.txt").read_text(), "keep")
 
     def test_sync_stops_clearly_without_the_submodule(self):
-        with self.assertRaises(cars.CardPipelineError) as ctx:
-            cars.sync_seed_copies(self.inputs / "nope", self.masters)
+        with self.assertRaises(car_repo.CardPipelineError) as ctx:
+            car_repo.sync_seed_copies(self.inputs / "nope", self.masters)
         self.assertIn("submodule", str(ctx.exception))
 
     def test_sync_stops_on_missing_master_before_copying(self):
         self.masters[1].unlink()
         (self.inputs / "a.csv").write_text("old")
-        with self.assertRaises(cars.CardPipelineError):
-            cars.sync_seed_copies(self.inputs, self.masters)
+        with self.assertRaises(car_repo.CardPipelineError):
+            car_repo.sync_seed_copies(self.inputs, self.masters)
         self.assertEqual((self.inputs / "a.csv").read_text(), "old")
 
 
@@ -181,9 +178,9 @@ class FieldDifferenceTests(unittest.TestCase):
         return path
 
     def diffs(self, rows, path):
-        return cars.field_diffs(
-            cars.expected_cars(rows, cars.OPS_SKIP_TYPES), cars.ops_car_attrs(path),
-            cars.OPS_FIELDS,
+        return car_fields.field_diffs(
+            car_fields.expected_cars(rows, car_fields.OPS_SKIP_TYPES), car_ops_roster.ops_car_attrs(path),
+            car_fields.OPS_FIELDS,
         )
 
     def test_match_reports_nothing(self):
@@ -217,12 +214,12 @@ class FieldDifferenceTests(unittest.TestCase):
     def test_missing_tool_file_is_not_reported_as_zero(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            cars.print_if_present(Path("/nonexistent/ops.xml"), False, lambda: [])
+            car_compare.print_if_present(Path("/nonexistent/ops.xml"), False, lambda: [])
         self.assertIn("Cannot check: /nonexistent/ops.xml is missing", out.getvalue())
         self.assertNotIn("Field differences", out.getvalue())
 
     def test_seed_metadata_copy(self):
-        gen, reason = cars.seed_helpers()
+        gen, reason = car_fields.seed_helpers()
         if gen is None:
             self.skipTest(reason)
         header = "roster_id,road_name,road_number,car_type,car_class,notes\n"
@@ -241,7 +238,7 @@ class FieldDifferenceTests(unittest.TestCase):
                 + "NW3,,,Boxcar,,CarImagesFinal/c\n"  # passenger car: skipped
                 + "NW4,,,Flatcar,XM,other\n"  # no photo: skipped
             )
-            diffs = cars.seed_meta_diffs(repo, copy, gen)
+            diffs = car_fields.seed_meta_diffs(repo, copy, gen)
         self.assertEqual(
             diffs,
             [("NW2", "car_class", "XM", "XI"), ("NW2", "car_type", "Boxcar", "Flatcar"),
@@ -249,7 +246,7 @@ class FieldDifferenceTests(unittest.TestCase):
         )
 
     def test_added_cars_marks_and_remarks(self):
-        gen, reason = cars.seed_helpers()
+        gen, reason = car_fields.seed_helpers()
         if gen is None:
             self.skipTest(reason)
         rows = [self.row("NW2", car_type="Hopper"), self.row("NW3", car_type="Caboose")]
@@ -258,7 +255,7 @@ class FieldDifferenceTests(unittest.TestCase):
             "NW3": {"reporting_marks": "XX", "remarks": "x"},  # caboose: not an STS freight car
         }
         self.assertEqual(
-            cars.added_cars_diffs(rows, added, gen),
+            car_fields.added_cars_diffs(rows, added, gen),
             [("NW2", "remarks", "Hopper 52ft", "Hopper 50ft")],
         )
 
@@ -266,21 +263,21 @@ class FieldDifferenceTests(unittest.TestCase):
         diffs = [(f"NW{i}", "length", "52", "50") for i in range(25)]
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            cars.print_diffs(diffs, False)
+            car_fields.print_diffs(diffs, False)
         text = out.getvalue()
         self.assertIn("Field differences: 25", text)
         self.assertEqual(text.count("repo="), 20)
         self.assertIn("+5 more (--all)", text)
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            cars.print_diffs(diffs, True)
+            car_fields.print_diffs(diffs, True)
         self.assertEqual(out.getvalue().count("repo="), 25)
         self.assertNotIn("more (--all)", out.getvalue())
 
     def test_line_format(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            cars.print_diffs([("NW2", "length", "52", "50")], False)
+            car_fields.print_diffs([("NW2", "length", "52", "50")], False)
         self.assertIn("NW2 length: repo='52' tool='50'", out.getvalue())
 
 

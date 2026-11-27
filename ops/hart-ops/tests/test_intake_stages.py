@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "card_pipeline"))
 
-import cars  # noqa: E402
+import car_intake  # noqa: E402
 import intake_stages as st  # noqa: E402
 import locos  # noqa: E402
 
@@ -241,7 +241,7 @@ class RealCarRecordTests(unittest.TestCase):
                    "lt_wt_lbs", "built", "full_name", "ocr_text"]
         rows, queue = [], []
         row = review_row(car_type="Flatcar", roster_length_ft="52")
-        outcome = cars.record_car(row, rows, columns, queue, False)
+        outcome = car_intake.record_car(row, rows, columns, queue, False)
         self.assertEqual(outcome, "new car NW32800")
         self.assertEqual(rows[0]["source_image"], "IMG_1.png")
         self.assertEqual(queue[0]["roster_id"], "NW32800")
@@ -255,7 +255,7 @@ class RealCarRecordTests(unittest.TestCase):
         rows = [{c: "" for c in columns} | {"roster_id": "NW32800", "road_number": "32800",
                                              "reporting_marks": "N&W", "road_name": "N&W"}]
         queue = []
-        outcome = cars.record_car(review_row(car_type="Flatcar"), rows, columns, queue, False)
+        outcome = car_intake.record_car(review_row(car_type="Flatcar"), rows, columns, queue, False)
         self.assertEqual(outcome, "photo added to NW32800")
         self.assertEqual(rows[0]["source_image"], "IMG_1.png")
         self.assertEqual(queue[0]["reason"], "photo added")
@@ -339,6 +339,20 @@ class LocoTests(unittest.TestCase):
         self.assertTrue(locos.read_queue()[0]["published"])
         locos.cmd_publish(None, None)  # nothing is published twice
         self.assertEqual(len(json.loads(locos.IMPORT_LIST.read_text())), 1)
+
+    def test_a_bad_address_stops_publish_before_the_roster_is_written(self):
+        rows, queue = [], []
+        locos.upsert(rows, queue, {"road_name": "NW", "road_number": "1776"})
+        rows[0].update(self.full(dcc_address="²", long_address="yes"))
+        locos.write_table(locos.LOCOS, locos.COLUMNS, rows)
+        locos.write_table(locos.LOCO_QUEUE, locos.QUEUE_COLUMNS, queue)
+        before = locos.ENGINE_ROSTER.read_bytes() if locos.ENGINE_ROSTER.is_file() else None
+        with self.assertRaisesRegex(locos.CardPipelineError, "is not a number"):
+            locos.cmd_publish(None, None)
+        after = locos.ENGINE_ROSTER.read_bytes() if locos.ENGINE_ROSTER.is_file() else None
+        self.assertEqual(after, before)
+        self.assertFalse(locos.IMPORT_LIST.is_file())
+        self.assertFalse(locos.read_queue()[0]["published"])
 
 
 if __name__ == "__main__":
