@@ -39,7 +39,7 @@ Every device on every level gets its values from three layers, always in this or
 
 ## Consequences
 
-- One flow for every level. `FIELD_LEVEL` and the level tests go; the parked [builder merge](../projects/builder-merge.md) (one bean, row and mast process) becomes part of this work instead of waiting for main and upper wiring.
+- One flow for every level. `FIELD_LEVEL` and the level tests go; the parked [builder merge](../../archive/history/wiki/projects/builder-merge.md) (one bean, row and mast process) becomes part of this work instead of waiting for main and upper wiring.
 - Staging's current names, comments and system names become owner values on generated rows, and its track names leave `plan_overrides.json`. `tables.xml`, the desks and the panels do not change.
 - The first main or upper swap no longer needs a code change.
 - A device the plan no longer has cannot keep its owner values by accident.
