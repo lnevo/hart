@@ -14745,6 +14745,26 @@
    "label": "imports"
   },
   {
+   "from": "tools/schematic/device_map_staging_switches.py",
+   "to": "tools/schematic/device_map_staging.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/map_error.py",
+   "to": "tools/schematic/device_map_staging_switches.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_mast_rows.py",
+   "to": "tools/schematic/staging_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/schematic/staging_records.py",
+   "to": "tools/schematic/staging_mast_rows.py",
+   "label": "imports"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -15485,26 +15505,6 @@
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
-  },
-  {
-   "from": "tools/schematic/device_map_staging_switches.py",
-   "to": "tools/schematic/device_map_staging.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/map_error.py",
-   "to": "tools/schematic/device_map_staging_switches.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/staging_mast_rows.py",
-   "to": "tools/schematic/staging_device_map.py",
-   "label": "imports"
-  },
-  {
-   "from": "tools/schematic/staging_records.py",
-   "to": "tools/schematic/staging_mast_rows.py",
-   "label": "imports"
   }
  ]
 }
