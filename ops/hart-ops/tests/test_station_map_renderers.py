@@ -137,12 +137,23 @@ class Barn(unittest.TestCase):
         self.assertEqual(px(img, (cx, cy - r / 2)), station_compass.SHEET_GOLD)
 
     def test_docx_takes_the_west_yard_template_with_the_barn_title(self) -> None:
-        with mock.patch.object(sheet_kit, "write_sheet_docx") as write:
+        with mock.patch.object(sheet_kit, "write_sheet_docx") as write, quiet():
             barn._write_docx(Path("m.png"), Path("d.docx"))
         args, kw = write.call_args
         self.assertEqual(args, (barn.DOCX_TEMPLATE, Path("m.png"), Path("d.docx")))
         self.assertEqual(kw["media_names"], ("station_map_west_yard.png", "station_map_barn.png"))
         self.assertIn("Barn", kw["title"])
+
+    def test_main_stops_with_the_template_name_when_it_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with mock.patch.object(barn, "render"), mock.patch.object(barn, "HOPS", root), \
+                    mock.patch.object(barn, "ROOT", root), \
+                    mock.patch.object(barn, "DOCX_TEMPLATE", root / "none.docx"):
+                with self.assertRaises(SystemExit) as cm:
+                    barn.main()
+            self.assertIn(str(root / "none.docx"), str(cm.exception))
+            self.assertIsInstance(cm.exception.__cause__, sheet_kit.SheetTemplateMissing)
 
 
 class Shenango(unittest.TestCase):
@@ -175,7 +186,7 @@ class Shenango(unittest.TestCase):
         self.assertEqual(turned.getpixel((shenango.COMPASS_X_ROT + 3, y + 30)), station_compass.SHEET_GOLD)
 
     def test_docx_title_says_rotated_for_the_rotated_sheet(self) -> None:
-        with mock.patch.object(sheet_kit, "write_sheet_docx") as write:
+        with mock.patch.object(sheet_kit, "write_sheet_docx") as write, quiet():
             shenango._write_docx(Path("m.png"), Path("X_Rotated.docx"), "station_map_shenango_rotated.png")
             shenango._write_docx(Path("m.png"), Path("X.docx"), "station_map_shenango.png")
         titles = [c.kwargs["title"] for c in write.call_args_list]

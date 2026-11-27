@@ -49,6 +49,10 @@ SERIF_DIRS = (
 )
 
 
+class SheetTemplateMissing(FileNotFoundError):
+    """The SM-series docx a sheet is copied from is not a file."""
+
+
 def find_font(names: Sequence[str], size: int, dirs: Sequence[Path]) -> ImageFont.FreeTypeFont | None:
     """The first of ``names`` found in ``dirs`` (names first, then folders), or None."""
     for name in names:
@@ -167,14 +171,15 @@ def patch_core_title(xml_bytes: bytes, title: str) -> bytes:
 def write_sheet_docx(
     template: Path, png: Path, dest: Path, *,
     media_names: tuple[str, str] | None = None, title: str | None = None,
-) -> None:
-    """Copy an SM-series docx to ``dest`` with ``png`` as its map image.
+) -> Path:
+    """Copy an SM-series docx to ``dest`` with ``png`` as its map image and return ``dest``.
 
     ``media_names`` (old, new) renames the image in word/document.xml; ``title`` sets the
-    document title. Every other part is copied unchanged.
+    document title. Every other part is copied unchanged. Raises SheetTemplateMissing when
+    ``template`` is not a file.
     """
     if not template.is_file():
-        raise SystemExit(f"missing template {template}")
+        raise SheetTemplateMissing(f"missing template {template}")
     dest.parent.mkdir(parents=True, exist_ok=True)
     png_bytes = png.read_bytes()
     buf = BytesIO()
@@ -189,4 +194,4 @@ def write_sheet_docx(
                 data = patch_core_title(data, title)
             out.writestr(item, data)
     dest.write_bytes(buf.getvalue())
-    print(f"wrote {dest}")
+    return dest

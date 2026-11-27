@@ -2028,7 +2028,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "crop_car_image, crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
+   "desc": "crop_car_image (with crop_runs, crop_span, crop_level, crop_settings), crop_picker, loco_backdrop, sharpen_card_fill_images, finalize_car_images: photo to card-ready image.",
    "path": "ops/hart-ops/card_pipeline/crop_car_image.py"
   },
   {
