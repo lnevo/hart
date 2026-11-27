@@ -109,30 +109,25 @@
     viewer.open(src, alt);
   }
 
-  function buildViewer() {
-    const el = document.createElement("div");
-    el.className = "zoomer";
-    el.setAttribute("role", "dialog");
-    el.setAttribute("aria-modal", "true");
-    el.setAttribute("aria-label", "Map viewer");
-    el.hidden = true;
-    el.innerHTML =
-      '<div class="zoomer-bar">' +
-      '<button type="button" data-z="out" aria-label="Zoom out">−</button>' +
-      '<button type="button" data-z="fit">Fit</button>' +
-      '<button type="button" data-z="in" aria-label="Zoom in">+</button>' +
-      '<button type="button" data-z="close" class="zoomer-close">Close</button>' +
-      "</div>" +
-      '<div class="zoomer-stage"><img alt=""></div>' +
-      '<p class="zoomer-hint">Pinch or use + and − to zoom. <span class="rotate-hint">Turn your phone sideways for a bigger view.</span></p>';
-    document.body.appendChild(el);
-    const stage = el.querySelector(".zoomer-stage");
-    const img = el.querySelector("img");
-    let scale = 1;
-    let lastFocus = null;
+  const VIEWER_HTML =
+    '<div class="zoomer-bar">' +
+    '<button type="button" data-z="out" aria-label="Zoom out">−</button>' +
+    '<button type="button" data-z="fit">Fit</button>' +
+    '<button type="button" data-z="in" aria-label="Zoom in">+</button>' +
+    '<button type="button" data-z="close" class="zoomer-close">Close</button>' +
+    "</div>" +
+    '<div class="zoomer-stage"><img alt=""></div>' +
+    '<p class="zoomer-hint">Pinch or use + and − to zoom. <span class="rotate-hint">Turn your phone sideways for a bigger view.</span></p>';
 
-    function apply(newScale, cx, cy) {
-      newScale = Math.max(1, Math.min(6, newScale));
+  // The viewer zooms from 1 (the map fits the stage) to 6.
+  const clampScale = (s) => Math.max(1, Math.min(6, s));
+
+  // Zoom for the image in the scrolling stage: set(scale, cx, cy) keeps the map point under (cx, cy) in place
+  // (the stage centre when they are left out).
+  function stageZoom(stage, img) {
+    let scale = 1;
+    function set(newScale, cx, cy) {
+      newScale = clampScale(newScale);
       const rect = stage.getBoundingClientRect();
       if (cx == null) cx = rect.width / 2;
       if (cy == null) cy = rect.height / 2;
@@ -143,6 +138,59 @@
       stage.scrollLeft = fx * img.offsetWidth - cx;
       stage.scrollTop = fy * img.offsetHeight - cy;
     }
+    function reset() {
+      scale = 1;
+      img.style.width = "100%";
+      stage.scrollTop = 0;
+      stage.scrollLeft = 0;
+    }
+    return { set, reset, scale: () => scale };
+  }
+
+  // Pinch, double-click and ctrl+wheel on the stage.
+  function wireStageGestures(stage, zoom) {
+    let pinch = null;
+    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    // A point on the stage, from a pointer's page position.
+    const onStage = (x, y) => {
+      const r = stage.getBoundingClientRect();
+      return [x - r.left, y - r.top];
+    };
+    stage.addEventListener("touchstart", (e) => {
+      if (e.touches.length !== 2) return;
+      const [cx, cy] = onStage((e.touches[0].clientX + e.touches[1].clientX) / 2, (e.touches[0].clientY + e.touches[1].clientY) / 2);
+      pinch = { d: dist(e.touches), s: zoom.scale(), cx, cy };
+    }, { passive: true });
+    stage.addEventListener("touchmove", (e) => {
+      if (pinch && e.touches.length === 2) {
+        e.preventDefault();
+        zoom.set(pinch.s * (dist(e.touches) / pinch.d), pinch.cx, pinch.cy);
+      }
+    }, { passive: false });
+    stage.addEventListener("touchend", (e) => {
+      if (e.touches.length < 2) pinch = null;
+    });
+    stage.addEventListener("dblclick", (e) => zoom.set(zoom.scale() > 1 ? 1 : 2.5, ...onStage(e.clientX, e.clientY)));
+    stage.addEventListener("wheel", (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      zoom.set(zoom.scale() * (e.deltaY < 0 ? 1.15 : 1 / 1.15), ...onStage(e.clientX, e.clientY));
+    }, { passive: false });
+  }
+
+  function buildViewer() {
+    const el = document.createElement("div");
+    el.className = "zoomer";
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-modal", "true");
+    el.setAttribute("aria-label", "Map viewer");
+    el.hidden = true;
+    el.innerHTML = VIEWER_HTML;
+    document.body.appendChild(el);
+    const stage = el.querySelector(".zoomer-stage");
+    const img = el.querySelector("img");
+    const zoom = stageZoom(stage, img);
+    let lastFocus = null;
 
     function close() {
       el.hidden = true;
@@ -154,45 +202,18 @@
       const b = e.target.closest("button");
       if (!b) return;
       const z = b.getAttribute("data-z");
-      if (z === "in") apply(scale * 1.5);
-      else if (z === "out") apply(scale / 1.5);
-      else if (z === "fit") apply(1);
+      if (z === "in") zoom.set(zoom.scale() * 1.5);
+      else if (z === "out") zoom.set(zoom.scale() / 1.5);
+      else if (z === "fit") zoom.set(1);
       else if (z === "close") close();
     });
-
-    let pinch = null;
-    const dist = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-    // A point on the stage, from a pointer's page position.
-    const onStage = (x, y) => {
-      const r = stage.getBoundingClientRect();
-      return [x - r.left, y - r.top];
-    };
-    stage.addEventListener("touchstart", (e) => {
-      if (e.touches.length !== 2) return;
-      const [cx, cy] = onStage((e.touches[0].clientX + e.touches[1].clientX) / 2, (e.touches[0].clientY + e.touches[1].clientY) / 2);
-      pinch = { d: dist(e.touches), s: scale, cx, cy };
-    }, { passive: true });
-    stage.addEventListener("touchmove", (e) => {
-      if (pinch && e.touches.length === 2) {
-        e.preventDefault();
-        apply(pinch.s * (dist(e.touches) / pinch.d), pinch.cx, pinch.cy);
-      }
-    }, { passive: false });
-    stage.addEventListener("touchend", (e) => {
-      if (e.touches.length < 2) pinch = null;
-    });
-    stage.addEventListener("dblclick", (e) => apply(scale > 1 ? 1 : 2.5, ...onStage(e.clientX, e.clientY)));
-    stage.addEventListener("wheel", (e) => {
-      if (!e.ctrlKey) return;
-      e.preventDefault();
-      apply(scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15), ...onStage(e.clientX, e.clientY));
-    }, { passive: false });
+    wireStageGestures(stage, zoom);
     document.addEventListener("keydown", (e) => {
       if (el.hidden) return;
       HARTOps.trapTab(el, e);
       if (e.key === "Escape") close();
-      if (e.key === "+" || e.key === "=") apply(scale * 1.5);
-      if (e.key === "-") apply(scale / 1.5);
+      if (e.key === "+" || e.key === "=") zoom.set(zoom.scale() * 1.5);
+      if (e.key === "-") zoom.set(zoom.scale() / 1.5);
     });
 
     return {
@@ -202,10 +223,7 @@
         img.alt = alt || "";
         el.hidden = false;
         document.documentElement.classList.add("zoomer-open");
-        scale = 1;
-        img.style.width = "100%";
-        stage.scrollTop = 0;
-        stage.scrollLeft = 0;
+        zoom.reset();
         el.querySelector(".zoomer-close").focus();
       },
     };
@@ -244,7 +262,9 @@
   function writeTicks(job, ticks) {
     try {
       localStorage.setItem(storageKey(job), JSON.stringify(ticks));
-    } catch (e) {} // no storage: the ticks last until the page closes
+    } catch (e) {
+      return; // no storage: the ticks last until the page closes
+    }
   }
 
   function sheetHead(job) {
@@ -315,40 +335,62 @@
     );
   }
 
-  function renderSheet(job) {
-    const root = document.getElementById("crew-root");
-    document.title = `${job.code} ${job.name} — HART`;
-    document.getElementById("sheet-head").innerHTML = sheetHead(job);
+  function prioritySection(job) {
+    return (
+      '<section class="sheet-sec" aria-labelledby="prio-h"><h2 id="prio-h">Priority</h2><ol class="prio-strip">' +
+      listItems(job.priority, (p) => `<span>${esc(p)}</span>`) +
+      '</ol><p class="muted small">When moves conflict, the train further left goes first.</p></section>'
+    );
+  }
 
-    let html = `<p class="sheet-summary">${esc(job.summary)}</p>`;
-    if (job.priority) {
-      html +=
-        '<section class="sheet-sec" aria-labelledby="prio-h"><h2 id="prio-h">Priority</h2><ol class="prio-strip">' +
-        listItems(job.priority, (p) => `<span>${esc(p)}</span>`) +
-        '</ol><p class="muted small">When moves conflict, the train further left goes first.</p></section>';
-    }
-    if (job.steps) html += stepsSection(job);
-    if (job.sequence) html += rowsSection("Sequence", job.sequence);
-    if (job.lineup) html += rowsSection("Train lineup", job.lineup);
-    html += colorsSection(job);
-    if (job.maps && job.maps.length) {
-      html +=
-        '<section class="sheet-sec no-print" aria-labelledby="where-h"><h2 id="where-h">Where you work</h2><div class="map-cards">' +
-        join(job.maps, (id) => mapCard(mapById(id))) +
-        `</div><p class="small"><a href="${u("crew/maps/index.html")}">All station maps</a></p></section>`;
-    }
-    if (job.talk && job.talk.length) html += talkSection(job);
-    html +=
+  function whereSection(job) {
+    return (
+      '<section class="sheet-sec no-print" aria-labelledby="where-h"><h2 id="where-h">Where you work</h2><div class="map-cards">' +
+      join(job.maps, (id) => mapCard(mapById(id))) +
+      `</div><p class="small"><a href="${u("crew/maps/index.html")}">All station maps</a></p></section>`
+    );
+  }
+
+  // The back of the printed card: TT-23 beside the subdivision diagram.
+  function timetableBack(job) {
+    return (
       `<details class="sheet-more print-back" data-print-open${job.ttOpen ? " open" : ""}>` +
       "<summary>Route 23 timetable (TT-23)</summary>" +
       `<div class="back-page"><figure class="back-map print-only"><img src="${esc(u("assets/maps/station_map_diagram_only.png"))}"` +
       ` alt="Subdivision diagram"></figure><div>${ttTable()}` +
-      `<p class="small no-print"><a href="${u("crew/tt23/index.html")}">Full timetable page</a></p></div></div></details>`;
-    html += `<details class="sheet-more no-print"><summary>All destination colors</summary>${colorTable(true)}</details>`;
-    html += actions(printButton("Print 5×8 card") + sourceButton(job.source) +
-      ghostLink("crew/index.html", "All sheets") + ghostLink("briefing/index.html", "Primer"));
-    root.innerHTML = html;
+      `<p class="small no-print"><a href="${u("crew/tt23/index.html")}">Full timetable page</a></p></div></div></details>`
+    );
+  }
 
+  // A crew sheet's body: each section the job has data for, in the order the printed card has them.
+  function sheetBody(job) {
+    return (
+      `<p class="sheet-summary">${esc(job.summary)}</p>` +
+      (job.priority ? prioritySection(job) : "") +
+      (job.steps ? stepsSection(job) : "") +
+      (job.sequence ? rowsSection("Sequence", job.sequence) : "") +
+      (job.lineup ? rowsSection("Train lineup", job.lineup) : "") +
+      colorsSection(job) +
+      (job.maps && job.maps.length ? whereSection(job) : "") +
+      (job.talk && job.talk.length ? talkSection(job) : "") +
+      timetableBack(job) +
+      `<details class="sheet-more no-print"><summary>All destination colors</summary>${colorTable(true)}</details>` +
+      actions(printButton("Print 5×8 card") + sourceButton(job.source) +
+        ghostLink("crew/index.html", "All sheets") + ghostLink("briefing/index.html", "Primer"))
+    );
+  }
+
+  function renderSheet(job) {
+    const root = document.getElementById("crew-root");
+    document.title = `${job.code} ${job.name} — HART`;
+    document.getElementById("sheet-head").innerHTML = sheetHead(job);
+    root.innerHTML = sheetBody(job);
+    wireTicks(root, job);
+    wirePrint(root);
+  }
+
+  // The step boxes keep their ticks per job in this browser; Clear ticks empties them.
+  function wireTicks(root, job) {
     root.querySelectorAll("[data-step]").forEach((box) => {
       box.addEventListener("change", () => {
         const t = readTicks(job);
@@ -365,7 +407,6 @@
         });
       });
     }
-    wirePrint(root);
   }
 
   // One generated sheet (docs/ops/stations, published under crew/maps/generated-sheets/), tap to zoom.
@@ -636,7 +677,9 @@
     })).then(() => {
       try {
         history.replaceState(null, "", location.pathname + location.search);
-      } catch (e) {} // a file:// page may refuse it: the #print stays in the address bar
+      } catch (e) {
+        console.warn("crew: the #print stays in the address bar", e); // a file:// page may refuse it
+      }
       setTimeout(() => window.print(), 150);
     });
   }
@@ -693,5 +736,5 @@
     }
   }
 
-  window.HARTCrew = { page, chip };
+  window.HARTCrew = { page, chip, lib: { clampScale, stageZoom, readTicks, writeTicks } };
 })();

@@ -211,9 +211,6 @@
  "tools/schematic/build_staging_sets.py": {
   "dated-note": 2
  },
- "tools/schematic/device_map_inputs.py": {
-  "dated-note": 1
- },
  "tools/schematic/device_map_masts.py": {
   "dated-note": 3
  },

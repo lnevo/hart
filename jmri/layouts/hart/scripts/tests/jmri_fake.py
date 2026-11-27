@@ -490,7 +490,7 @@ def _modules(layout):
         return str(layout.jython_dir)
 
     power_cls = type("PowerManager", (PowerManager,), {})
-    instance_manager = types.SimpleNamespace(getDefault=layout.instance)
+    instance_manager = types.SimpleNamespace(getDefault=layout.instance, getNullableDefault=layout.instance)
     mqtt = mod("jmri.jmrix.mqtt", MqttSystemConnectionMemo=MqttSystemConnectionMemo,
                MqttEventListener=iface("MqttEventListener"))
     display = mod("jmri.jmrit.display", EditorManager=EditorManager, SensorIcon=iface("SensorIcon"),

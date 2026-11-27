@@ -6,7 +6,6 @@
  "cats/scripts/tests/desks.py": 1,
  "cats/scripts/tests/test_generated_desk_from_scratch.py": 5,
  "cats/scripts/tests/test_live_desk_levels.py": 6,
- "jmri/layouts/hart/scripts/audit_panel_contracts.py": 1,
  "jmri/layouts/hart/scripts/gen_ctc_track_plan.py": 5,
  "jmri/layouts/hart/scripts/layout_facts.py": 1,
  "jmri/layouts/hart/scripts/lcc_turnout_contract.py": 1,
