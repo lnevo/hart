@@ -31,7 +31,7 @@ class ChromeMissing(RuntimeError):
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
-    def log_message(self, *args) -> None:
+    def log_message(self, *args: object) -> None:
         pass
 
 

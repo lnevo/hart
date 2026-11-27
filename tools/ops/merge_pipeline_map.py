@@ -113,11 +113,14 @@ class Conflict:
 
 
 def key_of(name: str, entry: Mapping[str, Any]) -> str | tuple[str, str]:
+    key: str | tuple[str, str]
     if name == "nodes":
-        return MAP.node_key(entry)
-    if name == "edges":
-        return MAP.edge_key(entry)
-    return entry[KEY_FIELDS[name][0]]
+        key = MAP.node_key(entry)
+    elif name == "edges":
+        key = MAP.edge_key(entry)
+    else:
+        key = entry[KEY_FIELDS[name][0]]
+    return key
 
 
 def show(name: str, key: str | tuple[str, str]) -> str:
@@ -128,7 +131,7 @@ def show(name: str, key: str | tuple[str, str]) -> str:
 def load_side(path: Path, side: str) -> Graph:
     """One side of the merge as data, every list entry checked to have its key and no key twice."""
     try:
-        data = MAP.read(path)
+        data: Graph = MAP.read(path)
     except MAP.GraphError as err:
         raise MergeError(f"{side} ({path}): {err}") from err
     if SENTINEL_STEM in path.read_text(encoding="utf-8"):
@@ -152,7 +155,7 @@ def load_side(path: Path, side: str) -> Graph:
     return data
 
 
-def three_way(base, ours, theirs):
+def three_way(base: object, ours: object, theirs: object) -> object:
     """The merged value, or a Conflict with both sides' values. ABSENT stands for a missing entry."""
     if ours == theirs:
         return ours
@@ -211,11 +214,13 @@ def merge_list(name: str, base: Graph, ours: Graph, theirs: Graph, conflicts: li
     return out
 
 
-def later_date(ours, theirs):
+def later_date(ours: object, theirs: object) -> str | None:
     """The later of two YYYY-MM-DD dates, or None when either is not one."""
+    if not isinstance(ours, str) or not isinstance(theirs, str):
+        return None
     try:
         return max(dt.date.fromisoformat(ours), dt.date.fromisoformat(theirs)).isoformat()
-    except (TypeError, ValueError):
+    except ValueError:
         return None
 
 
@@ -247,7 +252,7 @@ def merge_graphs(base: Graph, ours: Graph, theirs: Graph) -> tuple[Graph, list[C
     return out, conflicts
 
 
-def entry_text(value, indent: str, prefix: str, comma: str) -> str:
+def entry_text(value: object, indent: str, prefix: str, comma: str) -> str:
     lines = json.dumps(value, indent=1, ensure_ascii=False).split("\n")
     return "\n".join([indent + prefix + lines[0], *(indent + line for line in lines[1:])]) + comma
 
@@ -257,7 +262,7 @@ def render(data: Graph, conflicts: list[Conflict]) -> str:
     inline = [c for c in conflicts if c.inline]
     numbered = {id(c): i for i, c in enumerate(inline)}
 
-    def swap(value):
+    def swap(value: object) -> object:
         if isinstance(value, list):
             return [swap(v) for v in value]
         if isinstance(value, Conflict):
@@ -267,7 +272,7 @@ def render(data: Graph, conflicts: list[Conflict]) -> str:
     text = MAP.graph_text({k: swap(v) for k, v in data.items()})
     done: set[int] = set()
 
-    def block(m: re.Match) -> str:
+    def block(m: re.Match[str]) -> str:
         indent, prefix, i, comma = m.group(1), m.group(2), int(m.group(3)), m.group(4)
         c = inline[i]
         done.add(i)
@@ -285,7 +290,7 @@ def render(data: Graph, conflicts: list[Conflict]) -> str:
     return text
 
 
-def _lanes(*values) -> list[str]:
+def _lanes(*values: object) -> list[str]:
     """The generated lanes (their "gen" marks) of the entries among `values`."""
     return sorted({v["gen"] for v in values if isinstance(v, dict) and isinstance(v.get("gen"), str)})
 

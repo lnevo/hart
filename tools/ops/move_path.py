@@ -157,7 +157,7 @@ def rewrite_links(text: str, here_old: str, here_new: str, plan: Plan, known: se
     """Relative links in a Markdown or HTML file now at `here_old`, to be at `here_new`."""
     dir_old, dir_new = posixpath.dirname(here_old), posixpath.dirname(here_new)
 
-    def fix(m: re.Match) -> str:
+    def fix(m: re.Match[str]) -> str:
         pre, target, post = (m.group(1), m.group(2), m.group(3)) if m.group(1) else (m.group(4), m.group(5), m.group(6))
         cut = min([i for i in (target.find("#"), target.find("?")) if i >= 0], default=len(target))
         path, frag = target[:cut], target[cut:]
@@ -223,7 +223,7 @@ def fix_depth(text: str, old_file: str, new_file: str, plan: Plan) -> str:
     if d_old == d_new:
         return text
 
-    def fix(m: re.Match) -> str:
+    def fix(m: re.Match[str]) -> str:
         if int(m.group(2)) == d_old:
             return f"{m.group(1)}{d_new}{m.group(3)}"
         return m.group(0)

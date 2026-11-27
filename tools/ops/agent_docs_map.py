@@ -30,10 +30,13 @@ import importlib.util
 import json
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location("check_agent_docs", ROOT / "tools/audit/check_agent_docs.py")
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"cannot load {ROOT / 'tools/audit/check_agent_docs.py'}")
 DOCS_CHECK = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(DOCS_CHECK)
 
@@ -89,9 +92,9 @@ class AgentDocsMapError(Exception):
 def _ls(*pathspecs: str, others: bool = False) -> list[str]:
     """Tracked files matching `pathspecs`, or with others=True the new ones git does not ignore."""
     try:
-        if others:
-            return DOCS_CHECK._git("ls-files", "-z", "--others", "--exclude-standard", "--", *pathspecs)
-        return DOCS_CHECK._tracked(*pathspecs)
+        found: list[str] = (DOCS_CHECK._git("ls-files", "-z", "--others", "--exclude-standard", "--", *pathspecs)
+                            if others else DOCS_CHECK._tracked(*pathspecs))
+        return found
     except DOCS_CHECK.AgentDocsError as err:
         raise AgentDocsMapError(str(err)) from err
 
@@ -121,9 +124,10 @@ def _unquote(path: str, value: str) -> str:
     if value[0] == "'":
         return value[1:-1].replace("''", "'")
     try:
-        return json.loads(value)
-    except json.JSONDecodeError:
-        raise AgentDocsMapError(f"{path}: the front matter description has an escape the map cannot read") from None
+        text: str = json.loads(value)    # a double quoted YAML scalar reads as a JSON string
+        return text
+    except json.JSONDecodeError as exc:
+        raise AgentDocsMapError(f"{path}: the front matter description has an escape the map cannot read") from exc
 
 
 def front_description(path: str, text: str) -> str:
@@ -144,7 +148,7 @@ def front_description(path: str, text: str) -> str:
     raise AgentDocsMapError(f"{path}: front matter has no description; add one")
 
 
-def doc_nodes(tracked: frozenset[str], read) -> list[dict]:
+def doc_nodes(tracked: frozenset[str], read: Callable[[str], str]) -> list[dict]:
     """The generated boxes, by path. `read` gives a repo file's text."""
     nodes = []
     for path, (label, desc) in {**DOCS, **FOLDERS}.items():
@@ -195,8 +199,8 @@ def reading_order(pairs: set[tuple[str, str]], start: str) -> list[tuple[str, st
     return sorted((a, b) for a, b in pairs if a not in level or (b in level and level[b] > level[a]))
 
 
-def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked: list[str],
-              checker: str, ignored=None) -> list[dict]:
+def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read: Callable[[str], str], checked: list[str],
+              checker: str, ignored: Callable[[str], bool] | None = None) -> list[dict]:
     """The generated links. set_nodes maps each box path of the set to its id; `checked` is what check_agent_docs
     reads and `checker` is its box."""
     folders = tuple(p for p in set_nodes if p in FOLDERS)
@@ -222,7 +226,7 @@ def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked:
                 if to is not None and to != nid:
                     found.add((nid, to))
     edges = {pair: "points to" for pair in reading_order(found, set_nodes[START])}
-    owners = {_owner(f, set_nodes, folders) for f in checked} - {None}
+    owners = {o for f in checked if (o := _owner(f, set_nodes, folders)) is not None}
     for owner in owners:
         edges[(owner, checker)] = "check"
     if not owners:
@@ -236,11 +240,11 @@ def _read_file(rel: str) -> str:
         return (ROOT / rel).read_text(encoding="utf-8")
     except OSError as err:
         raise AgentDocsMapError(f"{rel} is in git but cannot be read ({err.strerror}); restore it or git rm it") from err
-    except UnicodeDecodeError:
-        raise AgentDocsMapError(f"{rel} is not UTF-8 text") from None
+    except UnicodeDecodeError as exc:
+        raise AgentDocsMapError(f"{rel} is not UTF-8 text") from exc
 
 
-def regenerate(data: dict, tracked: frozenset[str] | None = None, read=None,
+def regenerate(data: dict, tracked: frozenset[str] | None = None, read: Callable[[str], str] | None = None,
                checked: list[str] | None = None) -> dict:
     """The graph with its generated agent-doc boxes and links replaced by fresh ones from the files."""
     tracked = tracked if tracked is not None else frozenset(_ls())
