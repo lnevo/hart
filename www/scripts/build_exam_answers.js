@@ -384,13 +384,9 @@ function extract(files) {
 }
 
 
-/* signals.js, the tables the signals runs draw from (shared with the study deck), loaded in a sandbox. */
+/* signals.js, the tables the signals runs draw from (shared with the study deck): the names the pages load as globals. */
 function loadSignals() {
-  const file = path.join(EXAM, "signals.js");
-  const ctx = {};
-  vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(file, "utf8") + ";this.SIG={ASPECTS,ROUTE,PLATES,sigFig,lightFig,armWords,lampWords,plateWrongs,routeWhy};", ctx);
-  const SIG = ctx.SIG;
+  const SIG = require(path.join(EXAM, "signals.js"));
   if (!SIG.ASPECTS.length || !SIG.ROUTE.length || !Object.keys(SIG.PLATES).length) throw new Error("signals.js: a table is empty");
   return SIG;
 }

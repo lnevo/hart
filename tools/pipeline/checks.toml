@@ -1006,6 +1006,19 @@ inputs = [
 # it reads every tracked .py file (check_habits.SCAN_GLOBS)
 quiet_inputs = ["**/*.py"]
 
+# The device master's files are reached through hartlib.devices only: a static scan, out of the unit-hartlib suite.
+[[step]]
+name = "devices-one-path"
+runner = "check"
+group = "static"
+cmd = ["python3", "tools/audit/check_devices_one_path.py"]
+git = ["head", "base"]
+domain = "extras"
+label = "check_devices_one_path"
+desc = "Audit: no tracked .py outside hartlib names a devices file (devices_generated.csv, devices_field.csv) or opens the master itself; it reaches them through hartlib.devices (MASTER_FILE, FIELD_FILE, master_path, field_path, load, index, field_index, write_field)."
+# it reads every tracked .py file (check_devices_one_path.SCAN_GLOBS)
+quiet_inputs = ["**/*.py"]
+
 [[step]]
 name = "agent-docs"
 runner = "check"
