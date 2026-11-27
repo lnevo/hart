@@ -1,9 +1,10 @@
-"""tools/hosts/pi/jython_scripts.txt is the one list of the jython the Mac and the Pi install: common.sh builds the
-Mac's and the package's arrays from it, and the Pi apply step reads the copy the package carries. The reader
+"""tools/hosts/pi/jython_scripts.txt is the one list of the jython the Mac, the Pi and Windows install: common.sh builds
+the Mac's and the package's arrays from it, and the Pi apply step reads the copy the package carries. The reader
 (jython_list.sh) refuses a malformed list, and the Pi apply step refuses a package without a listed script before
 it changes anything."""
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -12,6 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pi_drop import JYTHON, ROOT, applied, files_under, jython_rows  # noqa: E402
+from win_jython import PWSH, PwshError, declared_roles, run_reader, windows_jython  # noqa: E402
 
 COMMON = ROOT / "tools/hosts/deploy/common.sh"
 ARRAYS = {"startup": "JYTHON_STARTUP_SCRIPTS", "sibling": "JYTHON_SIBLING_MODULES", "part": "JYTHON_PANEL_STATUS_PARTS"}
@@ -34,7 +36,8 @@ class OneList(unittest.TestCase):
         arrays = common_arrays()
         for role in ARRAYS:
             with self.subTest(role=role):
-                self.assertEqual(arrays[role], [r.path for r in JYTHON if r.role == role])
+                roles = ("startup", "macpi") if role == "startup" else (role,)   # a macpi row is a Mac Start Up one
+                self.assertEqual(arrays[role], [r.path for r in JYTHON if r.role in roles])
 
     def test_the_pi_installs_every_row_and_nothing_else(self) -> None:
         with applied({}) as pi:
@@ -46,6 +49,63 @@ class OneList(unittest.TestCase):
 
     def test_the_pi_only_row_is_a_start_up_script_the_package_carries(self) -> None:
         self.assertEqual([r.path for r in JYTHON if r.role == "pi"], ["jmri/layouts/hart/scripts/mimic_relay.py"])
+
+
+class HostSets(unittest.TestCase):
+    """What each host installs from the one list: the Mac every row but the pi rows, the Pi every row, Windows the
+    Mac's set less the macpi rows (sts_car_sync.py, a Start Up script of the Mac and the Pi only)."""
+
+    def test_each_host_installs_what_it_did_before_the_list_was_shared(self) -> None:
+        arrays = common_arrays()
+        mac = {Path(p).name for paths in arrays.values() for p in paths}
+        with applied({}) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            pi_set = set(files_under(pi.user_files / "jython"))
+        win = {Path(p).name for p in windows_jython()}
+        self.assertEqual(pi_set - mac, {"mimic_relay.py"})
+        self.assertEqual(mac - win, {"sts_car_sync.py"})
+        self.assertEqual(win - mac, set())
+        self.assertEqual([r.path for r in JYTHON if r.role == "macpi"], ["jmri/layouts/hart/scripts/sts_car_sync.py"])
+
+    def test_the_reader_and_the_ps1_know_the_same_roles(self) -> None:
+        self.assertEqual(set(declared_roles("JythonRoles")), {"startup", "macpi", "pi", "sibling", "part"})
+        self.assertEqual(set(declared_roles("JythonWindowsRoles")), {"startup", "sibling", "part"})
+
+
+@unittest.skipUnless(PWSH, "pwsh is not installed: the Windows reader's error paths run where it is")
+class WindowsReader(unittest.TestCase):
+    """jython_list.ps1 (Get-JythonSources) on a list and package written here."""
+
+    def package(self, text: str, files: tuple[str, ...] = ()) -> tuple[Path, Path]:
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for rel in files:
+            (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
+            (tmp / rel).write_text("# stand-in\n", encoding="utf-8")
+        listing = tmp / "jython_scripts.txt"
+        listing.write_text(text, encoding="utf-8")
+        return listing, tmp
+
+    def test_installs_the_windows_rows_in_order(self) -> None:
+        listing, pkg = self.package("# c\nstartup a/x.py\nmacpi a/m.py\npi a/p.py\npart b/y.py\n",
+                                    ("a/x.py", "b/y.py"))
+        self.assertEqual(run_reader(listing, pkg), ["a/x.py", "b/y.py"])
+
+    def test_refuses_what_it_cannot_install(self) -> None:
+        cases = (("startup a/x.py\nmodule b/y.py\n", ("a/x.py",), r":2: unknown role 'module'"),
+                 ("startup ../x.py\n", (), r":1: expected 'startup PATH'"),
+                 ("startup a/x.py extra\n", (), r":1: expected 'startup PATH'"),
+                 ("startup a/x.py\nsibling a/y.py\n", (), r"The package lacks jython Windows installs .*a/x.py a/y.py"),
+                 ("pi a/p.py\n", (), "names no script Windows installs"))
+        for text, files, message in cases:
+            with self.subTest(text=text):
+                listing, pkg = self.package(text, files)
+                with self.assertRaisesRegex(PwshError, message):
+                    run_reader(listing, pkg)
+
+    def test_refuses_a_missing_list(self) -> None:
+        with self.assertRaisesRegex(PwshError, "jython list missing"):
+            run_reader(ROOT / "no/such/jython_scripts.txt", ROOT)
 
 
 class MissingScript(unittest.TestCase):
@@ -81,6 +141,9 @@ class Reader(unittest.TestCase):
     def test_reads_rows_in_order_without_comments_or_blank_lines(self) -> None:
         self.assertEqual(self.rows("# a comment\n\nstartup a/x.py\n  \npart b/y.py"),
                          (("startup", "a/x.py"), ("part", "b/y.py")))
+
+    def test_reads_a_macpi_row(self) -> None:
+        self.assertEqual(self.rows("macpi a/x.py\n"), (("macpi", "a/x.py"),))
 
     def test_refuses_an_unknown_role(self) -> None:
         self.refused("startup a/x.py\nmodule b/y.py\n", r":2: unknown role 'module'")
