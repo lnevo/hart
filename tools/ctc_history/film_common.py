@@ -2,13 +2,15 @@
 
 Each film composes its frames with Pillow, writes an ffmpeg concat list that
 holds every frame for its film_pace duration, and runs ffmpeg on it. This module
-holds the font loader, the concat list, the ffmpeg runner and the film errors.
+holds the font loader, the concat list, the ffmpeg runner, the frame loop the
+poster films share (build_film) and the film errors.
 """
 
 from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TypeAlias
@@ -32,6 +34,9 @@ FONT_FILES: tuple[str, ...] = (
     "/Library/Fonts/Arial Bold.ttf",
 )
 CAPTION_INK = (220, 200, 140)
+# The codec of the films that also write a poster (cats, le).
+POSTER_FILM_CODEC: tuple[str, ...] = ("-c:v", "libx264", "-crf", "26", "-movflags", "+faststart")
+POSTER_QUALITY = 88
 
 
 class FilmError(RuntimeError):
@@ -107,3 +112,25 @@ def run_ffmpeg(cmd: Sequence[str], runner: Runner | None = None) -> None:
         raise FfmpegError(cmd, None, str(exc)) from exc
     if done.returncode != 0:
         raise FfmpegError(cmd, done.returncode, done.stderr or "")
+
+
+def build_film(frames: Sequence[Callable[[], Image.Image]], out_mp4: Path, poster: Path, prefix: str,
+               runner: Runner | None = None) -> None:
+    """Compose each of ``frames`` in order and save it as a PNG in a temporary folder whose name starts with
+    ``prefix``, the last one also as the JPEG ``poster``; then encode the PNGs into ``out_mp4`` at film_pace's timing
+    (run_ffmpeg). Fewer than two frames is a FilmError, raised before any frame is composed."""
+    if len(frames) < 2:
+        raise FilmError(f"{len(frames)} frame(s) for {out_mp4}: a film needs two or more (film_pace)")
+    with tempfile.TemporaryDirectory(prefix=prefix) as tmp:
+        work = Path(tmp)
+        frame_paths: list[Path] = []
+        for i, compose in enumerate(frames):
+            path = work / f"f{i:02d}.png"
+            frame = compose()
+            frame.save(path)
+            if i == len(frames) - 1:
+                frame.save(poster, quality=POSTER_QUALITY)
+            frame_paths.append(path)
+        lst = work / "concat.txt"
+        write_concat_list(frame_paths, lst)
+        run_ffmpeg(mp4_command(lst, len(frame_paths), POSTER_FILM_CODEC, out_mp4), runner)

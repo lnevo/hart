@@ -1,15 +1,22 @@
-"""The three apply paths (Mac, Pi, Windows) install what the package ships and delete nothing by a retired
+r"""The three apply paths (Mac, Pi, Windows) install what the package ships and delete nothing by a retired
 name: the hosts hold none of these files, so a deploy has nothing of them to clean up. The one exception is
 the Start Up entries of three retired scripts, which an old profile.xml can still hold (a Windows per-computer
-profile did on 2026-11-26): each apply path strips them, and Windows covers every profile\<node id>\profile.xml.
+profile can): each apply path strips them, and Windows covers every profile\<node id>\profile.xml.
 
 The stock xml/signals/C&O-1980 of the JMRI install is never removed either; its name is in the list so no
-apply path deletes it."""
+apply path deletes it.
+
+The Pi's apply step runs here on a made-up drop (pi_drop) holding the retired names. The Mac's step (ship_mac.sh)
+installs on this machine and the Windows step is PowerShell, so for those two the tests read the script text."""
 from __future__ import annotations
 
 import re
+import sys
 import unittest
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pi_drop import PATCH, applied, files_under, start_up  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 APPLY = (
@@ -17,6 +24,7 @@ APPLY = (
     ROOT / "tools/hosts/pi/apply_hart_package_local.sh",
     ROOT / "tools/hosts/windows/apply_hart_package_local.ps1",
 )
+NOT_RUN = (APPLY[0], APPLY[2])      # the Mac's and Windows' steps: these tests read their text
 STARTUP_STRIP = ("apply_maintain_mqtt.py", "apply_mqtt_retain_at_startup.py", "prepare_nx_sml_paths.py")
 RETIRED = (
     "hart_dispatcher_startup.py", "patch_dispatcher_facing.py",
@@ -27,18 +35,50 @@ RETIRED = (
 )
 
 
+class PiKeepsRetiredNames(unittest.TestCase):
+    """The Pi's apply step, given a package and a host that both hold every retired name, installs none of them and
+    deletes none: only the one retired Start Up entry it strips goes."""
+
+    def test_nothing_by_a_retired_name_is_installed_or_deleted(self) -> None:
+        planted = {f"{where}/{name}": "retired\n" for name in RETIRED
+                   for where in ("JMRI_UserFiles", "JMRI_UserFiles/jython", "JMRI/xml/signals")}
+        package = {"cats/scripts/patch_jmri_startup.py": PATCH.read_text(encoding="utf-8"),
+                   **{f"jmri/layouts/hart/scripts/{name}": "retired\n" for name in RETIRED}}
+        kept = ("preference:jython/panel_status.py", "preference:jython/signal_coordinator.py",
+                "preference:jython/jmri_cmd_watcher.py")
+        with applied(package, installed=planted, profile=start_up(*kept, "home:prepare_nx_sml_paths.py")) as pi:
+            self.assertEqual(pi.code, 0, pi.out)
+            left = files_under(pi.home)
+            for rel in planted:
+                with self.subTest(kept=rel):
+                    self.assertIn(rel, left)
+            installed = [rel for rel in left if rel not in planted]
+            self.assertFalse([rel for rel in installed if any(name in rel for name in RETIRED)], installed)
+            profile = pi.profile.read_text(encoding="utf-8")
+        self.assertNotIn("prepare_nx_sml_paths.py", profile)
+        self.assertEqual(re.findall(r'name="([^"]+)"', profile),
+                         [*kept, "preference:jython/sts_car_sync.py", "preference:jython/mimic_relay.py"])
+
+
 class NoRetiredNames(unittest.TestCase):
+    """The Mac and Windows steps cannot run here: their text names no retired file. No step installs a JMRI patch
+    (only the ADR-034 overlay, from tools/jmri/mqtt_overlay)."""
+
     def test_no_apply_path_names_a_retired_file(self) -> None:
-        for path in APPLY:
+        for path in NOT_RUN:
             text = path.read_text(encoding="utf-8")
             for name in RETIRED:
                 with self.subTest(script=path.name, name=name):
                     self.assertNotIn(name, text)
-            with self.subTest(script=path.name, name="jmri patches"):
+
+    def test_no_apply_path_installs_a_jmri_patch(self) -> None:
+        for path in APPLY:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(script=path.name):
                 self.assertNotRegex(text, r"tools[/\\]jmri[/\\]patches")
 
     def test_start_up_names_appear_only_to_strip_them(self) -> None:
-        for path in APPLY:
+        for path in NOT_RUN:
             for line in path.read_text(encoding="utf-8").splitlines():
                 if any(name in line for name in STARTUP_STRIP):
                     with self.subTest(script=path.name, line=line.strip()):
