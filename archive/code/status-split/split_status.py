@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Split a one-file wiki/STATUS.md into one file per entry under wiki/status/ (ADR-038), and check the result.
 
-    python3 tools/ops/split_status.py [--from FILE | --from-git REF]
+    python3 archive/code/status-split/split_status.py [--from FILE | --from-git REF]
         write wiki/status/<section>/<slug>.md for every entry (replacing the section folders' entries), each opening
         with an `order:` line (10, 20, 30 in the page's order, so a section keeps its topic grouping), current/counts.md
         where the Counts lines stand, and wiki/status/README.md; then build the page in memory (status_counts.py) and
         compare it with FILE byte for byte apart from the Counts line; exit 1 if it differs
-    python3 tools/ops/split_status.py --tidy [--from FILE]
+    python3 archive/code/status-split/split_status.py --tidy [--from FILE]
         rewrite FILE with one blank line between blocks and none between entries, the only layout the build writes;
         no entry moves
 
