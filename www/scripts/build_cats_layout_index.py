@@ -26,7 +26,8 @@ import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from collections.abc import Sequence
+from collections import Counter
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -47,13 +48,6 @@ CELL = 60
 PAD_X = 60
 PAD_Y = 90
 
-# Digicon station numbers → public LE switch names (crossovers)
-STATION_TO_SWITCH = {
-    "111": "Switch 23",
-    "113": "Switch 35",
-    "117": "Switch 7",
-}
-
 # SECSIGNAL PANELSIGNAL SIGLOCATION → fraction inside the cell (x, y)
 SIG_LOC = {
     "UPLEFT": (0.22, 0.18),
@@ -71,9 +65,11 @@ SIG_LOC = {
     # Digicon aliases seen on Master CTC
     "LEFTLOW": (0.18, 0.82),
     "LEFTUP": (0.18, 0.18),
+    "LEFTCENT": (0.18, 0.50),
     "RIGHTLOW": (0.82, 0.82),
     "RIGHTUP": (0.82, 0.18),
 }
+
 
 # Portal-only pixel nudges when Digicon cell slots still sit on top of the plant.
 # Values are absolute image coords (same space as CELL/PAD in render_cats_panel).
@@ -93,42 +89,27 @@ def render() -> None:
         raise CatsIndexError(f"render failed: {RENDER.name} {PANEL}")
 
 
-def le_by_keys(le_index: dict) -> dict[str, Item]:
-    """The layout index's items by every name a Digicon cell may use for them."""
+def le_items(le_index: Mapping[str, object]) -> list[Item]:
+    """The items of a layout index (build_layout_index.build()); CatsIndexError when it has none."""
     items = le_index.get("items")
     if not isinstance(items, list) or not items:
         raise CatsIndexError("the layout index it joins to has no items")
-    out: dict[str, Item] = {}
-    # Names first; they are authoritative.
     for it in items:
-        for key in (
-            it.get("publicName"),
-            it.get("systemName"),
-            it.get("hardware"),
-            (it.get("block") or "").replace("OS ", "").strip(),
-        ):
+        lacks = sorted(Item.__required_keys__ - it.keys()) if isinstance(it, dict) else ["(not an object)"]
+        if lacks:
+            raise CatsIndexError(f"an item of the layout index it joins to lacks {', '.join(lacks)}: {it!r:.120}")
+    return items
+
+
+def le_by_keys(items: Sequence[Item]) -> dict[str, Item]:
+    """The layout index's items by lower-case public name, system name, hardware and OS block (without "OS "): the
+    names a Digicon mast or OS block joins by. The first item to use a name keeps it."""
+    out: dict[str, Item] = {}
+    for it in items:
+        for key in (it.get("publicName"), it.get("systemName"), it.get("hardware"),
+                    (it.get("block") or "").replace("OS ", "").strip()):
             if key:
                 out.setdefault(str(key).strip().lower(), it)
-        # Mast 24RA style
-        for key in (it.get("publicName"), it.get("systemName")):
-            if key and "mast" in str(key).lower():
-                out.setdefault(str(key).strip().lower(), it)
-                bare = re.sub(r"^mast\s+", "", str(key).strip(), flags=re.I)
-                out.setdefault(bare.lower(), it)
-                out.setdefault(f"mast {bare.lower()}", it)
-    # Id-derived keys only fill gaps: LE id "to-TO1" is Switch 13, not Switch 1.
-    for it in items:
-        sn = (it.get("systemName") or "").strip()
-        if sn.startswith("Switch "):
-            out.setdefault(f"to{sn.split()[-1]}".lower(), it)
-        iid = it.get("id") or ""
-        if "TO" in iid.upper():
-            to = iid.upper().split("TO")[-1]
-            digits = "".join(ch for ch in to if ch.isdigit())
-            if digits:
-                out.setdefault(f"to{digits}", it)
-                out.setdefault(digits, it)
-                out.setdefault(f"switch {digits}", it)
     return out
 
 
@@ -148,30 +129,16 @@ def cell_origin(x: int, y: int, minx: int, miny: int) -> tuple[float, float]:
     return PAD_X + (x - minx) * CELL, PAD_Y + (y - miny) * CELL
 
 
-def match_turnout(by: dict[str, Item], stations: set[str], blocks: set[str]) -> Item | None:
-    def is_turnout(it: Item | None) -> bool:
-        return it is not None and it.get("kind") == "turnout"
-
-    for bl in blocks:
+def match_turnout(by: Mapping[str, Item], blocks: set[str]) -> Item | None:
+    """The turnout an OS block names ("OS Switch 9" is Switch 9); None when no block names one."""
+    for bl in sorted(blocks):
         name = bl.replace("OS ", "").lower()
         # a double crossover's corner block (OS Switch 225b) is a block of the Layout Editor, not a turnout: its
         # points belong to the crossover's one turnout (Switch 225)
         for key in (name, re.sub(r"(?<=\d)[a-d]$", "", name)):
-            if is_turnout(by.get(key)):
-                return by[key]
-    for st in stations:
-        pref = STATION_TO_SWITCH.get(st)
-        match = None
-        if pref:
-            match = by.get(pref.lower()) or by.get(f"to{st}")
-        if not match:
-            match = by.get(f"to{st}") or by.get(st.lower()) or by.get(f"switch {st}")
-        if match:
-            return match
-    for bl in blocks:
-        match = by.get(bl.lower()) or by.get(bl.replace("OS ", "").lower())
-        if match:
-            return match
+            it = by.get(key)
+            if it is not None and it.get("kind") == "turnout":
+                return it
     return None
 
 
@@ -183,15 +150,17 @@ def render_inputs_sha256() -> str:
 
     Recorded in the PNG (png_stamp) and the JSON so --check finds a PNG that needs re-rendering without drawing it.
     """
-    tp = ET.tostring(ET.parse(PANEL).getroot().find("TRACKPLAN"), encoding="unicode")
-    h = hashlib.sha256(EFFECTIVE.sub("Eff DATE", tp).encode("utf-8"))
+    tp = ET.parse(PANEL).getroot().find("TRACKPLAN")
+    if tp is None:
+        raise CatsIndexError(f"{paths.rel(PANEL)} has no TRACKPLAN")
+    h = hashlib.sha256(EFFECTIVE.sub("Eff DATE", ET.tostring(tp, encoding="unicode")).encode("utf-8"))
     h.update(RENDER.read_bytes())
     return h.hexdigest()
 
 
-def build(le_index: dict | None = None) -> dict:
+def build(le_index: Mapping[str, object] | None = None) -> dict:
     """The CATS index, joined to `le_index` (build_layout_index.build(), built now when None). CatsIndexError when a
-    source is missing or cannot be read."""
+    source is missing or cannot be read, or a desk mast or switch cell has no device of the layout index."""
     try:
         return _build(le_index)
     except (ET.ParseError, ValueError, OSError) as err:
@@ -213,73 +182,90 @@ def read_sections() -> list[ET.Element]:
 
 
 def cell_of(s: ET.Element) -> Cell:
-    return int(s.get("X")), int(s.get("Y"))
+    x, y = s.get("X"), s.get("Y")
+    if x is None or y is None or not x.lstrip("-").isdigit() or not y.lstrip("-").isdigit():
+        raise CatsIndexError(f"{paths.rel(PANEL)}: a SECTION has X={x!r} Y={y!r}, not two whole numbers")
+    return int(x), int(y)
 
 
-def blocks_by_cell(sections: Sequence[ET.Element]) -> dict[Cell, list[tuple[str, str]]]:
-    """(x, y) -> (OS block, station) on that cell's edges, for switch cells that carry none."""
-    out: dict[Cell, list[tuple[str, str]]] = {}
+def block_names(s: ET.Element) -> list[str]:
+    """The NAMEs of the BLOCKs on a section's edges, in desk order."""
+    return [name for e in s.findall("SEC_EDGE") for b in e.findall("BLOCK") if (name := b.get("NAME"))]
+
+
+def blocks_by_cell(sections: Sequence[ET.Element]) -> dict[Cell, list[str]]:
+    """(x, y) -> the OS blocks on that cell's edges, for switch cells that carry none; sections that share a cell
+    pool their blocks."""
+    out: dict[Cell, list[str]] = {}
     for s in sections:
-        for e in s.findall("SEC_EDGE"):
-            for b in e.findall("BLOCK"):
-                if b.get("NAME"):
-                    out.setdefault(cell_of(s), []).append((b.get("NAME"), b.get("STATION") or ""))
+        if names := block_names(s):
+            out.setdefault(cell_of(s), []).extend(names)
     return out
 
 
-def signal_item(sig: ET.Element, name: str, cell: Cell, origin: tuple[float, float], by: dict[str, Item]) -> Item:
-    """The hotspot of one SECSIGNAL, joined to the layout index by its mast name."""
-    key = name.lower()
+def surrounding_block(cell: Cell, near_blocks: Mapping[Cell, list[str]]) -> str:
+    """The OS block most edges of the four cells around a bare points cell carry. CatsIndexError when they carry
+    none, or two blocks tie."""
+    x, y = cell
+    near: Counter[str] = Counter()
+    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        near.update(near_blocks.get((x + dx, y + dy), []))
+    ranked = near.most_common(2)
+    if not ranked:
+        raise CatsIndexError(f"{paths.rel(PANEL)}: the points cell at {x},{y} has no OS block, nor do the cells "
+                             "around it")
+    if len(ranked) == 2 and ranked[0][1] == ranked[1][1]:
+        raise CatsIndexError(f"{paths.rel(PANEL)}: the points cell at {x},{y} has no OS block, and the cells "
+                             f"around it carry {ranked[0][0]} and {ranked[1][0]} as often")
+    return ranked[0][0]
+
+
+def signal_location(sig: ET.Element, name: str) -> tuple[str, tuple[float, float]]:
+    """A SECSIGNAL's SIGLOCATION and its fraction inside the cell; CatsIndexError when it has none, or one SIG_LOC
+    lacks."""
     panel = sig.find("PANELSIGNAL")
-    loc = (panel.get("SIGLOCATION") if panel is not None else None) or "CENTER"
-    fx, fy = SIG_LOC.get(loc.upper(), SIG_LOC["CENTER"])
+    loc = panel.get("SIGLOCATION") if panel is not None else None
+    if not loc:
+        raise CatsIndexError(f"{paths.rel(PANEL)}: {name} has no PANELSIGNAL SIGLOCATION")
+    if loc.upper() not in SIG_LOC:
+        raise CatsIndexError(f"{paths.rel(PANEL)}: {name} is at SIGLOCATION {loc}, which SIG_LOC does not place")
+    return loc, SIG_LOC[loc.upper()]
+
+
+def signal_item(sig: ET.Element, name: str, cell: Cell, origin: tuple[float, float], by: Mapping[str, Item]) -> Item:
+    """The hotspot of one SECSIGNAL, joined to the layout index by its mast name; CatsIndexError when the layout
+    index has no device of that name."""
+    key = name.lower()
+    m = by.get(key)
+    if m is None:
+        raise CatsIndexError(f"{paths.rel(PANEL)}: {name} at cell {cell[0]},{cell[1]} is not a device of the layout "
+                             "index")
+    loc, (fx, fy) = signal_location(sig, name)
     px, py = HOTSPOT_OVERRIDE.get(key) or (origin[0] + fx * CELL, origin[1] + fy * CELL)
-    match = by.get(key)
-    if not match:
-        bare = re.sub(r"^mast\s+", "", name, flags=re.I).strip().lower()
-        match = by.get(bare) or by.get(f"mast {bare}")
-    m = match or {}
     return build_layout_index.item(
         f"cats-sig-{re.sub(r'[^a-zA-Z0-9]+', '-', name).strip('-')}", "signal", (px, py),
-        m.get("systemName") or name, m.get("publicName") or name, m.get("cp") or "", m.get("hardware") or "",
-        m.get("mqtt") or "", m.get("comment") or f"Digicon SECSIGNAL @ cell ({cell[0]},{cell[1]}) {loc}",
-        m.get("block") or "")
+        m["systemName"], m["publicName"], m["cp"], m["hardware"], m["mqtt"],
+        # the layout index has no comment for most masts: say where on the desk it is
+        m["comment"] or f"Digicon SECSIGNAL @ cell ({cell[0]},{cell[1]}) {loc}", m["block"])
 
 
-def plant_item(cell: Cell, origin: tuple[float, float], stations: set[str], blocks: set[str],
-               near_blocks: dict[Cell, list[tuple[str, str]]], by: dict[str, Item]) -> Item:
-    """The hotspot of a cell with switch points, joined to the layout index's turnout."""
+def plant_item(cell: Cell, origin: tuple[float, float], blocks: set[str],
+               near_blocks: Mapping[Cell, list[str]], by: Mapping[str, Item]) -> Item:
+    """The hotspot of a cell with switch points, joined to the layout index's turnout by its OS block (for a cell
+    with none, the OS around it). CatsIndexError when no block names a turnout."""
     x, y = cell
-    if not blocks and not stations:
-        # Points cell with no OS of its own: take the OS that surrounds it.
-        near: dict[tuple[str, str], int] = {}
-        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-            for nb in near_blocks.get((x + dx, y + dy), []):
-                near[nb] = near.get(nb, 0) + 1
-        if near:
-            name, station = max(near, key=near.get)
-            blocks.add(name)
-            if station:
-                stations.add(station)
-    m = match_turnout(by, stations, blocks) or {}
-    public = m.get("publicName")
-    if not public:
-        public = next((STATION_TO_SWITCH[st] for st in stations if st in STATION_TO_SWITCH), None)
-    if not public:
-        if stations:
-            public = f"Plant {', '.join(sorted(stations))}"
-        elif blocks:
-            public = sorted(blocks)[0]
-        else:
-            public = f"Plant ({x},{y})"
-    where = f"Digicon plant @ {x},{y}" + (f"; OS {', '.join(sorted(blocks))}" if blocks else "")
+    blocks = set(blocks) or {surrounding_block(cell, near_blocks)}
+    m = match_turnout(by, blocks)
+    if m is None:
+        raise CatsIndexError(f"{paths.rel(PANEL)}: the points cell at {x},{y} (OS {', '.join(sorted(blocks))}) "
+                             "names no turnout of the layout index")
+    where = f"Digicon plant @ {x},{y}; OS {', '.join(sorted(blocks))}"
     return build_layout_index.item(
-        f"cats-to-{x}-{y}", "turnout", (origin[0] + CELL / 2, origin[1] + CELL / 2), m.get("systemName") or "",
-        public, m.get("cp") or (sorted(stations)[0] if stations else ""), m.get("hardware") or "",
-        m.get("mqtt") or "", m.get("comment") or where, m.get("block") or (sorted(blocks)[0] if blocks else ""))
+        f"cats-to-{x}-{y}", "turnout", (origin[0] + CELL / 2, origin[1] + CELL / 2), m["systemName"],
+        m["publicName"], m["cp"], m["hardware"], m["mqtt"], m["comment"] or where, m["block"])
 
 
-def section_items(sections: Sequence[ET.Element], by: dict[str, Item]) -> list[Item]:
+def section_items(sections: Sequence[ET.Element], by: Mapping[str, Item]) -> list[Item]:
     """Each cell's signals (each mast once, where it first appears) and, for a cell with points, its turnout."""
     minx, miny = min(cell_of(s)[0] for s in sections), min(cell_of(s)[1] for s in sections)
     near_blocks = blocks_by_cell(sections)
@@ -288,34 +274,30 @@ def section_items(sections: Sequence[ET.Element], by: dict[str, Item]) -> list[I
     for s in sections:
         cell = cell_of(s)
         origin = cell_origin(*cell, minx, miny)
-        stations: set[str] = set()
-        blocks: set[str] = set()
         has_points = False
         for e in s.findall("SEC_EDGE"):
             has_points = has_points or e.find("SWITCHPOINTS") is not None
-            for b in e.findall("BLOCK"):
-                if b.get("STATION"):
-                    stations.add(b.get("STATION"))
-                if b.get("NAME"):
-                    blocks.add(b.get("NAME"))
             for sig in e.findall("SECSIGNAL"):
                 name = mast_name(sig)
                 if name and name.lower() not in seen_masts:
                     seen_masts.add(name.lower())
                     items.append(signal_item(sig, name, cell, origin, by))
         if has_points:
-            items.append(plant_item(cell, origin, stations, blocks, near_blocks, by))
+            items.append(plant_item(cell, origin, set(block_names(s)), near_blocks, by))
+    stale = sorted(set(HOTSPOT_OVERRIDE) - seen_masts)
+    if stale:
+        raise CatsIndexError(f"HOTSPOT_OVERRIDE moves {', '.join(stale)}, which {paths.rel(PANEL)} does not draw")
     return items
 
 
-def _build(le_index: dict | None) -> dict:
+def _build(le_index: Mapping[str, object] | None) -> dict:
     sections = read_sections()
     if le_index is None:
         try:
             le_index = build_layout_index.build()
         except build_layout_index.LayoutIndexError as err:
             raise CatsIndexError(f"cannot build the layout index it joins to: {err}") from err
-    items = section_items(sections, le_by_keys(le_index))
+    items = section_items(sections, le_by_keys(le_items(le_index)))
     try:
         w, h = png_stamp.size(OUT_IMG)
     except png_stamp.PngError as err:
