@@ -59,6 +59,7 @@ from .levels import LevelText
 
 if TYPE_CHECKING:
     from . import device_changes as device_changes_mod
+from .device_rows import row_cells
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, MASTER_COLUMNS, NAME_LAYERS, MasterRow, FactsError
 
 # The one place the master's file names and paths are written (T6a): every other module asks for them here, and
@@ -222,17 +223,17 @@ def _read(name: str, data: bytes, table: places.Table) -> tuple[Mapping[str, str
     return tuple(rows)
 
 
-def key_of(row: Mapping[str, str]) -> RowKey:
-    """A row's key in both files: (level, id) (KEY) for a row with a level, ("", layer, user name) for a Store's
-    level-less row, which has no id."""
-    if row["level"]:
-        return (row["level"], row["id"])
-    return ("", row["layer"], row["user_name"])
+def key_of(row: MasterRow | Mapping[str, str]) -> RowKey:
+    """A row's (a MasterRow's, or a row of the master's text) key in both files: (level, id) (KEY) for a row with a
+    level, ("", layer, user name) for a Store's level-less row, which has no id."""
+    level, layer, user = name_key(row)
+    return (level, row_cells(row)["id"]) if level else ("", layer, user)
 
 
-def name_key(row: Mapping[str, str]) -> tuple[str, str, str]:
+def name_key(row: MasterRow | Mapping[str, str]) -> tuple[str, str, str]:
     """A row's name key (NAME_KEY): level, layer, user name; unique in the merged view."""
-    return (row["level"], row["layer"], row["user_name"])
+    r = row_cells(row)
+    return (r["level"], r["layer"], r["user_name"])
 
 
 def key_text(key: tuple[str, ...]) -> str:
@@ -244,7 +245,7 @@ def key_text(key: tuple[str, ...]) -> str:
     return f"{name} ({'level ' + level if level else 'no level'}, {layer})"
 
 
-def row_text(row: Mapping[str, str]) -> str:
+def row_text(row: MasterRow | Mapping[str, str]) -> str:
     """A row as a message names it: its name key's text (key_text), "Track 12 (level 1, block)"."""
     return key_text(name_key(row))
 
@@ -567,7 +568,7 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
     old device map of those levels held, in its form plus `role`, a turnout's cp its place. The one way a reader gets them."""
     lists = places.lists_beside(source)        # a copy's turnouts take the copy's switch lists
     return [(r.line, {**device_map_row(r), "cp": place(r, lists), "role": r.role}) for r in load(source)
-            if r["level"] in levels and r.role not in OUT_OF_MAPS]
+            if r.level_cell in levels and r.role not in OUT_OF_MAPS]
 
 
 def user_names(source: "Files | Path | str | None" = None) -> Mapping[tuple[str, str], str]:
@@ -575,7 +576,7 @@ def user_names(source: "Files | Path | str | None" = None) -> Mapping[tuple[str,
     store's answer for a device ID. The data files keyed by ID (wiring.csv, block_lengths.csv, block_numbering.csv,
     block_overrides.csv, mast_cells.csv) read their names here, so a rename in the field file
     reaches them with no row of theirs changed."""
-    return MappingProxyType({(r["level"], r.id): r.user_name for r in load(source) if r.level and r.id})
+    return MappingProxyType({(r.level_cell, r.id): r.user_name for r in load(source) if r.level and r.id})
 
 
 def name_of(names: Mapping[tuple[str, str], str], level: str, ident: str, where: str) -> str:
@@ -593,23 +594,22 @@ def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = No
                ) -> list[tuple[int, dict[str, str]]]:
     """(line of the master, row) of each part of `levels` (role part: a piece of track inside another block, part_of
     naming it), which the device maps leave out (OUT_OF_MAPS), in master order."""
-    return [(r.line, dict(r)) for r in load(source) if r["level"] in levels and r.role == "part"]
+    return [(r.line, r.cells()) for r in load(source) if r.level_cell in levels and r.role == "part"]
 
 
 # ---------------------------------------------------------------- a device's kind, from its row
 
-def row_role(row: Mapping[str, str], where: str = "the device master") -> str:
-    """The role column of `row` (ROLES). DevicesError naming `where` (a file and line when the caller has one, else
-    "the device master") and the row when the row has no role column or an empty one: a reader asks the row what a
-    device is, never its name (hand-off row 8)."""
-    role = row.get("role", "")
+def row_role(row: MasterRow | Mapping[str, str], where: str = "the device master") -> str:
+    """The role column of `row` (ROLES). DevicesError naming `where` (a file and line, else "the device master") and
+    the row when its role is missing or empty: a reader asks the row what a device is, not its name (hand-off row 8)."""
+    role = (cells := row_cells(row)).get("role", "")
     if not role:
-        raise DevicesError(f"{where}: {row.get('layer', '?')} {row.get('user_name', '?')!r} has no role "
+        raise DevicesError(f"{where}: {cells.get('layer', '?')} {cells.get('user_name', '?')!r} has no role "
                            f"(one of {', '.join(ROLES)})")
     return role
 
 
-def is_os(row: Mapping[str, str], where: str = "the device master") -> bool:
+def is_os(row: MasterRow | Mapping[str, str], where: str = "the device master") -> bool:
     """Whether a block or occupancy row is the block through a switch's points (OS_ROLES), by its role."""
     return row_role(row, where) in OS_ROLES
 
@@ -656,13 +656,12 @@ class Index:
         kept by its jmri_bean). DevicesError when there is no such row."""
         return all(is_unplaced(r) for _n, r in self.rows(layer, name))
 
-    def where(self, row: Mapping[str, str]) -> str:
-        """"devices_field.csv: Track 12 (level 1, block)" for the master's row with `row`'s level, layer and user
-        name, for a message: the field file when it has a row of that row's key (the owner's cells), else the
-        generated file; the generated file's name alone when the master has no such row (a caller's own row, as in a
-        test)."""
-        k = (row.get("level", ""), row.get("layer", ""), row.get("user_name", ""))
-        got = [r for _n, r in self.by_key.get((k[1], k[2]), ()) if r["level"] == k[0]]   # k is text
+    def where(self, row: MasterRow | Mapping[str, str]) -> str:
+        """"devices_field.csv: Track 12 (level 1, block)" for the master's row with `row`'s name key, for a message:
+        the field file when it has a row of that row's key (the owner's cells), else the generated file; the generated
+        file's name alone when the master has no such row (a caller's own row, as in a test)."""
+        k = tuple(row_cells(row).get(c, "") for c in NAME_KEY)
+        got = [r for _n, r in self.by_key.get((k[1], k[2]), ()) if r.level_cell == k[0]]   # k is text
         if not got:
             return self.path.name
         return f"{FIELD_FILE if key_of(got[0]) in self.field_keys else self.path.name}: {key_text(k)}"
@@ -675,9 +674,9 @@ class Index:
         levels = None if levels is None else frozenset(levels)
         out: dict[str, None] = {}
         for n, r in self.lines:
-            if r.layer != layer or (levels is not None and r["level"] not in levels):
+            if r.layer != layer or (levels is not None and r.level_cell not in levels):
                 continue
-            if roles is not None and (is_unplaced(r) or row_role(r, self.where(r)) not in roles):
+            if roles is not None and (r.level is None or r.role not in roles):    # a row with a level has its role
                 continue
             out.setdefault(r.user_name, None)
         return list(out)
@@ -713,7 +712,7 @@ def column_file(column: str) -> str:
     return "field" if column in KEY + FIELD_HELD + FIELD_COLUMNS else "generated"
 
 
-def at(row: Mapping[str, str], files: "Files | Path | str | None" = None) -> str:
+def at(row: MasterRow | Mapping[str, str], files: "Files | Path | str | None" = None) -> str:
     """Where a master row is, for a message: "devices_field.csv: Track 12 (level 1, block)" (Index.where)."""
     return index(files).where(row)
 
@@ -762,10 +761,10 @@ def cp_list(row: Mapping[str, str]) -> list[str]:
     return [p for p in row["cp"].split(LIST) if p]
 
 
-def is_unplaced(row: Mapping[str, str]) -> bool:
+def is_unplaced(row: MasterRow | Mapping[str, str]) -> bool:
     """A device not on the layout yet: added in PanelPro, kept as its Store beans in jmri_bean, with no level until the
     owner gives its details."""
-    return not row["level"]
+    return row.level is None if isinstance(row, MasterRow) else not row["level"]
 
 
 def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
@@ -862,16 +861,17 @@ def _carries_dcc(r: Mapping[str, str]) -> bool:
     return r["role"] == "turnout" and r["assignment"] == "field"
 
 
-def comment_of(r: Mapping[str, str]) -> str:
+def comment_of(row: MasterRow | Mapping[str, str]) -> str:
     """The JMRI comment of a master row: jmri_comment, else wiring, with the DCC group put in as the JMRI comment has
     it for a field turnout (hartlib.names.jmri_comment). The one place a reader gets a row's comment."""
+    r = row_cells(row)
     return r["jmri_comment"] or (names.jmri_comment(r["wiring"], r["dcc"]) if _carries_dcc(r) else r["wiring"])
 
 
-def device_map_row(r: Mapping[str, str]) -> dict[str, str]:
+def device_map_row(row: MasterRow | Mapping[str, str]) -> dict[str, str]:
     """The old-form device-map row of a master row: its comment is comment_of's."""
-    comment = comment_of(r)
-    return {c: (comment if c == "comment" else r[c]) for c in DEVICE_COLUMNS}
+    r = row_cells(row)
+    return {c: (comment_of(r) if c == "comment" else r[c]) for c in DEVICE_COLUMNS}
 
 
 def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | None = None,
@@ -1026,7 +1026,7 @@ def _after_rows(writer: str, new: Iterable[Mapping[str, str]],
     from . import device_changes                # it reads this module
     f = files or Files.here()
     if f.field is None:                     # a one-file copy: it holds every cell
-        return texts(replace_rows(load(f), writer, new), f), None
+        return texts(replace_rows([r.cells() for r in load(f)], writer, new), f), None
     # The old merged view is not read: after an owner's edit (a field row removed or renamed) it may not merge any
     # more, and this write is what makes the pair whole again.
     new = [dict(r) for r in new]
@@ -1061,7 +1061,7 @@ def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Fil
     out, changes = _after_rows(writer, new + master_rows, f)
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
     whole = {(r["level"], r["layer"], r["user_name"]): r for r in master_rows}
-    back = {name_key(r): dict(r) for r in parse(out[f.master], f.master.name, f) if r["written_by"] == writer}
+    back = {name_key(r): r.cells() for r in parse(out[f.master], f.master.name, f) if r.written_by == writer}
     held = {k: device_map_row(r) for k, r in back.items() if k not in whole}
     if held != want or any(back.get(k) != r for k, r in whole.items()):
         raise DevicesError(f"{writer}: the rows written do not read back as given")
@@ -1077,7 +1077,7 @@ def one_file_copy(path: Path, files: "Files | Path | str | None" = None) -> Path
     if path.name == GENERATED_FILE:
         raise DevicesError(f"{path}: a one-file copy takes another name ({ONE_FILE}); {GENERATED_FILE} is half a "
                            "pair")
-    path.write_text(master_text(load(files), path), encoding="utf-8")
+    path.write_text(master_text([r.cells() for r in load(files)], path), encoding="utf-8")
     return path
 
 
@@ -1119,14 +1119,14 @@ def stale(files: Files | None = None) -> list[str]:
     read_dictionary(f.dictionary)
     out = []
     for r in rows:
-        if r["role"] in OUT_OF_MAPS or is_unplaced(r):
+        if r.role in OUT_OF_MAPS or r.level is None:
             continue
         try:
-            master_row(dict(device_map_row(r), role=r["role"], id=r["id"]), r["written_by"], r)
+            master_row(device_map_row(r) | {"role": r.role, "id": r.id}, r.written_by, r.cells())
         except DevicesError as exc:
             out.append(str(exc))
         except (KeyError, ValueError) as exc:
-            out.append(f"level {r['level']} {r['layer']} {r['user_name']}: cannot be read in the device-map form ({exc!r})")
+            out.append(f"level {r.level_cell} {r.layer} {r.user_name}: cannot be read in the device-map form ({exc!r})")
     return out
 
 
