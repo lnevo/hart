@@ -18,6 +18,7 @@ from docx.oxml.ns import qn  # noqa: E402
 from docx.shared import Inches  # noqa: E402
 from PIL import Image  # noqa: E402
 
+import card_template_cc_label as ctcc  # noqa: E402
 import card_template_waybill as ctw  # noqa: E402
 import crew_master  # noqa: E402
 import hart_ooxml  # noqa: E402
@@ -83,9 +84,9 @@ class MasterColours(unittest.TestCase):
 
     def test_cards_take_the_master_fill(self):
         sw = crew_master.swatches(MASTER)
-        self.assertEqual(ctw.sts_color_hex()["pink"], sw["pink"].fill)
-        self.assertEqual(ctw.sts_color_hex()["mediumblue"], sw["blue"].fill)
-        self.assertEqual(ctw.sts_color_hex()["white"], "FFFFFF")      # STS-only
+        self.assertEqual(ctcc.sts_color_hex()["pink"], sw["pink"].fill)
+        self.assertEqual(ctcc.sts_color_hex()["mediumblue"], sw["blue"].fill)
+        self.assertEqual(ctcc.sts_color_hex()["white"], "FFFFFF")      # STS-only
 
     def test_primer_legend_is_the_master_colours(self):
         sw = crew_master.swatches(MASTER)

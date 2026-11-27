@@ -44,8 +44,7 @@ class CardTemplateSmoke(unittest.TestCase):
             tmp = Path(tmp)
             sheet = fake_sticker_sheet(tmp / "sheet.docx")
             out = tmp / "out" / "template.docx"
-            with mock.patch.object(gct, "STICKER_SHEET", sheet), \
-                    mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
+            with mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
                     mock.patch.object(gct, "OUTPUT_DIR", out.parent), \
                     mock.patch.object(gct, "OUTPUT", out):
                 text = run_quietly(gct.main)
