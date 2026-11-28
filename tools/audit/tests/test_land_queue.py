@@ -446,6 +446,25 @@ class Waiting(unittest.TestCase):
 
         self.assertEqual(2, Q.wait(queue(self.root, sleep=sleep), 12, self.logs))
 
+    def test_an_earlier_tickets_result_does_not_answer_for_a_newer_job_that_died(self) -> None:
+        Q.write_result(12, 3, 0, self.logs)
+        Q.log_path(12, self.logs, 8).write_text("make land PR=12: ticket 8\n", encoding="utf-8")
+        said: list[str] = []
+        self.assertEqual(2, Q.wait(queue(self.root, said=said), 12, self.logs), "ticket 8's job left no result")
+        self.assertIn(str(self.logs / "12-t8.result"), said[-1])
+        dead = queue(self.root).take(13, "hart-a", pid=GONE)
+        Q.write_result(13, dead.number - 1, 0, self.logs)
+        self.assertEqual(2, Q.wait(queue(self.root, alive=lambda pid: False), 13, self.logs),
+                         "a dead ticket still in the queue is newer than the result")
+
+    def test_an_old_name_result_does_not_answer_for_a_newer_ticket(self) -> None:
+        self.logs.mkdir(parents=True)
+        (self.logs / "12.result").write_text(json.dumps({"ticket": 5, "code": 0}), encoding="utf-8")
+        Q.log_path(12, self.logs, 9).write_text("make land PR=12: ticket 9\n", encoding="utf-8")
+        self.assertEqual(2, Q.wait(queue(self.root), 12, self.logs))
+        Q.write_result(12, 9, 4, self.logs)
+        self.assertEqual(4, Q.wait(queue(self.root), 12, self.logs))
+
 
 if __name__ == "__main__":
     unittest.main()

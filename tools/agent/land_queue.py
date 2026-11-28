@@ -5,7 +5,8 @@
                                 lines of its own log; then the old merge lock's holder, if any
     land_queue.py wait N        (make land-wait PR=N) wait for PR N's land job to end; exit with its code (0 merged
                                 and main green, 1 refused, 4 main red, 5 unwatched), read from the result file
-                                the job writes; 2 when there is no job or result
+                                the job writes; 2 when there is no job or result, or the newest ticket of the
+                                PR left none (an earlier ticket's result never answers)
 
 Each land job has a log and a result of its own, named by PR and ticket: ~/.cache/hart/land/<PR>-t<ticket>.log and
 <PR>-t<ticket>.result. A job queued by older code wrote <PR>.log and <PR>.result; both are still read when a
@@ -273,12 +274,16 @@ def write_result(pr: int, ticket: int | None, code: int, log_dir: Path = LOG_DIR
     os.replace(tmp, result_path(pr, log_dir, ticket))
 
 
+def ticket_files(pr: int, log_dir: Path = LOG_DIR, suffix: str = ".result") -> list[int]:
+    """The tickets with a <PR>-t<ticket><suffix> file for `pr`."""
+    prefix = f"{pr}-t"
+    return [int(p.name[len(prefix):-len(suffix)]) for p in log_dir.glob(f"{prefix}*{suffix}")
+            if p.name[len(prefix):-len(suffix)].isdigit()]
+
+
 def newest_ticket(pr: int, log_dir: Path = LOG_DIR) -> int | None:
     """The highest ticket with a result file for `pr`; None when there is none."""
-    prefix = f"{pr}-t"
-    numbers = [int(p.name[len(prefix):-len(".result")]) for p in log_dir.glob(f"{prefix}*.result")
-               if p.name[len(prefix):-len(".result")].isdigit()]
-    return max(numbers, default=None)
+    return max(ticket_files(pr, log_dir), default=None)
 
 
 def read_result(pr: int, log_dir: Path = LOG_DIR, ticket: int | None = None) -> Result | None:
@@ -504,18 +509,27 @@ def status(queue: LandQueue, log_dir: Path = LOG_DIR, lock_path: Path = LOCK_PAT
     return out
 
 
+def newest_queued(queue: LandQueue, pr: int, log_dir: Path = LOG_DIR) -> int | None:
+    """The highest ticket known for `pr`: from its result files, its log files (detach writes one per ticket) and
+    the tickets still in the queue, live or not; None when there is none."""
+    queued = [t.number for t in queue.tickets() if t.pr == pr]
+    return max([*ticket_files(pr, log_dir), *ticket_files(pr, log_dir, ".log"), *queued], default=None)
+
+
 def wait(queue: LandQueue, pr: int, log_dir: Path = LOG_DIR) -> int:
     """make land-wait: wait for PR `pr`'s land job to end and return its exit code (0 merged and main green, 1
-    refused, 4 main red, 5 unwatched); 2 when there is neither a job nor a result for it."""
+    refused, 4 main red, 5 unwatched); 2 when there is neither a job nor a result for it. With no live job, only
+    the result of the newest ticket known for the PR answers: an earlier ticket's result is not this land's."""
     seen = queue.live(pr)
-    number = seen.number if seen is not None else newest_ticket(pr, log_dir)
+    number = seen.number if seen is not None else newest_queued(queue, pr, log_dir)
     log = find_log(pr, number, log_dir)
     if seen is not None:
         queue.say(f"waiting for the land of #{pr} ({seen.label()}, {seen.state}); log: {log}")
     while seen is not None and queue.live(pr) is not None:
         queue.sleep(LOCK_POLL)
     result = read_result(pr, log_dir, number)
-    if result is None or (seen is not None and result.ticket not in (None, seen.number)):
+    if result is None or (seen is not None and result.ticket not in (None, seen.number)) or \
+            (seen is None and number is not None and result.ticket != number):
         queue.say(f"no result for a land of #{pr} in {result_path(pr, log_dir, number)}: see {log}")
         return 2
     queue.say(f"the land of #{pr} (ticket {result.ticket}) ended with exit {result.code}; log: {log}")

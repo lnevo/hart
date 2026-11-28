@@ -282,6 +282,17 @@ class Lander:
                 self.event(pr.number, None, line)
                 raise HeadMoved(moved)
 
+    def turn_guard(self, pr: PullRequest) -> None:
+        """head_guard for the wait for the queue's head: a gh read that fails is one line and is tried again at the
+        next poll; a PR that closed, conflicts or has a new head still stops the wait."""
+        try:
+            self.head_guard(pr, every=self.poll)
+        except (Refused, HeadMoved):
+            raise
+        except LandError as e:
+            self._last_read = None
+            self.say(f"PR #{pr.number} not read again while waiting for its turn ({e}); trying again at the next poll")
+
     def check_run(self, slug: str, sha: str) -> Run | None:
         data = as_dict(self.gh_json(["api", f"repos/{slug}/commits/{sha}/check-runs?check_name={CHECK}&per_page=100"],
                                     f"the check runs of {sha[:12]}"), "the check runs")
@@ -500,7 +511,7 @@ class Lander:
                 ticket = queue.update(ticket, state="check passed, waiting for its turn")
                 current = pr
                 try:
-                    ticket, waited = queue.wait_turn(ticket, lambda: self.head_guard(current, every=self.poll))
+                    ticket, waited = queue.wait_turn(ticket, lambda: self.turn_guard(current))
                     break
                 except HeadMoved as moved:      # the ticket keeps its place and waits for the new head's check
                     pr = moved.pr

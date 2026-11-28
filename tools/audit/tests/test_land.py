@@ -261,6 +261,64 @@ class HeadMoves(unittest.TestCase):
         self.assertEqual([["pr", "merge", "12", "--merge", "--match-head-commit", NEW_HEAD]], merge)
 
 
+    def turn_wait(self, change: Any) -> tuple[int, Any, Any]:
+        """A land of #12 whose check passed, behind a live #11: `change(gh, ahead)` runs at every queue poll."""
+        lock = Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
+        root = lock.parent / "queue"
+        ahead = LAND.LandQueue(root, lambda line: None).take(11, "hart-other")
+        gh = Flaky(heads=[HEAD])
+        lnd, clock = lander(gh, lock=lock, queue=root)
+
+        def sleep(seconds: float) -> None:
+            clock.sleep(seconds)
+            change(gh, ahead)
+
+        lnd.lock_sleep = sleep
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = lnd.land(12, watch_main=False)
+        return code, lnd, gh
+
+    def test_a_gh_failure_while_waiting_for_its_turn_is_a_line_and_the_wait_goes_on(self) -> None:
+        polls: list[int] = []
+
+        def change(gh: Any, ahead: Any) -> None:     # the next two head reads fail (one read per 30 s), then #11 ends
+            polls.append(1)
+            if len(polls) == 1:
+                gh.fail_next = 2
+            if len(polls) == 12:
+                ahead.path.unlink(missing_ok=True)
+
+        code, lnd, gh = self.turn_wait(change)
+        self.assertEqual(0, code, lnd.out)
+        failed = [line for line in lnd.out if "not read again while waiting for its turn" in line]
+        self.assertEqual(2, len(failed), lnd.out)
+        self.assertIn("HTTP 502", failed[0])
+        self.assertEqual([["pr", "merge", "12", "--merge", "--match-head-commit", HEAD]],
+                         [c for c in gh.calls if c[:2] == ["pr", "merge"]])
+
+    def test_a_pr_closed_while_waiting_for_its_turn_still_stops(self) -> None:
+        def change(gh: Any, ahead: Any) -> None:
+            gh.pr["state"] = "CLOSED"
+
+        code, lnd, gh = self.turn_wait(change)
+        self.assertEqual(1, code)
+        self.assertIn("PR #12 is CLOSED, not open", "\n".join(lnd.out))
+        self.assertFalse(any(c[:2] == ["pr", "merge"] for c in gh.calls))
+
+
+@dataclass
+class Flaky(FakeGitHub):
+    """FakeGitHub whose next `fail_next` head reads fail."""
+    fail_next: int = 0
+
+    def __call__(self, args: list[str]) -> str:
+        if self.fail_next and args[:2] == ["pr", "view"] and "headRefOid,state,mergeable" in args:
+            self.fail_next -= 1
+            self.calls.append(args)
+            raise LAND.LandError("gh pr failed (exit 1): HTTP 502")
+        return super().__call__(args)
+
+
 @mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG})
 class Merging(unittest.TestCase):
     def test_waits_for_a_late_check_then_merges_with_the_head(self) -> None:

@@ -125,7 +125,8 @@ class TestLedger(DashRowsCase):
     def test_each_op_records_the_version_after_its_write(self) -> None:
         self.writes("new-row", "3-L1", "lane=a", "status=queued", "stage=s", "eta=00:10", "order=1",
                     "event", "started")
-        self.assertEqual(self.ledger(), {"data/3/events/e3-2330": 1, "data/3/lanes/3-L1": 1})
+        self.assertEqual(self.ledger(), {"data/3/events/e3-2330": 1})
+        self.writes("ledger-sync", self.sync_file({"3-L1": 1}))
         [entry] = self.writes("row", "3-L1", "status=running")
         self.assertEqual((entry["op"], entry["if_version"]), ("update", 1))
         self.assertEqual(self.ledger()["data/3/lanes/3-L1"], 2)
@@ -167,6 +168,16 @@ class TestLedger(DashRowsCase):
 
     def test_a_row_the_ledger_does_not_hold_names_ledger_sync(self) -> None:
         self.assertIn("ledger-sync", self.refused("row", "3-L9", "status=ci"))
+
+    def test_new_row_over_an_existing_row_leaves_its_version_unknown(self) -> None:
+        [entry] = self.writes("new-row", "3-L1", "lane=a", "status=queued", "stage=s", "eta=00:10", "order=1")
+        self.assertNotIn("if_version", entry)
+        self.assertNotIn("data/3/lanes/3-L1", self.ledger(), "an unpinned set does not guess version 1")
+        self.assertIn("ledger-sync", self.refused("row", "3-L1", "status=running"))
+        [entry] = self.writes("--if-version", "3-L1=7", "new-row", "3-L1", "lane=a", "status=queued",
+                              "stage=s", "eta=00:10", "order=1")
+        self.assertEqual(entry["if_version"], 7)
+        self.assertEqual(self.ledger()["data/3/lanes/3-L1"], 8, "a pinned set records the pin plus 1")
 
 
 FAKE_GH = """#!{python}
@@ -274,9 +285,35 @@ class TestSyncPrs(DashRowsCase):
         result = self.sync()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual([(e["doc_id"], e["if_version"]) for e in json.loads(result.stdout)],
-                         [("3-L1", 4), ("3-L2", 9)], "the higher of the ledger's and the file's version")
+                         [("3-L1", 4), ("3-L2", 9)], "the file's version, else the ledger's")
         ledger = json.loads((self.out / "versions.json").read_text(encoding="utf-8"))
         self.assertEqual(ledger, {"data/3/lanes/3-L1": 5, "data/3/lanes/3-L2": 10})
+
+    def test_a_listed_version_corrects_a_stale_high_ledger(self) -> None:
+        self.row_file("3-L1", {"data": {"status": "ci", "pr": 1301}, "version": 5})
+        self.row_file("3-L2", {"data": {"status": "running"}, "version": 3})
+        self.out.mkdir()
+        (self.out / "versions.json").write_text(json.dumps({"data/3/lanes/3-L1": 9, "data/3/lanes/3-L2": 8}),
+                                                encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        [entry] = json.loads(result.stdout)
+        self.assertEqual((entry["doc_id"], entry["if_version"]), ("3-L1", 5), "the listed version, not the ledger's")
+        ledger = json.loads((self.out / "versions.json").read_text(encoding="utf-8"))
+        self.assertEqual(ledger, {"data/3/lanes/3-L1": 6, "data/3/lanes/3-L2": 3},
+                         "the ledger takes each listed version, rows without a pr too")
+
+    def test_a_versions_file_wins_over_the_row_file_and_the_ledger(self) -> None:
+        self.row_file("3-L1", {"data": {"status": "ci", "pr": 1301}, "version": 5})
+        self.out.mkdir()
+        (self.out / "versions.json").write_text(json.dumps({"data/3/lanes/3-L1": 9}), encoding="utf-8")
+        versions = self.tmp / "given.json"
+        versions.write_text(json.dumps({"3-L1": 7}), encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync("--versions", str(versions))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)[0]["if_version"], 7)
 
     def test_a_row_with_no_version_is_refused(self) -> None:
         self.row_file("3-L1", {"status": "ci", "pr": 1301})

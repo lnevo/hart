@@ -14,8 +14,9 @@ OPs, any number, in order:
   sync-prs ROWS_DIR [--versions FILE]
                                one `row` update per lanes row whose PRs changed state on GitHub. ROWS_DIR holds the
                                rows as the ArtifactData `list` action saves them with out_dir (DOC.json each); a
-                               row's version comes from FILE ({"DOC": N}) when given, else the higher of the
-                               ledger's and the file's own `version` (versions only go up).
+                               row's version comes from FILE ({"DOC": N}) when given, else the file's own
+                               `version`, else the ledger's. A version read from FILE or the row file is written
+                               to the ledger, so a ledger left wrong by a refused or unapplied batch is corrected.
                                Every PR of the row merged or closed, at least one merged: status=merged and a
                                stage naming each merge commit and local merge time. Every PR closed unmerged:
                                status=failed, "closed unmerged". No write for a row with an open PR, without a pr,
@@ -29,10 +30,11 @@ OPs, any number, in order:
                                of --wave. No write is emitted.
 
 The ledger, OUT_DIR/versions.json ({"collection/doc_id": version}), holds the version each document has after the
-writes this script emitted: a `set` of a document it holds no version for gives 1, a pinned `set`, `update` or
-`str_replace` gives the pin plus 1, and a `delete` removes the entry. Every pin (if_version) comes from it; an
-explicit --if-version DOC=N wins for the next write to DOC. A refused write (version mismatch) leaves the ledger
-ahead of or behind the store: list the collection once and run ledger-sync with the versions it gives.
+writes this script emitted: an unpinned `set` of an event or sample (a new id) gives 1, an unpinned `new-row` gives
+no entry (the row may already exist, at any version), a pinned `set`, `update` or `str_replace` gives the pin plus
+1, and a `delete` removes the entry. Every pin (if_version) comes from it; an explicit --if-version DOC=N wins for
+the next write to DOC. A refused write (version mismatch) leaves the ledger ahead of or behind the store: list the
+collection once and run ledger-sync with the versions it gives, or run sync-prs on the listed rows.
 
 `updated` (rows) and `at` (events) are stamped HH:MM from the local clock, and a caller-supplied
 `updated` or `at` key is refused. A value that parses as JSON (a number, a list such as pr=[1271,1280])
@@ -78,11 +80,14 @@ class Write:
     if_version: int | None = None
 
 
-def version_after(op: WriteOp, pin: int | None) -> int | None:
-    """The version a document has after `op` pinned to `pin` (None: it no longer exists)."""
+def version_after(op: WriteOp, pin: int | None, new_id: bool = True) -> int | None:
+    """The version a document has after `op` pinned to `pin`; None when it no longer exists or is not known (an
+    unpinned write to an id that may already exist, `new_id` False)."""
     if op == "delete":
         return None
-    return 1 if pin is None else pin + 1
+    if pin is None:
+        return 1 if new_id else None
+    return pin + 1
 
 
 def is_version(value: object) -> TypeGuard[int]:
@@ -167,10 +172,12 @@ class Builder:
             return self.versions.pop(doc_id)
         return self.ledger.get(f"{collection}/{doc_id}")
 
-    def add(self, op: WriteOp, collection: str, doc_id: str, data: dict[str, object], pin: int | None) -> None:
-        """Queue the write and record in the ledger the version the document will have after it."""
+    def add(self, op: WriteOp, collection: str, doc_id: str, data: dict[str, object], pin: int | None,
+            new_id: bool = True) -> None:
+        """Queue the write and record in the ledger the version the document will have after it; an unknown
+        version removes the entry, so the next pinned write asks for ledger-sync."""
         self.writes.append(Write(op, collection, doc_id, data, pin))
-        after = version_after(op, pin)
+        after = version_after(op, pin, new_id)
         key = f"{collection}/{doc_id}"
         if after is None:
             self.ledger.pop(key, None)
@@ -223,7 +230,7 @@ class Builder:
             raise DashError(f"{doc_id}: a new row needs {', '.join(missing)}")
         fields["updated"] = self.now
         collection = self.collection("lanes")
-        self.add("set", collection, doc_id, fields, self.pin(collection, doc_id))
+        self.add("set", collection, doc_id, fields, self.pin(collection, doc_id), new_id=False)
 
     def event(self, text: str) -> None:
         collection = self.collection("events")
@@ -341,10 +348,12 @@ def read_versions(versions_file: Path | None) -> dict[str, object]:
 
 
 def load_rows(rows_dir: Path, versions_file: Path | None, warn: Callable[[str], None],
-              ledger: Callable[[str], int | None] = lambda doc_id: None) -> dict[str, SyncRow]:
+              ledger: Callable[[str], int | None] = lambda doc_id: None,
+              heal: Callable[[str, int], None] = lambda doc_id, version: None) -> dict[str, SyncRow]:
     """Every DOC.json in ROWS_DIR whose row has a `pr`. A file that wraps the row as {data, version} is unwrapped;
     otherwise the file is the row. A file that is not a JSON object, or a `pr` that is not PR numbers, is skipped
-    with a warning. A row's version: FILE's when it names the row, else the higher of `ledger`'s and the file's."""
+    with a warning. A row's version: FILE's when it names the row, else the file's own, else `ledger`'s. Each
+    version read from FILE or a row file, of any row, goes to `heal`."""
     files = sorted(rows_dir.glob("*.json")) if rows_dir.is_dir() else []
     if not files:
         raise DashError(f"sync-prs {rows_dir}: no row files (DOC.json) there")
@@ -359,18 +368,18 @@ def load_rows(rows_dir: Path, versions_file: Path | None, warn: Callable[[str], 
             warn(f"{path.stem}: {path.name} is not a JSON object; skipped")
             continue
         data = doc["data"] if isinstance(doc.get("data"), dict) else doc
+        given = versions.get(path.stem, doc.get("version"))
+        version = given if is_version(given) else None
+        if version is not None:
+            heal(path.stem, version)
+        elif path.stem not in versions:
+            version = ledger(path.stem)
         if data.get("pr") in (None, "", []):
             continue
         prs = row_prs(data["pr"])
         if prs is None:
             warn(f"{path.stem}: pr {data['pr']!r} is not a PR number or a list of them; skipped")
             continue
-        if path.stem in versions:
-            given = versions[path.stem]
-            version = given if is_version(given) else None
-        else:
-            known = [v for v in (ledger(path.stem), doc.get("version")) if is_version(v)]
-            version = max(known) if known else None
         rows[path.stem] = SyncRow(data, version, prs)
     return rows
 
@@ -380,7 +389,11 @@ def sync_prs(builder: Builder, rows_dir: Path, versions_file: Path | None,
     """Row updates from GitHub's PR states; the module docstring gives the rules."""
     warn = builder.warnings.append
     lanes = builder.collection("lanes")
-    rows = load_rows(rows_dir, versions_file, warn, lambda doc_id: builder.ledger.get(f"{lanes}/{doc_id}"))
+
+    def heal(doc_id: str, version: int) -> None:
+        builder.ledger[f"{lanes}/{doc_id}"] = version
+
+    rows = load_rows(rows_dir, versions_file, warn, lambda doc_id: builder.ledger.get(f"{lanes}/{doc_id}"), heal)
     wanted = {number for row in rows.values() for number in row.prs}
     states = fetch(wanted, warn) if wanted else {}
     for doc_id, row in sorted(rows.items()):
