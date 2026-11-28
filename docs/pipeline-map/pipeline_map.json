@@ -13901,8 +13901,8 @@
    "label": "runs prune"
   },
   {
-   "from": "tools/agent/worktrees.py",
-   "to": "tools/agent/progress_prune.py",
+   "from": "tools/agent/progress_prune.py",
+   "to": "tools/agent/worktrees.py",
    "label": "imports"
   },
   {
