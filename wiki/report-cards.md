@@ -76,38 +76,41 @@ How to measure again:
 
 ## Website UX
 
-Scores: 6.8 (2026-11-28, first formal pass at `8515ccc7`), 7.3 (2026-11-28, after the [UX round](projects/ux-round.md), live site at `5c392d9f`). Earlier site reviews (11-14, 11-22) left follow-up PRs but no score. Three `site-reviewer` agents with the UX lens split the site: shared navigation and the hub pages; the railroad content pages; the operator and behind-the-scenes pages. Each slice scores the eight areas; the score is their mean, rounded to a half per area.
+Scores: 6.8 (2026-11-28, first formal pass at `8515ccc7`), 7.3 (2026-11-28, after the [UX round](projects/ux-round.md), live at `5c392d9f`), 7.6 (2026-11-28, after part 2, live at `2f3c6cce`, nine areas). Three `site-reviewer` agents with the UX lens split the site into navigation and hubs, the railroad content pages, and the crew and behind-the-scenes pages; each slice scores eight areas. Content and value is a ninth area, scored once for the whole site per audience (owner, 2026-11-28). The card is the mean of the nine, each area rounded to a half.
 
-| Area | First | Nav and hubs | Content | Crew and behind | After the round | Measured after the round |
-|---|---|---|---|---|---|---|
-| Navigation and wayfinding | 6.5 | 8 | 6 | 6 | 6.5 | Every section 1 click from home, depth 3, no orphans with JS. A crew sheet is still 4 taps from most pages on a phone. The primer, helix, jmri-additions and tables-file have no jump list. |
-| Layout and readability | 7 | 8 | 8 | 7 | 7.5 | One h1 on every page. Nothing scrolls sideways at 375 px (86 pages in headless Chrome). The header fits at 980 px. |
-| Mobile | 6.5 | 7 | 7 | 8 | 7.5 | Viewport on every page, the stubs and Publication Standards included. 87 block tap targets under 32 px on 19 pages; 20 of 52 home links under 24 px. The layout map opens at 9% zoom. |
-| Accessibility | 6.5 | 7 | 7 | 5 | 6.5 | 0 images without alt. With JS off every page has a header and the primer its text; crew sheets show only a note and a PDF link, and there is no skip link. The exam tabs have no arrow keys; table scrollers take no focus. |
-| Clarity for a first-time reader | 6.5 | 8 | 6 | 6 | 6.5 | Layout, roster and history gloss CP, CTC, MQTT and the railroads. Photos, articles, railroads, the crew sheets and exam/play (GCOR) do not. Photos shows editor counters. |
-| Consistency across pages | 6 | 7 | 6 | 7 | 6.5 | All 87 crawled pages have their own description. The build cut plans and Publication Standards are off-template. Breadcrumb sections disagree between roster, layout and photos. |
-| Weight and speed | 8.5 | 9 | 8 | 7 | 8 | Pages 10 to 26 KB, about 0.1 s. `behind/layout-docs` 6.3 MB and `ai/clinic` 2.3 MB of lazy images; the build hero (275 KB) is not lazy. |
-| Links and errors | 7 | 9 | 9 | 9 | 9 | 0 dead internal links in 264 crawled URLs and 422 crew-slice targets. The guides' GitHub links resolve, `/library/` redirects, and `check_portal_build.py` fails on a link to a skipped file. |
+| Area | First | After the round | After part 2 | Measured after part 2 (2026-11-28) |
+|---|---|---|---|---|
+| Navigation and wayfinding | 6.5 | 6.5 | 7.5 | Slices 8, 6.5, 7.5. A crew sheet is 3 taps from any page at both widths, 1 from the crew index. Plants, railroads, layout and photos have no jump list; the desktop header has no Crew sheets link. |
+| Layout and readability | 7 | 7.5 | 7.5 | Not re-measured after part 2 except the crew pages (0 of 24 scroll sideways at 375 px). |
+| Mobile | 6.5 | 7.5 | 7.5 | Not re-measured. Crew pages: 45 block tap targets under 32 px on 7 sheets; footer links 19 px on every page. |
+| Accessibility | 6.5 | 6.5 | 8 | Slices 8.5, 7.5, 7.5. Skip link and `main#main` on 89 of 94 pages; crew sheets readable with JS off; 7 tablists pass arrows, Home, End and the exam deck keys. Wiring and tables-file tabs have no tabpanels; three pages' table scrollers are unlabelled. |
+| Clarity for a first-time reader | 6.5 | 6.5 | 6.5 | Not re-measured. Crew sheets still gloss neither GCOR nor "CI-CK1 · Rev D", and show a bare "?" for an unassigned engine. |
+| Consistency across pages | 6 | 6.5 | 6.5 | Not re-measured. Crew pages 24 of 24 have title, description, h1 and skip link. |
+| Weight and speed | 8.5 | 8 | 8 | Not re-measured. Crew pages load 70 to 277 KB. |
+| Links and errors | 7 | 9 | 9 | Not re-measured. 0 dead links in a 94-page crawl. |
+| Content and value | | | 8 | Rechecked after #1398: 8 of 8 corrections live, 0 thin pages, 3 small conflicts left (Route 23 wording, the island-end phrase, the Kosmos start year). Visitor 7, crew member 8.5, model railroader 8, historian 8.5. |
 
-Weight and speed fell from 8.5 to 8 because the rescore summed live image weight per page and the first pass did not; no page got heavier.
+The 7.3 pass summed live image weight per page and the first did not, so Weight and speed fell without a page getting heavier. Over the eight areas alone, part 2 scores 7.56.
 
-Held back on 2026-11-28 (after the round):
+Held back on 2026-11-28 (after part 2):
 - Nothing was checked on a real phone or with a screen reader, and colour contrast was not measured.
-- The crew sheets, the job a crew member opens at the layout, are still blank without JavaScript apart from a note.
+- `about/` is blank without JavaScript ("About HART Loading…"), and plants, railroads, layout and articles show one line.
+- The home page lede needs the year American Steel & Wire opened (owner to give it). Route 23 now reads "Coraopolis–Sewickley … across Neville Island" on four pages; "across Neville Island" was added in the brief, not by the owner, and is unconfirmed.
 
 If the UX card is revisited, in this order:
-1. Crew sheets rendered at build time (as the primer now is), and a Crew sheets entry in the menu so a sheet is 2 or 3 taps away.
-2. Keyboard: the exam tablist (roving tabindex, arrow keys, `tabpanel`), focusable table scrollers, a skip link in the static header.
-3. Tap targets to 40 px on `.btn`, the door links, footer links, pager links and the crew company buttons; the layout map opening at a readable zoom on phones.
-4. First-screen gloss on photos, articles, railroads, the crew sheet header and exam/play (GCOR); hide the photos editor counters outside edit mode.
-5. Jump lists on the primer, helix, `behind/jmri-additions` and `behind/tables-file`; the build cut plans and Publication Standards on the site template.
-6. Image weight: resized `behind/layout-docs` and `ai/clinic` photos, WebP logos, width and height on the lineage logos and hub thumbnails.
+1. `about/` and the lineage pages rendered at build time, as the crew sheets and primer are.
+2. Tabpanels on the wiring and tables-file tabs; labelled, focusable scrollers on `crew/industries`, `behind/tables-file` and `behind/jmri-additions`.
+3. Tap targets to 40 px on map cards, colour chips, the door links and the footer; the layout map at a readable zoom on phones.
+4. First-screen gloss on photos, articles, railroads, the crew sheets (GCOR, the sheet code, "Engine assigned by the Yardmaster" for "?") and exam/play.
+5. Jump lists on helix, `behind/jmri-additions`, `behind/tables-file`, plants and railroads; the build cut plans and Publication Standards on the site template.
+6. Image weight: `behind/layout-docs` and `ai/clinic` photos resized, WebP logos, sizes on lineage logos and hub thumbnails.
 
 How to measure again:
 - Brief three `site-reviewer` agents with the UX lens on the same three slices against the live site, asking each for the eight areas scored with one measurement apiece.
+- Content and value: one `site-reviewer` with the first-time reader and historian lens, site-wide, scored per audience (first-time visitor, crew member, model railroader, local historian), with claims checked against sources and conflicts between pages counted (owner, 2026-11-28).
 - Pages without a description: `git grep -L 'name="description"' -- 'www/*.html'`, leaving out `scripts/` and `docs/html/`.
-- With JS off: fetch the live HTML of the crew sheets, the primer and the JS-built pages and read what shows.
-- Overflow at 375 px with headless Chrome in a 375 px iframe (the window cannot go below 500 px); live weight and status with GET and HEAD only, summing image bytes per page.
+- With JS off: fetch the live HTML and read what shows.
+- Overflow at 375 px with headless Chrome (a 375 px iframe or device emulation; say which); live weight and status with GET and HEAD only, summing image bytes per page. Keyboard: CDP key events on every `role="tablist"` and table scroller.
 
 ## Agent experience
 

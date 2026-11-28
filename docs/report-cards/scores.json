@@ -85,27 +85,30 @@
       "id": "ux",
       "title": "Website UX",
       "scale": 10,
-      "what": "Mean of three site-reviewer slices over eight areas.",
+      "what": "Mean of nine areas: eight scored by three site-reviewer slices, and Content and value scored site-wide (owner, 2026-11-28).",
       "wiki": "wiki/report-cards.md#website-ux",
       "scores": [
         {"date": "2026-11-28", "value": 6.8, "label": "first formal pass"},
-        {"date": "2026-11-28", "value": 7.3, "label": "after the UX round (#1380 to #1387)"}
+        {"date": "2026-11-28", "value": 7.3, "label": "after the UX round (#1380 to #1387)"},
+        {"date": "2026-11-28", "value": 7.6, "label": "after part 2 (#1394, #1395, #1398); nine areas"}
       ],
       "table": {
-        "columns": ["Area", "Score", "Measured on 28 Nov after the round"],
+        "columns": ["Area", "Score", "Measured on 28 Nov after part 2"],
         "rows": [
-          ["Navigation and wayfinding", 6.5, "Every section 1 click from home, depth 3, no orphans with JS; a crew sheet is 4 taps from most pages on a phone; helix, jmri-additions, tables-file and the primer have no jump list."],
+          ["Navigation and wayfinding", 7.5, "A crew sheet is 3 taps from any page at both widths (Menu or Operations, Crew sheets, job), 1 from the crew index; 89 of 94 crawled pages carry the static header with Crew sheets. Plants, railroads, layout and photos have no jump list; the desktop header has no Crew sheets link."],
           ["Layout and readability", 7.5, "One h1 per page; nothing scrolls sideways at 375 px (86 pages in headless Chrome); the header fits at 980 px."],
           ["Mobile", 7.5, "Viewport on every page, stubs included; 87 block tap targets under 32 px on 19 pages; the layout map opens at 9% zoom."],
-          ["Accessibility", 6.5, "0 images without alt; with JS off every page has a header, but crew sheets show only a note and no skip link; the exam tabs have no arrow keys."],
+          ["Accessibility", 8, "Skip link and main#main on 89 of 94 pages; crew sheets readable with JS off; 7 tablists pass arrows, Home and End and the exam deck keys; the roster scroller is labelled. Wiring and tables-file tabs have no tabpanels; crew/industries, tables-file and jmri-additions scrollers are unlabelled."],
           ["Clarity for a first-time reader", 6.5, "Layout, roster and history gloss their terms; photos, articles, railroads, crew sheets and exam/play (GCOR) do not; photos shows editor counters."],
           ["Consistency across pages", 6.5, "All 87 crawled pages have their own description; the build cut plans and Publication Standards are off-template; breadcrumb sections disagree."],
           ["Weight and speed", 8, "Pages 10 to 26 KB, about 0.1 s; layout-docs 6.3 MB and ai/clinic 2.3 MB of lazy images; build hero 275 KB not lazy."],
-          ["Links and errors", 9, "0 dead internal links in 264 crawled URLs and 422 crew-slice targets; guide GitHub links resolve; /library/ redirects."]
+          ["Links and errors", 9, "0 dead internal links in 264 crawled URLs and 422 crew-slice targets; guide GitHub links resolve; /library/ redirects."],
+          ["Content and value", 8, "Rechecked after #1398: 8 of 8 corrections live; 0 thin pages; about.json (About) blank without JS; 3 small conflicts left (Route 23 wording, the island-end phrase, the Kosmos start year). Visitor 7, crew 8.5, modeler 8, historian 8.5."]
         ]
       },
       "notes": [
-        "Rescored against the live site at main 5c392d9f. Weight and speed fell from 8.5 to 8 because this pass summed live image weight per page and the first did not.",
+        "7.3 was eight areas against the live site at main 5c392d9f. 7.6 (live at 2f3c6cce) re-measured Navigation and Accessibility in all three slices after part 2, added Content and value as a ninth area, and kept the other six from the 7.3 pass of the same day. Over the eight old areas alone it is 7.56.",
+        "Weight and speed fell from 8.5 to 8 on the 7.3 pass because it summed live image weight per page and the first did not.",
         "Nothing was checked on a real phone or with a screen reader; contrast was not measured."
       ]
     },
