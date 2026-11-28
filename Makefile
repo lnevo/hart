@@ -17,6 +17,11 @@ land:  ## The coordinator queues one PR to merge and returns (0 = queued; make l
 	@test -n "$(PR)" || { echo 'make land: set PR=N' >&2; exit 2; }
 	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(WATCH)),--watch) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
 
+.PHONY: triage
+triage:  ## The coordinator verifies /code-review findings: make triage PR=N FINDINGS=<json> [OUT=dir]; one headless finding-verifier each, fix-brief.md in ~/.cache/hart/triage/<N>/
+	@test -n "$(PR)" -a -n "$(FINDINGS)" || { echo 'make triage: set PR=N FINDINGS=<file>' >&2; exit 2; }
+	@python3 tools/agent/triage.py $(PR) --findings '$(FINDINGS)' $(if $(OUT),--out '$(OUT)')
+
 .PHONY: land-status
 land-status:  ## The merge queue: each ticket's PR, session and state, and the last lines of its log
 	@python3 tools/agent/land_queue.py status

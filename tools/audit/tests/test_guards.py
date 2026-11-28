@@ -214,6 +214,15 @@ class SubagentGuard(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
 
+    def test_triage_is_blocked(self) -> None:  # it starts headless Claude processes
+        for command in ("make triage PR=12 FINDINGS=/tmp/f.json", "make -s triage PR=12", "tools/agent/triage.py 12",
+                        "python3 tools/agent/triage.py 12 --findings f.json", "cd tools/agent && python3 triage.py 1"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("grep -n triage Makefile", "python3 -m unittest tools/audit/tests/test_triage.py"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
     def test_pulls_from_the_pi_are_blocked(self) -> None:
         for command in ("make ops-pull", "make roster-pull", "tools/ops/pull_ops.sh", "./tools/ops/pull_roster.sh",
                         "bash tools/ops/pull_roster.sh", "timeout 60 tools/ops/pull_roster.sh"):

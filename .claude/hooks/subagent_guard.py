@@ -38,10 +38,11 @@ BLOCKED_PROGRAMS = {
     "ship_pi.sh", "ship_win.sh", "ship_mac.sh", "gate.sh",
     "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
     "pull_roster.sh", "land.py",   # tools/agent/land.py merges a PR: the coordinator's, never a subagent's
+    "triage.py",                   # tools/agent/triage.py starts Claude processes: the coordinator's too
 }
 BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
 BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "roster-pull", "sts-pull",
-                "mqtt-clean", "land")
+                "mqtt-clean", "land", "triage")
 BLOCKED_GIT = {"commit", "push", "pull", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore",
                "clean", "cherry-pick", "revert", "am", "apply", "rm", "mv", "add", "fetch"}
 GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--move", "--copy", "-f", "--force"},

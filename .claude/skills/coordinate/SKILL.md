@@ -31,7 +31,7 @@ The coordinator keeps a live dashboard of every lane, every other session's PR, 
 
 The rules (when to merge `origin/main` in, merge-driver files, the post-merge watch, Main red, the baseline sweep, docs-only and light PRs, batching small lanes into one PR) are in [`merging.md`](merging.md). The steps between sessions: one merge at a time, and no auto-merge while the queue runs.
 
-1. Finish the PR's reviews. Send each `/code-review` finding through `finding-verifier` (CONFIRMED, PLAUSIBLE or WRONG) before fixing it, and fix what it confirms (`/done` step 3).
+1. Finish the PR's reviews. Verify the `/code-review` findings with `make triage PR=N FINDINGS=<json>` (one `finding-verifier` each: CONFIRMED, PLAUSIBLE or WRONG) before fixing them, and fix what its `fix-brief.md` confirms (`handoff` skill, Merge and close step 1; `/done` step 3).
 2. Merge `origin/main` in only by the rule in `merging.md` (a conflict or a stale `check` run; a PR that touches a merge-driver file merges main locally), regenerate what the PR owns, push.
 3. Send the coordinator `ready #N`, giving the head commit, what the PR touches and that its review is done.
 4. Wait for `go #N`. A PR does not merge `main` in again because it moved; do it only for a conflict or a stale run, and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.
