@@ -741,7 +741,8 @@
       if (location.hash === "#print") printWhenReady();
     } catch (err) {
       console.error(err);
-      if (root) {
+      // The built page carries the sheet as plain HTML (data-static, scripts/portal_nojs_crew.py): keep it.
+      if (root && !(root.hasAttribute && root.hasAttribute("data-static"))) {
         HARTOps.renderError(root, {
           what: "this sheet",
           err,

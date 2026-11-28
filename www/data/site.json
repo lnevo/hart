@@ -52,6 +52,22 @@
         "crew-industries",
         "docs",
         "layout"
+      ],
+      "sub": [
+        {
+          "id": "crew",
+          "href": "crew/index.html",
+          "label": "Crew sheets",
+          "pages": [
+            "crew-sheet",
+            "crew-maps",
+            "crew-map",
+            "crew-tt23",
+            "crew-colors",
+            "crew-scale",
+            "crew-industries"
+          ]
+        }
       ]
     },
     {

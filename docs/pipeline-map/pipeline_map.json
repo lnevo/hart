@@ -3355,8 +3355,17 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Site build part, stage 7b: the static header, footer and primer text a visitor without JavaScript sees, from data/site.json and data/briefing.json.",
+   "desc": "Site build part, stage 7b: the static header (with skip link), footer and primer text a visitor without JavaScript sees, from data/site.json and data/briefing.json; the crew pages and the shelf through portal_nojs_crew.py.",
    "path": "www/scripts/portal_nojs.py"
+  },
+  {
+   "id": "www/scripts/portal_nojs_crew.py",
+   "label": "portal_nojs_crew.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part, stage 7b: the crew pages' content from data/crew.json and the Publications shelf from data/publications.json as plain HTML, in the markup js/crew.js and the shelf script write.",
+   "path": "www/scripts/portal_nojs_crew.py"
   },
   {
    "id": "www/scripts/portal_photos.py",
@@ -14512,6 +14521,11 @@
    "from": "www/scripts/portal_nojs.py",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "no-JavaScript fallbacks (import)"
+  },
+  {
+   "from": "www/scripts/portal_nojs_crew.py",
+   "to": "www/scripts/portal_nojs.py",
+   "label": "crew pages and shelf without JavaScript (import)"
   },
   {
    "from": "www/scripts/portal_photos.py",
