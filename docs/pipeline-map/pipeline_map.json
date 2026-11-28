@@ -6551,6 +6551,15 @@
    "path": "tools/agent/land_queue.py"
   },
   {
+   "id": "tools/agent/triage.py",
+   "label": "triage.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make triage PR=N FINDINGS=<json>: the coordinator verifies /code-review findings, one headless finding-verifier each (3 at once, under the session cap), and writes fix-brief.md in ~/.cache/hart/triage/<N>/.",
+   "path": "tools/agent/triage.py"
+  },
+  {
    "id": "docs/report-cards/scores.json",
    "label": "report card scores",
    "kind": "structured",
@@ -15372,6 +15381,16 @@
    "from": "host:mac",
    "to": "tools/agent/land_queue.py",
    "label": "make land-status"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/triage.py",
+   "label": "make triage"
+  },
+  {
+   "from": ".claude/agents/finding-verifier.md",
+   "to": "tools/agent/triage.py",
+   "label": "headless verifier"
   },
   {
    "from": "tools/hosts/deploy/ci_pass.py",
