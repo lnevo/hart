@@ -92,6 +92,11 @@ def _link(href: str, label: str) -> str:
     return f'<a href="{esc(href)}">{esc(label)}</a>'
 
 
+def _job_code(job: dict, base: str) -> str:
+    """A job's code, linked to its sheet when it has one (D749, NVL, CK1), as the page script draws it."""
+    return _link(_href(job["href"], base), job["code"]) if job.get("href") else esc(job["code"])
+
+
 def primer_html(data: dict, industries: list, base: str = "../") -> str:
     """The primer's text from briefing.json, in the sections and order the page script draws (no photos)."""
     out = [f"<p>{esc(data.get('lede'))}</p>"] if data.get("lede") else []
@@ -115,7 +120,7 @@ def primer_html(data: dict, industries: list, base: str = "../") -> str:
             skip = sec.get("exclude") or []
             out.append(_list([esc(i.get("name")) for i in industries
                               if i.get("category") != "interchange" and i.get("spot") not in skip]))
-        out.append(_list([f"<strong>{esc(j['code'])}</strong>, {esc(j['name'])}: {esc(j['blurb'])}"
+        out.append(_list([f"<strong>{_job_code(j, base)}</strong>, {esc(j['name'])}: {esc(j['blurb'])}"
                           for j in sec.get("jobs") or []]))
         out.append(_list([f"<strong>{esc(b['color'])}</strong>: {esc(b['dest'])} ({esc(b['train'])})"
                           for b in sec.get("blocks") or []]))

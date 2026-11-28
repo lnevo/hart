@@ -93,7 +93,9 @@ class Primer(unittest.TestCase):
                            "links": [{"label": "Glossary", "href": "operators/glossary/index.html"}]},
             "sections": [
                 {"id": "industries", "heading": "Who We Switch", "placards": True, "exclude": ["b"]},
-                {"id": "jobs", "heading": "Jobs", "jobs": [{"code": "D749", "name": "Switcher", "blurb": "<x>"}]},
+                {"id": "jobs", "heading": "Jobs", "jobs": [{"code": "D749", "name": "Switcher", "blurb": "<x>",
+                                                             "href": "crew/d749/index.html"},
+                                                            {"code": "YM", "name": "Yard", "blurb": "y"}]},
                 {"id": "map", "heading": "Map", "figure": {"caption": "Schematic.", "pdf": "crew/s.pdf"}},
             ],
             "deeper": {"heading": "Deeper", "refs": [{"label": "TT-23", "href": "crew/tt23/index.html"}]},
@@ -119,6 +121,9 @@ class Primer(unittest.TestCase):
         self.assertNotIn("Skip", ns)
         self.assertNotIn("Interchange", ns)
         self.assertIn("&lt;x&gt;", ns)
+        # A job with a sheet links its code; one without stays plain.
+        self.assertIn('<strong><a href="../crew/d749/index.html">D749</a></strong>', ns)
+        self.assertIn("<strong>YM</strong>", ns)
         for href in ("../operators/glossary/index.html", "../crew/s.pdf", "../crew/tt23/index.html", "../library/h.html"):
             self.assertIn(f'href="{href}"', ns)
 
