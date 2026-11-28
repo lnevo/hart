@@ -10,7 +10,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
 ## Who writes it
 
 - **The coordinator owns every row and checks it.** A lane or a session in another window may have no dashboard access, may stop or may forget, and its row then goes stale while the owner reads it. When a message changes a lane or PR, update that row in the same turn.
-- A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends JSON lines `{"doc": "<id>", "data": {...}}` to `.claude/progress/<topic>.dash.jsonl`, and the coordinator writes each line to `ArtifactData` at the next `SYNC`.
+- A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends `dash_rows.py` op lines (`row 3-L7 status=ci stage=remote`, `event "Merged #1371"`; no `updated` or `at`, which the helper stamps) to `.claude/progress/<topic>.dash.jsonl`, one op per line, and the coordinator runs each line through `dash_rows.py` at the next `SYNC` (a `row` with `--if-version` from the row's last read).
 - Results that change the page (a deploy, a merge, a failed check) come to the coordinator directly. A steward that reports to a background coordinator sends the coordinator a copy.
 
 ## Set up (once per wave)
@@ -20,6 +20,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
    - `dash/meta` with `{title}`, the page's title (`Wave 3 Dashboard`).
    - Three datasets, each with `source: {kind: "store", path: "data/<wave>/<name>"}`: `lanes`, `events` and `samples`.
    - `files/index.html`, whose `{text}` is [`index.html`](index.html). Before writing it, set its header for this wave: the subtitle, the start time, the wave page link, the `Coordinator:` line and the timeline chip.
+   The template's layout is the owner's default (2026-11-27): a two-row header, the tiles, the timeline, one row with the two charts and the updates feed at the same height, then the lanes table at full width; keep it unless the owner asks for another.
    The page shows the time of the last data refresh and a Refresh button.
    It opens in dark mode (owner, 2026-11-27); a reader's own Auto or Light choice is kept in their browser.
 3. Add the link to the wave's page in `wiki/projects/`, on the line under `Coordinator:`, and give it to the owner once.
@@ -40,7 +41,15 @@ Rows to keep:
 - **Every PR another session sends to the queue**, ids `<wave>-P<pr>` (`3-P1271`), named for the session. Add it when the session first tells you its plan, not when it is ready.
 - **The report card** (`<wave>-RC`) and anything else with an ETA the owner waits on.
 
-Take `updated` and every other time from `date +%H:%M` on this Mac. Do not use a time an agent reports. Change an existing row with `update`, passing `if_version` from the row's last read. Create a new row with `set`.
+Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update` and needs `--if-version` from the row's last read; `new-row` is a `set` and needs lane, status, stage, eta and order. Do not use a time an agent reports.
+
+```
+python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 --if-version 3-L7=4 \
+  row 3-L7 status=ci pr='[1271,1280]' eta=23:40 'stage=head abc123, remote green' \
+  event 'Merged #1271 (merge 0ddc7b8)'
+```
+
+It writes one JSON file per document and prints the array the coordinator pastes as the `ArtifactData` `batch` `writes`. `python3 tools/agent/dash_rows.py -h` lists the ops.
 
 ## Events
 
@@ -52,7 +61,7 @@ Add one events doc {at, text} for each of these:
 - a blocker;
 - the end of the wave.
 
-Id: `e<wave>-HHMM`. If that id exists, add a letter (`e3-2330b`).
+Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a letter to an id already made in this run or written by an earlier run into the same OUT_DIR (`e3-2330b`), so keep one OUT_DIR per wave.
 
 ## When to update
 
@@ -63,10 +72,10 @@ Update on every message that changes a lane or PR: it starts, passes or fails it
 `samples` docs hold {at, mac_load1, mac_cpus, win_load1, win_cpus, win_remote_runs, sessions, subagents, claude_total}, one every 2 minutes.
 
 - Run `Monitor` on `.claude/skills/dashboard/sampler.sh <scratchpad>/dash/samples.jsonl` with a 30-minute timeout. Whoever holds the Monitor starts it again when it ends.
-- The sampler prints `SYNC HH:MM` every 10 minutes. When that line appears, write the lines added since the last sync as `samples` docs, each with id `sHHMM` from its own `at`.
+- The sampler prints `SYNC HH:MM` every 10 minutes. When that line appears, write the lines added since the last sync with `samples <file> --since <last SYNC HH:MM>`; each doc gets id `sHHMM` from its own `at`.
 - The sampler counts sessions (claude processes on this Mac) and subagents (task outputs written in the last 3 minutes) itself. Do not use `ListAgents` for counts, because a steward does not have it.
 - If counts are missing for a stretch, estimate them from file times. A session runs from the first to the last write of its transcript (`~/.claude/projects/*/*.jsonl`). An agent runs from the first to the last write of its task output. Add `"estimate": true` to those samples docs; the field is stored, and the page does not show it.
-- Raise the session cap only on the owner's word; the samples show the load, and job times against earlier runs show slowdown.
+- The session cap starts at 8 and is flexible while load is low (owner, 2026-11-27): the samples show the load, and job times against earlier runs show slowdown. Go past 8 only while both stay low, and drop back when they rise.
 
 ## Before a /clear and at the end
 

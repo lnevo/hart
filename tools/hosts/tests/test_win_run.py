@@ -540,5 +540,131 @@ class WinRunLog(unittest.TestCase):
         self.assertIn("WIN_RUN_KEEP_LOGS", done.stderr)
 
 
+class WinRunMacLock(unittest.TestCase):
+    """The mac lock block: at most WIN_RUN_SLOTS remote runs at once from the Mac, a run waiting with a line only when
+    every slot is held, a stale slot reclaimed, and the slot released on every exit. Run alone with the slot folders
+    in a temp folder."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.lock = self.tmp / "remote.lock"
+        self.block = self.tmp / "lock.sh"
+        self.block.write_text('set -euo pipefail\nslots="${WIN_RUN_SLOTS:-2}"\n'
+                              f'{block_of(WIN_RUN.read_text(), "mac lock")}\n'
+                              'trap release_lock EXIT\ntake_lock some/branch\necho "TAKEN $lock_dir"\n'
+                              'cat "$lock_dir/owner"\nsleep "${END_SLEEP:-0}"\nexit "${END_RC:-0}"\n')
+        self.env = dict(os.environ, WIN_RUN_LOCK=str(self.lock), WIN_RUN_LOCK_POLL="1", WIN_RUN_LOCK_SAY="60")
+
+    def slot(self, n: int) -> Path:
+        return Path(f"{self.lock}.{n}")
+
+    def bash(self, **env: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["/bin/bash", str(self.block)], capture_output=True, text=True, timeout=30,
+                              env={**self.env, **env})
+
+    def start(self, **env: str) -> subprocess.Popen:
+        return subprocess.Popen(["/bin/bash", str(self.block)], env={**self.env, **env}, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True)
+
+    def hold(self, n: int, pid: int, since: int) -> None:
+        self.slot(n).mkdir()
+        (self.slot(n) / "owner").write_text(f"{pid} {since} other/branch\n")
+
+    def dead_pid(self) -> int:
+        proc = subprocess.Popen(["true"])
+        proc.wait()
+        return proc.pid
+
+    def test_a_free_slot_is_taken_and_released_on_exit(self) -> None:
+        for rc in ("0", "1"):
+            with self.subTest(rc=rc):
+                done = self.bash(END_RC=rc)
+                self.assertEqual(int(rc), done.returncode, done.stderr)
+                self.assertIn(f"TAKEN {self.slot(1)}", done.stdout)
+                self.assertIn("some/branch", done.stdout)
+                self.assertFalse(self.slot(1).exists())
+
+    def test_two_runs_hold_the_two_slots_at_once(self) -> None:
+        first = self.start(END_SLEEP="3")
+        time.sleep(0.5)
+        second = self.start(END_SLEEP="3")
+        outs = [p.communicate(timeout=20) for p in (first, second)]
+        self.assertEqual([0, 0], [first.returncode, second.returncode], outs)
+        taken = sorted(out.split()[1] for out, _ in outs)
+        self.assertEqual([str(self.slot(1)), str(self.slot(2))], taken)
+        self.assertTrue(all("waiting" not in err for _, err in outs), outs)
+        self.assertFalse(self.slot(1).exists() or self.slot(2).exists())
+
+    def test_a_third_run_waits_with_a_line(self) -> None:
+        for n in (1, 2):
+            self.hold(n, os.getpid(), int(time.time()) - 4000)
+        proc = self.start()
+        time.sleep(2.5)
+        proc.terminate()
+        out, err = proc.communicate(timeout=10)
+        self.assertNotIn("TAKEN", out)
+        self.assertIn("all 2 remote slots", err)
+        self.assertTrue((self.slot(1) / "owner").exists() and (self.slot(2) / "owner").exists(),
+                        "the other holders' slots stay")
+
+    def test_one_slot_waits_when_win_run_slots_is_1(self) -> None:
+        self.hold(1, os.getpid(), int(time.time()))
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(["/bin/bash", str(self.block)], env={**self.env, "WIN_RUN_SLOTS": "1"},
+                           capture_output=True, text=True, timeout=3)
+        self.assertFalse(self.slot(2).exists())
+
+    def test_a_stale_slot_is_reclaimed(self) -> None:
+        self.hold(1, os.getpid(), int(time.time()))
+        self.hold(2, self.dead_pid(), int(time.time()) - 3000)
+        done = self.bash()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn(f"{self.slot(2)} is stale", done.stderr)
+        self.assertIn(f"TAKEN {self.slot(2)}", done.stdout)
+        self.assertFalse(self.slot(2).exists())
+        self.assertTrue((self.slot(1) / "owner").exists())
+
+    def test_a_gone_holder_younger_than_the_limit_is_waited_for(self) -> None:
+        self.hold(1, os.getpid(), int(time.time()))
+        self.hold(2, self.dead_pid(), int(time.time()))
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(["/bin/bash", str(self.block)], env=self.env, capture_output=True, text=True, timeout=3)
+        self.assertTrue((self.slot(2) / "owner").exists())
+
+    def test_an_old_slot_with_no_owner_file_is_reclaimed(self) -> None:  # a holder killed between mkdir and write
+        self.hold(1, os.getpid(), int(time.time()))
+        self.slot(2).mkdir()
+        old = time.time() - 3000
+        os.utime(self.slot(2), (old, old))
+        done = self.bash()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn(f"{self.slot(2)} is stale (holder none gone", done.stderr)
+        self.assertIn(f"TAKEN {self.slot(2)}", done.stdout)
+
+    def test_a_new_slot_with_no_owner_file_yet_is_waited_for(self) -> None:  # mkdir done, owner not yet written
+        self.hold(1, os.getpid(), int(time.time()))
+        self.slot(2).mkdir()
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(["/bin/bash", str(self.block)], env=self.env, capture_output=True, text=True, timeout=3)
+        self.assertTrue(self.slot(2).is_dir())
+
+    def test_a_stale_slot_another_waiter_has_just_claimed_is_left_alone(self) -> None:
+        # the owner changes between this waiter's read and its clear: the fresh claim must survive
+        self.hold(1, os.getpid(), int(time.time()))
+        self.hold(2, self.dead_pid(), int(time.time()) - 3000)
+        fresh = f"{os.getpid()} {int(time.time())} fresh/claim"
+        shim = self.tmp / "bin"
+        shim.mkdir()
+        real_cat = shutil.which("cat")
+        (shim / "cat").write_text(f'#!/bin/sh\n"{real_cat}" "$@"\n[ "$1" != "{self.slot(2)}/owner" ] || [ -f "{self.tmp}/swapped" ] || '
+                                  f'{{ printf "%s\\n" "{fresh}" > "{self.slot(2)}/owner"; : > "{self.tmp}/swapped"; }}\n')
+        (shim / "cat").chmod(0o755)
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(["/bin/bash", str(self.block)], env={**self.env, "PATH": f"{shim}:{os.environ['PATH']}"},
+                           capture_output=True, text=True, timeout=3)
+        self.assertEqual(fresh, (self.slot(2) / "owner").read_text().strip())
+
+
 if __name__ == "__main__":
     unittest.main()

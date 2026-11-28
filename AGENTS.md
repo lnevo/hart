@@ -2,7 +2,7 @@
 
 Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live in `wiki/`.
 
-**Layout:** `hart` (`export JMRI_LAYOUT=hart`). `jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008); every host installs it into `JMRI_UserFiles` and loads `preference:tables.xml` (ADR-014). Folders with rules of their own carry an `AGENTS.md`: `jmri/`, `cats/`, `tools/schematic/`, `ops/hart-ops/`.
+**Layout:** `hart` (`export JMRI_LAYOUT=hart`). `jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008); every host installs it into `JMRI_UserFiles` and loads `preference:tables.xml` (ADR-014). Folders with rules of their own carry an `AGENTS.md`: `jmri/`, `cats/`, `tools/`, `tools/schematic/`, `ops/hart-ops/`.
 
 ## Commands
 
@@ -43,9 +43,7 @@ Hooks in `.claude/hooks/` (Cursor: `.cursor/hooks.json`) block commits in the ma
 
 ## Scripts
 
-CPython tools import `hartlib` (`tools/hartlib/README.md`); Jython scripts inside JMRI never do. A task that changes a script of about 500 lines or more, or one with no tests, leaves it safer in the same PR: a test for what changed, and for a feature, tests for what it depends on. Running a script owes nothing; say so if something live relied on untested behaviour. Name a bigger cleanup in the report instead of starting it.
-
-Habits the 2026-11-26 review found, to avoid: copying a helper instead of reusing it; `str(exc) from None` (chain `from exc`); `sys.exit` in library code; dates or edit history in comments (decisions go in `wiki/`); tests that search source instead of running it; bare dicts or tuples for records (dataclass, TypedDict, NamedTuple, `Literal`); annotations mypy would reject; `exec` or `globals()` parts instead of real modules.
+Rules for CPython code and the habits to avoid are in [`tools/AGENTS.md`](tools/AGENTS.md). A task that changes a script of about 500 lines or more, or one with no tests, leaves it safer in the same PR: a test for what changed, and for a feature, tests for what it depends on. Running a script owes nothing; say so if something live relied on untested behaviour. Name a bigger cleanup in the report instead of starting it.
 
 ## Do not
 
@@ -57,7 +55,7 @@ Habits the 2026-11-26 review found, to avoid: copying a helper instead of reusin
 - Stop a run with `pkill -f` on a shared script name; use its PID or your worktree path.
 - Spell out what HART stands for in any file, commit or page: the repo and site are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
-- Leave the LCOS bridge (`serial_to_mqtt`) stopped, or start a second one. It runs on the Pi as the `lcos-bridge` systemd service (`~/lcos-bridge`, `./bridge start|stop|status|log`); a lab test that needs the Nano's port stops it first and starts it before the turn ends.
+- Leave the LCOS bridge (`serial_to_mqtt`) stopped, or start a second one; its service and the lab-test rule are in [`jmri/AGENTS.md`](jmri/AGENTS.md).
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction.
 - Commit `.env.local`, credentials or `tools/cats/src-repo/`. Stage files by name, never `git add -A`.
 

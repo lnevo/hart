@@ -138,6 +138,8 @@ docs/ap/operations.log
 
 # agent status lines (handoff skill); never committed
 /.claude/progress/
+# make ready's attribution lines, written by the coordinator (tools/agent/ready.py)
+/.claude/ready-attribution.json
 
 # the session-start worktree sweep's last full report (.claude/hooks/worktree_sweep.py)
 /.claude/logs/

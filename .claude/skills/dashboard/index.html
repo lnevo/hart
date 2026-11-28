@@ -1,12 +1,15 @@
 <meta name="dash-one-writer">
 <meta name="dash-form" content="dashboard">
 <style>
-.w2 { display:flex; flex-direction:column; gap:var(--cds-gap-lg); }
+.w2 { display:flex; flex-direction:column; gap:var(--cds-gap-md); }
+.w2 .trio { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--cds-gap-md); align-items:stretch; }
+.w2 #events-section .events { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md); }
+.w2 #events-section .events { max-height:190px; overflow-y:auto; }
+@media (min-width:1000px) { .w2 .trio { grid-template-columns:minmax(0,2fr) minmax(0,1fr); } .w2 #events-section { display:flex; flex-direction:column; min-height:0; } .w2 #events-section .events { flex:1 1 auto; height:0; max-height:none; } }
 .w2 h1 { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-title); margin:0; }
-.w2 .lead { color:var(--color-fg-muted); margin:0; max-width:70ch; }
 .w2 .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--cds-gap-md); }
-.w2 .tile { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-lg); min-width:0; }
-.w2 .tile .n { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-title); font-variant-numeric:tabular-nums; display:block; }
+.w2 .tile { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-sm) var(--cds-pad-md); min-width:0; }
+.w2 .tile .n { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-heading); font-variant-numeric:tabular-nums; display:block; }
 .w2 .tile .l { color:var(--color-fg-muted); font-size:var(--cds-font-size-caption); }
 .w2 h2 { font-size:var(--cds-font-size-heading); font-weight:var(--cds-font-weight-medium); margin:0 0 var(--cds-gap-sm); }
 .w2 .tw { overflow-x:auto; border:1px solid var(--color-border-line); border-radius:var(--cds-radius); }
@@ -35,7 +38,7 @@
 .w2 .chip[aria-pressed="true"] { border-color:var(--color-fg); background:var(--color-panel); font-weight:var(--cds-font-weight-medium); }
 .w2 .chip:focus-visible { outline:2px solid var(--color-fg); outline-offset:2px; }
 .w2 .charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:var(--cds-gap-md); }
-.w2 .chart { position:relative; min-height:200px; background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md); min-width:0; }
+.w2 .chart { position:relative; background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md); min-width:0; }
 .w2 .chart h3 { font-size:var(--cds-font-size-body); font-weight:var(--cds-font-weight-medium); margin:0 0 var(--cds-gap-xs); }
 .w2 .chart svg { display:block; width:100%; overflow:visible; }
 .w2 .chart .axis text { fill:var(--cds-text-secondary); font-size:var(--cds-font-size-caption); }
@@ -54,27 +57,27 @@
   --cds-text-secondary:#9aa69f; --cds-chart-axis:#4a5650; --cds-chart-grid:#2f3934; --cds-chart-reference:#8b968f;
   --cds-chart-status-critical:#f0937d; --cds-surface-popover:#222a26; --cds-border:#3a4640; --cds-shadow-popover:0 4px 14px rgba(0,0,0,.5);
   color-scheme:dark; } }
-.w2 .proj { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:var(--cds-gap-md); border-bottom:1px solid var(--color-border-line); padding-bottom:var(--cds-pad-md); }
-.w2 .proj .eyebrow { font-size:var(--cds-font-size-caption); letter-spacing:.06em; text-transform:uppercase; color:var(--color-fg-muted); margin:0 0 4px; }
-.w2 .proj .sub { font-size:var(--cds-font-size-heading); margin:2px 0 0; }
-.w2 .proj .meta { display:flex; flex-wrap:wrap; gap:var(--cds-gap-xs) var(--cds-gap-sm); margin-top:var(--cds-gap-xs); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
+.w2 .proj { display:flex; flex-direction:column; gap:4px; border-bottom:1px solid var(--color-border-line); padding-bottom:var(--cds-pad-sm); }
+.w2 .proj .ttl { display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--cds-gap-xs) var(--cds-gap-sm); }
+.w2 .proj h1 { font-size:var(--cds-font-size-heading); }
+.w2 .proj .sub { font-size:var(--cds-font-size-body); color:var(--color-fg-muted); margin:0; }
+.w2 .proj .bar { display:flex; flex-wrap:wrap; align-items:center; gap:var(--cds-gap-xs) var(--cds-gap-md); }
+.w2 .proj .bar .theme { margin-left:auto; }
+.w2 .proj .meta { display:flex; flex-wrap:wrap; gap:var(--cds-gap-xs) var(--cds-gap-sm); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
 .w2 .proj .meta a { color:var(--color-fg); }
 .w2 .theme { display:flex; gap:2px; border:1px solid var(--color-border-line); border-radius:999px; padding:2px; }
 .w2 .theme button { font:inherit; font-size:var(--cds-font-size-caption); border:0; background:transparent; color:var(--color-fg-muted); padding:2px 10px; border-radius:999px; cursor:pointer; }
 .w2 .theme button[aria-pressed="true"] { background:var(--color-panel); color:var(--color-fg); }
 .w2 .theme button:focus-visible { outline:2px solid var(--color-fg); outline-offset:1px; }
-.w2 .clock { display:flex; flex-wrap:wrap; align-items:center; gap:var(--cds-gap-md); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); margin-top:var(--cds-pad-sm); }
+.w2 .clock { display:flex; flex-wrap:wrap; align-items:center; gap:var(--cds-gap-md); font-size:var(--cds-font-size-caption); color:var(--color-fg-muted); }
 .w2 .clock b { color:var(--color-fg); font-weight:var(--cds-font-weight-medium); font-variant-numeric:tabular-nums; }
 .w2 .clock .refresh[disabled] { opacity:.6; cursor:progress; }
 </style>
 <div class="w2 theme-dark">
   <header id="top" class="proj">
-    <div>
-      <p class="eyebrow">lnevo/hart</p>
-      <h1>HART Railroad</h1>
-      <p class="sub">Code-quality wave 2</p>
+    <div class="ttl"><h1>HART Railroad</h1><p class="sub">Code-quality wave 2</p><span class="pill running">active</span></div>
+    <div class="bar">
       <div class="meta">
-        <span><span class="pill running">active</span></span>
         <span>Coordinator: hart-bb (merge queue and deploys); lanes run by a background wave 2 coordinator</span>
         <span data-wave-start="14:15">Started 14:15 on 2026-11-26</span>
         <a href="https://github.com/lnevo/hart/blob/main/wiki/projects/code-quality-wave.md">Wave page</a>
@@ -84,15 +87,13 @@
         <span>Data refreshed <b data-draw="clock-refreshed">—</b></span>
         <button type="button" class="chip refresh" aria-label="Refresh the dashboard data">Refresh</button>
       </div>
-    </div>
-    <div class="theme" role="group" aria-label="Theme">
+      <div class="theme" role="group" aria-label="Theme">
       <button type="button" data-theme="auto" aria-pressed="false">Auto</button>
       <button type="button" data-theme="light">Light</button>
       <button type="button" data-theme="dark" aria-pressed="true">Dark</button>
     </div>
+    </div>
   </header>
-  <p class="lead"><span data-draw="lead" class="dash-skeleton">—</span></p>
-
   <section class="tiles" id="tiles" data-source="lanes">
     <div class="tile"><span class="n" data-draw="t-merged">—</span><span class="l">Lanes merged or done</span></div>
     <div class="tile"><span class="n" data-draw="t-running">—</span><span class="l">Lanes running now</span></div>
@@ -114,14 +115,20 @@
     <p class="muted">A filled dot is done or merged, at the time it finished. A hollow dot is planned, at its ETA. The line marks now.</p>
   </section>
 
-  <section id="hosts-section">
-    <h2>Hosts and agents</h2>
-    <div class="charts">
-      <div class="chart" id="load-chart"><h3>Load (1-minute average)</h3><div data-draw="load" data-source="samples"></div></div>
-      <div class="chart" id="agents-chart"><h3>Claude sessions and agents running</h3><div data-draw="agents" data-source="samples"></div></div>
-    </div>
-    <p class="muted">Sampled every 2 minutes from the Mac and the Windows box, Claude session and agent counts included; the data syncs every 10 minutes. Dashed lines: each host's CPU count, and the cap of 8 Claude sessions.</p>
-  </section>
+  <div class="trio">
+    <section id="hosts-section">
+      <h2>Hosts and agents</h2>
+      <div class="charts">
+        <div class="chart" id="load-chart"><h3>Load (1-minute average)</h3><div data-draw="load" data-source="samples"></div></div>
+        <div class="chart" id="agents-chart"><h3>Claude sessions and agents running</h3><div data-draw="agents" data-source="samples"></div></div>
+      </div>
+    </section>
+    <section id="events-section">
+      <h2>Latest updates</h2>
+      <ul class="events" data-draw="events" data-source="events"></ul>
+    </section>
+  </div>
+  <p class="muted">Sampled every 2 minutes from the Mac and the Windows box, Claude session and agent counts included; the data syncs every 10 minutes. Dashed lines: each host's CPU count, and the starting cap of 8 Claude sessions (more may run while the load is low).</p>
 
   <section id="lanes-section">
     <h2>Lanes</h2>
@@ -132,11 +139,6 @@
       </table>
     </div>
     <p class="muted">Every PR passes merge-main, the ratchets, make static and the full remote check before it opens; merges go one at a time.</p>
-  </section>
-
-  <section id="events-section">
-    <h2>Latest updates</h2>
-    <ul class="events" data-draw="events" data-source="events"></ul>
   </section>
 </div>
 <script>
@@ -150,18 +152,7 @@ dash.draw('t-merged', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; 
 dash.draw('t-running', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>isRun(x.status)).length); });
 dash.draw('t-queued', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>x.status==='queued').length); });
 dash.draw('t-blocked', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } setNum(el, r.filter(x=>x.status==='blocked'||x.status==='failed').length); });
-dash.draw('t-eta', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } const e=r.filter(x=>!isDone(x.status)&&x.eta).map(x=>String(x.eta)).sort(); setNum(el, e.length? e[e.length-1] : 'done'); });
-dash.draw('lead', (el)=>{
-  const r=laneRows();
-  if(!r){ el.textContent = dash.data('lanes').status==='loading' ? '—' : 'No lane data yet.'; return; }
-  el.classList.remove('dash-skeleton');
-  const done=r.filter(x=>isDone(x.status)).length, run=r.filter(x=>isRun(x.status)), blk=r.filter(x=>x.status==='blocked'||x.status==='failed');
-  const open=r.filter(x=>!isDone(x.status)&&x.eta).map(x=>String(x.eta)).sort();
-  let s = done + ' of ' + r.length + ' lanes are finished and ' + run.length + ' are running';
-  s += blk.length ? '; ' + blk.length + ' blocked (' + blk.map(x=>x.lane).join(', ') + ')' : '; none is blocked';
-  s += open.length ? '. Everything should land by about ' + open[open.length-1] + '.' : '. The wave is complete.';
-  el.textContent = s;
-});
+dash.draw('t-eta', (el)=>{ const r=laneRows(); if(!r){ el.textContent='—'; return; } const e=r.filter(x=>!isDone(x.status)&&x.eta).map(x=>String(x.eta)).sort((a,b)=>(hm(a)??0)-(hm(b)??0)); setNum(el, e.length? e[e.length-1] : 'done'); });
 dash.draw('lanes', (tb)=>{
   const r=laneRows(); tb.replaceChildren();
   if(!r){ const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=7; td.textContent = dash.data('lanes').status==='error' ? 'The lane list did not load.' : '—'; tr.append(td); tb.append(tr); return; }
@@ -251,7 +242,7 @@ function sampleRows(){ const r=rows('samples'); if(!r) return null; return r.map
 function lineChart(el, series, refs, yLabel){
   const r=sampleRows(); el.replaceChildren();
   if(!r || r.length<2){ el.textContent = r ? 'Collecting samples…' : (dash.data('samples').status==='error' ? 'Samples did not load.' : '—'); return; }
-  const W=Math.max(280, el.clientWidth), H=170, m={l:30,r:10,t:8,b:22};
+  const W=Math.max(280, el.clientWidth), H=110, m={l:30,r:10,t:8,b:22};
   const x=d3.scaleLinear().domain(d3.extent(r,s=>s.m)).range([m.l,W-m.r]);
   const ymax=d3.max([...series.flatMap(s=>r.map(v=>+v[s.key]||0)), ...refs.map(f=>f.value(r))])||1;
   const y=d3.scaleLinear().domain([0, ymax*1.1]).nice().range([H-m.b,m.t]);
@@ -273,8 +264,8 @@ dash.draw('load', (el)=> lineChart(el,
   'Mac and Windows load over time with each CPU count'));
 dash.draw('agents', (el)=> lineChart(el,
   [{key:'claude_total',label:'Sessions and agents',color:dash.colors[2]||dash.colors[0],area:true},{key:'win_remote_runs',label:'Remote checks on Windows',color:dash.colors[3]||dash.colors[1]}],
-  [{label:'Cap of 8', color:'var(--cds-chart-status-critical)', value:()=>8}],
-  'Claude sessions plus agents running over time against the cap of 8, and remote checks'));
+  [{label:'Starting cap of 8', color:'var(--cds-chart-status-critical)', value:()=>8}],
+  'Claude sessions plus agents running over time against the starting cap of 8, and remote checks'));
 
 (function(){
   let pick='dark'; try { pick = localStorage.getItem('w2-theme') || 'dark'; } catch(e) {}

@@ -160,9 +160,59 @@ class CursorGuard(unittest.TestCase):
 
 
 class SubagentGuard(unittest.TestCase):
+    def test_make_ready_is_the_one_way_to_ship(self) -> None:
+        for command in ('make ready FILES="a.py b.md" MSG="fix(x): git commit wording"',
+                        "make ready FILES=a.py MSG=m TITLE=t BODY_FILE=/tmp/body.md",
+                        "make ready MSG='fix: deploy-layout docs' 2>&1",
+                        "python3 tools/agent/ready.py --files a.py --msg 'fix: git push text'",
+                        "python3 ./tools/agent/ready.py --help"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+        for command in ("git commit -m x", "git add a.py", "git push -u origin HEAD", "gh pr create --fill",
+                        "gh pr merge 5", "gh pr merge 5 --merge --auto", "make deploy-layout",
+                        "make ready && git push origin main", "make ready; gh pr merge 5",
+                        "make ready deploy-layout", "make ready redeploy", "make -C /tmp ready",
+                        "make ready CMD=x", "make ready MAKEFLAGS=-n", "HART_READY_ATTRIBUTION=/tmp/x make ready",
+                        "env FOO=1 make ready", "make ready ready", "python3 tools/agent/ready.py --force",
+                        "git push --force origin HEAD", "git push origin HEAD:main",
+                        "./tools/hosts/sync_hart_package.sh --pi --win"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+
+    def test_make_ready_values_that_make_would_expand_are_blocked(self) -> None:
+        for command in ("make ready FILES=x MSG='$(shell git push --force origin HEAD:main)'",
+                        'make ready FILES=x MSG="$(shell ssh pi true)"', "make ready FILES=x TITLE='${HOME}'",
+                        "make ready FILES=x MSG='a' BODY='`id`'"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("make ready FILES=x MSG='fix: costs $5' BRANCH=agent/claude/topic",):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
+    def test_the_makefile_does_not_expand_ready_values(self) -> None:
+        out = subprocess.run(["make", "-n", "ready", "FILES=x", "MSG=$(shell echo EXPANDED >&2)"], cwd=ROOT,
+                             capture_output=True, text=True, timeout=60)
+        self.assertNotIn("EXPANDED", out.stderr)
+        self.assertIn("--msg '$(shell echo EXPANDED >&2)'", out.stdout)
+
     def test_deploys_are_blocked_through_make(self) -> None:
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)
+
+    def test_make_land_is_blocked(self) -> None:  # it merges a PR
+        for command in ("make land PR=12", "make land PR=12 SQUASH=1", "make -s land PR=12"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        self.assertEqual(run(SUBAGENT_GUARD, "grep -n land Makefile", str(ROOT)).returncode, 0)
+
+    def test_land_py_run_directly_is_blocked(self) -> None:  # make land's script, called without make
+        for command in ("python3 tools/agent/land.py 12", "tools/agent/land.py 12", "./tools/agent/land.py --pr 12",
+                        "env python3 tools/agent/land.py 12", "cd tools/agent && python3 land.py 12"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("grep -n merge tools/agent/land.py", "python3 -m unittest tools/audit/tests/test_land.py"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
 
     def test_pulls_from_the_pi_are_blocked(self) -> None:
         for command in ("make ops-pull", "make roster-pull", "tools/ops/pull_ops.sh", "./tools/ops/pull_roster.sh",

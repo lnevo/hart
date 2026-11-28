@@ -34,7 +34,7 @@ if [[ -z "${CI:-}" && "${FULL:-}" != 1 && -z "${CHECK_ONLY:-}" && -z "${CHECK_AU
               echo "Docs-only change (${verdict#docs: }): quick docs checks only, no stamps recorded, not a full pass (FULL=1 runs everything)" ;;
       light:*) LIGHT=1
                echo "Light change (${verdict#light: }): the light checks only, not a full pass (FULL=1 runs everything)" ;;
-      full:*) ;;
+      full:*) echo "Full checks: ${verdict#full: } (tools/ci/changed_kind.py; make pr-kind)" ;;
       unknown:*) echo "Full checks: cannot tell what changed, ${verdict#unknown: }" ;;
       *) echo "Full checks: tools/ci/changed_kind.py --git printed no verdict: $verdict" ;;
     esac

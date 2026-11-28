@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static baselines pr-kind remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static baselines pr-kind ready remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -11,6 +11,11 @@ wt:  ## Start a task in its own worktree: make wt TOPIC=short-topic
 
 wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
+
+.PHONY: land
+land:  ## The coordinator merges one PR: make land PR=N [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
+	@test -n "$(PR)" || { echo 'make land: set PR=N' >&2; exit 2; }
+	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
 
 orient:  ## Who works on what: claims, worktrees in progress, operating flag, last deploys, open PRs, what waits to be pulled in
 	@python3 tools/ops/orient.py
@@ -32,6 +37,12 @@ baselines:  ## The queue holder's wave-end sweep PR: lower the mypy, habits and 
 
 pr-kind:  ## Does this branch need make remote? Prints docs, light (make static and the light checks, no make remote) or full, with the reason
 	@python3 tools/ci/changed_kind.py --git
+
+# $(value V): make does not expand $(shell ...) or other references inside the values; the guard refuses them too.
+ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path] [BRANCH=agent/claude/<topic>]; commit, checks, push, make remote unless light, PR (never merges)
+	@python3 tools/agent/ready.py --files '$(subst ','"'"',$(value FILES))' --msg '$(subst ','"'"',$(value MSG))' --title '$(subst ','"'"',$(value TITLE))' \
+	  --body '$(subst ','"'"',$(value BODY))' --body-file '$(subst ','"'"',$(value BODY_FILE))' \
+	  --branch '$(subst ','"'"',$(value BRANCH))'
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }

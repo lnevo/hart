@@ -13,6 +13,12 @@ grouping), so it reads the same in a POSIX shell, cmd and PowerShell. Each part
 must be a bare program name from READ_ONLY, or one from READ_ONLY_SUB with its
 subcommand first. scp and rsync stay blocked.
 
+`make ready` (tools/agent/ready.py) is how a subagent commits, pushes and opens its PR. It passes only with the
+variables in READY_VARS (or, called directly, the options in READY_OPTIONS) and no assignments in front. The hook
+reads the command line only, so the git and gh calls ready.py makes as its children are not checked here; ready.py
+refuses the main checkout, other branches than agent/claude/*, pushes to another name, force and any gh call
+but `pr view` and `pr create`.
+
 Any error inside the guard blocks the command (exit 2).
 """
 import json
@@ -31,11 +37,11 @@ BLOCKED_PROGRAMS = {
     "deploy_hartrailroad.sh", "sync_hart_package.sh", "redeploy_commit.sh", "flash_nano.py",
     "ship_pi.sh", "ship_win.sh", "ship_mac.sh", "gate.sh",
     "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
-    "pull_roster.sh",
+    "pull_roster.sh", "land.py",   # tools/agent/land.py merges a PR: the coordinator's, never a subagent's
 }
 BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
 BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "roster-pull", "sts-pull",
-                "mqtt-clean")
+                "mqtt-clean", "land")
 BLOCKED_GIT = {"commit", "push", "pull", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore",
                "clean", "cherry-pick", "revert", "am", "apply", "rm", "mv", "add", "fetch"}
 GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--move", "--copy", "-f", "--force"},
@@ -43,6 +49,14 @@ GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--mov
                "submodule": {"update", "add", "deinit", "sync"}}
 GH_WRITING = {"merge", "create", "close", "edit", "comment", "delete", "review", "reopen", "ready", "lock",
               "unlock", "rerun", "cancel", "run", "upload", "transfer", "archive", "fork", "sync"}
+# make ready (tools/agent/ready.py): the one way a subagent commits, pushes and opens a PR. The guard sees only this
+# command line; the git and gh calls the script makes are child processes it never sees, so ready.py holds their rules.
+READY_SCRIPT = "tools/agent/ready.py"
+READY_VARS = {"FILES", "MSG", "TITLE", "BODY", "BODY_FILE", "BRANCH"}
+# make expands $(...) and ${...} (a $(shell ...) among them) in a command-line value before ready.py starts, where
+# this hook never sees it; the Makefile reads the values with $(value V), and a value holding one is refused here too.
+MAKE_EXPANSION = re.compile(r"\$[({]|`|\n")
+READY_OPTIONS = {"--files", "--msg", "--title", "--body", "--body-file", "--branch", "-h", "--help"}
 GIT_VALUE_OPTIONS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--config-env"}
 SHELLS = shell_parse.SHELLS
 INTERPRETER = re.compile(r"(ba|z|da|k)?sh|fish|python[\d.]*|node|perl|ruby")
@@ -87,6 +101,20 @@ def git_subcommand(args: list[str]) -> str:
 def blocked_name(word: str) -> bool:
     name = base(word)
     return name in BLOCKED_PROGRAMS or name.startswith(BLOCKED_PREFIXES)
+
+
+def ready_call(program: str, args: list[str]) -> bool | None:
+    """For `make ready ...` or `python3 tools/agent/ready.py ...`: True when allowed, False when it adds anything
+    beyond READY_VARS or READY_OPTIONS (another target, a make flag, an option ready.py lacks). None for any other
+    command."""
+    if program == "make" and "ready" in args:
+        rest = [a for a in args if a != "ready"]
+        return args.count("ready") == 1 and all(a.split("=", 1)[0] in READY_VARS and "=" in a
+                                                and not MAKE_EXPANSION.search(a.split("=", 1)[1]) for a in rest)
+    if INTERPRETER.fullmatch(program) and program not in SHELLS and args[:1] and \
+            os.path.normpath(args[0]) == READY_SCRIPT:
+        return all(a.split("=", 1)[0] in READY_OPTIONS for a in args[1:] if a.startswith("-"))
+    return None
 
 
 def blocked_local(program: str, args: list[str]) -> bool:
@@ -158,11 +186,14 @@ def check_command(cmd: SimpleCommand) -> str:
         return ""
     words = list(cmd.words)
     program, args = base(words[0]), words[1:]
+    allowed = ready_call(program, args)
+    if allowed is not None:
+        return "" if allowed and not cmd.assigned else f"make ready takes only {sorted(READY_VARS)}: {shlex.join(words)}"
     if INTERPRETER.fullmatch(program) and program not in SHELLS:  # inline code: refuse it if it names what acts
         code = " ".join(args)
         if re.search(r"\bssh\b|subprocess|os\.(system|popen|exec|spawn)|\bsystem\s*\(|\bexec\s*\(|"
                      r"git\s+(" + "|".join(sorted(BLOCKED_GIT)) + r")\b|make\s+(deploy|redeploy)|"
-                     + "|".join(map(re.escape, BLOCKED_PROGRAMS)), code):
+                     + r"(?<![\w.-])(" + "|".join(map(re.escape, sorted(BLOCKED_PROGRAMS))) + ")", code):
             return f"{program} code that runs a blocked command"
     if program == "ssh":
         remote, wrong = remote_command(args)

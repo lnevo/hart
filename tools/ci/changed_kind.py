@@ -12,8 +12,10 @@ checks (tools/ci/docs_checks.sh).
     changed_kind.py --jobs (--git [--base B] | --compare A)
                                       the check.sh jobs a light change runs, one per line; exit 1 when it is not light
 
-"docs" only when every path is prose that the quick docs checks cover: Markdown outside the agent rules (AGENTS.md,
-CLAUDE.md) and the generated map folder, and under .claude/ only the skills' and subagents' (CLAUDE_DOCS). "light"
+"docs" only when every path is prose that the quick docs checks cover: Markdown outside the agent rules (CLAUDE.md
+and the folders' AGENTS.md; the root AGENTS.md is docs, ROOT_AGENTS) and the generated map folder, and under .claude/
+only the skills' and subagents' (CLAUDE_DOCS); the pipeline map beside them is docs too when it changes only in its
+agent-doc lane (AGENT_LANE). "light"
 when every path is docs or a data file that no code, host or full-only test depends on (light_problem says each
 rule), so make static, the static checks that read it and the quick docs checks cover it. Anything else, and an
 empty list, is "full". The paths are
@@ -44,6 +46,9 @@ from portal_inputs import ChangedFilesError, changed_files, git_lines  # noqa: E
 
 # Rules for agents: tools/audit/check_agent_docs.py reads these and the rest of check.sh follows from them.
 AGENT_FILES = {"AGENTS.md", "CLAUDE.md"}
+# The root AGENTS.md is docs: its readers are the agent-docs and pipeline-map checks, both on the
+# docs path. A folder's AGENTS.md stays full: jmri/ and cats/ are code, and unit jobs declare the others.
+ROOT_AGENTS = "AGENTS.md"
 # Generated from the repo and compared by tests that only the full run executes.
 GENERATED = ("docs/pipeline-map/",)
 # The folders under .claude/ whose Markdown is docs: the skills and the subagents. The unit suites that read them
@@ -66,6 +71,11 @@ MAP = "docs/pipeline-map/pipeline_map.json"
 # The pipeline-map check (build_pipeline_map.py --check, static and docs_only) builds both pages from it.
 MAP_DISPLAY_KEYS = ("presets",)
 MAP_READER = "pipeline-map"
+# The agent-doc lane's mark ("gen") on its boxes and links (tools/ops/agent_docs_map.py GEN), built from the agent docs
+# alone. A map change limited to them is docs: the docs path runs the pipeline-map check
+# (build_pipeline_map.py --check rebuilds the lane from the files) and the agent-docs check.
+AGENT_LANE = "agent-docs"
+MapChange = Literal["docs", "light"]
 
 Kind = Literal["docs", "light", "full"]
 
@@ -126,7 +136,7 @@ def plain(path: str) -> str | None:
 
 def is_docs(path: str) -> bool:
     p = plain(path)
-    if p is None or p.split("/")[-1] in AGENT_FILES or p.startswith(GENERATED):
+    if p is None or (p.split("/")[-1] in AGENT_FILES and p != ROOT_AGENTS) or p.startswith(GENERATED):
         return False
     if p.startswith(".claude/") and not p.startswith(CLAUDE_DOCS):
         return False
@@ -161,9 +171,19 @@ def load_declarations(root: Path = ROOT) -> Declarations:
     return Declarations(jobs, static, units, live, graph["nodes"], graph["edges"], pm.covers)
 
 
-def map_display_only(base_text: str | None, head_text: str | None) -> str | None:
-    """None when the map's head differs from its base only in MAP_DISPLAY_KEYS (and does differ there); otherwise
-    why the change is not that."""
+def _less_agent_lane(graph: dict[str, object]) -> dict[str, object]:
+    """The map without the agent-doc lane's boxes and links (AGENT_LANE)."""
+    out = dict(graph)
+    for key in ("nodes", "edges"):
+        entries = out.get(key)
+        if isinstance(entries, list):
+            out[key] = [e for e in entries if not (isinstance(e, dict) and e.get("gen") == AGENT_LANE)]
+    return out
+
+
+def map_change(base_text: str | None, head_text: str | None) -> MapChange | str:
+    """How the map's head differs from its base: "docs" when only in the agent-doc lane's boxes and links, "light"
+    when only in MAP_DISPLAY_KEYS (with or without that lane), otherwise why it is neither."""
     if base_text is None or head_text is None:
         return "no base copy of the map to compare with" if base_text is None else "the map is gone"
     try:
@@ -172,13 +192,15 @@ def map_display_only(base_text: str | None, head_text: str | None) -> str | None
         return f"a copy of the map is not JSON ({err})"
     if not isinstance(base, dict) or not isinstance(head, dict):
         return "a copy of the map is not a JSON object"
+    if base == head:
+        return f"its keys are the base's, {', '.join(MAP_DISPLAY_KEYS)} included: only the file's text differs"
+    base, head = _less_agent_lane(base), _less_agent_lane(head)
     changed = [k for k in sorted(set(base) | set(head)) if base.get(k) != head.get(k)]
     rest = [k for k in changed if k not in MAP_DISPLAY_KEYS]
     if rest:
-        return f"it changes {', '.join(repr(k) for k in rest)}, not only {', '.join(MAP_DISPLAY_KEYS)}"
-    if not changed:
-        return f"its keys are the base's, {', '.join(MAP_DISPLAY_KEYS)} included: only the file's text differs"
-    return None
+        return (f"it changes {', '.join(repr(k) for k in rest)}, not only {', '.join(MAP_DISPLAY_KEYS)} or the "
+                f"agent-doc lane ('gen': '{AGENT_LANE}')")
+    return "light" if changed else "docs"
 
 
 def first_rule(p: str) -> str | None:
@@ -250,6 +272,9 @@ def verdict(paths: list[str], root: Path = ROOT, compare: str | None = None,
     n = f"{len(paths)} changed path{'s' if len(paths) != 1 else ''}"
     if all(is_docs(p) for p in paths):
         return Verdict("docs", f"{n}, all Markdown docs")
+    if [plain(p) for p in paths if not is_docs(p)] == [MAP] \
+            and map_change(_base_copy(root, compare, MAP), _head_copy(root, MAP)) == "docs":
+        return Verdict("docs", f"{n}, Markdown docs and the pipeline map's agent-doc lane")
     data: list[str] = []
     for raw in (p for p in paths if not is_docs(p)):
         p = plain(raw)
@@ -266,9 +291,9 @@ def verdict(paths: list[str], root: Path = ROOT, compare: str | None = None,
     extra: list[str] = []
     for p in data:
         if p == MAP:
-            why = map_display_only(_base_copy(root, compare, p), _head_copy(root, p))
-            if why:
-                return Verdict("full", f"{p}: {why}")
+            change = map_change(_base_copy(root, compare, p), _head_copy(root, p))
+            if change not in ("docs", "light"):
+                return Verdict("full", f"{p}: {change}")
             extra.append(MAP_READER)
             continue
         why, jobs = light_problem(p, d)

@@ -45,7 +45,7 @@ The owner's rule (2026-11-25): a block length has two sources. `plan_in` comes o
 - No lane edits `tools/pipeline/checks.toml`, `tools/check.sh` or `check_stamps.py`: they belong to the ADR-037 session, which adds the `data-schemas` step. Later lanes add sidecar files; the step finds them.
 - One merge at a time across sessions. The main session sends "ready #N" to the cleanup coordinator and merges only on "go #N": merge `origin/main` into the branch, push, wait for the required check on that head, merge, and repeat if `main` moved. No auto-merge.
 - `wiki/STATUS.md` is frozen while the ADR-038 migration PR is open; after it lands, STATUS lines go in `wiki/status/` entry files.
-- At most three lane agents at once, and fewer when the Mac's 8-session cap would be passed (count with `ListAgents` first).
+- At most three lane agents at once, and fewer when the Mac's session cap (start at 8, more while load is low) would be passed (count with `ListAgents` first).
 - Lane agents leave this page, ADR-039 and `wiki/STATUS.md` alone and write their status lines to `.claude/progress/data-masters-<lane>.md`. The main session relays them and updates this table after each merge.
 - Each lane opens its own PR from its own worktree. Full checks run only through `make remote`.
 

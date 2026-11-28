@@ -16,7 +16,7 @@ The scores are a reviewer's judgment, and each one rests on the measurements in 
 | Subagents | 6.5 | 7.5 | 8.5 | `general-purpose` was 140 of 527 chosen launches (27%) for 2026-11-22 to 11-27, down from 68%. It was 54% of every launch. The leaders were `finding-verifier` (185), `tool-fixer` (58) and `schematic-builder` (39). |
 
 Held back on 2026-11-27:
-- **Verification:** the local quick `./tools/check.sh` fails in a fresh worktree on the Mac, while the remote run passes. The two failures are unit-cats (`No module named 'PIL'` under Homebrew Python) and `test_check_stamps`. This is queued on [wave-loose-ends](projects/wave-loose-ends.md). The group D split of `signal_coordinator.py` was accepted without a live test.
+- **Verification:** the local `./tools/check.sh` failure in a fresh worktree on the Mac (unit-cats `No module named 'PIL'` under Homebrew Python, and `test_check_stamps`, whose nested audit run runs unit-cats) was one cause: the stamp-audit hook hid Homebrew's sitecustomize. LE-L12 (#1351, [wave-loose-ends](projects/wave-loose-ends.md)) fixed it; both jobs pass in a fresh subagent worktree under Homebrew Python 3.13. The group D split of `signal_coordinator.py` was accepted without a live test.
 - **Organization:** the repo keeps growing faster than it gets simpler.
 - **Subagents:** the 2026-11-27 rescore is the re-measure: `general-purpose` was 27% of chosen launches (target under 50%), so the 2026-12-05 count is dropped (owner, 2026-11-27).
 
