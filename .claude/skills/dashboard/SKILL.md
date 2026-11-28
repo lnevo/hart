@@ -20,7 +20,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
    - `dash/meta` with `{title}`, the page's title (`Wave 3 Dashboard`).
    - Three datasets, each with `source: {kind: "store", path: "data/<wave>/<name>"}`: `lanes`, `events` and `samples`.
    - `files/index.html`, whose `{text}` is [`index.html`](index.html). Before writing it, set its header for this wave: the subtitle, the start time, the wave page link, the `Coordinator:` line and the timeline chip.
-   The header stays two rows (the title with subtitle and status, then the meta, clock, Refresh and theme); the two charts and the updates feed share one row, and the lanes table runs full width below (owner, 2026-11-27).
+   The template's layout is the owner's default (2026-11-27): a two-row header, the tiles, the timeline, one row with the two charts and the updates feed at the same height, then the lanes table at full width; keep it unless the owner asks for another.
    The page shows the time of the last data refresh and a Refresh button.
    It opens in dark mode (owner, 2026-11-27); a reader's own Auto or Light choice is kept in their browser.
 3. Add the link to the wave's page in `wiki/projects/`, on the line under `Coordinator:`, and give it to the owner once.
