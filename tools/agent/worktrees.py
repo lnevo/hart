@@ -37,7 +37,8 @@ named agent/* are swept (the owner keeps other lines, such as the STS ones, even
 that submodule's own .claude/worktrees/ are removed (any other merged one is reported "outside, kept"), and vendor
 submodules (SKIP_SUBMODULES) are never entered. A submodule's default branch is fetched, whatever it is called.
 A worktree with nothing beyond the default branch also goes, PR or not, once clean and idle (worktree_rules.py).
-Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
+Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py), and after each land and hourly
+(tools/agent/housekeeping.py).
 """
 from __future__ import annotations
 
