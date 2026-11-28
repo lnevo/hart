@@ -341,6 +341,12 @@ claim_slot() {   # <folder> <ref>: 0 when mkdir made the slot for this process
   lock_dir="$1"
   echo "$$ $(date +%s) $2" >"$1/owner"
 }
+folder_time() {   # <folder>: its change time in epoch seconds (GNU stat -c, then BSD stat -f), else now
+  local t
+  t="$(stat -c %Y "$1" 2>/dev/null)" || t="$(stat -f %m "$1" 2>/dev/null)" || t=""
+  [[ "$t" =~ ^[0-9]+$ ]] || t="$(date +%s)"
+  echo "$t"
+}
 take_lock() {   # <ref>: returns once this process holds a slot, its folder in lock_dir
   local waited=0 i dir pid since age holders line
   while true; do
@@ -351,7 +357,7 @@ take_lock() {   # <ref>: returns once this process holds a slot, its folder in l
       line="$(cat "$dir/owner" 2>/dev/null || true)"
       read -r pid since _ <<<"$line" || true
       # no owner file (a holder killed between mkdir and the write): the folder's own time stands in
-      [[ -n "$since" ]] || since="$(stat -f %m "$dir" 2>/dev/null || stat -c %Y "$dir" 2>/dev/null || date +%s)"
+      [[ -n "$since" ]] || since="$(folder_time "$dir")"
       age=$(( $(date +%s) - since ))
       if { [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; } && (( age > ${WIN_RUN_LOCK_STALE:-2700} )); then
         # clear it only if the owner is still the one judged stale, and by a rename, so a waiter that judged the
