@@ -22,6 +22,13 @@
         peninsula and the helix down to staging. Crews already run sessions on the railroad while
         construction goes on around them.
       </p>
+      <nav class="jump" id="page-jump" aria-label="On this page">
+        <p class="jump-label">On this page</p>
+        <ul>
+          <li><a href="#levels">Plans by level</a></li>
+          <li><a href="#progress">The build timeline</a></li>
+        </ul>
+      </nav>
     </div>
 
     <section class="hub-group level-tabs" id="levels" aria-labelledby="levels-title">
@@ -148,8 +155,10 @@
       <p class="archive-editbar" id="progress-editbar" hidden>
         Editing on: album, order, title and caption save to <code>data/gallery.json</code>; “→ Photos review” sends a photo back to the Photos To review tab (local server only).
       </p>
+      <nav class="jump" id="month-jump" aria-label="Timeline by month" hidden></nav>
       <div class="build-timeline" id="progress-grid"><p class="muted">Loading…</p></div>
       <div class="archive-toast" id="progress-toast" role="status" aria-live="polite"></div>
+      <p class="back-top"><a href="#top">Back to top</a></p>
     </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
@@ -197,6 +206,29 @@
           toast: "#progress-toast",
           curate: "/api/gallery",
         });
+        // A link per month of the timeline, so the long page can be jumped through.
+        var months = document.querySelectorAll("#progress-grid .g-month");
+        var mj = document.getElementById("month-jump");
+        if (months.length > 1) {
+          var label = document.createElement("p");
+          label.className = "jump-label";
+          label.textContent = "Jump to a month";
+          var list = document.createElement("ul");
+          months.forEach(function (m, i) {
+            var name = m.querySelector(".g-month-label");
+            if (!name) return;
+            m.id = "month-" + (i + 1);
+            m.style.scrollMarginTop = "5rem";
+            var a = document.createElement("a");
+            a.href = "#month-" + (i + 1);
+            a.textContent = name.textContent.trim();
+            var li = document.createElement("li");
+            li.appendChild(a);
+            list.appendChild(li);
+          });
+          mj.replaceChildren(label, list);
+          mj.hidden = false;
+        }
         // Any hash scrolls again once the chronology has filled in.
         var target = document.getElementById(location.hash.slice(1));
         if (target) target.scrollIntoView();
