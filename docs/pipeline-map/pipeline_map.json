@@ -6007,7 +6007,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "Hook at session start and after gh pr merge: removes agent worktrees whose PR is merged (tools/agent/worktrees.py sweep).",
+   "desc": "Hook at session start and after gh pr merge: worktree sweep and progress prune as one summary line; memory folder check.",
    "path": ".claude/hooks/worktree_sweep.py"
   },
   {
@@ -6018,6 +6018,15 @@
    "domain": "agents",
    "desc": "Cursor beforeShellExecution hook: runs .claude/hooks/main_guard.py's rules on the command and answers Cursor.",
    "path": ".cursor/hooks/main_guard.py"
+  },
+  {
+   "id": "tools/agent/progress_prune.py",
+   "label": "progress_prune.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Session-start hook: moves done lanes' .claude/progress files (2+ days old, topic unused) to archive/.",
+   "path": "tools/agent/progress_prune.py"
   },
   {
    "id": "tools/agent/worktrees.py",
@@ -13921,6 +13930,16 @@
    "from": ".claude/hooks/worktree_sweep.py",
    "to": "tools/agent/worktrees.py",
    "label": "runs sweep"
+  },
+  {
+   "from": ".claude/hooks/worktree_sweep.py",
+   "to": "tools/agent/progress_prune.py",
+   "label": "runs prune"
+  },
+  {
+   "from": "tools/agent/progress_prune.py",
+   "to": "tools/agent/worktrees.py",
+   "label": "imports"
   },
   {
    "from": "host:mac",
