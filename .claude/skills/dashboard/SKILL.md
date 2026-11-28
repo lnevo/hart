@@ -47,7 +47,7 @@ Rows to keep:
 - **Every PR another session sends to the queue**, ids `<wave>-P<pr>` (`3-P1271`), named for the session. Add it when the session first tells you its plan, not when it is ready.
 - **The report card** (`<wave>-RC`) and anything else with an ETA the owner waits on.
 
-Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update` and needs `--if-version` from the row's last read; `new-row` is a `set` and needs lane, status, stage, eta and order. Do not use a time an agent reports.
+Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update` and needs `--if-version` from the row's last read; `new-row` is a `set` and needs lane, status, stage, eta and order.
 
 ```
 python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 --if-version 3-L7=4 \
@@ -55,7 +55,7 @@ python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 --if-version 3-L
   event 'Merged #1271 (merge 0ddc7b8)'
 ```
 
-It writes one JSON file per document and prints the array the coordinator pastes as the `ArtifactData` `batch` `writes`. `python3 tools/agent/dash_rows.py -h` lists the ops.
+It prints the `ArtifactData` `batch` `writes`; `-h` lists the ops.
 
 ## Events
 
@@ -71,7 +71,9 @@ Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a le
 
 ## When to update
 
-Update on every message that changes a lane or PR: it starts, passes or fails its gates, starts or ends a remote run, opens a PR, is ready, merges, deploys, changes its ETA or is blocked. Before telling the owner anything, read the rows you are about to describe and fix any that do not match GitHub (`gh pr view N --json state,mergeCommit,headRefOid`). When the owner asks for status or an ETA, reply with the link and one line on the lanes that are running or blocked.
+Update on every message that changes a lane or PR: it starts, passes or fails its gates, starts or ends a remote run, opens a PR, is ready, merges, deploys, changes its ETA or is blocked.
+
+At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir`, write the versions it lists as {doc_id: version} to a file, then run `sync-prs <out_dir>/data/<wave>/lanes --versions <file>`. Run it again before telling the owner anything. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
 
 ## Samples
 

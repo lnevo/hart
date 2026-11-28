@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -108,6 +109,118 @@ class TestEventsAndSamples(DashRowsCase):
         self.assertEqual(self.data(entries[1]), {"at": "00:02", "sessions": 3})
         self.assertEqual(len(self.writes("samples", str(path))), 4)
         self.assertIn("23:59", self.refused("samples", str(path), "--since", "23:59"))
+
+
+FAKE_GH = """#!{python}
+import json, os, sys
+from pathlib import Path
+d = Path(os.environ["FAKE_GH_DIR"])
+with open(d / "calls.log", "a") as log:
+    log.write(" ".join(sys.argv[1:]) + "\\n")
+if (d / "fail").exists():
+    sys.stderr.write("HTTP 502 from the fake\\n")
+    sys.exit(1)
+if sys.argv[1:3] == ["pr", "list"]:
+    sys.stdout.write((d / "list.json").read_text())
+elif sys.argv[1:3] == ["pr", "view"]:
+    sys.stdout.write((d / ("view-" + sys.argv[3] + ".json")).read_text())
+else:
+    sys.exit(3)
+"""
+
+
+def pr(number: int, state: str, merged_at: str | None = None, oid: str | None = None) -> dict[str, object]:
+    return {"number": number, "state": state, "mergedAt": merged_at or "",
+            "mergeCommit": {"oid": oid} if oid else None}
+
+
+class TestSyncPrs(DashRowsCase):
+    """sync-prs against a fake gh on PATH; TZ=UTC so the merge times read as given."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.gh_dir = self.tmp / "gh"
+        self.gh_dir.mkdir()
+        fake = self.gh_dir / "gh"
+        fake.write_text(FAKE_GH.format(python=sys.executable), encoding="utf-8")
+        fake.chmod(0o755)
+        self.rows = self.tmp / "rows/data/3/lanes"
+        self.rows.mkdir(parents=True)
+
+    def gh_says(self, prs: list[dict[str, object]], **views: dict[str, object]) -> None:
+        (self.gh_dir / "list.json").write_text(json.dumps(prs), encoding="utf-8")
+        for number, item in views.items():
+            (self.gh_dir / f"view-{number.lstrip('n')}.json").write_text(json.dumps(item), encoding="utf-8")
+
+    def row_file(self, doc_id: str, data: dict[str, object]) -> None:
+        (self.rows / f"{doc_id}.json").write_text(json.dumps(data), encoding="utf-8")
+
+    def sync(self, *extra: str) -> subprocess.CompletedProcess[str]:
+        env = {**os.environ, "PATH": f"{self.gh_dir}{os.pathsep}{os.environ['PATH']}",
+               "FAKE_GH_DIR": str(self.gh_dir), "TZ": "UTC"}
+        return subprocess.run([sys.executable, str(SCRIPT), str(self.out), "--wave", "3", "--now", "02:20",
+                               "sync-prs", str(self.rows), *extra], capture_output=True, text=True, timeout=30,
+                              env=env)
+
+    def calls(self) -> list[str]:
+        path = self.gh_dir / "calls.log"
+        return path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+
+    def test_merged_closed_open_two_prs_and_no_pr(self) -> None:
+        self.row_file("3-L1", {"lane": "merged", "status": "ci", "pr": 1301})
+        self.row_file("3-L2", {"lane": "closed", "status": "review", "pr": 1302})
+        self.row_file("3-L3", {"lane": "open", "status": "ci", "pr": 1303})
+        self.row_file("3-L4", {"lane": "split", "status": "ci", "pr": [1301, 1304]})
+        self.row_file("3-L5", {"lane": "half merged", "status": "ci", "pr": [1301, 1303]})
+        self.row_file("3-L6", {"lane": "no pr", "status": "running"})
+        self.row_file("3-L7", {"lane": "already merged", "status": "done", "pr": 1301})
+        versions = self.tmp / "versions.json"
+        versions.write_text(json.dumps({f"3-L{n}": n + 10 for n in range(1, 8)}), encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "a" * 40), pr(1302, "CLOSED"),
+                      pr(1303, "OPEN")], n1304=pr(1304, "MERGED", "2026-11-28T01:40:00Z", "b" * 40))
+        result = self.sync("--versions", str(versions))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entries = json.loads(result.stdout)
+        self.assertEqual([(e["doc_id"], e["op"], e["if_version"]) for e in entries],
+                         [("3-L1", "update", 11), ("3-L2", "update", 12), ("3-L4", "update", 14)])
+        self.assertEqual(self.data(entries[0]),
+                         {"status": "merged", "stage": "merged #1301 as aaaaaaa at 01:05", "updated": "02:20"})
+        self.assertEqual(self.data(entries[1]),
+                         {"status": "failed", "stage": "closed unmerged: #1302", "updated": "02:20"})
+        self.assertEqual(self.data(entries[2])["stage"],
+                         "merged #1301 as aaaaaaa at 01:05, #1304 as bbbbbbb at 01:40")
+        self.assertEqual(self.calls(), ["pr list --state all --limit 200 --json number,state,mergedAt,mergeCommit",
+                                        "pr view 1304 --json number,state,mergedAt,mergeCommit"])
+
+    def test_version_read_from_a_wrapped_row_file(self) -> None:
+        self.row_file("3-L1", {"data": {"status": "ci", "pr": "1301"}, "version": 6})
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        [entry] = json.loads(result.stdout)
+        self.assertEqual((entry["doc_id"], entry["if_version"]), ("3-L1", 6))
+
+    def test_a_row_with_no_version_is_refused(self) -> None:
+        self.row_file("3-L1", {"status": "ci", "pr": 1301})
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync()
+        self.assertEqual((result.returncode, result.stdout), (2, ""))
+        self.assertIn("3-L1: no version", result.stderr)
+
+    def test_gh_failing_writes_nothing_and_says_so(self) -> None:
+        self.row_file("3-L1", {"status": "ci", "pr": 1301, "version": 2})
+        (self.gh_dir / "fail").write_text("", encoding="utf-8")
+        result = self.sync()
+        self.assertEqual((result.returncode, result.stdout), (2, ""))
+        self.assertIn("nothing written", result.stderr)
+        self.assertIn("HTTP 502", result.stderr)
+        self.assertFalse(self.out.exists())
+
+    def test_rows_without_pr_make_no_gh_call(self) -> None:
+        self.row_file("3-RC", {"status": "running"})
+        result = self.sync()
+        self.assertEqual((result.returncode, json.loads(result.stdout)), (0, []))
+        self.assertEqual(self.calls(), [])
 
 
 if __name__ == "__main__":
