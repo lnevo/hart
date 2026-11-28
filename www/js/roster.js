@@ -82,6 +82,7 @@
       el.addEventListener("change", render);
     });
     render();
+    window.HARTA11y.scroller(document.querySelector("main .table-wrap"));
   }
 
   document.addEventListener("DOMContentLoaded", function () {

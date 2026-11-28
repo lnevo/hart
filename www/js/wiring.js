@@ -399,8 +399,7 @@
     };
     return TABS.map(function (t) {
       return (
-        '<button type="button" role="tab" data-tab="' + t.id + '" aria-selected="' + (t.id === tab) +
-        '" aria-pressed="' + (t.id === tab) + '"' + (q && !counts[t.id] ? ' class="is-empty"' : "") + ">" +
+        '<button type="button" role="tab" data-tab="' + t.id + '" aria-selected="' + (t.id === tab) + '"' + (q && !counts[t.id] ? ' class="is-empty"' : "") + ">" +
         t.label + ' <span class="wr-count">' + counts[t.id] + "</span></button>"
       );
     }).join("");

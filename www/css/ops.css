@@ -1855,6 +1855,19 @@ main:not(.full-bleed) .btn-ghost:hover {
   box-shadow: var(--shadow);
 }
 
+/* A wide table's box takes keyboard focus (tabindex="0"), so arrow keys scroll it. */
+.table-wrap:focus-visible {
+  outline: 3px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+/* Shown by js/a11y.js only while the table is wider than its box. */
+.scroll-hint {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 table.roster {
   width: 100%;
   border-collapse: collapse;
