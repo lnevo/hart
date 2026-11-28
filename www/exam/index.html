@@ -40,14 +40,14 @@
     <a class="ce-btn primary" href="run.html">Play Extra East</a>
   </div>
 </section>
-<nav class="tabs" role="tablist">
-  <button role="tab" id="tab-learn" aria-selected="true" data-view="learn">Study guide</button>
-  <button role="tab" id="tab-cards" aria-selected="false" data-view="cards">Flashcards</button>
-  <button role="tab" id="tab-quiz" aria-selected="false" data-view="quiz">Practice test</button>
-  <button role="tab" id="tab-notes" aria-selected="false" data-view="notes">Guide notes</button>
-</nav>
+<div class="tabs" role="tablist" aria-label="Deck views">
+  <button type="button" role="tab" id="tab-learn" aria-controls="view-learn" aria-selected="true" data-view="learn">Study guide</button>
+  <button type="button" role="tab" id="tab-cards" aria-controls="view-cards" aria-selected="false" data-view="cards">Flashcards</button>
+  <button type="button" role="tab" id="tab-quiz" aria-controls="view-quiz" aria-selected="false" data-view="quiz">Practice test</button>
+  <button type="button" role="tab" id="tab-notes" aria-controls="view-notes" aria-selected="false" data-view="notes">Guide notes</button>
+</div>
 
-<section class="ce-panel" id="view-learn">
+<section class="ce-panel" id="view-learn" role="tabpanel" aria-labelledby="tab-learn" tabindex="0">
   <div class="learn">
     <div class="note"><b>How to use this deck.</b> Read one section, then press its <i>Flashcards</i> button and go through those cards until most are learned. Then take a 10-question test on that section. When each section scores well, take full 20 or 40 question tests across everything.</div>
 
@@ -250,7 +250,7 @@
   </div>
 </section>
 
-<section class="ce-panel" id="view-cards" hidden>
+<section class="ce-panel" id="view-cards" role="tabpanel" aria-labelledby="tab-cards" tabindex="0" hidden>
   <div class="row"><span class="label">Sections</span></div>
   <div class="ce-chips" id="cardChips"></div>
   <div class="meter" id="cardMeter"></div>
@@ -265,7 +265,7 @@
   <p class="hint" style="background:none">Click the card or press Space to flip. “Again” brings the card back a few cards later. “Got it” moves it up a box; cards in lower boxes come first in the next round. A card counts as learned after three “Got it” answers in a row.</p>
 </section>
 
-<section class="ce-panel" id="view-quiz" hidden>
+<section class="ce-panel" id="view-quiz" role="tabpanel" aria-labelledby="tab-quiz" tabindex="0" hidden>
   <div id="quizSetup" class="ce-panel">
     <div class="row"><span class="label">Sections</span></div>
     <div class="ce-chips" id="quizChips"></div>
@@ -282,7 +282,7 @@
   <div id="quizDone" class="ce-panel" hidden></div>
 </section>
 
-<section class="ce-panel" id="view-notes" hidden>
+<section class="ce-panel" id="view-notes" role="tabpanel" aria-labelledby="tab-notes" tabindex="0" hidden>
   <div class="guides">
     <article>
       <h3>Where the guides disagree</h3>
@@ -320,6 +320,7 @@
   <script src="signals.js" defer></script>
 <script src="deck-data.js" defer></script>
 
+<script src="../js/a11y.js" defer></script>
 <script src="deck.js" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("ap-exam").catch(function (err) { console.error(err); }); });

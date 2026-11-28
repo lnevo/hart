@@ -89,6 +89,7 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/a11y.js"></script>
   <script src="../js/photo-viewer.js"></script>
   <script src="../js/archive.js"></script>
   <script src="../js/gallery.js"></script>
@@ -189,19 +190,11 @@
     document.addEventListener("DOMContentLoaded", async function () {
       site = await HARTOps.mountChrome("photos");
       var tabs = Array.prototype.slice.call(document.querySelectorAll(".photo-tabs [role=tab]"));
-      tabs.forEach(function (t, i) {
+      tabs.forEach(function (t) {
         t.addEventListener("click", function () {
           var cat = t.getAttribute("data-cat");
           setHash(cat, "");
           show(cat, "");
-        });
-        // Arrow keys move between tabs (WAI-ARIA tabs pattern).
-        t.addEventListener("keydown", function (e) {
-          var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-          if (!d) return;
-          var next = tabs[(i + d + tabs.length) % tabs.length];
-          next.focus();
-          next.click();
         });
       });
       // Sub-chip clicks keep the hash in step, so the address can be shared.

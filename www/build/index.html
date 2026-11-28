@@ -164,6 +164,7 @@
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/a11y.js"></script>
   <script src="../js/video.js"></script>
   <script src="../js/photo-viewer.js"></script>
   <script src="../js/gallery.js"></script>
@@ -179,17 +180,10 @@
           document.getElementById(t.getAttribute("aria-controls")).hidden = !sel;
         });
       }
-      tabs.forEach(function (t, i) {
+      tabs.forEach(function (t) {
         t.addEventListener("click", function () {
           showLevel(t.getAttribute("aria-controls"));
           history.replaceState(null, "", "#" + t.getAttribute("aria-controls"));
-        });
-        t.addEventListener("keydown", function (e) {
-          var step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
-          if (!step) return;
-          var next = tabs[(i + step + tabs.length) % tabs.length];
-          next.click();
-          next.focus();
         });
       });
       var level = location.hash.slice(1);

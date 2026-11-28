@@ -10,9 +10,10 @@ const keys=Object.keys(SECTIONS);
 /* tabs */
 const views={learn:"view-learn",cards:"view-cards",quiz:"view-quiz",notes:"view-notes"};
 let view="learn";
-function show(v){if(!views[v])v="learn";view=v;document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
+function show(v){if(!views[v])v="learn";view=v;document.querySelectorAll(".tabs [role=tab]").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v));
   for(const k in views)document.getElementById(views[k]).hidden=k!==v}
-document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>{show(b.dataset.view);if(location.hash)history.replaceState(null,"","#"+(view==="learn"&&frame>=0?frames[frame].id:view))});
+document.querySelectorAll(".tabs [role=tab]").forEach(b=>b.onclick=()=>{show(b.dataset.view);if(location.hash)history.replaceState(null,"","#"+(view==="learn"&&frame>=0?frames[frame].id:view))});
+HARTA11y.tabs(document.querySelector(".tabs[role=tablist]")); // arrows, Home and End select a tab; only the selected one takes Tab
 
 /* chips */
 function chips(el,counts,sel,onChange){
@@ -138,6 +139,7 @@ document.getElementById("bQuit").onclick=()=>{if(test)finish()};
 /* keyboard */
 document.addEventListener("keydown",e=>{
   if(e.target.closest("input,textarea")||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target.closest("[role=tablist]")&&/^(Arrow|Home$|End$)/.test(e.key))return;
   if(view==="cards"){
     const own=e.target.closest("a,summary,select,[contenteditable]");
     if(e.key===" "&&!own){e.preventDefault();flip()}
@@ -194,7 +196,7 @@ function goFrame(i,toTop,focus){
   if(focus)a.querySelector("h3").focus({preventScroll:true});
 }
 document.addEventListener("keydown",e=>{
-  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table,.ce-gloss,[role=tab],[contenteditable]"))return;
+  if(view!=="learn"||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey||e.target.closest("input,textarea,select,.learn-table,.ce-gloss,[role=tablist],[contenteditable]"))return;
   if(e.key==="ArrowRight"){e.preventDefault();goFrame(frame+1,true)}else if(e.key==="ArrowLeft"){e.preventDefault();goFrame(frame-1,true)}
 });
 let tx=null,ty=0;
