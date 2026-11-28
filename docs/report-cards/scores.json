@@ -107,7 +107,6 @@
       "wiki": "wiki/projects/ax-cleanup.md",
       "scores": [
         {"date": "2026-11-27", "value": 8.5, "label": "review before the cleanup"},
-        {"date": "2026-11-28", "value": 7.5, "label": "after #1377, six areas"},
         {"date": "2026-11-28", "value": 8.5, "label": "after #1388: memory to the repo, sweep, FIFO land queue"}
       ],
       "table": {
