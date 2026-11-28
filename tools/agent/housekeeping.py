@@ -8,24 +8,29 @@
                                         (make housekeeping-install, make housekeeping-uninstall)
 
 `run` works on the repository of the folder it runs from, judged from its main checkout:
-1. `tools/agent/worktrees.py sweep` with `--keep` for the folder it runs from and for every locked worktree (of the
-   repo and of each checked-out submodule), so a worktree a session holds is never touched, even when its session
-   has gone; the sweep itself never removes the main checkout or a worktree with changes, and keeps a just-merged
-   one for its 30-minute grace (a later hourly run takes it).
+1. `tools/agent/worktrees.py sweep` with `--keep` for the folder it runs from and for every worktree whose lock
+   still binds (worktrees.lock_held: its session runs, or it changed within LOCK_IDLE; of the repo and of each
+   checked-out submodule), so a worktree a live session holds is never touched; a dead session's lock is judged by
+   the sweep's own rule. The sweep never removes the main checkout or a worktree with changes, and keeps a
+   just-merged one for its 30-minute grace (a later hourly run takes it).
 2. `tools/agent/progress_prune.py`.
 3. The branch prune: `git fetch -q origin main` (it moves only origin/main), then `git branch -d` for each local
    branch that `git for-each-ref --merged origin/main` lists, except main and any branch checked out in a worktree.
    `git branch -d` refuses a branch not merged into its upstream (or the main checkout's HEAD when it has none), so a
-   refusal is one line and the branch stays. Remote branches are never touched.
+   refusal is one line and the branch stays. Remote branches are never touched. A git call that fails to run or
+   times out ends the step with one "branches: did not run" line.
 No step changes a working tree. A step that fails is one line and the next still runs; the exit is 1 when one
 failed. Runs that overlap (the hourly agent and a land job) take LOCK; the second one prints a line and exits 0.
+The log trim (below) runs under that lock.
 
 `after_land` is the land job's half (tools/agent/land.py runs it after a merge): steps 1 and 2, its lines for the
-land log, never an exception.
+land log, never an exception. The land job stays alive for it (up to SWEEP_TIMEOUT plus PRUNE_TIMEOUT) after
+make land-wait has returned.
 
 The launchd agent (LABEL) runs `make -C <main checkout> housekeeping` every INTERVAL seconds and at login, with the
 installer's PATH (gh, git and python3 as the installer finds them), logging to LOG_DIR/housekeeping.log, which a run
-trims to its last half once it passes LOG_MAX bytes.
+trims to its last half once it passes LOG_MAX bytes (a new file put in place with os.replace; the run's own output
+then goes to the new file).
 """
 from __future__ import annotations
 
@@ -41,7 +46,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from worktrees import GitCommandError, Worktree, submodule_repos, worktrees  # noqa: E402
+from worktrees import GitCommandError, Worktree, lock_held, submodule_repos, worktrees  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 LABEL = "com.hartrailroad.housekeeping"
@@ -69,12 +74,12 @@ class BranchPlan:
 
 
 def locked_paths(repo: Path) -> list[str]:
-    """Every locked worktree of `repo` and of its checked-out submodules."""
+    """Every worktree of `repo` and of its checked-out submodules whose lock still binds (lock_held)."""
     trees: list[Worktree] = worktrees(repo)
-    found = [t.path for t in trees if t.locked]
+    found = [t.path for t in trees if lock_held(t)]
     for sub in submodule_repos(trees[0].path) if trees else []:
         try:
-            found += [t.path for t in worktrees(sub) if t.locked]
+            found += [t.path for t in worktrees(sub) if lock_held(t)]
         except GitCommandError:
             continue  # the sweep reports a broken submodule and leaves it alone
     return found
@@ -137,10 +142,19 @@ def plan_branches(repo: Path, run: Run = run_cmd) -> BranchPlan:
 
 
 def prune_branches(repo: Path, dry_run: bool, run: Run = run_cmd) -> tuple[bool, list[str]]:
-    """Step 3 of `run`: fetch origin main, then `git branch -d` each merged branch no worktree has out."""
+    """Step 3 of `run`: fetch origin main, then `git branch -d` each merged branch no worktree has out. A git call
+    that cannot run or times out is one line and a failed step."""
+    lines: list[str] = []
+    try:
+        return _prune_branches(repo, dry_run, run, lines)
+    except (subprocess.TimeoutExpired, OSError, GitCommandError) as err:
+        return False, lines + [f"branches: did not run: {err}"]
+
+
+def _prune_branches(repo: Path, dry_run: bool, run: Run, lines: list[str]) -> tuple[bool, list[str]]:
     fetched = run(["git", "fetch", "-q", "origin", BASE], cwd=repo, timeout=GIT_TIMEOUT)
-    lines = [] if fetched.returncode == 0 else [f"branches: fetch failed, origin/{BASE} as last fetched: "
-                                                f"{fetched.stderr.strip()}"]
+    if fetched.returncode != 0:
+        lines.append(f"branches: fetch failed, origin/{BASE} as last fetched: {fetched.stderr.strip()}")
     try:
         plan = plan_branches(repo, run)
     except GitCommandError as err:
@@ -178,22 +192,35 @@ def held(lock: Path) -> Iterator[bool]:
 
 
 def trim(log: Path, limit: int = LOG_MAX) -> None:
-    """Keep the last half of `log` once it passes `limit` bytes (launchd appends to it and never trims)."""
+    """Keep the last half of `log` once it passes `limit` bytes (launchd appends to it and never trims): written to
+    a temporary file put in place with os.replace. Standard output and error that pointed at the old file are
+    pointed at the new one, so the rest of the run is logged."""
+    sys.stdout.flush()
+    sys.stderr.flush()
     try:
-        if log.stat().st_size <= limit:
+        old = log.stat()
+        if old.st_size <= limit:
             return
         text = log.read_text(encoding="utf-8", errors="replace")
-        log.write_text(text[len(text) // 2:].split("\n", 1)[-1], encoding="utf-8")
+        part = log.with_name(log.name + ".trim")
+        part.write_text(text[len(text) // 2:].split("\n", 1)[-1], encoding="utf-8")
+        os.replace(part, log)
+        for fd in (1, 2):
+            if os.fstat(fd).st_ino == old.st_ino and os.fstat(fd).st_dev == old.st_dev:
+                new = os.open(log, os.O_WRONLY | os.O_APPEND)
+                os.dup2(new, fd)
+                os.close(new)
     except OSError:
         return
 
 
-def run_all(root: Path, dry_run: bool, run: Run = run_cmd, lock: Path = LOCK) -> int:
-    trim(LOG_DIR / "housekeeping.log")
+def run_all(root: Path, dry_run: bool, run: Run = run_cmd, lock: Path = LOCK,
+            log: Path = LOG_DIR / "housekeeping.log") -> int:
     with held(lock) as got:
         if not got:
             print("housekeeping: another run holds the lock; nothing done")
             return 0
+        trim(log)
         ok, lines = tidy(root, dry_run, run)
         ok_b, branch_lines = prune_branches(main_checkout(root), dry_run, run)
     for line in lines + branch_lines:
@@ -254,7 +281,7 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("plist", "install", "uninstall"):
         sub.add_parser(name)
     a = ap.parse_args(argv)
-    root = Path.cwd()
+    root = ROOT
     if a.cmd == "run":
         return run_all(root, a.dry_run)
     if a.cmd == "branches":

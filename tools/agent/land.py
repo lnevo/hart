@@ -38,7 +38,8 @@ the rules). Steps 1 to 3 run while the ticket waits behind others; 4 and 5 only 
 9. After the ticket and the lock are released and the result is written (make land-wait does not wait for it), a
    merged land runs tools/agent/housekeeping.py's after_land: the worktree sweep (a just-merged worktree waits out
    the sweep's 30-minute grace; the hourly run takes it) and the progress prune, their lines in the land log.
-   Nothing there changes the exit code.
+   Nothing there changes the exit code. The job process stays alive for it (up to housekeeping.py's SWEEP_TIMEOUT
+   plus PRUNE_TIMEOUT) after make land-wait has returned.
 
 Exit 0 when the PR merged and main's run passed, 1 when it stopped before the merge (nothing merged), 2 for a bad
 call, 4 (MAIN_RED_EXIT) when it merged and main's run ended red, 5 when it merged but main's run could not be

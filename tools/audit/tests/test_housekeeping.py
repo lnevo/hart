@@ -9,12 +9,15 @@ import importlib.util
 import io
 import os
 import plistlib
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from types import ModuleType
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/agent"))
@@ -103,6 +106,66 @@ sys.exit({code})
 """
 
 
+def dead_pid() -> int:
+    proc = subprocess.Popen([sys.executable, "-c", "pass"])
+    proc.wait()
+    return proc.pid
+
+
+def age(worktree: Path, seconds: float) -> None:
+    """Make the worktree look untouched for `seconds`: its git files (HEAD, index) and its folder."""
+    gitdir = Path(git("rev-parse", "--path-format=absolute", "--git-dir", cwd=worktree))
+    then = time.time() - seconds
+    for path in (gitdir / "HEAD", gitdir / "index", worktree):
+        if path.exists():
+            os.utime(path, (then, then))
+
+
+class Locks(unittest.TestCase):
+    """Only a lock that still binds goes to the sweep as --keep; a dead session's lock is the sweep's to judge."""
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.base = Path(os.path.realpath(tmp.name))
+        self.repo = new_repo(self.base)
+
+    def tree(self, name: str, pid: int) -> Path:
+        path = self.base / ".claude-worktrees" / name
+        git("worktree", "add", "-q", "--detach", str(path), "main", cwd=self.repo)
+        git("worktree", "lock", "--reason", f"claude agent {name} (pid {pid})", str(path), cwd=self.repo)
+        return path
+
+    def test_a_live_lock_is_kept_and_a_dead_idle_one_is_not(self) -> None:
+        live = self.tree("agent-live", os.getpid())
+        dead = self.tree("agent-dead", dead_pid())
+        age(dead, 2 * 3600)
+        self.assertEqual(HK.locked_paths(self.repo), [str(live)])
+
+    def test_a_dead_lock_still_in_use_is_kept(self) -> None:
+        fresh = self.tree("agent-fresh", dead_pid())  # touched now: inside LOCK_IDLE
+        self.assertEqual(HK.locked_paths(self.repo), [str(fresh)])
+
+    def test_the_real_sweep_removes_a_dead_idle_locked_worktree_and_keeps_a_live_one(self) -> None:
+        for rel in ("tools/agent/worktrees.py", "tools/agent/worktree_rules.py"):
+            (self.repo / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, self.repo / rel)
+        (self.repo / "tools/agent/progress_prune.py").write_text("", encoding="utf-8")  # nothing to prune here
+        bin_dir = self.base / "bin"
+        bin_dir.mkdir()
+        (bin_dir / "gh").write_text("#!/bin/sh\necho '[]'\n", encoding="utf-8")  # no PRs, open or merged
+        (bin_dir / "gh").chmod(0o755)
+        live = self.tree("agent-live", os.getpid())
+        dead = self.tree("agent-dead", dead_pid())
+        age(dead, 2 * 3600)
+        age(live, 2 * 3600)
+        with mock.patch.dict(os.environ, {"PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}"}):
+            ok, lines = HK.tidy(self.repo, False)
+        self.assertTrue(ok, lines)
+        self.assertFalse(dead.exists(), lines)
+        self.assertTrue(live.exists(), lines)
+
+
 class AfterLand(unittest.TestCase):
     def setUp(self) -> None:
         tmp = tempfile.TemporaryDirectory()
@@ -149,6 +212,54 @@ class AfterLand(unittest.TestCase):
             lines = HK.after_land(self.root, lock=self.lock)
         self.assertEqual(lines, ["housekeeping: another run holds the lock; the hourly run takes the rest"])
         self.assertEqual(self.calls(), [])
+
+
+class BranchFailures(unittest.TestCase):
+    def test_a_git_timeout_is_one_line_and_exit_1_and_the_sweep_lines_still_print(self) -> None:
+        def run(cmd: list[str], cwd: object, timeout: float) -> subprocess.CompletedProcess[str]:
+            if cmd[:2] == ["git", "fetch"]:
+                raise subprocess.TimeoutExpired(cmd, timeout)
+            return subprocess.CompletedProcess(cmd, 0, "swept\n", "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(os.path.realpath(tmp))
+            repo = new_repo(base)
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = HK.run_all(repo, False, run, lock=base / "lock", log=base / "none.log")
+        lines = out.getvalue().splitlines()
+        self.assertEqual(code, 1)
+        self.assertIn("worktree sweep: 1 line(s)", lines)
+        self.assertIn("progress prune: 1 line(s)", lines)
+        self.assertTrue(lines[-1].startswith("branches: did not run: Command '['git', 'fetch'"), lines)
+
+    def test_branches_subcommand_exits_1_when_git_cannot_run(self) -> None:
+        def run(cmd: list[str], cwd: object, timeout: float) -> subprocess.CompletedProcess[str]:
+            raise OSError("no git")
+
+        ok, lines = HK.prune_branches(Path("/nowhere"), False, run)
+        self.assertFalse(ok)
+        self.assertEqual(lines, ["branches: did not run: no git"])
+
+
+class Trim(unittest.TestCase):
+    def test_a_long_log_keeps_its_last_half_whole_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "housekeeping.log"
+            log.write_text("".join(f"line {i}\n" for i in range(100)), encoding="utf-8")
+            HK.trim(log, limit=100)
+            kept = log.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(kept[-1], "line 99")
+            self.assertTrue(40 <= len(kept) <= 60, len(kept))
+            self.assertTrue(all(line.startswith("line ") for line in kept))
+            self.assertFalse((Path(tmp) / "housekeeping.log.trim").exists())
+
+    def test_a_short_log_is_left(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "housekeeping.log"
+            log.write_text("a\n", encoding="utf-8")
+            HK.trim(log, limit=100)
+            self.assertEqual(log.read_text(encoding="utf-8"), "a\n")
 
 
 class Launchd(unittest.TestCase):

@@ -137,8 +137,8 @@ class Prune(unittest.TestCase):
 
     def lane_page(self) -> None:
         Path(self.main, "wiki/projects/big-project.md").write_text(
-            "# Big\n\nStatus: active\n\n| Lane | Job |\n|---|---|\n| L3 Wiring | done (#1145) |\n"
-            "| L4a Industries | waits for L3 |\n", encoding="utf-8")
+            "# Big\n\nStatus: active\n\n| Lane | Job |\n|---|---|\n| L3 Wiring | **Done** 2026-11-25 (#1145) |\n"
+            "| L4a Industries | waits for L3 (#1145) |\n", encoding="utf-8")
 
     def test_a_lane_whose_branch_merged_is_archived_while_its_page_is_active(self) -> None:
         self.lane_page()
@@ -187,8 +187,11 @@ class Prune(unittest.TestCase):
         self.assertTrue(lane.exists())
 
     def test_lane_rows(self) -> None:
-        text = "| L3 Wiring | (#1145), see #7 |\n| L30 Other | #8 |\nL3 text #9\n"
-        self.assertEqual(PP.lane_prs(text, "l3"), {1145, 7})
+        text = ("| Lane | Job |\n|---|---|\n| L3 Wiring | after #6; **Done** 2026-11-25 (#1145), see #7 |\n"
+                "| L30 Other | Done (#8) |\nL3 text Done #9\n")
+        self.assertEqual(PP.lane_prs(text, "l3"), {1145})  # #6 and #7 are other PRs the row cites
+        table = "| Lane | PR | Note |\n|---|---|---|\n| L5 Crew | #1166 | fixes #12 |\n"
+        self.assertEqual(PP.lane_prs(table, "L5"), {1166})
         self.assertEqual(PP.lane_of("data-masters", "data-masters-L4a"), "L4a")
         self.assertIsNone(PP.lane_of("data-masters", "data-masters"))
 

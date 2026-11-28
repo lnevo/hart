@@ -13,8 +13,11 @@ one is the other followed by "-" and more (the active page data-masters keeps da
 
 An active page keeps a lane's file (its topic is the page's name, "-" and the lane, such as data-masters-L3) only
 until that lane merged: a merged PR's head branch ends in the topic (agent/claude/data-masters-l3, any case), or a
-row of a table on the page that starts with the lane (`| L3 Wiring inputs | ...`) names a merged PR (#1145). The
-merged PRs are read only when such a file is otherwise done; when GitHub cannot list them the page keeps the file.
+row of a table on the page that starts with the lane (`| L3 Wiring inputs | ...`) gives a merged PR as the lane's
+own (lane_prs: after "Done", or in a PR column). The merged PRs are read only when such a file is otherwise done;
+when GitHub cannot list them the page keeps the file.
+A lane topic used again for new work, whose earlier branch merged, is archived once no worktree, branch or open PR
+uses it (those names keep it while the new work runs).
 
 Files are moved, not deleted: the move keeps the file's time, and archive/ is never pruned. A file whose archive
 name is taken stays and gets one line. When GitHub cannot list the open PRs nothing is archived, since a lane's PR
@@ -51,6 +54,7 @@ LONG_WORDS = ("handoff", "coordinator", "steward")
 GH_TIMEOUT = 20
 MERGED_LIMIT = 1000
 PR_REF = re.compile(r"#(\d+)\b")
+DONE_PR = re.compile(r"\bDone\b[^#]*?#(\d+)\b")
 
 
 class PruneError(RuntimeError):
@@ -138,14 +142,29 @@ def active_pages(checkouts: list[Path], pages: ModuleType) -> Pages:
 
 
 def lane_prs(text: str, lane: str) -> set[int]:
-    """The PR numbers on the table rows of `text` whose first cell starts with the word `lane` (any case)."""
+    """The PRs that a table row of `text` whose first cell starts with the word `lane` (any case) gives as the lane's
+    own: the first #N after "Done" in a cell (`**Done** 2026-11-25 (#1145)`), and any #N in a column headed "PR".
+    Other PRs a row cites (one it waits for, an earlier fix) do not count."""
     numbers: set[int] = set()
+    pr_column: int | None = None
     for line in text.splitlines():
         cells = line.strip().split("|")
-        if len(cells) > 2 and not cells[0].strip():
-            words = cells[1].split()
-            if words and words[0].lower() == lane.lower():
-                numbers.update(int(n) for n in PR_REF.findall(line))
+        if len(cells) <= 2 or cells[0].strip():  # not a table row: a later table has its own header
+            pr_column = None
+            continue
+        names = [c.strip().lower() for c in cells]
+        if "pr" in names and not any(PR_REF.search(c) for c in cells):
+            pr_column = names.index("pr")  # a header row
+            continue
+        words = cells[1].split()
+        if not words or words[0].lower() != lane.lower():
+            continue
+        for i, cell in enumerate(cells):
+            if i == pr_column:
+                numbers.update(int(n) for n in PR_REF.findall(cell))
+            done = DONE_PR.search(cell)
+            if done:
+                numbers.add(int(done.group(1)))
     return numbers
 
 
