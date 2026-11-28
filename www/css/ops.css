@@ -223,6 +223,12 @@ a:hover {
   background: var(--paper);
 }
 
+/* A section's sub entry (site.json "sub"): indented under its section. */
+.nav-panel .nav-sub {
+  padding: 0.55rem 0.8rem 0.55rem 1.8rem;
+  font-size: 0.95rem;
+}
+
 .nav-panel .eng-link {
   margin-top: 0.3rem;
   border: 0;

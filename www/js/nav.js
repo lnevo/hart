@@ -86,7 +86,19 @@
       var label = esc(item.label);
       return '<a href="' + b + item.href + '"' + cur + ">" + label + "</a>";
     }
-    var links = (site.nav || []).map(link).join("");
+    // A section's "sub" entries follow it in the menu, indented: Operations › Crew sheets puts the sheets two taps
+    // from any page on a phone (Menu, Crew sheets). A sub entry is current on the pages it lists.
+    function subLink(item) {
+      var cur = "";
+      if (item.id === pageId) cur = ' aria-current="page"';
+      else if ((item.pages || []).indexOf(pageId) !== -1) cur = ' aria-current="true"';
+      return '<a class="nav-sub" href="' + b + item.href + '"' + cur + ">" + esc(item.label) + "</a>";
+    }
+    var links = (site.nav || [])
+      .map(function (item) {
+        return link(item) + (item.sub || []).map(subLink).join("");
+      })
+      .join("");
     // The engineering desk link rides at the end of the menu (empty on the public site).
     var eng = site.engDesk
       ? '<a class="eng-link" href="' + b + site.engDesk + '">Engineering desk</a>'

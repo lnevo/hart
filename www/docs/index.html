@@ -76,6 +76,8 @@
           .join("");
       } catch (err) {
         console.error(err);
+        // The built page carries the shelf as plain HTML (data-static, scripts/portal_nojs_crew.py): keep it.
+        if (document.getElementById("pub-shelf").hasAttribute("data-static")) return;
         HARTOps.renderError(document.getElementById("pub-shelf"), {
           what: "the publications",
           err: err,
