@@ -49,3 +49,17 @@ One PR, `agent/claude/ax-round2`, carries every round 2 lane.
 ## Done when
 
 Every lane PR has merged, the new sweep has run once on the Mac, and this page says done.
+
+## Rounds 4 and 5 (2026-11-28)
+
+The 7.5 rescore found Memory 6.5 and Housekeeping 5.5; the owner asked to fix both before stopping.
+
+| Lane | Scope | PR |
+|------|-------|----|
+| R4-L1 Housekeeping | the sweep removes clean worktrees with nothing beyond `origin/main`, PR or not (7 days for `make wt`, 1 hour for `agent-*`); progress files archive after 1 day; orient ignores stale page copies | #1386 |
+| R4-L2, R4-L3 Memory | the rules in 26 memory files moved to the skills, `AGENTS.md` files and wiki pages they govern; memory cut to 14 files | #1382, #1383 |
+| R5-L1 Land queue | `make land` takes a FIFO ticket and returns; a background job merges in order with no wait limit; `make land-status`, `make land-wait` (GitHub's merge queue needs an organization-owned repo) | #1388 |
+| R5-L2 Dashboard sync | `dash_rows.py sync-prs` marks rows from GitHub, so a merge shows without a message; the feed sorts past midnight | #1389 |
+
+Rescore after these: 8.5 (see [report-cards](../report-cards.md#agent-experience)).
+
