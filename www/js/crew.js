@@ -729,6 +729,8 @@
       site = await HARTOps.mountChrome(PAGE_IDS[kind]);
       extendCrumb(crumbsFor(kind));
       data = await HARTOps.loadJson("data/crew.json");
+      // From here the page script draws the root; a render error shows the error box, not the static copy.
+      if (root && root.removeAttribute) root.removeAttribute("data-static");
       if (kind === "sheet") {
         const job = (data.jobs || []).find((j) => j.id === id);
         if (!job) throw new Error(`No job ${id}`);
@@ -741,7 +743,8 @@
       if (location.hash === "#print") printWhenReady();
     } catch (err) {
       console.error(err);
-      if (root) {
+      // The built page carries the sheet as plain HTML (data-static, scripts/portal_nojs_crew.py): keep it.
+      if (root && !(root.hasAttribute && root.hasAttribute("data-static"))) {
         HARTOps.renderError(root, {
           what: "this sheet",
           err,

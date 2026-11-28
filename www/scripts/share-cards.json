@@ -282,6 +282,18 @@
       "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 East has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra East.",
       "from": "drawn by make_share_cards.py ap-exam-run, after Standard Code Rule 211 Clearance Form A"
     },
+    "exam/answers.html": {
+      "image": "assets/share/ap-exam-run.jpg",
+      "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 East has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra East.",
+      "from": "the Extra East game card (exam/run.html), shared with its answer key on the owner's word, 2026-11-28",
+      "shared": true
+    },
+    "play/answers.html": {
+      "image": "assets/share/play-neville.jpg",
+      "alt": "A Pittsburgh & Ohio Valley switching order for job #105 with SW9 #4, 1981: two ore drags to the car dumper, fuel between trips, tie up in the West Yard at 3:30, stamped Extra East, HART Railroad, on a desk lit like the coke works at dusk.",
+      "from": "the Extra East: HART Railroad game card (play/index.html), shared with its answer key on the owner's word, 2026-11-28",
+      "shared": true
+    },
     "exam/index.html": {
       "image": "assets/share/ap-exam.jpg",
       "alt": "A green Form 19 train order on the HART Railroad, stamped OK: Engs C and E run extra Study Guide to Exam and wait at Flashcards until learned.",

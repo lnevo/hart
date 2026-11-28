@@ -1,12 +1,14 @@
 """Stage 7b of the site build (prepare_github_pages.py): what a page shows when JavaScript is off or fails.
 
 Every portal page carries an empty <header data-ops-header> and <footer data-ops-footer> that js/nav.js
-(mountChrome) fills. In the built copy the header gets the brand link home, as nav.js draws it, with the section
-links from data/site.json "nav" in a <noscript>, and the footer gets the line nav.js writes. mountChrome replaces
-both with innerHTML, so a page with JavaScript ends up with the same chrome and no second set of links.
+(mountChrome) fills. In the built copy the header gets the skip link and the brand link home, as nav.js draws them,
+with the section links from data/site.json "nav" (each section's "sub" entries after it) in a <noscript>, and the
+footer gets the line nav.js writes. mountChrome replaces both with innerHTML, so a page with JavaScript ends up with
+the same chrome and no second set of links. A page's <main> with no id gets id="main", the skip link's target.
 
 The primer (briefing/index.html) is drawn from data/briefing.json in the browser; its built copy also carries the
-primer's text as plain HTML in a <noscript> inside #briefing-body.
+primer's text as plain HTML in a <noscript> inside #briefing-body. The crew pages and the publications shelf get
+their content from portal_nojs_crew.py.
 
 Reads the built tree only (data/site.json after the scrub stage, so engDesk and the localhost tools are gone).
 """
@@ -18,6 +20,9 @@ import json
 import re
 from pathlib import Path
 
+import portal_nojs_crew
+
+_MAIN = re.compile(r"<main\b([^>]*)>")
 _EMPTY_HEADER = re.compile(r"(<header\b[^>]*\bdata-ops-header\b[^>]*>)\s*(</header>)")
 _EMPTY_FOOTER = re.compile(r"(<footer\b[^>]*\bdata-ops-footer\b[^>]*>)\s*(</footer>)")
 # The same match nav.js base() makes: the ../ (or /) in front of the page's js/nav.js.
@@ -30,13 +35,17 @@ def esc(s: object) -> str:
     return html.escape("" if s is None else str(s), quote=True)
 
 
-def header_html(site: dict, base: str) -> str:
-    """Brand link home (nav.js headerHtml's markup) and the section links, shown only without JavaScript."""
+def header_html(site: dict, base: str, main_id: str = "main") -> str:
+    """Skip link and brand link home (nav.js headerHtml's markup), then the section links with each section's sub
+    entries after it, shown only without JavaScript. No skip link when the page has no <main> (main_id empty)."""
     links = "".join(
-        f'<a href="{esc(base + n["href"])}">{esc(n["label"])}</a>' for n in site.get("nav", []) if n.get("id") != "home"
+        f'<a href="{esc(base + n["href"])}">{esc(n["label"])}</a>'
+        + "".join(f'<a href="{esc(base + s["href"])}">{esc(s["label"])}</a>' for s in n.get("sub") or [])
+        for n in site.get("nav", []) if n.get("id") != "home"
     )
+    skip = f'<a class="skip-link" href="#{esc(main_id)}">Skip to content</a>' if main_id else ""
     return (
-        '<div class="site-header-inner">'
+        skip + '<div class="site-header-inner">'
         f'<a class="brand" href="{esc(base)}index.html">HART<span>Railroad · Neville Island</span></a>'
         '<noscript><nav class="nav" aria-label="Primary" style="display:flex;flex-wrap:wrap;gap:0.3rem 1rem;'
         f'font-weight:600">{links}</nav></noscript></div>'
@@ -63,15 +72,28 @@ def add_static_chrome(dest: Path) -> int:
     for page in sorted(dest.rglob("*.html")):
         text = page.read_text(encoding="utf-8")
         m = _NAV_SRC.search(text)
-        if not m or "data-ops-" not in text:
+        if not m or "data-ops-" not in text or not _EMPTY_HEADER.search(text):
             continue
         base = m.group(1)
-        new = _EMPTY_HEADER.sub(lambda h: h.group(1) + header_html(site, base) + h.group(2), text, count=1)
+        main_id, new = main_target(text)
+        new = _EMPTY_HEADER.sub(lambda h: h.group(1) + header_html(site, base, main_id) + h.group(2), new, count=1)
         new = _EMPTY_FOOTER.sub(lambda f: f.group(1) + footer_html(site, base) + f.group(2), new, count=1)
         if new != text:
             page.write_text(new, encoding="utf-8")
             changed += 1
     return changed
+
+
+def main_target(text: str) -> tuple[str, str]:
+    """(the skip link's target, the page): the first <main>'s id, after giving it id="main" when it has none, as
+    nav.js mountSkipTarget does; ("", page) when the page has no <main>."""
+    m = _MAIN.search(text)
+    if not m:
+        return "", text
+    found = re.search(r"""\bid=["']([^"']+)["']""", m.group(1))
+    if found:
+        return found.group(1), text
+    return "main", text[: m.start()] + f'<main id="main"{m.group(1)}>' + text[m.end():]
 
 
 def _href(rel: str, base: str) -> str:
@@ -167,9 +189,13 @@ def add_primer_text(dest: Path) -> bool:
 
 
 def nojs_stage(dest: Path) -> None:
-    """Stage 7b: static header and footer on every page, the primer's text on the primer."""
+    """Stage 7b: static header and footer on every page, the primer's text on the primer, and the crew pages' and
+    the publications shelf's content."""
     n = add_static_chrome(dest)
     primer = add_primer_text(dest)
-    print(f"No-JS fallbacks: header and footer on {n} pages" + (", primer text" if primer else ""))
+    crew = portal_nojs_crew.add_crew_pages(dest)
+    shelf = portal_nojs_crew.add_shelf(dest)
+    print(f"No-JS fallbacks: header and footer on {n} pages" + (", primer text" if primer else "")
+          + f", content on {len(crew)} crew pages" + (", publications shelf" if shelf else ""))
     if not primer and (dest / PRIMER_REL).is_file():
         print("WARNING: primer text not added: #briefing-body no longer holds the Loading line portal_nojs.py looks for")

@@ -9,6 +9,18 @@ OPs, any number, in order:
   event "TEXT"                 a `set` in data/W/events, id eW-HHMM (then eW-HHMMb, eW-HHMMc, ... in one run)
   samples FILE [--since HH:MM] one `set` per JSON line of FILE in data/W/samples, id sHHMM from the line's `at`;
                                --since keeps only the lines after the last one stamped HH:MM
+  sync-prs ROWS_DIR [--versions FILE]
+                               one `row` update per lanes row whose PRs changed state on GitHub. ROWS_DIR holds the
+                               rows as the ArtifactData `list` action saves them with out_dir (DOC.json each); a
+                               row's version comes from FILE ({"DOC": N}), else from the file's own `version`.
+                               Every PR of the row merged or closed, at least one merged: status=merged and a
+                               stage naming each merge commit and local merge time. Every PR closed unmerged:
+                               status=failed, "closed unmerged". No write for a row with an open PR, without a pr,
+                               already at that status, or at merged or done (never set back to failed). One
+                               `gh pr list --state all` call answers the PRs, and `gh pr view` each PR the list
+                               did not reach. A failed list call writes nothing (exit 2). A PR a view call cannot
+                               read, a pr that is not PR numbers, or a file that is not a JSON object skips that
+                               row with a warning on stderr; the other rows still sync.
 
 `updated` (rows) and `at` (events) are stamped HH:MM from the local clock, and a caller-supplied
 `updated` or `at` key is refused. A value that parses as JSON (a number, a list such as pr=[1271,1280])
@@ -24,6 +36,7 @@ import argparse
 import json
 import re
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -33,7 +46,9 @@ STATUSES = ("queued", "running", "remote", "review", "ci", "merged", "done", "bl
 NEW_ROW_KEYS = ("lane", "status", "stage", "eta", "order")
 CLOCK_KEYS = ("updated", "at")
 HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
-OP_WORDS = ("row", "new-row", "event", "samples")
+OP_WORDS = ("row", "new-row", "event", "samples", "sync-prs")
+PR_FIELDS = "number,state,mergedAt,mergeCommit"
+PR_LIST_LIMIT = 200
 WriteOp = Literal["set", "update"]
 
 
@@ -91,6 +106,7 @@ class Builder:
         self.now = now
         self.versions = versions
         self.writes: list[Write] = []
+        self.warnings: list[str] = []
         self._ids: set[tuple[str, str]] = set(taken or ())
 
     def collection(self, name: str) -> str:
@@ -149,6 +165,154 @@ class Builder:
             self.writes.append(Write("set", collection, doc_id, rec, self.versions.get(doc_id)))
 
 
+@dataclass(frozen=True)
+class PrState:
+    number: int
+    state: str                  # OPEN, CLOSED or MERGED, as gh gives it
+    merged_at: str | None       # ISO time in UTC
+    merge_oid: str | None
+
+
+def gh_json(args: list[str]) -> object:
+    """gh's parsed JSON stdout, through land.py's gh runner; DashError when gh fails or prints no JSON."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import land
+    try:
+        out = land.run_gh(args)
+    except land.LandError as exc:
+        raise DashError(f"sync-prs: {exc}; nothing written") from exc
+    try:
+        return json.loads(out)
+    except ValueError as exc:
+        raise DashError(f"sync-prs: gh {' '.join(args[:2])} printed no JSON; nothing written") from exc
+
+
+def pr_state(item: object) -> PrState:
+    if not isinstance(item, dict) or not isinstance(item.get("number"), int):
+        raise DashError(f"sync-prs: gh gave a PR without a number: {item!r}")
+    commit = item.get("mergeCommit")
+    oid = commit.get("oid") if isinstance(commit, dict) else None
+    merged_at = item.get("mergedAt")
+    return PrState(item["number"], str(item.get("state", "")), merged_at if isinstance(merged_at, str) else None,
+                   oid if isinstance(oid, str) else None)
+
+
+def fetch_prs(numbers: set[int], warn: Callable[[str], None]) -> dict[int, PrState]:
+    """The state of each PR in NUMBERS: one list call, then one view call per PR the list did not reach. A failed
+    list call is a DashError; a PR that a view call cannot read is left out, with a warning."""
+    listed = gh_json(["pr", "list", "--state", "all", "--limit", str(PR_LIST_LIMIT), "--json", PR_FIELDS])
+    if not isinstance(listed, list):
+        raise DashError("sync-prs: gh pr list did not give a list; nothing written")
+    states: dict[int, PrState] = {}
+    for item in listed:
+        if isinstance(item, dict) and item.get("number") in numbers:
+            state = pr_state(item)
+            states[state.number] = state
+    for number in sorted(numbers - states.keys()):
+        try:
+            states[number] = pr_state(gh_json(["pr", "view", str(number), "--json", PR_FIELDS]))
+        except DashError as exc:
+            warn(f"#{number}: {exc}")
+    return states
+
+
+def row_prs(value: object) -> list[int] | None:
+    """A row's `pr` as PR numbers (a number, a list of numbers, or digits as text); None for anything else."""
+    items = value if isinstance(value, list) else [value]
+    numbers: list[int] = []
+    for item in items:
+        if isinstance(item, bool) or not isinstance(item, (int, str)) or not str(item).isdigit():
+            return None
+        numbers.append(int(item))
+    return numbers
+
+
+def local_hhmm(iso: str | None) -> str:
+    if not iso:
+        return "?"
+    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone().strftime("%H:%M")
+
+
+@dataclass(frozen=True)
+class SyncRow:
+    data: dict[str, object]
+    version: int | None
+    prs: list[int]
+
+
+def read_versions(versions_file: Path | None) -> dict[str, object]:
+    if versions_file is None:
+        return {}
+    try:
+        loaded = json.loads(versions_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise DashError(f"sync-prs --versions {versions_file}: cannot read it as JSON") from exc
+    if not isinstance(loaded, dict):
+        raise DashError(f"sync-prs --versions {versions_file}: not a {{doc_id: version}} object")
+    return loaded
+
+
+def load_rows(rows_dir: Path, versions_file: Path | None, warn: Callable[[str], None]) -> dict[str, SyncRow]:
+    """Every DOC.json in ROWS_DIR whose row has a `pr`. A file that wraps the row as {data, version} is unwrapped;
+    otherwise the file is the row. A file that is not a JSON object, or a `pr` that is not PR numbers, is skipped
+    with a warning."""
+    files = sorted(rows_dir.glob("*.json")) if rows_dir.is_dir() else []
+    if not files:
+        raise DashError(f"sync-prs {rows_dir}: no row files (DOC.json) there")
+    versions = read_versions(versions_file)
+    rows: dict[str, SyncRow] = {}
+    for path in files:
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            doc = None
+        if not isinstance(doc, dict):
+            warn(f"{path.stem}: {path.name} is not a JSON object; skipped")
+            continue
+        data = doc["data"] if isinstance(doc.get("data"), dict) else doc
+        if data.get("pr") in (None, "", []):
+            continue
+        prs = row_prs(data["pr"])
+        if prs is None:
+            warn(f"{path.stem}: pr {data['pr']!r} is not a PR number or a list of them; skipped")
+            continue
+        version = versions.get(path.stem, doc.get("version"))
+        rows[path.stem] = SyncRow(data, version if isinstance(version, int) and not isinstance(version, bool)
+                                  else None, prs)
+    return rows
+
+
+def sync_prs(builder: Builder, rows_dir: Path, versions_file: Path | None,
+             fetch: Callable[[set[int], Callable[[str], None]], dict[int, PrState]] = fetch_prs) -> None:
+    """Row updates from GitHub's PR states; the module docstring gives the rules."""
+    warn = builder.warnings.append
+    rows = load_rows(rows_dir, versions_file, warn)
+    wanted = {number for row in rows.values() for number in row.prs}
+    states = fetch(wanted, warn) if wanted else {}
+    for doc_id, row in sorted(rows.items()):
+        unread = [n for n in row.prs if n not in states]
+        if unread:
+            warn(f"{doc_id}: no state for {', '.join(f'#{n}' for n in unread)}; skipped")
+            continue
+        prs = [states[n] for n in row.prs]
+        merged = [p for p in prs if p.state == "MERGED"]
+        if any(p.state not in ("MERGED", "CLOSED") for p in prs):
+            continue
+        if merged:
+            status, stage = "merged", "merged " + ", ".join(
+                f"#{p.number} as {(p.merge_oid or '?')[:7]} at {local_hhmm(p.merged_at)}" for p in merged)
+            settled: tuple[str, ...] = ("merged", "done")
+        else:
+            status, stage = "failed", "closed unmerged: " + ", ".join(f"#{p.number}" for p in prs)
+            settled = ("failed", "merged", "done")
+        if row.data.get("status") in settled:
+            continue
+        if row.version is None:
+            raise DashError(f"{doc_id}: no version; pass --versions FILE with the list result's versions")
+        builder.versions[doc_id] = row.version
+        builder.row(doc_id, [f"status={status}", f"stage={stage}"])
+
+
 def split_ops(tokens: list[str]) -> list[list[str]]:
     """Cut the op tokens at each op word; the first token must be one."""
     ops: list[list[str]] = []
@@ -174,6 +338,13 @@ def build(builder: Builder, ops: list[list[str]]) -> None:
             if len(args) != 1:
                 raise DashError("event: needs one quoted text")
             builder.event(args[0])
+        elif word == "sync-prs":
+            versions = None
+            if len(args) == 3 and args[1] == "--versions":
+                versions = Path(args[2])
+            elif len(args) != 1:
+                raise DashError("sync-prs: needs ROWS_DIR [--versions FILE]")
+            sync_prs(builder, Path(args[0]), versions)
         else:
             since = None
             if len(args) == 3 and args[1] == "--since":
@@ -232,6 +403,8 @@ def main(argv: list[str] | None = None) -> int:
     except DashError as exc:
         print(f"dash_rows: {exc}", file=sys.stderr)
         return 2
+    for warning in builder.warnings:
+        print(f"dash_rows: warning: {warning}", file=sys.stderr)
     print(json.dumps(emit(builder.writes, args.out_dir), indent=1))
     return 0
 
