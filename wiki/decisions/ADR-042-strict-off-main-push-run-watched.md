@@ -17,7 +17,7 @@ The order was set by the owner on 2026-11-27: PR A (ADR-041: the baseline sweep 
 2. **A PR merges once `check` passes on its head** and, beside other sessions, the queue holder gives go. It does not merge `main` in again because main moved.
 3. **Merge `main` in only when GitHub shows a conflict**, or when the PR's last `check` run is older than the latest change on main to a file the PR touches.
 4. **Files with merge drivers merge locally only.** The union merge (`tools/audit/hand_tables.csv`, `tools/audit/py_sizes.csv`, `wiki/STATUS_LOG.md`, `docs/INDEX.md`) and the pipeline-map driver (`docs/pipeline-map/pipeline_map.json`) run in a local `git merge origin/main`, never in GitHub's merge button, update-branch or the web conflict editor. A PR that touches one of them merges main locally and pushes. `.gitattributes` holds the full list.
-5. **Whoever merged watches main's push run** of `check.yml` for the merge commit and reports how it ended. A red run falls under the Main red rule in the `coordinate` skill.
+5. **Whoever merged watches main's push run** of `check.yml` for the merge commit and reports how it ended. A red run falls under the Main red rule in `.claude/skills/coordinate/merging.md`.
 
 ### Deploys (owner rulings, 2026-11-27)
 
@@ -37,4 +37,4 @@ The layout deploy gate (G0c in `tools/hosts/deploy/gate.sh`) and the website dep
 
 - An open PR no longer waits for a fresh CI run each time another PR merges.
 - A break between two PRs shows on main, not on a PR. The merger's watch, the Main red rule and the deploy gate keep it from shipping or piling up.
-- The rule text lives in the `handoff` skill (Merge), the `coordinate` skill (Merge queue) and `/done` step 3.
+- The rule text lives in `.claude/skills/coordinate/merging.md`, with short summaries in the `handoff` and `coordinate` skills and `/done` step 3.

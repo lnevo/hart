@@ -70,7 +70,7 @@ Nothing. The eight table moves and the waybill master were decided at 11:15 to 1
 ## How to run this
 
 - At most 4 lanes at once, so the coordinator, its lanes, the merge runner and other sessions stay under the 8-session cap. LE-L4 waits for LE-L3.
-- Each lane passes the "no failed PRs" gates in the [`handoff`](../../.claude/skills/handoff/SKILL.md) skill before its PR opens: one full `make remote` per PR, a second only to confirm a fix, no `FULL=1`.
+- Each lane passes the "no failed PRs" gates in [`merging.md`](../../.claude/skills/coordinate/merging.md) before its PR opens: one full `make remote` per PR, a second only to confirm a fix, no `FULL=1`.
 - Every code finding goes through `finding-verifier` before it is fixed. Review fixes on an open PR go to the general-purpose merge runner in that PR's worktree, not to a named agent.
 - One merge at a time; the coordinator deploys each merge that ships (`deploy` skill) and keeps every dashboard row current.
 

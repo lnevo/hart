@@ -17,7 +17,7 @@ The ratchets already pass when a count falls and print a note. PRs rewrote the l
 3. **A `hand_tables.csv` row for a table no longer found is a note, not a failure** (owner, 2026-11-27). The sweep's `--update` drops it. A new table still needs a row with status `keep` and a reason, and a (file, table) pair listed twice still fails.
 4. **`hand_tables.csv` and `py_sizes.csv` merge with git's union driver** (`.gitattributes`). Rows two branches add both stay. A row both branches edited comes out twice, and each file's loader stops on it as "listed twice", so the union never hides a real conflict. `tools/audit/tests/test_union_merge_lists.py` runs both cases. The two JSON baselines keep the default merge.
 
-The text lives in the `handoff` skill (Merge, step 2), the `coordinate` skill (Baseline sweep) and the `tool-fixer` agent.
+The text lives in `.claude/skills/coordinate/merging.md` (No failed PRs step 2, Baseline sweep) and the `tool-fixer` agent.
 
 ## Amendment (owner, 2026-11-27)
 

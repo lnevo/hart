@@ -8,6 +8,8 @@ line and count (wiki/STATUS_LOG.md and wiki/archive/ hold history and are exempt
 below the table, linked from the cell.
 A third rule caps the root AGENTS.md, which every session loads whole: over MAX_ROOT_LINES lines or MAX_ROOT_WORDS
 words fails. Detail goes in a skill, /done, or the AGENTS.md of the folder it applies to.
+A fourth rule caps each .claude/skills/*/SKILL.md at MAX_SKILL_WORDS words, counted as the AGENTS.md cap counts them
+(whitespace-separated, frontmatter included). Detail goes in a reference file the skill links to.
 
 `references()` is the one parser for what an agent doc points at; the pipeline
 map (tools/ops/agent_docs_map.py) draws its "points to" links from it too.
@@ -41,6 +43,8 @@ MAX_CELL_WORDS = 80
 ROOT_DOC = "AGENTS.md"
 MAX_ROOT_LINES = 70
 MAX_ROOT_WORDS = 1000
+SKILL_GLOB = ".claude/skills/*/SKILL.md"
+MAX_SKILL_WORDS = 1500
 CELL_GLOBS = ("wiki/**/*.md", "AGENTS.md")
 SCAN_GLOBS = (*PATTERNS, CELL_GLOBS[0])         # CELL_GLOBS' AGENTS.md is one of PATTERNS' **/AGENTS.md
 CELL_EXEMPT_FILES = ("wiki/STATUS_LOG.md",)
@@ -301,11 +305,32 @@ def root_size(text: str | None = None) -> list[str]:
     return out
 
 
+def skill_files() -> list[str]:
+    """The tracked skill files the skill word cap covers, those still in the working tree."""
+    return [p for p in _tracked(*globs((SKILL_GLOB,))) if (ROOT / p).exists()]
+
+
+def skill_size(rel: str, text: str | None = None) -> list[str]:
+    """The skill at repo path `rel` over MAX_SKILL_WORDS words, as one FAIL line; [] when it fits. Words are counted
+    as root_size counts them, frontmatter included. `text` stands in for its content in tests."""
+    if text is None:
+        try:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as err:
+            raise AgentDocsError(f"{rel}: cannot read: {err}") from err
+    words = len(text.split())
+    if words <= MAX_SKILL_WORDS:
+        return []
+    return [f"{rel}: {words} words, over {MAX_SKILL_WORDS}; move detail into a reference file in the skill's folder "
+            f"and link it from SKILL.md"]
+
+
 def main() -> int:
     try:
         problems = [p for rel in agent_files() for p in problems_in(rel)]
         problems += [p for rel in cell_files() for p in long_cells(rel)]
         problems += root_size()
+        problems += [p for rel in skill_files() for p in skill_size(rel)]
     except AgentDocsError as err:
         print(f"FAIL {err}")
         return 1
@@ -313,7 +338,8 @@ def main() -> int:
         print(f"FAIL {line}")
     if not problems:
         print("OK: agent instructions point at real paths; no wiki table cell over "
-              f"{MAX_CELL_WORDS} words; {ROOT_DOC} within {MAX_ROOT_LINES} lines and {MAX_ROOT_WORDS} words")
+              f"{MAX_CELL_WORDS} words; {ROOT_DOC} within {MAX_ROOT_LINES} lines and {MAX_ROOT_WORDS} words; "
+              f"each skill within {MAX_SKILL_WORDS} words")
     return 1 if problems else 0
 
 
