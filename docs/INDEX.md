@@ -52,6 +52,7 @@ Items inside a cell are separated by `;`, so the file needs no quoting
 
 ## hosts
 
+- [DEPLOY.md](hosts/DEPLOY.md): Reference for the `deploy` skill
 - [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): The layout Pi runs the new 64-bit Raspberry Pi OS (trixie) card since 2026-11-23, built from scripts and config files in the repo; the old bookworm card is...
 
 ## jmri
