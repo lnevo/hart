@@ -284,7 +284,8 @@ def _vendor_archive_images(
     Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
     copy, max_px on its long side. An item that sets its own "max_px" (a map or drawing
     meant to be zoomed into) also gets item["full"], a larger copy that only the lightbox's
-    open-full link loads, so pages never fetch it on their own. Items marked "public": false or whose original is missing (no mirrors)
+    open-full link loads, so pages never fetch it on their own. Items with a thumbnail also get the original's
+    width/height, as gallery items do. Items marked "public": false or whose original is missing (no mirrors)
     are dropped, and local-only
     fields (PDF paths, where the owner found the file) are stripped. With resize False (no Pillow) mirror-only
     items are dropped and no item gets a thumbnail.
@@ -318,6 +319,13 @@ def _vendor_archive_images(
             thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"
             _web_jpeg(src, dest_root / thumb, thumb_px)
             item["thumb"] = thumb.as_posix()
+            from PIL import Image  # _web_jpeg above has required Pillow
+
+            try:  # the original's size, for the grid to reserve the thumbnail's space before it loads
+                with Image.open(src) as im:
+                    item["width"], item["height"] = im.size
+            except OSError:
+                pass
         if str(item.get("pdf") or "").startswith("../"):
             item.pop("pdf")
         item.pop("origin", None)
