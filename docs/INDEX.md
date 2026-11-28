@@ -106,6 +106,13 @@ Source of record (ADR-010) for the published crew and dispatcher Word and PowerP
 - [efficiency-plan.md](pipeline-map/efficiency-plan.md): Plan to cut panel rebuilds and full workflow runs, based on logged step timings, reviewed by the owner on 2026-11-21
 - Other files: [pipeline_map.json](pipeline-map/pipeline_map.json), [timings.json](pipeline-map/timings.json)
 
+## report-cards
+
+Every report card score, kept for the master dashboard and the slippage check. `scores.json` holds one entry per category (project, code, data, website UX...
+
+- [README.md](report-cards/README.md): Every report card score, kept for the master dashboard and the slippage check. `scores.json` holds one entry per category (project, code, data, website UX...
+- Other files: [scores.json](report-cards/scores.json)
+
 ## website
 
 Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
