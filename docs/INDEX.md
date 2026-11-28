@@ -118,6 +118,7 @@ Every report card score, kept for the master dashboard and the slippage check. `
 Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
 
 - [README.md](website/README.md): Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
+- [exam-study.md](website/exam-study.md): Rules for the C&E study deck (`www/exam/index.html`), the Extra East game (`www/exam/run.html`) and the `/play` runs
 - [promo-videos.md](website/promo-videos.md): Describes the short promo videos for the website on TikTok and YouTube, where the files are kept and how they were made
 - Plus 1 image, css or script files
 
