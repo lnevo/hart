@@ -39,7 +39,7 @@ jobs:
           set -euo pipefail
           line="full: a push or scheduled run"
           if [ "${{ github.event_name }}" = pull_request ]; then
-            line="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/changed_kind.py --compare HEAD^1 --why)"
+            line="$(git diff -z --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/changed_kind.py -z --compare HEAD^1 --why)"
           fi
           kind="${line%%:*}"
           echo "kind=$kind" >> "$GITHUB_OUTPUT"
@@ -194,7 +194,7 @@ jobs:
         env:
           SCHEMATIC_REQUIRED: "1"
         # with the restored cache (no warm-up); the script tools/check.sh's light path runs, on the changed paths above
-        run: git diff --no-renames --name-only HEAD^1 HEAD | bash tools/ci/light_checks.sh --compare HEAD^1
+        run: git diff -z --no-renames --name-only HEAD^1 HEAD | bash tools/ci/light_checks.sh -z --compare HEAD^1
       # CHECK_RESULTS_TO: each job's result (passed, failed or skipped), for the skip record and the weekly guard below.
       # The weekly run fails a job that read a file its step does not declare in tools/pipeline/checks.toml
       # (CHECK_AUDIT_FAILS, ADR-037 stage 4c; pull request and push runs only warn). The audit runs when a job records

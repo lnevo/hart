@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CATS Digicon CTC — HART</title>
+  <meta name="description" content="CATS CTC dispatcher guide DS-CATS-DISP: quick routes, N/X, stacking and fleeting from the Digicon panel, the CTC desk in use.">
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
@@ -16,23 +17,23 @@
     <article class="guide-body">
 <h2>HART Railroad — CATS CTC Dispatcher Guide</h2>
 
-<p><strong>Parked.</strong> The USS CTC machine, which this guide names as the alternate desk, and the stock Dispatcher System are parked since the helix-join release (November 2026): not in the active panel; data kept in <code>jmri/layouts/hart/parked/</code>. The CATS desks stay live, so CATS CTC is the only CTC desk in use.</p>
+<p><strong>Parked.</strong> The USS CTC machine, which this guide names as the alternate desk, and the stock Dispatcher System are parked since the helix-join release (November 2026): not in the active panel; data kept in <a href="https://github.com/lnevo/hart/tree/main/jmri/layouts/hart/parked"><code>jmri/layouts/hart/parked/</code></a>. The CATS desks stay live, so CATS CTC is the only CTC desk in use.</p>
 
-<p><strong>Publication:</strong> DS-CATS-DISP · Rev A · Eff 2026-08-19<br><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations<br><strong>Scope:</strong> CATS Digicon panel (<code>HART_CTC.xml</code>), mouse dispatching in CTC mode</p>
+<p><strong>Publication:</strong> DS-CATS-DISP · Rev A · Eff 2026-08-19<br><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations<br><strong>Scope:</strong> CATS Digicon panel (<a href="https://github.com/lnevo/hart/blob/main/cats/panels/HART_CTC.xml"><code>HART_CTC.xml</code></a>), mouse dispatching in CTC mode</p>
 
 <p>This guide is for <strong>dispatching from the CATS panel</strong>: granting authority, lining routes, and using fleeting, stacking and call-on. It does not cover menus, install, Designer or MQTT.<span data-local-only> For that, see the CATS PDF in <code>tools/cats/release3.2/catsManual.pdf</code> and <code>HART_DIGICON_SYSTEM.md</code>.</span></p>
 
 <p>HART also has a stock JMRI CTC lever panel (code buttons, N/L/R levers, 15 columns), parked since the helix-join release. Its guide is kept:</p>
 
-<p>→ <code>jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md</code> (DS-DISP)</p>
+<p>→ <a href="https://github.com/lnevo/hart/blob/main/jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md"><code>jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md</code></a> (DS-DISP)</p>
 
-<p>The automatic Dispatcher System is parked too. Its guide is kept: <code>../../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md</code> (DS-AUTO).</p>
+<p>The automatic Dispatcher System is parked too. Its guide is kept: <a href="https://github.com/lnevo/hart/blob/main/jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md"><code>jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md</code></a> (DS-AUTO).</p>
 
 <p>The JMRI USS lever panel is parked since the helix-join release (November 2026), so CATS CTC is the CTC desk and nothing else drives Hold on the masts. CATS ABS is a view-only mimic and is fine alongside it.</p>
 
 <p>At CATS start, LogixNG hides <strong>WiThrottle</strong> (IQC:AUTO:0001). IQC:AUTO:0004 then hides <strong>HART Railroad</strong> only — CATS is detected from the running app (<code>cats.apps.Crandic</code> or Windows <code>CatsConfig.xml</code>), not merely from <code>cats.jar</code> on the classpath. PanelPro leaves <strong>HART Railroad</strong> visible so the geographic desk still works.</p>
 
-<p>The CTC desk covers all three levels. Staging, main and upper are all CTC: CATS holds their signals. A route set up the helix from staging stops at the first signal on the level (signal 136RA on main, 136RB on upper) until the dispatcher clears it. The ABS desk (<code>HART_ABS.xml</code>) is all ABS.</p>
+<p>The CTC desk covers all three levels. Staging, main and upper are all CTC: CATS holds their signals. A route set up the helix from staging stops at the first signal on the level (signal 136RA on main, 136RB on upper) until the dispatcher clears it. The ABS desk (<a href="https://github.com/lnevo/hart/blob/main/cats/panels/HART_ABS.xml"><code>HART_ABS.xml</code></a>) is all ABS.</p>
 
 <p><strong>Help</strong> and <strong>Quit</strong> on <strong>CTC Panel</strong> sit on the bottom button strip (with Restart RPi / Shutdown RPi). The Digicon <strong>Dispatcher Panel</strong> is schematic-only — no Help/Quit bar. Do not add a second File -&gt; Quit; CATS already has File -&gt; Exit. Quit on the strip uses JMRI <code>Apps.handleQuit()</code> (store prompt, clean shutdown).</p>
 

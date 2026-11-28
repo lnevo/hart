@@ -1,0 +1,154 @@
+{
+  "page": "https://claude.ai/artifact/SSW82yeEfgbZhajUWjUiJp",
+  "categories": [
+    {
+      "id": "project",
+      "title": "Project overall",
+      "scale": 10,
+      "what": "Reviewer's judgment over six areas, each resting on a measurement.",
+      "wiki": "wiki/report-cards.md#project-overall",
+      "link": "https://claude.ai/artifact/Lm21WZByw2ztiwr54pXBLb",
+      "scores": [
+        {"date": "2026-10-31", "value": 7.5, "label": "first pass"},
+        {"date": "2026-10-31", "value": 8, "label": "after the gates"},
+        {"date": "2026-11-22", "value": 8.5, "label": "rescore"},
+        {"date": "2026-11-27", "value": 9, "label": "after the six code-quality waves"}
+      ],
+      "table": {
+        "columns": ["Area", "31 Oct", "22 Nov", "27 Nov", "Measured on 27 Nov"],
+        "rows": [
+          ["Knowledge and decisions", 9, 9, 9.5, "40 ADRs (31 on 11-22), 20 pipeline pages, 2 broken links."],
+          ["AI instructions", 9, 9, 9.5, "AGENTS.md 65 lines and 980 words (109 lines on 11-22); 11 skills, 10 named agents."],
+          ["Workflow", 8, 9, 9, "1,815 commits and 856 merges since 11-22; median green CI run about 6 minutes."],
+          ["Verification", 7, 8.5, 9, "About 7,000 test functions in 416 files (about 3,950 on 11-22); last 100 CI runs 84 passed."],
+          ["Organization", 8, 8, 8.5, "Scripts over 1,000 lines fell from 11 to 3; code card B+ (3.30)."],
+          ["Subagents", 6.5, 7.5, 8.5, "general-purpose was 27% of chosen launches, down from 68%."]
+        ]
+      }
+    },
+    {
+      "id": "code",
+      "title": "Code quality",
+      "scale": 4,
+      "what": "Line-weighted grade point over the graded source files, parked code left out. B+ is 3.3.",
+      "wiki": "wiki/report-cards.md#code-quality",
+      "link": "https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE",
+      "target": 3.3,
+      "scores": [
+        {"date": "2026-11-26", "value": 2.868, "label": "start (B-)"},
+        {"date": "2026-11-26", "value": 3.039, "label": "after wave 1"},
+        {"date": "2026-11-26", "value": 3.13, "label": "after wave 2"},
+        {"date": "2026-11-26", "value": 3.197, "label": "after wave 3"},
+        {"date": "2026-11-27", "value": 3.224, "label": "after wave 4"},
+        {"date": "2026-11-27", "value": 3.26, "label": "after wave 5"},
+        {"date": "2026-11-27", "value": 3.301, "label": "after wave 6 (B+)"},
+        {"date": "2026-11-27", "value": 3.297, "label": "after the loose ends"},
+        {"date": "2026-11-27", "value": 3.298, "label": "after the leftovers"}
+      ],
+      "table": {
+        "columns": ["", "Start", "W1", "W2", "W3", "W4", "W5", "W6", "Loose ends"],
+        "rows": [
+          ["C and D files", 63, 32, 15, 1, 1, 2, 2, 0],
+          ["A-range files", 8, 18, 133, 157, 167, 189, 200, ""],
+          ["Files read", 70, 110, 469, 488, 493, 515, 526, ""]
+        ]
+      },
+      "notes": [
+        "The final card covers 534 source files and 123,997 lines.",
+        "The loose ends regrade fell to 3.297 because six deploy and host scripts were read more closely."
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data",
+      "scale": 10,
+      "what": "The seven priorities of the 2026-11-25 data review, taken on by ADR-039.",
+      "wiki": "wiki/report-cards.md#data",
+      "scores": [
+        {"date": "2026-11-25", "value": 4, "label": "estimate before ADR-039, given on 11-27"},
+        {"date": "2026-11-27", "value": 8, "label": "rescored at c948929a"}
+      ],
+      "table": {
+        "columns": ["Recommendation (25 Nov)", "State (27 Nov)", "Detail"],
+        "rows": [
+          ["A catalogue by kind of record", "Done", "docs/data/entities.csv has 43 kinds."],
+          ["Column sidecars for every master", "Mostly done", "29 sidecars pass; the car master, wiring.csv, lcos_nodes.csv and sheets.csv have none."],
+          ["Stable keys, assigned once", "Done", "industry_id, train symbols, station and control point ids, block id, roster_id."],
+          ["Drift reports against STS, Operations Pro and JMRI", "Not started", "Phase 2."],
+          ["No spreadsheet as an input", "Done", "v86 is output only."],
+          ["A read-only SQLite built from the masters", "Not started", "Phase 2."],
+          ["A database as master only when several people edit at once", "Not done, as intended", ""]
+        ]
+      }
+    },
+    {
+      "id": "ux",
+      "title": "Website UX",
+      "scale": 10,
+      "what": "Mean of three site-reviewer slices over eight areas.",
+      "wiki": "wiki/report-cards.md#website-ux",
+      "scores": [
+        {"date": "2026-11-28", "value": 6.8, "label": "first formal pass"}
+      ],
+      "table": {
+        "columns": ["Area", "Score"],
+        "rows": [
+          ["Navigation and wayfinding", 6.5], ["Layout and readability", 7], ["Mobile", 6.5], ["Accessibility", 6.5],
+          ["Clarity for a first-time reader", 6.5], ["Consistency across pages", 6], ["Weight and speed", 8.5], ["Links and errors", 7]
+        ]
+      },
+      "notes": ["Nothing was checked on a real phone or with a screen reader."]
+    },
+    {
+      "id": "ax",
+      "title": "Agent experience",
+      "scale": 10,
+      "what": "How sessions and subagents work in the repo: memory, session start, skills, shipping and merging.",
+      "wiki": "wiki/projects/ax-cleanup.md",
+      "scores": [
+        {"date": "2026-11-27", "value": 8.5, "label": "review before the cleanup"},
+        {"date": "2026-11-28", "value": 7.5, "label": "after #1377, six areas"}
+      ],
+      "table": {
+        "columns": ["Area (28 Nov)", "Score", "Measured"],
+        "rows": [
+          ["Instructions", 8.5, "Root AGENTS.md 64 lines, 916 words; five folder AGENTS.md add 585 words; no CLAUDE.md."],
+          ["Skills and agents", 8, "11 skills, 201 to 1,214 words, none over 1,500; handoff and coordinate pass 1,500 with their reference file."],
+          ["Memory", 6.5, "38 files and 10,857 words (49 files on 27 Nov); remote runs, timing and coordinator files repeat AGENTS.md and skills."],
+          ["Session start", 8.5, "The start hook prints nothing in 0.07 s; make orient is about 40 lines, 25 of them overlap."],
+          ["Shipping and merging", 8, "make ready and make land with tests; #1377 adds a GitHub gate for drafts and a merge lock."],
+          ["Housekeeping", 5.5, "43 worktrees (29 agent-a*); 39 progress files, 16 older than a day; nothing prunes agent worktrees."]
+        ]
+      },
+      "notes": [
+        "The 27 Nov costs: memory 49 to 38 files (overlap remains); session start one line per worktree to none (fixed); two skills over 2,000 words to none over 1,500 (fixed); 37 stale progress files to 39 live ones (not fixed).",
+        "The 28 Nov rescore scored six areas, two of them (housekeeping, memory overlap) wider than the 27 Nov review looked, so part of the drop is the wider look rather than a regression."
+      ]
+    }
+  ],
+  "unscored": [
+    {"date": "2026-11-02", "title": "JF&N Plugin Scorecard", "link": "https://claude.ai/artifact/AwdUmPyEWz2tDxtaYA7fQS",
+     "text": "Showcase railroad built with the Operations Pro plugin: cases, faults, a fresh-session behaviour check, a recheck and known limits."},
+    {"date": "2026-11-02", "title": "Railroad Plugin Scorecard", "link": "https://claude.ai/artifact/5fq6t6KN5RE5ez8ND1NPNQ",
+     "text": "The same plugin on this layout: build stages, a nine-job ordered session on copies, faults, hand steps, decisions and lessons."},
+    {"date": "2026-11-25", "title": "Agent experience round", "text": "Allow rules, memory 53 to 32 files, make orient and claims, ruff F rules (#1104 to #1107). No score."},
+    {"date": "2026-11-25", "title": "Data review", "text": "Seven priorities for a long-term data plan; ADR-039 took them on. No score."}
+  ],
+  "dashboards": [
+    {"id": "code-quality", "title": "Code-quality waves 2 to 6", "start": "2026-11-26T14:16", "store": "data/wave2",
+     "link": "https://claude.ai/artifact/XbLG38xfSzSdbE4eoutFQ7", "wiki": "wiki/projects/code-quality-wave.md", "waves": true,
+     "summary": "Five waves of code cleanup run by a background coordinator. The code card went from 3.039 after wave 1 to 3.301 (B+) after wave 6."},
+    {"id": "loose-ends", "title": "Loose ends after the waves", "start": "2026-11-27T10:31", "store": "data/le",
+     "link": "https://claude.ai/artifact/P7sr9F2vXPUJnWfwxfYKAZ", "wiki": "wiki/projects/wave-loose-ends.md",
+     "summary": "The list left after the waves: hosts and deploy, check.sh in a fresh worktree, the dashboard in dark mode. Regrade 3.297, no C or D source files left."},
+    {"id": "leftovers", "title": "Leftovers round", "start": "2026-11-27T16:20", "store": "data/lo",
+     "link": "https://claude.ai/artifact/DiMs49NdBzpTiH9Bq1FiSe", "wiki": "wiki/projects/leftovers-round.md",
+     "summary": "Deploy and host scripts, typed GitHub records, deploy tests run against a temporary JMRI profile. Regrade 3.297 to 3.298."},
+    {"id": "le-spur-labels", "title": "LE spur labels", "start": "2026-11-27T18:13", "store": "data/LS",
+     "link": "https://claude.ai/artifact/3RUni5hx1sRXCYarGXYQxa", "wiki": "wiki/projects/le-spur-labels.md",
+     "summary": "Layout Editor names for 101 Spur 1, 101 Spur 2 and 103 Spur moved beside their tracks. The owner approved the rendered look."},
+    {"id": "ax-cleanup", "title": "Agent experience cleanup", "start": "2026-11-27T22:22", "store": "data/ax",
+     "link": "https://claude.ai/artifact/PzHCqE42g9vDyXrXgdWJvC", "wiki": "wiki/projects/ax-cleanup.md",
+     "summary": "Memory 49 to 38 files, a quieter session start, a 1,500-word skill cap, then make ready and make land."}
+  ]
+}

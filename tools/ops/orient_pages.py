@@ -1,5 +1,5 @@
-"""The Markdown half of tools/ops/orient.py: the Claimed line's form, and reading a project page's Status and
-Claimed lines outside code fences and HTML comments (parse_page). orient.py imports it from their shared folder;
+"""The Markdown half of tools/ops/orient.py: the Claimed and Coordinator lines' forms, and reading a project page's
+Status, Claimed and Coordinator lines outside code fences and HTML comments (parse_page). orient.py imports it from their shared folder;
 it imports nothing of the repo."""
 from __future__ import annotations
 
@@ -16,6 +16,10 @@ CLAIM_LIKE = re.compile(r"^\s*(?:[-*+>]\s*)*(?:\*\*|__)?Claimed\s*(?::|(?:\*\*|_
 BRANCH = re.compile(r"^(?!/)(?!.*\.\.)(?!.*//)[A-Za-z0-9._/-]+(?<![/.])$")
 FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
 FORMAT = "Claimed: <branch>, <absolute worktree path>, since YYYY-MM-DD HH:MM"
+# The merge queue's holder (the coordinate skill): a Coordinator line in the run directly under an active Status line.
+COORDINATOR = re.compile(r"^Coordinator: (?P<name>[^,]+?), since (?P<since>\d{4}-\d{2}-\d{2} \d{2}:\d{2})\s*$")
+COORDINATOR_LIKE = re.compile(r"^\s*(?:[-*+>]\s*)*(?:\*\*|__)?Coordinator\s*(?::|(?:\*\*|__)\s*:)")
+COORDINATOR_FORMAT = "Coordinator: <session name>, since YYYY-MM-DD HH:MM"
 
 
 @dataclass(frozen=True)
@@ -27,12 +31,22 @@ class Claim:
     since: str
 
 
+@dataclass(frozen=True)
+class Coordinator:
+    page: str  # file name in wiki/projects/
+    line: int
+    name: str
+    since: str
+
+
 @dataclass
 class Page:
     status: str | None  # first word of the Status line, lower case; None when the page has none
     status_line: int | None  # 1-based
     claims: list[Claim] = field(default_factory=list)
     problems: list[tuple[int, str]] = field(default_factory=list)
+    coordinators: list[Coordinator] = field(default_factory=list)
+    queue_problems: list[tuple[int, str]] = field(default_factory=list)   # Coordinator lines that hold no queue
 
 
 # ---------------------------------------------------------------- Markdown
@@ -88,8 +102,9 @@ def comment_start(text: str) -> int:
 
 
 def parse_page(name: str, text: str) -> Page:
-    """The page's Status and its Claimed lines, with a problem for each Claimed line that is malformed or not
-    directly under the Status line, and for claims on a page that is not active."""
+    """The page's Status, its Claimed lines and its Coordinator lines, with a problem for each Claimed line that is
+    malformed or not directly under the Status line, and for claims on a page that is not active; Coordinator lines
+    get the same checks, in queue_problems."""
     lines = list(readable_lines(text))
     page = Page(None, None)
     under = set()  # line numbers directly under the Status line (the run of Claimed lines that follows it)
@@ -98,10 +113,14 @@ def parse_page(name: str, text: str) -> Page:
         if m and page.status is None:
             page.status, page.status_line = m.group(1).split()[0].lower(), no
             j = i + 1
-            while j < len(lines) and lines[j][0] == lines[j - 1][0] + 1 and CLAIM_LIKE.match(lines[j][1]):
+            while j < len(lines) and lines[j][0] == lines[j - 1][0] + 1 and (
+                    CLAIM_LIKE.match(lines[j][1]) or COORDINATOR_LIKE.match(lines[j][1])):
                 under.add(lines[j][0])
                 j += 1
     for no, line in lines:
+        if COORDINATOR_LIKE.match(line):
+            coordinator_line(page, name, no, line, no in under)
+            continue
         if not CLAIM_LIKE.match(line):
             continue
         if no not in under:
@@ -119,7 +138,29 @@ def parse_page(name: str, text: str) -> Page:
     if page.claims and page.status != "active":
         page.problems.append((page.status_line or 0, f"claimed, but the page's Status is {page.status or 'missing'}, "
                                                      "not active"))
+    if page.coordinators and page.status != "active":
+        for c in page.coordinators:
+            page.queue_problems.append((c.line, f"Coordinator {c.name} on a page whose Status is "
+                                                f"{page.status or 'missing'}, not active: it holds no queue; remove it"))
+        page.coordinators = []
     return page
+
+
+def coordinator_line(page: Page, name: str, no: int, line: str, under_status: bool) -> None:
+    """Add a Coordinator line to the page, or its problem."""
+    if not under_status:
+        page.queue_problems.append((no, "Coordinator line not directly under the Status line"))
+        return
+    m = COORDINATOR.match(line)
+    if not m:
+        page.queue_problems.append((no, f"malformed Coordinator line; the form is: {COORDINATOR_FORMAT}"))
+        return
+    try:
+        datetime.strptime(m.group("since"), "%Y-%m-%d %H:%M")
+    except ValueError:
+        page.queue_problems.append((no, f"Coordinator's time {m.group('since')!r} is not a real date and time"))
+        return
+    page.coordinators.append(Coordinator(name, no, m.group("name").strip(), m.group("since")))
 
 
 def claim_problem(branch: str, path: str, since: str) -> str | None:

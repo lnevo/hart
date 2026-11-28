@@ -345,7 +345,8 @@ class PhotoStages(_Repo):
         ]}))
         build._vendor_archive_images(path, dest)
         items = json.loads(path.read_text())["items"]
-        self.assertEqual(items, [{"id": "h1", "bucket": "curated", "src": "assets/archive/h1.jpg", "thumb": "assets/archive/thumbs/h1.jpg"}])
+        self.assertEqual(items, [{"id": "h1", "bucket": "curated", "src": "assets/archive/h1.jpg", "thumb": "assets/archive/thumbs/h1.jpg",
+                                  "width": 300, "height": 200}])
         self.assertTrue((dest / "assets/archive/h1.jpg").is_file())
         self.assertFalse((dest / "assets/archive/h2.jpg").exists())
 

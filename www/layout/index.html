@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Layout Explorer — HART</title>
+  <meta name="description" content="Layout Explorer: a zoomable map of the railroad with its switches and signal masts; click one to see its device details.">
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
@@ -12,6 +13,9 @@
     <div class="page-head page-head-compact">
       <h1>Layout Explorer</h1>
       <p class="muted" id="layout-meta">Loading layout map…</p>
+      <p class="small muted">The map is drawn from the Digicon board, the on-screen Centralized Traffic Control (CTC) panel the
+        dispatcher works in CATS. A CP is a control point: a place whose switches and signals the dispatcher sets from
+        that panel. More in the <a href="../operators/glossary/index.html#digicon">Glossary</a>.</p>
       <noscript><style>#layout-meta { display: none; }</style><p class="small">The Layout Explorer needs JavaScript. The <a href="../crew/maps/schematic/system-schematic.pdf">system schematic (SM-01, PDF)</a> shows the whole layout with its switch numbers and masts.</p></noscript>
     </div>
     <div class="toolbar">

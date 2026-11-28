@@ -4,7 +4,8 @@
   progress_prune.py [--dry-run]   move each done lane's file to .claude/progress/archive/<date>/ (its last change)
 
 A progress file is a .md, .log or .dash.jsonl file directly in .claude/progress/ (the `handoff` skill's lane lines
-and dashboards). Its topic is its name without that suffix. It is archived when it is untouched for STALE and no
+and dashboards). Its topic is its name without that suffix. It is archived when it is untouched for STALE (LONG_STALE
+for a dashboard, .dash.jsonl, or a file whose name holds one of LONG_WORDS, which a later session reads back) and no
 name in use matches its topic. The names in use are each worktree's folder name and branch (last part after /),
 each open PR's head branch (last part), each page in wiki/projects/ whose Status is active (the main checkout's and
 every worktree's copy) and the branch of each Claimed line on one. A name matches a topic when they are equal, or
@@ -35,7 +36,9 @@ PAGES = ROOT / "tools/ops/orient_pages.py"  # reads a project page's Status and 
 PROGRESS = Path(".claude/progress")
 ARCHIVE = "archive"
 SUFFIXES = (".dash.jsonl", ".md", ".log")  # longest first: x.dash.jsonl is topic x
-STALE = timedelta(days=2)
+STALE = timedelta(days=1)
+LONG_STALE = timedelta(days=2)  # dashboards and hand-off, coordinator and steward files
+LONG_WORDS = ("handoff", "coordinator", "steward")
 GH_TIMEOUT = 20
 
 
@@ -70,8 +73,14 @@ def matches(name: str, topic: str) -> bool:
 
 
 def done(files: list[ProgressFile], names: set[str], now: datetime) -> list[ProgressFile]:
-    """The files untouched for STALE whose topic no name in `names` matches."""
-    return [f for f in files if now - f.changed >= STALE and not any(matches(n, f.topic) for n in names)]
+    """The files untouched for stale_after whose topic no name in `names` matches."""
+    return [f for f in files if now - f.changed >= stale_after(f) and not any(matches(n, f.topic) for n in names)]
+
+
+def stale_after(f: ProgressFile) -> timedelta:
+    """How long a file must sit untouched: LONG_STALE for a dashboard or a hand-off, coordinator or steward file."""
+    name = f.path.name.lower()
+    return LONG_STALE if name.endswith(".dash.jsonl") or any(w in name for w in LONG_WORDS) else STALE
 
 
 def last_part(branch: str) -> str:

@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>USS CTC dispatcher — HART</title>
+  <meta name="description" content="USS CTC dispatcher guide DS-DISP: reading the lever machine panel, lining routes and the basic rules; the machine is parked since November 2026.">
   <link rel="stylesheet" href="../css/ops.css">
 </head>
 <body>
@@ -16,13 +17,13 @@
     <article class="guide-body">
 <h2>HART Railroad — CTC Machine Dispatcher Guide</h2>
 
-<p><strong>Parked.</strong> The USS CTC machine and panel are parked since the helix-join release (November 2026): not in the active panel; data kept in <code>jmri/layouts/hart/parked/</code>. This guide describes the machine as it works once unparked. The CATS desks are not affected.</p>
+<p><strong>Parked.</strong> The USS CTC machine and panel are parked since the helix-join release (November 2026): not in the active panel; data kept in <a href="https://github.com/lnevo/hart/tree/main/jmri/layouts/hart/parked"><code>jmri/layouts/hart/parked/</code></a>. This guide describes the machine as it works once unparked. The CATS desks are not affected.</p>
 
 <p><strong>Publication:</strong> DS-DISP · Rev A · Eff 2026-08-19<br><strong>Railroad:</strong> HART Railroad · Pittsburgh &amp; Chartiers Valley Division · Neville Island Operations<br><strong>Scope:</strong> JMRI USS CTC machine (<strong>USS CTC</strong>), basic dispatching rules</p>
 
 <p>This machine is a model of a US&amp;S Centralized Traffic Control panel: you line switches and signals from here, and the interlocking logic — not you — decides whether a signal can actually clear. Field signal aspects are computed by JMRI signal logic (ABS rules behind your CTC authority). You grant permission; the plant protects the railroad.</p>
 
-<p>To <strong>run a train automatically</strong> between stations, use Dispatcher System, not this machine: <code>../dispatcher/DISPATCHER_GUIDE.md</code> (DS-AUTO).</p>
+<p>To <strong>run a train automatically</strong> between stations, use Dispatcher System, not this machine: <a href="https://github.com/lnevo/hart/blob/main/jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md"><code>jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md</code></a> (DS-AUTO).</p>
 
 <hr>
 
@@ -90,13 +91,13 @@
 
 <div class="table-wrap"><table class="data-table"><thead><tr><th>I want to…</th><th>Do this</th></tr></thead><tbody><tr><td>Route a train east through a plant</td><td>Switch lever N/R → code → wait for indicator → signal lever <strong>R</strong> → code</td></tr><tr><td>Route a train west</td><td>Same, signal lever <strong>L</strong></td></tr><tr><td>Cancel a signal</td><td>Signal lever <strong>N</strong> → code → wait out time locking</td></tr><tr><td>Throw a switch</td><td>Signal lever must be <strong>N</strong> first; then switch lever → code</td></tr><tr><td>Run several trains the same way</td><td>Line the route, turn <strong>Fleeting</strong> on; off when done</td></tr><tr><td>Signal won&#x27;t clear</td><td>Check OS lamp, points correspondence, opposing route — the machine is protecting something</td></tr></tbody></table></div>
 
-<p><strong>Machine on:</strong> PanelPro <strong>Tools ▸ CTC ▸ Run CTC Logic</strong>. It does not auto-start — until you run it, every lever and lamp shows &quot;?&quot; (sensors UNKNOWN). Once started, most switch levers initialize <strong>N</strong>. Switches <strong>1, 33, 37, and 39</strong> rest Thrown in the field — run <code>jmri/layouts/hart/scripts/ctc_default_reverse_levers.py</code> after CTC starts (or add it as a PanelPro startup action after Run CTC Logic) so those selectors sit at <strong>R</strong>, and lock toggles for the <strong>yard ladders</strong> (Switches <strong>9, 11, 13, 15, 17, 19, 21, 25, 27, 29, 31</strong>) sit at <strong>Local</strong>. Reload CTC re-applies the same defaults. The CTC-held masts go to Stop: that is the correct idle state. <strong>Machine off:</strong> there is no stop command — quit and relaunch PanelPro without starting the runtime; masts boot Unheld and the railroad runs as plain ABS. The <strong>Reload CTC</strong> button on the panel re-reads the machine configuration in place after edits. Panel file: <code>jmri/layouts/hart/ctc/GUIObjects.xml</code>; machine config lives in <code>tables.xml</code> (<code>&lt;ctcdata&gt;</code>).</p>
+<p><strong>Machine on:</strong> PanelPro <strong>Tools ▸ CTC ▸ Run CTC Logic</strong>. It does not auto-start — until you run it, every lever and lamp shows &quot;?&quot; (sensors UNKNOWN). Once started, most switch levers initialize <strong>N</strong>. Switches <strong>1, 33, 37, and 39</strong> rest Thrown in the field — run <a href="https://github.com/lnevo/hart/blob/main/jmri/layouts/hart/scripts/ctc_default_reverse_levers.py"><code>ctc_default_reverse_levers.py</code></a> after CTC starts (or add it as a PanelPro startup action after Run CTC Logic) so those selectors sit at <strong>R</strong>, and lock toggles for the <strong>yard ladders</strong> (Switches <strong>9, 11, 13, 15, 17, 19, 21, 25, 27, 29, 31</strong>) sit at <strong>Local</strong>. Reload CTC re-applies the same defaults. The CTC-held masts go to Stop: that is the correct idle state. <strong>Machine off:</strong> there is no stop command — quit and relaunch PanelPro without starting the runtime; masts boot Unheld and the railroad runs as plain ABS. The <strong>Reload CTC</strong> button on the panel re-reads the machine configuration in place after edits. Panel file: <a href="https://github.com/lnevo/hart/blob/main/jmri/layouts/hart/ctc/GUIObjects.xml"><code>jmri/layouts/hart/ctc/GUIObjects.xml</code></a>; machine config lives in <a href="https://github.com/lnevo/hart/blob/main/jmri/layouts/hart/output/tables.xml"><code>tables.xml</code></a> (<code>&lt;ctcdata&gt;</code>).</p>
 
 <hr>
 
 <h2>Related — CATS Digicon panel</h2>
 
-<p>This guide covers the <strong>USS lever machine</strong> only. For the <strong>CATS mouse panel</strong> (quick routes, N/X, stacking, fleeting, call-on), see <code>docs/ctc/DISPATCHER_GUIDE_CTC.md</code> (DS-CATS-DISP). Do not run both panels as CTC authority at once.</p>
+<p>This guide covers the <strong>USS lever machine</strong> only. For the <strong>CATS mouse panel</strong> (quick routes, N/X, stacking, fleeting, call-on), see <a href="https://github.com/lnevo/hart/blob/main/docs/ctc/DISPATCHER_GUIDE_CTC.md"><code>docs/ctc/DISPATCHER_GUIDE_CTC.md</code></a> (DS-CATS-DISP). Do not run both panels as CTC authority at once.</p>
     </article>
   </main>
   <footer class="site-footer" data-ops-footer></footer>

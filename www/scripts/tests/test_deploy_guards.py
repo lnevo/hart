@@ -91,5 +91,28 @@ class ManifestTest(unittest.TestCase):
         self.assertEqual(check.drops({"html_pages": 80}, old), ["html_pages: 100 → 80"])
 
 
+class SkippedLinksTest(unittest.TestCase):
+    """A built page that links a file the build leaves out is named, whatever the folder depth."""
+
+    def test_link_to_skipped_file_or_folder_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "ai").mkdir()
+            (root / "ai" / "construction.html").write_text(
+                '<a href="../helix/build-status.html">s</a> <a href="/scripts/x.py">x</a>'
+                ' <a href="../helix/index.html">ok</a> <a href="https://example.org/helix/build-status.html">ext</a>',
+                encoding="utf-8",
+            )
+            bad = check.skipped_links(root, {Path("helix/build-status.html")}, {Path("scripts")})
+        self.assertEqual(bad, [
+            "ai/construction.html: ../helix/build-status.html (skipped by the build)",
+            "ai/construction.html: /scripts/x.py (skipped by the build)",
+        ])
+
+    def test_build_skip_lists_are_read(self):
+        self.assertIn(Path("helix/build-status.html"), build.SKIP_FILES)
+        self.assertIn(Path("scripts"), build.SKIP_DIRS)
+
+
 if __name__ == "__main__":
     unittest.main()

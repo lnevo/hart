@@ -172,6 +172,18 @@ class NarrowedDeclarations(unittest.TestCase):
                 self.assertIn(why, v.why)
 
 
+    def test_with_the_real_declarations_the_plan_readers_send_their_inputs_to_the_remote(self) -> None:
+        # the AnyRail plan is on the remote box and the Mac, never in CI: make ready runs make remote for these
+        for path, job in (("tools/anyrail/levels_svg.py", "levels-svg"),
+                          ("tools/schematic/plan_lengths.py", "panels-plan-lengths")):
+            with self.subTest(path):
+                line = changed_kind.private_line([path], load=lambda _root: self.d)
+                self.assertEqual(f"remote: {path} reads ext:anyrail-plan (check {job})", line)
+        line = changed_kind.private_line(["tools/agent/ready.py", "wiki/home.md"], load=lambda _root: self.d)
+        self.assertTrue(line.startswith("github: "), line)
+        self.assertIn("ext:anyrail-plan", line)
+
+
 class MasterLists(unittest.TestCase):
     """check_stamps.SIDECAR_MASTERS and ENTITY_MASTERS are the masters outside the unit jobs' code that the data
     checks' sources name: a new master there must join the declaration, or an edit to it would be called light."""

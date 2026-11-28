@@ -2,15 +2,20 @@
 """Say whether a change needs the full checks, the light checks (tools/ci/light_checks.sh) or only the quick docs
 checks (tools/ci/docs_checks.sh).
 
-    git diff --name-only A B | changed_kind.py [--compare A] [--why]
-                                      print "docs", "light" or "full" for the paths on stdin (CI); --why prints the
-                                      verdict with its reason; --compare is the ref the changed files are compared
-                                      with (the pipeline map's light case needs it)
+    git diff -z --name-only A B | changed_kind.py -z [--compare A] [--why]
+                                      print "docs", "light" or "full" for the paths on stdin (CI; -z: NUL-separated,
+                                      as git prints a name outside printable ASCII unquoted only with -z); --why
+                                      prints the verdict with its reason; --compare is the ref the changed files are
+                                      compared with (the pipeline map's light case needs it)
     changed_kind.py --git [--base origin/main]
                                       the same for this checkout's changes (tools/check.sh, make pr-kind): print
                                       "docs: <why>", "light: <why>", "full: <why>" or "unknown: <why>"
     changed_kind.py --jobs (--git [--base B] | --compare A)
                                       the check.sh jobs a light change runs, one per line; exit 1 when it is not light
+    changed_kind.py --private (--git [--base B] | [-z] < paths)
+                                      make ready's gate for a full change: "remote: <why>" when a changed path feeds
+                                      a check step whose script reads a private box of the map (PRIVATE_PREFIX), else
+                                      "github: <why>"
 
 "docs" only when every path is prose that the quick docs checks cover: Markdown outside the agent rules (CLAUDE.md
 and the folders' AGENTS.md; the root AGENTS.md is docs, ROOT_AGENTS) and the generated map folder, and under .claude/
@@ -33,6 +38,7 @@ changed (no merge base: a shallow clone, no origin/main); the caller runs the fu
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import sys
 from collections.abc import Callable
@@ -76,6 +82,15 @@ MAP_READER = "pipeline-map"
 # (build_pipeline_map.py --check rebuilds the lane from the files) and the agent-docs check.
 AGENT_LANE = "agent-docs"
 MapChange = Literal["docs", "light"]
+# The private-reads rule (private_line, make ready's gate): a box of the map with no repo path whose id starts
+# "ext:" holds data from outside the repo (the owner's AnyRail plan, a host's roster), unless its kind is "output":
+# a cache or built tree the repo's own tools write, which a clean clone builds or does without.
+PRIVATE_PREFIX = "ext:"
+OUTPUT_KINDS = ("output",)
+# The files that say what every check step runs: a change to one can change what a private-reading step does.
+STEP_FILES = ("tools/pipeline/checks.toml", "tools/pipeline/panels.toml", "tools/check.sh")
+# Where a step script's imports resolve, besides the importing file's own folder (the scripts' sys.path entries).
+IMPORT_ROOTS = ("tools/hartlib/src", "tools/schematic", "tools", ".")
 
 Kind = Literal["docs", "light", "full"]
 
@@ -93,9 +108,10 @@ class Verdict:
 
 
 class JobDecl(NamedTuple):
-    """A check.sh manifest job as the light rule reads it."""
+    """A check.sh manifest job as the light rule and the private-reads rule read it."""
     patterns: tuple[str, ...]       # its declared inputs, quiet inputs, outputs and programs
     on_light_path: bool             # in the static group or on the docs-only path
+    script: str = ""                # the file its command runs (a box of the map)
 
 
 class MapNode(TypedDict, total=False):
@@ -159,7 +175,7 @@ def load_declarations(root: Path = ROOT) -> Declarations:
         step = by_name.get(job) or (panels if job.startswith(pm.PANEL_JOB_PREFIX) else None)
         if step is None:
             raise ValueError(f"check.sh job {job!r} has no step in {pm.MANIFEST.as_posix()}")
-        jobs[job] = JobDecl(tuple(decl.patterns), step.group == "static" or step.docs_only)
+        jobs[job] = JobDecl(tuple(decl.patterns), step.group == "static" or step.docs_only, decl.script)
     static = tuple(s.name for s in pm.select(steps, "check", group="static") if not pm.runs_panels(s.cmd))
     units: dict[str, tuple[str, ...]] = {}
     for name in (*(k for k in check_stamps.BY_KIND if k.startswith("unit-")), *check_stamps.EXTRA,
@@ -305,6 +321,135 @@ def verdict(paths: list[str], root: Path = ROOT, compare: str | None = None,
                    tuple(dict.fromkeys((*d.static, *extra))))
 
 
+class PrivateRead(NamedTuple):
+    """A changed path that feeds a check step whose script reads a private box of the map."""
+    path: str
+    job: str            # the check.sh job of that step
+    script: str
+    source: str         # the private box, "ext:anyrail-plan" for one
+
+
+def private_sources(d: Declarations) -> dict[str, tuple[str, ...]]:
+    """Script path -> the private boxes linked into it. A box is private when its id starts PRIVATE_PREFIX, it has
+    no repo path and its kind is not in OUTPUT_KINDS (the caches and built trees the repo's own tools write)."""
+    private = {n["id"] for n in d.nodes if n.get("id", "").startswith(PRIVATE_PREFIX) and not n.get("path")
+               and n.get("kind") not in OUTPUT_KINDS}
+    path_of = {n["id"]: n["path"] for n in d.nodes if n.get("path")}
+    found: dict[str, set[str]] = {}
+    for e in d.edges:
+        target = path_of.get(e.get("to", ""))
+        if e.get("from") in private and target and e.get("side") != "pointer":
+            found.setdefault(target, set()).add(e["from"])
+    return {script: tuple(sorted(boxes)) for script, boxes in found.items()}
+
+
+def _under(path: str, box: str) -> bool:
+    return path == box or path.startswith(box.rstrip("/") + "/")
+
+
+def _imported_names(tree: ast.AST) -> list[tuple[int, str]]:
+    """(relative level, dotted name) of each import in a module: import a.b, from a import b (as a.b and a),
+    from . import b, and importlib.import_module("a") with a constant name."""
+    names: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names += [(0, a.name) for a in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = node.module or ""
+            names.append((node.level, base))
+            names += [(node.level, f"{base}.{a.name}" if base else a.name) for a in node.names]
+        elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+              and node.func.attr == "import_module" and node.args and isinstance(node.args[0], ast.Constant)
+              and isinstance(node.args[0].value, str)):
+            names.append((0, node.args[0].value))
+    return [(level, name) for level, name in names if name or level]
+
+
+def _module_file(folder: Path, dotted: str) -> Path | None:
+    stem = folder.joinpath(*dotted.split(".")) if dotted else folder
+    for found in (stem.with_name(stem.name + ".py"), stem / "__init__.py"):
+        if found.is_file():
+            return found
+    return None
+
+
+def import_closure(script: str, root: Path = ROOT) -> set[str]:
+    """The repo files `script` imports, directly or through the files it imports, by parsing each with ast. A name is
+    looked up in the importing file's folder, then IMPORT_ROOTS; one found in none (the standard library, a package
+    from pip) is left out."""
+    seen: set[str] = set()
+    todo = [root / script]
+    while todo:
+        path = todo.pop()
+        try:
+            rel = path.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            continue
+        if rel in seen:
+            continue
+        seen.add(rel)
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, SyntaxError, ValueError):
+            continue
+        for level, name in _imported_names(tree):
+            if level:
+                folder = path.parent
+                for _ in range(level - 1):
+                    folder = folder.parent
+                folders = [folder]
+            else:
+                folders = [path.parent, *(root / r for r in IMPORT_ROOTS)]
+            hit = next((f for f in (_module_file(d, name) for d in folders) if f is not None), None)
+            if hit is not None:
+                todo.append(hit)
+    seen.discard(script)
+    return seen
+
+
+def private_reads(paths: list[str], d: Declarations, root: Path = ROOT) -> list[PrivateRead]:
+    """The changed paths that feed a check step whose script reads a private box: the script itself, a file it
+    imports (import_closure), a path its step declares (manifest.declarations: inputs, quiet_inputs, outputs,
+    programs), a repo box the map links into the script (a submodule's pin included) or one of STEP_FILES."""
+    sources = private_sources(d)
+    path_of = {n["id"]: n["path"] for n in d.nodes if n.get("path")}
+    found: list[PrivateRead] = []
+    for job, decl in d.jobs.items():
+        boxes = sources.get(decl.script)
+        if not boxes:
+            continue
+        feeders = [path_of[e["from"]] for e in d.edges
+                   if path_of.get(e.get("to", "")) == decl.script and e.get("from") in path_of]
+        imports = import_closure(decl.script, root)
+        for raw in paths:
+            p = plain(raw) or raw.strip()
+            if p and (p == decl.script or p in imports or p in STEP_FILES
+                      or any(d.covers(pat, p) for pat in decl.patterns)
+                      or any(_under(p, f) or f.startswith(p.rstrip("/") + "/") for f in feeders)):
+                found.append(PrivateRead(p, job, decl.script, boxes[0]))
+    return found
+
+
+def private_line(paths: list[str], root: Path = ROOT,
+                 load: Callable[[Path], Declarations] = load_declarations) -> str:
+    """make ready's gate for a full change: "remote: <why>" when a changed path feeds a check step that reads a
+    private file (only the remote box has it), else "github: <why>" (GitHub's check covers every step)."""
+    paths = [p for p in paths if p.strip()]
+    try:
+        d = load(root)
+    except Exception as err:   # noqa: BLE001 - declarations that cannot be read send the branch to the remote box
+        return f"remote: the declarations cannot be read ({type(err).__name__}: {err})"
+    hits = private_reads(paths, d, root)
+    if hits:
+        h = hits[0]
+        what = h.path if h.path == h.script else f"{h.path} feeds {h.script}, which"
+        more = f"; {len(hits) - 1} more" if len(hits) > 1 else ""
+        return f"remote: {what} reads {h.source} (check {h.job}{more})"
+    sources = private_sources(d)
+    boxes = sorted({b for decl in d.jobs.values() for b in sources.get(decl.script, ())})
+    return f"github: no changed path feeds a check step that reads private files ({', '.join(boxes) or 'none'})"
+
+
 def merge_base(root: Path, base: str) -> str | None:
     try:
         found = git_lines(root, "merge-base", base, "HEAD")
@@ -322,6 +467,15 @@ def checkout(root: Path, base: str) -> Verdict | str:
     return verdict(paths, root, merge_base(root, base))
 
 
+def checkout_private(root: Path, base: str) -> str:
+    """private_line for this checkout's changes; "remote: ..." when git cannot say what changed."""
+    try:
+        paths = changed_files(root, base)
+    except ChangedFilesError as e:
+        return f"remote: git cannot say what changed ({e})"
+    return private_line(paths, root)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--git", action="store_true", help="read this checkout's changes from git, not stdin")
@@ -329,19 +483,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--compare", help="without --git: the ref holding the base copies of the changed files")
     parser.add_argument("--why", action="store_true", help="without --git: print the verdict with its reason")
     parser.add_argument("--jobs", action="store_true", help="print the check.sh jobs of a light change")
+    parser.add_argument("--private", action="store_true",
+                        help='print "remote: <why>" when a changed path feeds a check step that reads a private '
+                             'file, else "github: <why>" (make ready\'s gate)')
+    parser.add_argument("-z", dest="nul", action="store_true",
+                        help="without --git: the paths on stdin are NUL-separated (git diff -z --name-only)")
     args = parser.parse_args(argv)
     if args.base is not None and not args.git:
         parser.error("--base goes with --git")
-    if args.git and (args.compare is not None or args.why):
-        parser.error("--compare and --why go without --git")
+    if args.git and (args.compare is not None or args.why or args.nul):
+        parser.error("--compare, --why and -z go without --git")
+    if args.private and args.jobs:
+        parser.error("--private and --jobs are two questions; ask one")
     for ref in (args.base, args.compare):
         if ref is not None and (not ref.strip() or ref.startswith("-")):
             parser.error(f"--base and --compare must name a branch or commit, not {ref!r}")
+    base = args.base if args.base is not None else "origin/main"
+    stdin_paths: list[str] = []
+    if not args.git:
+        text = sys.stdin.read()
+        stdin_paths = text.split("\0") if args.nul else text.splitlines()
+    if args.private:
+        print(checkout_private(ROOT, base) if args.git else private_line(stdin_paths))
+        return 0
     v: Verdict | str
     if args.git:
-        v = checkout(ROOT, args.base if args.base is not None else "origin/main")
+        v = checkout(ROOT, base)
     else:
-        v = verdict(sys.stdin.read().splitlines(), compare=args.compare)
+        v = verdict(stdin_paths, compare=args.compare)
     line = v if isinstance(v, str) else v.line
     if args.jobs:
         if isinstance(v, str) or v.kind != "light":

@@ -6034,7 +6034,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "Session-start hook: moves done lanes' .claude/progress files (2+ days old, topic unused) to archive/.",
+   "desc": "Session-start hook: moves done lanes' .claude/progress files (1+ day old, topic unused) to archive/.",
    "path": "tools/agent/progress_prune.py"
   },
   {
@@ -6045,6 +6045,15 @@
    "domain": "agents",
    "desc": "make wt: makes an agent worktree per task, sets the map merge driver, and sweeps merged ones; no pipeline file.",
    "path": "tools/agent/worktrees.py"
+  },
+  {
+   "id": "tools/agent/worktree_rules.py",
+   "label": "worktree_rules.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "The sweep's GitHub reads (merged and open PRs) and its rule for a clean, idle worktree with nothing beyond origin/main.",
+   "path": "tools/agent/worktree_rules.py"
   },
   {
    "id": "tools/ops/orient.py",
@@ -6520,8 +6529,35 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "make land PR=N: the coordinator's merge of one PR (check on the head, merge, main's push run, overlap and ships lines); never deploys.",
+   "desc": "make land PR=N: the coordinator queues one PR and a background job merges it (check on the head, its turn in the merge queue, merge, main's push run, overlap and ships lines); never deploys.",
    "path": "tools/agent/land.py"
+  },
+  {
+   "id": "tools/agent/land_queue.py",
+   "label": "land_queue.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make land's merge queue: numbered tickets in /tmp/hart-land-queue, first come first merged, dead tickets skipped; make land-status lists it with each land log's last lines.",
+   "path": "tools/agent/land_queue.py"
+  },
+  {
+   "id": "docs/report-cards/scores.json",
+   "label": "report card scores",
+   "kind": "structured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Every report card score by category, the unscored cards and the wave dashboards the master dashboard shows; hand-kept by the report-cards skill.",
+   "path": "docs/report-cards/scores.json"
+  },
+  {
+   "id": "tools/agent/report_cards_page.py",
+   "label": "report_cards_page.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Report-cards skill: validates the scores master, prints slippage, and builds the master dashboard's page and JSON from it and copies of the dashboard stores; output goes to a scratch folder and is published, not committed.",
+   "path": "tools/agent/report_cards_page.py"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -6711,6 +6747,16 @@
    "domain": "agents",
    "desc": "Use when PanelPro must be quit or started on the Mac (after a Store is pulled, or before asking the owner to approve a panel) or on the Pi (around a deploy or make ops-pull), or when asked to run pi_quit_panelpro.sh or pi_start_panelpro.sh.",
    "path": ".claude/skills/panelpro/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/report-cards/SKILL.md",
+   "label": "skill: report-cards",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when a report card is scored or rescored (project, code, data, website UX, agent experience or a new category), when the owner asks for a report card update, a slippage check or how a score has moved, or when a wave dashboard ends and the master dashboard must take it in.",
+   "path": ".claude/skills/report-cards/SKILL.md",
    "gen": "agent-docs"
   },
   {
@@ -13960,6 +14006,11 @@
    "label": "imports"
   },
   {
+   "from": "tools/agent/worktrees.py",
+   "to": "tools/agent/worktree_rules.py",
+   "label": "imports"
+  },
+  {
    "from": "host:mac",
    "to": "tools/agent/worktrees.py",
    "label": "make wt"
@@ -15299,6 +15350,16 @@
    "label": "make land"
   },
   {
+   "from": "tools/agent/land_queue.py",
+   "to": "tools/agent/land.py",
+   "label": "merge queue"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/land_queue.py",
+   "label": "make land-status"
+  },
+  {
    "from": "tools/hosts/deploy/ci_pass.py",
    "to": "tools/agent/land.py",
    "label": "main red check"
@@ -15312,6 +15373,15 @@
    "from": "ext:github-ci",
    "to": "tools/agent/land.py",
    "label": "check runs and main's push run"
+  },
+  {
+   "from": "docs/report-cards/scores.json",
+   "to": "tools/agent/report_cards_page.py"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/report_cards_page.py",
+   "label": "report-cards skill"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
@@ -15441,6 +15511,13 @@
   },
   {
    "from": ".claude/skills/dashboard/SKILL.md",
+   "to": ".claude/skills/report-cards/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/dashboard/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
@@ -15497,6 +15574,13 @@
   },
   {
    "from": ".claude/skills/panelpro/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": ".claude/skills/report-cards/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",

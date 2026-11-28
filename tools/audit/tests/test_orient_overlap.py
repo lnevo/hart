@@ -192,7 +192,9 @@ class LinesTest(unittest.TestCase):
 class OrientWiringTest(Repo):
     def setUp(self):
         super().setUp()
+        # the fixture's worktrees sit beside main, not under main/.claude/worktrees/: count that folder as home
         for patch in (mock.patch.object(OR, "ROOT", self.main), mock.patch.object(OR, "ROOT_MAIN", self.main),
+                      mock.patch.object(OR, "WORKTREES", Path("..")),
                       mock.patch.object(OR, "load_worktrees_module", return_value=WT)):
             patch.start()
             self.addCleanup(patch.stop)
@@ -218,6 +220,56 @@ class OrientWiringTest(Repo):
         self.assertIn("Overlap (files changed in two or more places; local worktrees, 1 open PRs):", text)
         self.assertIn(f"  new.py: PR #9 (agent/remote), agent/e, {self.cl}", text)
         self.assertIn("  map.json: agent/a, agent/b", text)
+
+
+class HomeAndLanesTest(Repo):
+    def setUp(self):
+        super().setUp()
+        for patch in (mock.patch.object(OR, "ROOT", self.main), mock.patch.object(OR, "ROOT_MAIN", self.main),
+                      mock.patch.object(OR, "load_worktrees_module", return_value=WT)):
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def test_only_clean_idle_worktrees_outside_home_are_left_out(self):
+        clean = self.add("clean")  # outside home, no commit, no change
+        trees = {t.path: t for t in OR.read_trees(WT)}
+        self.assertEqual([OR.at_home(trees[str(p)]) for p in (self.a, self.b, self.c, clean)],
+                         [True, True, True, False])  # a: commits ahead; b: staged; c: untracked
+        home = self.main / ".claude/worktrees/h"
+        sh("git", "worktree", "add", "-q", "-b", "agent/h", str(home), "origin/main", cwd=self.main)
+        trees = {t.path: t for t in OR.read_trees(WT)}
+        self.assertTrue(OR.at_home(trees[str(home)]))
+        trees[str(clean)].lock = "session running"
+        self.assertTrue(OR.at_home(trees[str(clean)]))
+        out = OR.report(short=True, here="/")
+        self.assertTrue(any(line.startswith("Overlap: 3 files") for line in out), out)
+
+    def test_one_lane_prefixs_branches_are_grouped(self):
+        home = self.main / ".claude/worktrees"
+        for name in ("ux-nav", "ux-cards", "ax-gate"):
+            self.add_at(home / name, f"agent/claude/{name}")
+            (home / name / "shared.py").write_text(name)
+        (home / "ux-nav/ux_only.py").write_text("1")
+        (home / "ux-cards/ux_only.py").write_text("2")
+        out = OR.report(short=True, here="/")
+        line = next(l for l in out if l.startswith("Overlap:"))  # the fixture's own worktrees clash too
+        self.assertIn("shared.py: agent/claude/ax-gate, agent/claude/ux-cards, agent/claude/ux-nav;", line)
+        self.assertTrue(line.endswith("; within one lane prefix: agent/claude/ux-*: 1 file(s) (ux_only.py) in "
+                                      "agent/claude/ux-cards, agent/claude/ux-nav; make orient"), line)
+        rep = OV.classify(self.main, {"q.py": ["agent/claude/ux-a (PR #3)", "PR #4 (agent/claude/ux-b)"]}, [])
+        self.assertEqual((rep.clashes, list(rep.lanes)), ([], ["agent/claude/ux-"]))
+        self.assertEqual(OV.short_line(rep), ["Overlap: none between lane prefixes; within one: agent/claude/ux-*: "
+                                              "1 file(s) (q.py) in PR #4 (agent/claude/ux-b), agent/claude/ux-a "
+                                              "(PR #3); make orient"])
+        self.assertIn("Lane overlaps (1; only branches of one lane prefix share them):", OV.full_lines(rep, "0 PRs"))
+
+    def add_at(self, path: Path, branch: str) -> None:
+        sh("git", "worktree", "add", "-q", "-b", branch, str(path), "origin/main", cwd=self.main)
+
+    def test_lane_prefixes(self):
+        self.assertEqual([OV.lane(x) for x in ("agent/claude/ux-a", "agent/a", "detached wt/c", "fix-x",
+                                               "PR #2 (agent/claude/data-masters-L3)")],
+                         ["agent/claude/ux-", None, None, "fix-", "agent/claude/data-"])
 
 
 if __name__ == "__main__":

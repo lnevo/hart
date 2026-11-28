@@ -106,12 +106,23 @@ Source of record (ADR-010) for the published crew and dispatcher Word and PowerP
 - [efficiency-plan.md](pipeline-map/efficiency-plan.md): Plan to cut panel rebuilds and full workflow runs, based on logged step timings, reviewed by the owner on 2026-11-21
 - Other files: [pipeline_map.json](pipeline-map/pipeline_map.json), [timings.json](pipeline-map/timings.json)
 
+## report-cards
+
+Every report card score, kept for the master dashboard and the slippage check. `scores.json` holds one entry per category (project, code, data, website UX...
+
+- [README.md](report-cards/README.md): Every report card score, kept for the master dashboard and the slippage check. `scores.json` holds one entry per category (project, code, data, website UX...
+- Other files: [scores.json](report-cards/scores.json)
+
 ## website
 
 Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
 
 - [README.md](website/README.md): Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
+- [exam-study.md](website/exam-study.md): Rules for the C&E study deck (`www/exam/index.html`), the Extra East game (`www/exam/run.html`) and the `/play` runs
 - [promo-videos.md](website/promo-videos.md): Describes the short promo videos for the website on TikTok and YouTube, where the files are kept and how they were made
+- [real-vs-invented.md](website/real-vs-invented.md): Owner, 2026-11-18: HART and its P&CV Division are a proto-freelanced successor to the real P&OV (1899 to 31 Jan 1994); the premise is fictional
+- [share-thumbnails.md](website/share-thumbnails.md): The mechanics (`share-cards.json`, `share_cards.py`, `make_share_cards.py`, hub cards) are in the Share thumbnails item of `www/README.md`
+- [writing-voice.md](website/writing-voice.md): The rules and the table of rejected examples are in the Writing section of `www/README.md`; the `voice-reviewer` agent applies them
 - Plus 1 image, css or script files
 
 ## wiring

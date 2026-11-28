@@ -14,3 +14,7 @@ Reference notes for JMRI work on the layout: block lengths, the MQTT startup rac
 | `speedmatching/README.md` | The STRR club scripts and procedure the work started from; not run on the layout as they are | Reference |
 
 The living status of speed matching is in `wiki/projects/speedmatching.md`.
+
+## make panelpro-test and traininfo
+
+`make panelpro-test` loads the repo's `tables.xml` in real PanelPro, but the smoke script reads `preference:dispatcher/traininfo/`, which is `dispatcher/traininfo` under `JMRI_UserFiles` on the Mac. After a change that renames blocks, transits or traininfo files, rsync the repo's traininfo into that folder first (the deploy's Mac step does the same). Otherwise the run fails with hundreds of "references missing transit" and "lacks ordered route" lines that are not real; read those two as a stale-profile signal first (seen on the 2026-11-07 track-name swap, ADR-017: the first run failed, the second passed with the same bundle). The expected counts are in `jmri/layouts/hart/scripts/panel_counts.json`.

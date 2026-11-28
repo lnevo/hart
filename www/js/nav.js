@@ -79,19 +79,26 @@
   function headerHtml(site, pageId) {
     var b = base();
     var section = sectionFor(site, pageId);
-    var links = (site.nav || [])
-      .map(function (item) {
-        var cur = "";
-        if (item.id === pageId) cur = ' aria-current="page"';
-        else if (section && item.id === section.id) cur = ' aria-current="true"';
-        var label = esc(item.label);
-        return '<a href="' + b + item.href + '"' + cur + ">" + label + "</a>";
-      })
-      .join("");
+    function link(item) {
+      var cur = "";
+      if (item.id === pageId) cur = ' aria-current="page"';
+      else if (section && item.id === section.id) cur = ' aria-current="true"';
+      var label = esc(item.label);
+      return '<a href="' + b + item.href + '"' + cur + ">" + label + "</a>";
+    }
+    var links = (site.nav || []).map(link).join("");
     // The engineering desk link rides at the end of the menu (empty on the public site).
     var eng = site.engDesk
       ? '<a class="eng-link" href="' + b + site.engDesk + '">Engineering desk</a>'
       : "";
+    // At 980 px and wider (css/ops.css) the section links show in the header row instead of the
+    // menu button; Home is left out there because the brand links home (owner, 2026-11-28).
+    var inline = (site.nav || [])
+      .filter(function (item) {
+        return item.id !== "home";
+      })
+      .map(link)
+      .join("");
     return (
       '<a class="skip-link" href="#main">Skip to content</a>' +
       '<div class="site-header-inner">' +
@@ -100,6 +107,7 @@
       'index.html">HART<span>Railroad · Neville Island</span></a>' +
       searchHtml() +
       '<nav class="nav" aria-label="Primary">' +
+      (inline ? '<div class="nav-inline">' + inline + eng + "</div>" : "") +
       '<button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-menu" aria-label="Menu">' +
         '<svg class="nav-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">' +
         '<path class="nav-icon-bars" d="M4 7h16M4 12h16M4 17h16"/>' +
@@ -112,8 +120,9 @@
     );
   }
 
-  // One drop-down menu at every width. Closes on Escape (focus back to the button), on a click
-  // outside, on choosing a link, and when focus Tabs out of the menu.
+  // The drop-down menu below 980 px (the inline links take over from there). Closes on Escape
+  // (focus back to the button), on a click outside, on choosing a link, when focus Tabs out of the
+  // menu, and when the window widens past the breakpoint.
   function mountMenu(header) {
     var btn = header.querySelector(".nav-toggle");
     var panel = header.querySelector(".nav-panel");
@@ -140,6 +149,12 @@
     btn.parentNode.addEventListener("focusout", function (e) {
       if (!panel.hidden && e.relatedTarget && !btn.parentNode.contains(e.relatedTarget)) setOpen(false);
     });
+    var wide = window.matchMedia ? window.matchMedia("(min-width: 980px)") : null;
+    if (wide && wide.addEventListener) {
+      wide.addEventListener("change", function (e) {
+        if (e.matches) setOpen(false);
+      });
+    }
   }
 
   // Search drop-down. Closes like the menu: Escape (focus back to the button) and a click outside.

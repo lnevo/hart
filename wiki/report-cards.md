@@ -1,6 +1,8 @@
 # Report cards
 
-Four report cards in one place: the project as a whole, the code, the data, and the website's UX. Each is a reviewer's judgment resting on the measurements beside it. Recommendations on these cards are kept for the next review; they are not owed work and are not listed in `wiki/status/`.
+Five report cards in one place: the project as a whole, the code, the data, the website's UX and the agent experience. Each is a reviewer's judgment resting on the measurements beside it. Recommendations on these cards are kept for the next review; they are not owed work and are not listed in `wiki/status/`.
+
+The owner monitors the project through these cards and asks for updates when things change or at intervals, to catch slippage (owner, 2026-11-28). Every score is also kept in [`docs/report-cards/scores.json`](../docs/report-cards/scores.json), and the master dashboard (its link is `page` there) shows each category's latest score, its change and its history beside every wave dashboard. The [`report-cards`](../.claude/skills/report-cards/SKILL.md) skill says how to rescore, check for slippage and refresh the page.
 
 ## Project overall
 
@@ -30,7 +32,7 @@ How to measure again:
 
 ## Code quality
 
-Line-weighted average over the graded source files, parked code left out (owner, 2026-11-27). Detail per wave, the owner's rulings and the files still at C+ are on [code-quality-wave](projects/code-quality-wave.md); the card with every file is https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE ("After wave 6 (final)").
+Line-weighted average over the graded source files, parked code left out. Owner, 2026-11-27: "leave parked code out of the report card. It shouldn't count against the grade: not in the line-weighted average, not in the C/D counts, not in 'files read'. Show parked files apart (listed, not graded) so they don't vanish from view." Parked means everything under `jmri/layouts/hart/parked/` plus scripts that serve only the parked features (`hartlib.parked.PARKED`: nx, dispatcher, uss), such as `gen_ctc_track_plan.py`, `uss_switch_only_columns.py`, `nx_contract.py`, `reconcile_dispatcher_stations.py` and `ctc_logic_smoke.py`, each confirmed from its callers. A mixed file (`check_bean_comments.py`: live `main()` plus parked USS rules) is graded. Every card brief excludes parked files from the stats and adds a "Parked, not graded" list. Detail per wave, the owner's rulings and the files still at C+ are on [code-quality-wave](projects/code-quality-wave.md); the card with every file is https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE ("After wave 6 (final)").
 
 | | Start (11-26) | Wave 1 | Wave 2 | Wave 3 | Wave 4 | Wave 5 | Wave 6 (11-27) |
 |---|---|---|---|---|---|---|---|
@@ -39,7 +41,7 @@ Line-weighted average over the graded source files, parked code left out (owner,
 | A-range files | 8 | 18 | 133 | 157 | 167 | 189 | 200 |
 | Files read | 70 | 110 | 469 | 488 | 493 | 515 | 526 |
 
-The final card covers 534 source files and 123,997 lines; the margin over B+ is 117 grade-point-lines. A cleanup must not lower the card: check fix PRs against the grade habits in `AGENTS.md` before merge.
+The final card covers 534 source files and 123,997 lines; the margin over B+ is 117 grade-point-lines. A cleanup must not lower the card: check fix PRs against the grade habits in `AGENTS.md` before merge (copied helpers, dates in comments, `from None`, `sys.exit` in library code), or have the files graded before merge. On 2026-11-27 the loose-ends round took the average from 3.301 to 3.298, and the fixes after it (#1361 pipefail, #1362 deploy gate) ended at 3.297, because each added copied shell blocks, dated text and long history comments and the regrade ran only after the merge. The owner stopped it: "we're backtracking now." Do not open a fix-the-fix round just to recover grade points without asking the owner first.
 
 ## Data
 
@@ -104,3 +106,33 @@ How to measure again:
 - Pages without a description: `git grep -L 'name="description"' -- 'www/*.html'`, leaving out `scripts/` and `docs/html/`.
 - `<noscript>` count: `git grep -l '<noscript' -- 'www/*.html'`.
 - Overflow at 375 px with headless Chrome against local `www/`; live weight and status with GET and HEAD only.
+
+## Agent experience
+
+How sessions and subagents work in the repo. 8.5 on 2026-11-27 (a review before the [cleanup](projects/ax-cleanup.md)); 7.5 on 2026-11-28 at `b09d1de4`, after #1377, from a `repo-auditor` scoring six areas.
+
+| Area | 11-28 | Measured on 2026-11-28 |
+|---|---|---|
+| Instructions | 8.5 | Root `AGENTS.md` 64 lines and 916 words; five folder `AGENTS.md` files add 585 words; no `CLAUDE.md`. |
+| Skills and agents | 8 | 11 skills of 201 to 1,214 words, none over the 1,500 cap; `handoff` and `coordinate` pass 1,500 with their reference file loaded. 10 agent files, 320 to 747 words. |
+| Memory | 6.5 | 38 files and 10,857 words (49 files on 11-27). The remote-run, timing and coordinator files repeat `AGENTS.md` and the skills; two files are over 1,000 words. |
+| Session start | 8.5 | The start hook prints nothing in 0.07 s. `make orient` is about 40 lines, 25 of them overlap lines while many lanes run. |
+| Shipping and merging | 8 | `make ready` and `make land`, with tests; #1377 lets a draft PR without private reads pass on GitHub's check and adds a merge lock. |
+| Housekeeping | 5.5 | 43 worktrees, 29 of them `agent-a*`; nothing prunes those. 39 progress files, 16 older than a day; the prune rule keeps a file while its topic has a worktree. |
+
+The 11-27 costs: memory 49 to 38 files, overlap left (partly); one line per worktree at session start to none (fixed); two skills over 2,000 words to none over 1,500 (fixed); 37 stale progress files to 39 live ones (not fixed). The 11-28 look was wider than the 11-27 one (worktrees, memory overlap), so part of the drop is the wider look, not a regression.
+
+Held back on 2026-11-28:
+- The lock and the GitHub gate of #1377 were read, not run. Most memory files were not opened for staleness.
+
+If the card is revisited, in this order:
+1. Prune `agent-a*` worktrees whose branch merged or never got a commit, and detached worktrees under temp folders.
+2. Drop memory files that repeat `AGENTS.md` or a skill; split the two files over 1,000 words.
+3. Shorter overlap in `make orient` (a count per folder instead of one line per file).
+4. Archive progress files of a merged topic even while a worktree of that name remains.
+
+How to measure again:
+- Brief one `repo-auditor` with the six areas above and the last measurements, reading `origin/main`.
+- `git worktree list | wc -l` and `| grep -c agent-a`; `ls .claude/progress | wc -l` and `find .claude/progress -maxdepth 1 -type f -mtime +1 | wc -l`.
+- `wc -w` on each `SKILL.md`, `AGENTS.md` and memory file.
+

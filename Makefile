@@ -13,9 +13,18 @@ wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
 
 .PHONY: land
-land:  ## The coordinator merges one PR: make land PR=N [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
+land:  ## The coordinator queues one PR to merge and returns (0 = queued; make land-wait for the result): make land PR=N [WATCH=1] [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
 	@test -n "$(PR)" || { echo 'make land: set PR=N' >&2; exit 2; }
-	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
+	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(WATCH)),--watch) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
+
+.PHONY: land-status
+land-status:  ## The merge queue: each ticket's PR, session and state, and the last lines of its log
+	@python3 tools/agent/land_queue.py status
+
+.PHONY: land-wait
+land-wait:  ## Wait for make land PR=N's job to end; exits with its code (0 merged and main green, 1 refused, 4 main red, 5 unwatched)
+	@test -n "$(PR)" || { echo 'make land-wait: set PR=N' >&2; exit 2; }
+	@python3 tools/agent/land_queue.py wait $(PR)
 
 orient:  ## Who works on what: claims, worktrees in progress, operating flag, last deploys, open PRs, what waits to be pulled in
 	@python3 tools/ops/orient.py
@@ -39,10 +48,10 @@ pr-kind:  ## Does this branch need make remote? Prints docs, light (make static 
 	@python3 tools/ci/changed_kind.py --git
 
 # $(value V): make does not expand $(shell ...) or other references inside the values; the guard refuses them too.
-ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path] [BRANCH=agent/claude/<topic>]; commit, checks, push, make remote unless light, PR (never merges)
+ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path] [BRANCH=agent/claude/<topic>] [REMOTE=1]; commit, checks, push, make remote when a check reads private files (else a draft PR GitHub's check gates), PR (never merges)
 	@python3 tools/agent/ready.py --files '$(subst ','"'"',$(value FILES))' --msg '$(subst ','"'"',$(value MSG))' --title '$(subst ','"'"',$(value TITLE))' \
 	  --body '$(subst ','"'"',$(value BODY))' --body-file '$(subst ','"'"',$(value BODY_FILE))' \
-	  --branch '$(subst ','"'"',$(value BRANCH))'
+	  --branch '$(subst ','"'"',$(value BRANCH))' $(if $(filter 1 yes true,$(REMOTE)),--remote)
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }

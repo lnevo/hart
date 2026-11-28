@@ -88,6 +88,7 @@ class ReadyCase(unittest.TestCase):
         self.remote_calls: list[Path] = []
         self.remote_text = "--- unit ok\nALL PASSED\n"
         self.kind = "full: code changed"
+        self.gate = "remote: a.txt feeds tools/plan.py, which reads ext:plan (check plan)"
 
     @staticmethod
     def configure(repo: Path) -> None:
@@ -101,6 +102,7 @@ class ReadyCase(unittest.TestCase):
 
     def tools(self, **over: Any) -> Any:
         made = dict(remote=self.remote, gh_run=self.gh, pr_kind=lambda repo: self.kind,
+                    private_gate=lambda repo: self.gate,
                     regenerate=(R.Step("gen", ("python3", "-c", "open('gen.txt','w').write('made\\n')"),
                                        ("gen.txt",)),),
                     checks=(R.Step("ok", ("true",)),), log_dir=self.tmp / "logs", say=lambda text: None)
@@ -111,8 +113,8 @@ class ReadyCase(unittest.TestCase):
         (self.wt / name).write_text(text)
 
     def ship(self, files: tuple[str, ...] = ("a.txt",), msg: str = "fix: a", body: str = "What changed.",
-             **over: Any) -> Any:
-        return R.ready(self.wt, R.Request(files, msg, "", body), self.tools(**over))
+             remote: bool = False, **over: Any) -> Any:
+        return R.ready(self.wt, R.Request(files, msg, "", body, remote=remote), self.tools(**over))
 
     def main_commit(self, name: str, text: str) -> None:
         (self.main / name).write_text(text)
@@ -167,6 +169,82 @@ class Ships(ReadyCase):
         with self.assertRaisesRegex(R.ReadyError, "broken failed"):
             self.ship(checks=(R.Step("broken", ("false",)),))
         self.assertEqual("", sh("git", "ls-remote", "origin", "agent/claude/topic", cwd=self.wt))
+
+
+class Gates(ReadyCase):
+    """Which gate a change gets: make remote when a changed path feeds a check that reads private files, else
+    GitHub's check on a draft PR; docs and light changes as before; REMOTE=1 forces the remote run."""
+
+    def creates(self) -> list[list[str]]:
+        return [c for c in self.gh.calls if c[:2] == ["pr", "create"]]
+
+    def test_a_private_read_runs_the_remote_and_opens_a_ready_pr(self) -> None:
+        said: list[str] = []
+        self.change()
+        shipped = self.ship(say=said.append)
+        self.assertEqual(1, len(self.remote_calls))
+        self.assertEqual((self.gate, False), (shipped.gate, shipped.draft))
+        self.assertIn(self.gate, said)
+        self.assertNotIn("--draft", self.creates()[0])
+
+    def test_no_private_read_skips_the_remote_and_opens_a_draft(self) -> None:
+        said: list[str] = []
+        self.gate = "github: no changed path feeds a check step that reads private files (ext:plan)"
+        self.change()
+        shipped = self.ship(say=said.append)
+        self.assertEqual([], self.remote_calls)
+        self.assertIsNone(shipped.log)
+        self.assertTrue(shipped.draft)
+        self.assertIn("--draft", self.creates()[0])
+        self.assertIn(R.DRAFT_NOTE, self.gh.bodies[0])
+        gate_lines = [line for line in said if line.startswith("GitHub gate: ")]
+        self.assertEqual(1, len(gate_lines), said)
+        self.assertIn("no changed path feeds a check step that reads private files", gate_lines[0])
+
+    def test_remote_1_forces_the_remote_run(self) -> None:
+        self.gate = "github: nothing private"
+        self.change()
+        shipped = self.ship(remote=True)
+        self.assertEqual(1, len(self.remote_calls))
+        self.assertEqual(("remote: REMOTE=1 asks for it", False), (shipped.gate, shipped.draft))
+        self.assertNotIn("--draft", self.creates()[0])
+
+    def test_remote_1_forces_it_on_a_light_change_too(self) -> None:
+        self.kind = "light: map presets"
+        self.change()
+        self.ship(remote=True)
+        self.assertEqual(1, len(self.remote_calls))
+
+    def test_docs_and_light_never_ask_the_private_gate_and_are_not_drafts(self) -> None:
+        def never(_repo: Path) -> str:
+            raise AssertionError("asked")
+        for n, kind in enumerate(("docs: 1 changed path", "light: map presets")):
+            with self.subTest(kind):
+                self.kind = kind
+                self.gh.made = False
+                self.change(text=f"changed {n}\n")
+                shipped = self.ship(private_gate=never)
+                self.assertEqual(([], False), (self.remote_calls, shipped.draft))
+                self.assertTrue(shipped.gate.startswith("no remote run: a " + kind.split(":")[0]), shipped.gate)
+
+    def test_a_gate_line_with_no_verdict_runs_the_remote(self) -> None:
+        self.gate = "Traceback (most recent call last):"
+        self.change()
+        shipped = self.ship()
+        self.assertEqual(1, len(self.remote_calls))
+        self.assertTrue(shipped.gate.startswith("remote: the private-reads check printed no verdict"))
+
+    def test_a_private_gate_that_cannot_run_says_remote(self) -> None:
+        # the scratch worktree has no tools/ci/changed_kind.py: python3 fails, and the gate fails toward the remote
+        self.assertTrue(R.default_private_gate(self.wt).startswith("remote: changed_kind.py --private failed"))
+
+    def test_a_name_with_u202f_is_staged_and_read_back_as_named(self) -> None:
+        name = "Screenshot 12.52.19\u202fAM.txt"
+        self.change(name, "odd\n")
+        self.ship(files=(name,))
+        committed = sh("git", "-c", "core.quotePath=false", "diff", "--name-only", "origin/main", "HEAD", cwd=self.wt)
+        self.assertIn(name, committed.splitlines())
+        self.assertIn(name, R.branch_files(self.wt))
 
 
 class Reruns(ReadyCase):
