@@ -13,3 +13,4 @@ Owner rulings on the website, kept here because they govern pages under `www/`:
 - [`writing-voice.md`](writing-voice.md): the AI-speak filter and where it applies.
 - [`share-thumbnails.md`](share-thumbnails.md): what a page's share picture should show.
 - [`real-vs-invented.md`](real-vs-invented.md): what is real history and what is invented.
+- [`exam-study.md`](exam-study.md): the C&E study deck and Extra East game rules.
