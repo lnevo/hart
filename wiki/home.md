@@ -11,7 +11,7 @@ Chat is a scratchpad. Decisions that count live here.
 | All documents | [`../docs/INDEX.md`](../docs/INDEX.md) |
 | Website | [`../www/README.md`](../www/README.md) |
 | Pipelines | [`pipelines/README.md`](pipelines/README.md) |
-| Report cards (project, code, data, website UX) | [`report-cards.md`](report-cards.md) |
+| Report cards (project, code, data, website UX, agent experience) and the master dashboard | [`report-cards.md`](report-cards.md) |
 | Pipeline map | [`../docs/pipeline-map/pipeline_map.json`](../docs/pipeline-map/pipeline_map.json) |
 
 **Active projects:** [agent experience cleanup](projects/ax-cleanup.md) (round 3) · [cleanup and streamlining](projects/cleanup-streamline-handoff.md) · [every script in the pipeline](projects/pipeline-coverage-handoff.md) · [speed matching](projects/speedmatching.md) · [data masters](projects/data-masters.md) · [CATS integration](projects/cats-integration.md)  

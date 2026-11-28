@@ -1,0 +1,3 @@
+# Report cards data
+
+Every report card score, kept for the master dashboard and the slippage check. `scores.json` holds one entry per category (project, code, data, website UX, agent experience) with its scores in date order and the latest rescore's table, the scorecards that carry no score, and the wave dashboards the master dashboard shows. The cards' text and measurements are in [`wiki/report-cards.md`](../../wiki/report-cards.md); the [`report-cards`](../../.claude/skills/report-cards/SKILL.md) skill says how to rescore and refresh the page, and `tools/agent/report_cards_page.py check` validates the file.

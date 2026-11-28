@@ -80,4 +80,4 @@ Update on every message that changes a lane or PR: it starts, passes or fails it
 ## Before a /clear and at the end
 
 - Before a /clear, give the steward that takes over the dashboard link, the sampler output file path, the Monitor task id and a pointer to this skill. The project page keeps the link.
-- At the end, write the final events. Set each row to merged or done, or move it to a later wave and give the reason. Stop the sampler (`TaskStop` on its Monitor). Set the wave page to `Status: done`.
+- At the end, write the final events. Set each row to merged or done, or move it to a later wave and give the reason. Stop the sampler (`TaskStop` on its Monitor). Set the wave page to `Status: done`. Then add the dashboard to the master dashboard ([`report-cards`](../report-cards/SKILL.md) skill).
