@@ -1,6 +1,6 @@
 # Report cards
 
-Three report cards in one place: the project as a whole, the code, and the data. Each is a reviewer's judgment resting on the measurements beside it. Recommendations on these cards are kept for the next review; they are not owed work and are not listed in `wiki/status/`.
+Four report cards in one place: the project as a whole, the code, the data, and the website's UX. Each is a reviewer's judgment resting on the measurements beside it. Recommendations on these cards are kept for the next review; they are not owed work and are not listed in `wiki/status/`.
 
 ## Project overall
 
@@ -71,3 +71,36 @@ How to measure again:
 - `python3 tools/ops/check_data.py`.
 - Spreadsheet readers with `git grep -l -E 'load_workbook|read_excel' -- ':!archive' ':!*test*'`; a reader that only compares its own output (`write_inventory.py --check`) does not count.
 - Each `entities.csv` master checked for a sidecar or a schema check.
+
+## Website UX
+
+First formal pass on 2026-11-28 at `8515ccc7`: about 7 of 10 (6.8). Earlier site reviews (11-14, 11-22) left follow-up PRs but no score. Three `site-reviewer` agents with the UX lens split the site: shared navigation and the hub pages; the railroad content pages (layout, roster, history, library and the rest); the operator and behind-the-scenes pages (crew, docs, ai, behind, guides, build, exam, play, helix). Each slice scored the eight areas; the score is their mean.
+
+| Area | Nav and hubs | Content | Crew and behind | Score | Measured on 2026-11-28 |
+|---|---|---|---|---|---|
+| Navigation and wayfinding | 7 | 6 | 6 | 6.5 | Every section is 1 click from home, the deepest page is 3. 4 of the 5 library articles over 1,600 words have no contents list or heading ids. A crew sheet is 4 taps from any page but home. 16 pages have no route from home, 9 of them real content. |
+| Layout and readability | 7 | 7 | 7 | 7 | 113 of 120 pages have one h1. None scrolls sideways at 375 px (53 crew-slice pages measured in headless Chrome). |
+| Mobile | 6 | 7 | 7 | 6.5 | Viewport meta on every portal page except the redirect stubs and the Publication Standards export. Small tap targets: 117 under 32 px on `ap/index`, the layout map's 146 hotspots at the default fit. |
+| Accessibility | 7 | 6 | 7 | 6.5 | 0 of 210 static images lack alt. Skip link, focus styles and menu ARIA are in place. Header, nav and crew sheets exist only after JS runs: 1 `<noscript>` in the source pages. The exam and lineage tabs have no arrow-key handling. |
+| Clarity for a first-time reader | 7 | 6 | 6 | 6.5 | The home page and its four doors explain themselves. The layout, roster and NVL crew sheet open on CP, Digicon, MQTT, POHC, SM-03 and similar with no gloss. All three guides open on a parked notice. |
+| Consistency across pages | 6 | 6 | 6 | 6 | Nav comes from one source (`data/site.json`). 52 pages have no description and share one generic sentence. Crew is "Crew sheets", "Session paperwork" and "Publications" in different places. |
+| Weight and speed | 8 | 8 | 9 | 8.5 | Home is about 0.2 MB and paints in 0.09 s. `behind/layout-docs` loads 9 MB of images (lazy). `no-cache` on every asset. |
+| Links and errors | 8 | 7 | 6 | 7 | 0 dead links on live pages from about 1,200 checked. `ai/construction.html` links the unpublished `helix/build-status.html` (404). The guides show repo paths and shell commands a reader cannot open. `/library/` is a 404. |
+
+Held back on 2026-11-28:
+- Nothing was checked on a real phone or with a screen reader, and colour contrast was not measured. Mobile and accessibility rest on CSS, markup and one headless run.
+- Links inside `data/*.json` and links built by JS at runtime were not scanned.
+
+If the UX card is revisited, in this order:
+1. A static fallback where JS builds the page: the header's home and section links, the crew sheets and the primer (`briefing/`, the "Start here" page), each with a `<noscript>` line pointing to the PDF.
+2. A one-sentence description on the 52 pages without one.
+3. Contents lists and h2 ids on the long library articles, crew sheets, `build/` and the guides, using the `.jump` pattern from `crew/industries`.
+4. A short gloss or glossary link on the first screen of `layout/`, `roster/`, `history/` and the crew sheets.
+5. One name for the crew hub in the nav, title and home page, and a shorter path to a sheet from the Operations menu.
+6. Dead and private links: `build-status.html` from `ai/construction.html`, repo paths in `guides/`, `/library/` to `/articles/`, the raw `library/opspro-showcase-guide.md`, and a check in `check_portal_build.py` that fails on a link to a `SKIP_FILES` path.
+
+How to measure again:
+- Brief three `site-reviewer` agents with the UX lens on the same three slices, asking each for the eight areas scored with one measurement apiece.
+- Pages without a description: `git grep -L 'name="description"' -- 'www/*.html'`, leaving out `scripts/` and `docs/html/`.
+- `<noscript>` count: `git grep -l '<noscript' -- 'www/*.html'`.
+- Overflow at 375 px with headless Chrome against local `www/`; live weight and status with GET and HEAD only.
