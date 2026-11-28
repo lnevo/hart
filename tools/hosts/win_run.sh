@@ -112,8 +112,12 @@ trap 'echo "win_run.sh: setup on Windows failed; run the command on the Mac." >&
 export PATH="\$HOME/hart/.venv/bin:\$HOME/.local/bin:\$PATH"
 main="\$HOME/hart" wt="\$HOME/wt/$run_id"
 mkdir -p "\$HOME/wt"
-# One fetch at a time into the shared clone: parallel runs would fight over its ref locks.
-flock "\$main/.git/win_run.lock" git -C "\$main" fetch -q origin $sha
+# --- fetch (tests run this block alone)
+# One fetch at a time into the shared clone: parallel runs would fight over its ref locks. origin/main comes too:
+# check.sh's changed paths (tools/ci/changed_kind.py --git) are the diff from the merge base with it, and a stale
+# copy lists every file main changed since.
+flock "\$main/.git/win_run.lock" git -C "\$main" fetch -q origin $sha "+refs/heads/main:refs/remotes/origin/main"
+# --- end fetch
 git -C "\$main" worktree add -q --detach "\$wt" $sha
 cleanup() {
   if [[ $keep -eq 1 ]]; then echo "win_run.sh: kept \$wt" >&2

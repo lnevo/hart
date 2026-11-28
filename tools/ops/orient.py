@@ -50,7 +50,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING
 
 from orient_overlap import full_lines, overlap_report, parse_prs, short_line
-from orient_pages import BRANCH, Claim, parse_page  # this folder is on sys.path when the script runs; the tests add it
+from orient_pages import BRANCH, Claim, Coordinator, parse_page  # this folder is on sys.path when the script runs; the tests add it
 
 ROOT = Path(__file__).resolve().parents[2]
 PROJECTS = Path("wiki/projects")
@@ -224,6 +224,39 @@ def read_claims(trees: list[Tree], wt: ModuleType) -> tuple[list[tuple[Claim, st
         out.append((c, claim_state(c, trees, sources[key])))
     lines = [p[0] + (f" (and {len(p) - 1} more copies)" if len(p) > 1 else "") for p in problems.values()]
     return out, lines
+
+
+QUEUE_NOBODY = "Queue: nobody named; ask every session before merging (coordinate skill)"
+
+
+def read_queue(trees: list[Tree]) -> tuple[list[Coordinator], list[str]]:
+    """The merge queue's holders (Coordinator lines under an active Status, parse_page) in every worktree's
+    wiki/projects/, each once, and a warning line for each Coordinator line that holds no queue."""
+    found: dict[tuple[str, str, str], Coordinator] = {}
+    warnings: dict[tuple[str, int, str], str] = {}
+    for t in trees:
+        folder = Path(t.path) / PROJECTS
+        if not folder.is_dir():
+            continue
+        for page_path in sorted(folder.glob("*.md")):
+            try:
+                page = parse_page(page_path.name, page_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError):
+                continue        # read_claims reports a page it cannot read
+            for c in page.coordinators:
+                found.setdefault((c.page, c.name, c.since), c)
+            for no, msg in page.queue_problems:
+                warnings.setdefault((page_path.name, no, msg),
+                                    f"  warning: {PROJECTS / page_path.name}:{no} in {short_path(t.path)}: {msg}")
+    return sorted(found.values(), key=lambda c: (c.since, c.page)), list(warnings.values())
+
+
+def queue_lines(trees: list[Tree]) -> list[str]:
+    """ "Queue: <name>, since <time> (<page>)", or QUEUE_NOBODY, then the warnings."""
+    holders, warnings = read_queue(trees)
+    if not holders:
+        return [QUEUE_NOBODY, *warnings]
+    return ["Queue: " + "; ".join(f"{c.name}, since {c.since} ({PROJECTS / c.page})" for c in holders), *warnings]
 
 
 def claim_state(c: Claim, trees: list[Tree], found_in: list[str]) -> str:
@@ -517,6 +550,7 @@ def report(short: bool, here: str) -> list[str]:
     out = [] if short else [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {flag}"]
     if any(t.ahead is None for t in trees):
         out.append(BASE_MISSING)
+    out += queue_lines(trees)
     out.append(f"Claims ({len(claims)})" + (":" if claims else ": none"))
     out += capped([claim_line(c, state) for c, state in claims], limit)
     if problems:
