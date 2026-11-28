@@ -331,7 +331,7 @@ def is_dirty(path: str) -> bool:
     if not os.path.isdir(path):
         return False
     try:
-        return bool(git("status", "--porcelain", cwd=path))
+        return bool(git("--no-optional-locks", "status", "--porcelain", cwd=path))
     except GitCommandError:
         return True  # a checkout git cannot read may hold work: keep it
 
@@ -564,7 +564,7 @@ def submodule_risk(path: str) -> str | None:
             if os.path.realpath(git("rev-parse", "--show-toplevel", cwd=sub)) != os.path.realpath(sub):
                 return f"submodule {rel} is not a readable checkout"
             # The parent's status already shows submodule changes, unless submodule.<name>.ignore hides them.
-            if git("status", "--porcelain", cwd=sub):
+            if git("--no-optional-locks", "status", "--porcelain", cwd=sub):
                 return f"changes in submodule {rel}"
             if git("rev-list", "-n1", "HEAD", "--branches", "--not", "--remotes", cwd=sub):
                 return f"submodule {rel} has commits on no remote branch"

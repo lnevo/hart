@@ -18,8 +18,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-IDLE_AGENT = timedelta(hours=1)  # an agent-* worktree: a subagent's, locked to its session while that runs
-IDLE_OTHER = timedelta(days=1)  # any other worktree (make wt, an auto-pull): its owner may come back to it
+IDLE_AGENT = timedelta(hours=1)  # an agent-* worktree: a subagent's; a live session's lock keeps it longer
+IDLE_OTHER = timedelta(days=7)  # any other worktree (make wt, an auto-pull): a fresh one may wait days for its first commit
 AGENT_PREFIX = "agent-"
 GH_TIMEOUT = 30
 PR_LIMIT = 1000
@@ -30,9 +30,10 @@ def merged_prs(branch: str, main: str) -> list[dict] | None:
     try:
         done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--head", branch, "--limit", "20",
                                "--json", "headRefOid,mergedAt"], cwd=main, capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
+        prs = json.loads(done.stdout or "[]") if done.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError, ValueError):
         return None
-    return json.loads(done.stdout or "[]") if done.returncode == 0 else None
+    return prs if isinstance(prs, list) else None
 
 
 def merged_by_branch(main: str, limit: int = PR_LIMIT) -> dict[str, list[dict]] | None:
@@ -50,8 +51,11 @@ def merged_by_branch(main: str, limit: int = PR_LIMIT) -> dict[str, list[dict]] 
     if done.returncode != 0:
         return None
     grouped: dict[str, list[dict]] = {}
-    for pr in json.loads(done.stdout or "[]"):
-        grouped.setdefault(pr["headRefName"], []).append(pr)
+    try:
+        for pr in json.loads(done.stdout or "[]"):
+            grouped.setdefault(pr["headRefName"], []).append(pr)
+    except (ValueError, KeyError, TypeError):  # not gh's JSON list: GitHub gave no usable answer
+        return None
     return grouped
 
 

@@ -230,15 +230,19 @@ class HomeAndLanesTest(Repo):
             patch.start()
             self.addCleanup(patch.stop)
 
-    def test_worktrees_outside_home_are_left_out_unless_a_session_runs_there(self):
+    def test_only_clean_idle_worktrees_outside_home_are_left_out(self):
+        clean = self.add("clean")  # outside home, no commit, no change
+        trees = {t.path: t for t in OR.read_trees(WT)}
+        self.assertEqual([OR.at_home(trees[str(p)]) for p in (self.a, self.b, self.c, clean)],
+                         [True, True, True, False])  # a: commits ahead; b: staged; c: untracked
+        home = self.main / ".claude/worktrees/h"
+        sh("git", "worktree", "add", "-q", "-b", "agent/h", str(home), "origin/main", cwd=self.main)
+        trees = {t.path: t for t in OR.read_trees(WT)}
+        self.assertTrue(OR.at_home(trees[str(home)]))
+        trees[str(clean)].lock = "session running"
+        self.assertTrue(OR.at_home(trees[str(clean)]))
         out = OR.report(short=True, here="/")
-        self.assertFalse(any(line.startswith("Overlap:") for line in out), out)  # a, b, c, e all sit outside
-        running = (str(self.a), str(self.b))
-        with mock.patch.object(OR, "lock_state", side_effect=lambda wt, t: "session running" if t.path in running
-                               else ""):
-            out = OR.report(short=True, here="/")
-        self.assertIn("Overlap: 2 files changed in two or more places (plain.txt: agent/a, agent/b; x.py: agent/a, "
-                      "agent/b); make orient", out)
+        self.assertTrue(any(line.startswith("Overlap: 3 files") for line in out), out)
 
     def test_one_lane_prefixs_branches_are_grouped(self):
         home = self.main / ".claude/worktrees"
@@ -248,9 +252,10 @@ class HomeAndLanesTest(Repo):
         (home / "ux-nav/ux_only.py").write_text("1")
         (home / "ux-cards/ux_only.py").write_text("2")
         out = OR.report(short=True, here="/")
-        self.assertIn("Overlap: 1 file changed in two or more places (shared.py: agent/claude/ax-gate, "
-                      "agent/claude/ux-cards, agent/claude/ux-nav); within one lane prefix: agent/claude/ux-*: "
-                      "1 file(s) (ux_only.py) in agent/claude/ux-cards, agent/claude/ux-nav; make orient", out)
+        line = next(l for l in out if l.startswith("Overlap:"))  # the fixture's own worktrees clash too
+        self.assertIn("shared.py: agent/claude/ax-gate, agent/claude/ux-cards, agent/claude/ux-nav;", line)
+        self.assertTrue(line.endswith("; within one lane prefix: agent/claude/ux-*: 1 file(s) (ux_only.py) in "
+                                      "agent/claude/ux-cards, agent/claude/ux-nav; make orient"), line)
         rep = OV.classify(self.main, {"q.py": ["agent/claude/ux-a (PR #3)", "PR #4 (agent/claude/ux-b)"]}, [])
         self.assertEqual((rep.clashes, list(rep.lanes)), ([], ["agent/claude/ux-"]))
         self.assertEqual(OV.short_line(rep), ["Overlap: none between lane prefixes; within one: agent/claude/ux-*: "

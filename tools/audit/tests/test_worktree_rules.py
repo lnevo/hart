@@ -63,9 +63,9 @@ class NothingUnique(unittest.TestCase):
         return path
 
     def age(self, path: str, hours: float) -> None:
-        index = sh("git", "rev-parse", "--path-format=absolute", "--git-path", "index", cwd=path)
         stamp = time.time() - hours * HOUR
-        os.utime(index, (stamp, stamp))
+        for name in ("index", "HEAD"):  # last_touched reads the index; a dead session's lock also reads HEAD
+            os.utime(sh("git", "rev-parse", "--path-format=absolute", "--git-path", name, cwd=path), (stamp, stamp))
 
     def sweep(self, dry_run: bool = False) -> list[str]:
         with mock.patch.object(WT, "merged_by_branch", lambda main, limit=1000: {}), \
@@ -121,14 +121,26 @@ class NothingUnique(unittest.TestCase):
         self.sweep()
         self.assertTrue(os.path.isdir(path))
 
-    def test_age_thresholds_one_hour_for_agent_worktrees_one_day_for_others(self) -> None:
+    def test_age_thresholds_one_hour_for_agent_worktrees_seven_days_for_others(self) -> None:
         fresh_agent = self.tree("agent-g1", "agent/claude/g1", idle_hours=0.5)
         old_agent = self.tree("agent-g2", "agent/claude/g2", idle_hours=1.1)
-        topic = self.tree("my-topic", "agent/claude/my-topic", idle_hours=23)
-        old_topic = self.tree("old-topic", "agent/claude/old-topic", idle_hours=25)
+        # a fresh make wt worktree: never pushed, no lock, no commit yet; a day idle is not enough
+        topic = self.tree("my-topic", "agent/claude/my-topic", idle_hours=6.9 * 24)
+        old_topic = self.tree("old-topic", "agent/claude/old-topic", idle_hours=7.1 * 24)
         self.sweep()
         self.assertEqual([os.path.isdir(p) for p in (fresh_agent, old_agent, topic, old_topic)],
                          [True, False, True, False])
+
+    def test_a_dead_sessions_agent_worktree_goes_an_hour_after_its_lock_is_gone(self) -> None:
+        path = self.tree("agent-k1", "agent/claude/k1", idle_hours=0.5)
+        sh("git", "worktree", "lock", "--reason", "claude agent k1 (pid 4242)", path, cwd=self.main)
+        self.age(path, 0.5)
+        with mock.patch.object(WT, "pid_running", return_value=False):
+            self.sweep()
+            self.assertTrue(os.path.isdir(path), "under an hour since its last use")
+            self.age(path, 1.5)
+            self.sweep()
+        self.assertFalse(os.path.isdir(path))
 
     def test_a_detached_agent_worktree_on_main_goes_after_an_hour(self) -> None:
         path = self.tree("agent-h1", None, idle_hours=2)
@@ -172,7 +184,18 @@ class Rule(unittest.TestCase):
         self.assertEqual(RULES.idle_limit("/r/.claude/worktrees/agent-abc/"), RULES.IDLE_AGENT)
         self.assertEqual(RULES.idle_limit("/r/.claude/worktrees/ux-lane"), RULES.IDLE_OTHER)
         self.assertEqual(RULES.idle_words("/x/agent-1"), "1 hour(s)")
-        self.assertEqual(RULES.idle_words("/x/topic"), "1 day(s)")
+        self.assertEqual(RULES.idle_words("/x/topic"), "7 day(s)")
+
+    def test_non_json_from_gh_is_no_answer(self) -> None:
+        for out in ("<html>rate limited</html>", '[{"number": 1}]', '{"a": 1}', "[1]"):
+            done = subprocess.CompletedProcess([], 0, out, "")
+            with mock.patch.object(RULES.subprocess, "run", return_value=done):
+                self.assertIsNone(RULES.merged_by_branch("/r"), out)
+        for out in ("not json", '{"a": 1}'):
+            done = subprocess.CompletedProcess([], 0, out, "")
+            with mock.patch.object(RULES.subprocess, "run", return_value=done):
+                self.assertIsNone(RULES.merged_prs("agent/x", "/r"), out)
+                self.assertIsNone(RULES.open_branches("/r"), out)
 
     def test_open_branches_from_gh(self) -> None:
         done = subprocess.CompletedProcess([], 0, '[{"headRefName": "agent/claude/a"}]', "")

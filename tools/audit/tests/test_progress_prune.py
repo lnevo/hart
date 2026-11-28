@@ -132,6 +132,14 @@ class Prune(unittest.TestCase):
         old = PP.ProgressFile(Path("b.md"), "b", now - timedelta(days=1))
         self.assertEqual(PP.done([young, old], set(), now), [old])
 
+    def test_dashboards_and_handoff_files_wait_two_days(self) -> None:
+        now = datetime.now(timezone.utc)
+        day_old = [PP.ProgressFile(Path(n), n.split(".")[0], now - timedelta(days=1, hours=1))
+                   for n in ("w.dash.jsonl", "wave-handoff.md", "hart-coordinator.log", "steward.md")]
+        self.assertEqual(PP.done(day_old, set(), now), [])
+        two_days = [PP.ProgressFile(f.path, f.topic, now - timedelta(days=2)) for f in day_old]
+        self.assertEqual(PP.done(two_days, set(), now), two_days)
+
 
 if __name__ == "__main__":
     unittest.main()

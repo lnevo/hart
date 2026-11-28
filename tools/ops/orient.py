@@ -236,15 +236,20 @@ QUEUE_NOBODY = "Queue: nobody named; ask every session before merging (coordinat
 
 def at_home(t: Tree) -> bool:
     """Whether a worktree counts for the queue and the overlap list: one under the main checkout's WORKTREES, or one
-    a running session holds wherever it is (another session's scratchpad worktree counts only while it runs)."""
+    elsewhere that a running session holds, has commits not on origin/main (or an unknown count) or has uncommitted
+    changes. Only a clean, idle worktree outside WORKTREES (an old scratchpad copy) is left out."""
     home = os.path.realpath(ROOT_MAIN / WORKTREES)
-    return os.path.realpath(t.path).startswith(home + os.sep) or t.lock == "session running"
+    if os.path.realpath(t.path).startswith(home + os.sep) or t.lock == "session running":
+        return True
+    return t.ahead is None or t.ahead > 0 or pages_changed(t, everywhere=True)
 
 
-def pages_changed(t: Tree) -> bool:
-    """Whether the worktree has uncommitted or untracked changes under wiki/projects/ (unreadable counts as yes)."""
+def pages_changed(t: Tree, everywhere: bool = False) -> bool:
+    """Whether the worktree has uncommitted or untracked changes under wiki/projects/ (anywhere with `everywhere`);
+    unreadable counts as yes."""
     try:
-        return bool(quiet_git(t.path, "status", "--porcelain", "--", str(PROJECTS)).strip())
+        where = [] if everywhere else ["--", str(PROJECTS)]
+        return bool(quiet_git(t.path, "status", "--porcelain", *where).strip())
     except OverlapError:
         return True
 

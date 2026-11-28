@@ -316,21 +316,23 @@ class ReportTest(Repo):
         sh("git", "update-ref", "refs/remotes/origin/main", "HEAD", cwd=self.main)
         home = self.main / ".claude/worktrees"
         self.add_at(home / "old", "agent/claude/old")
+        outside = self.base / "scratch"  # another session's scratchpad worktree, clean, cut from the same commit
+        self.add_at(outside, "agent/claude/scratch")
         old_page.write_text(good)
         sh("git", "commit", "-q", "-am", "fixed", cwd=self.main)
         sh("git", "update-ref", "refs/remotes/origin/main", "HEAD", cwd=self.main)
-        outside = self.worktree("scratch")
-        (outside / "wiki/projects/old.md").write_text(bad)  # another session's scratchpad copy, uncommitted
 
         def warnings() -> list[str]:
             return [line for line in OR.report(short=True, here="/") if line.startswith("  warning:")]
-        self.assertEqual(warnings(), [], "an idle worktree on origin/main and one outside home are not read")
+        self.assertEqual(warnings(), [], "idle clean worktrees on origin/main's history, home or outside, are not read")
         (home / "old/wiki/projects/old.md").write_text(bad + "\n")
         self.assertEqual(len(warnings()), 1, "an uncommitted change under wiki/projects/ makes the copy live")
         (home / "old/wiki/projects/old.md").write_text(bad)
         with mock.patch.object(OR, "lock_state", side_effect=lambda wt, t: "session running"
                                if t.path == str(outside) else ""):
             self.assertIn(f"in {outside}:", "\n".join(warnings()), "a running session's worktree counts wherever it is")
+        (outside / "wiki/projects/old.md").write_text(bad + "\n")
+        self.assertIn(f"in {outside}:", "\n".join(warnings()), "so does one outside with uncommitted changes")
 
     def add_at(self, path: Path, branch: str) -> None:
         sh("git", "worktree", "add", "-q", "-b", branch, str(path), "origin/main", cwd=self.main)
