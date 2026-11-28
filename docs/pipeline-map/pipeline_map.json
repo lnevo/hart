@@ -5998,7 +5998,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "Shared shell-command parser of main_guard and subagent_guard: splits a command line into the programs it runs, through $(\u2026), pipes, xargs and wrappers; refuses a line it cannot split.",
+   "desc": "Shared shell-command parser of main_guard and subagent_guard: splits a command line into the programs it runs, through $(…), pipes, xargs and wrappers; refuses a line it cannot split.",
    "path": ".claude/hooks/shell_parse.py"
   },
   {
