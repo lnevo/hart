@@ -1,0 +1,5 @@
+column,description,type,required,key,refs,values
+key,"A Layout Editor label option of the schematic-maps plugin (le_labels, or a band's le_band_labels entry) whose value lists tracks. preferences.json names those tracks by block ID; hartlib.track_names.pref_section gives them the name store's names.",str,yes,yes,,
+depth,"1: a list of tracks; 2: a list of lists of tracks.",int,yes,,,
+form,"How the plugin wants each track named: whole (Track S-1) or bare (S-1).",enum,yes,,,whole;bare
+notes,Text for people.,str,,,,

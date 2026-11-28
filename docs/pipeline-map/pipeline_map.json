@@ -1205,6 +1205,15 @@
    "path": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv"
   },
   {
+   "id": "jmri/layouts/hart/data/schematic/label_track_keys.csv",
+   "label": "label_track_keys.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The Layout Editor label options whose tracks preferences.json names by block id, with each one's shape; hartlib.track_names reads it.",
+   "path": "jmri/layouts/hart/data/schematic/label_track_keys.csv"
+  },
+  {
    "id": "jmri/layouts/hart/data/schematic/panel_lamps.csv",
    "label": "panel_lamps.csv",
    "kind": "structured",
@@ -11827,6 +11836,13 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/schematic/label_track_keys.csv",
+   "to": "tools/ops/check_data.py",
+   "label": "rules",
+   "side": "check",
+   "gen": "manifest"
+  },
+  {
    "from": "ops/hart-ops/data/locos.csv",
    "to": "tools/ops/check_locos.py",
    "label": "master",
@@ -13586,6 +13602,12 @@
    "gen": "manifest"
   },
   {
+   "from": "jmri/layouts/hart/data/schematic/label_track_keys.csv",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "the label options whose tracks preferences.json names by block id (hartlib.track_names, in the merged view)",
+   "gen": "manifest"
+  },
+  {
    "from": "tools/schematic/cats_panel_facts.py",
    "to": "tools/schematic/build_cats_panel.py",
    "label": "imports"
@@ -14999,6 +15021,12 @@
    "from": "tools/schematic/block_override_rows.py",
    "to": "tools/schematic/build_device_map.py",
    "label": "imports"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/label_track_keys.csv",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "the label options whose tracks preferences.json names by block id (hartlib.track_names, in the merged view)",
+   "gen": "manifest"
   },
   {
    "from": "tools/schematic/block_override_rows.py",
