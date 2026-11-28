@@ -37,11 +37,11 @@ BLOCKED_PROGRAMS = {
     "deploy_hartrailroad.sh", "sync_hart_package.sh", "redeploy_commit.sh", "flash_nano.py",
     "ship_pi.sh", "ship_win.sh", "ship_mac.sh", "gate.sh",
     "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
-    "pull_roster.sh",
+    "pull_roster.sh", "land.py",   # tools/agent/land.py merges a PR: the coordinator's, never a subagent's
 }
 BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
 BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "roster-pull", "sts-pull",
-                "mqtt-clean")
+                "mqtt-clean", "land")
 BLOCKED_GIT = {"commit", "push", "pull", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore",
                "clean", "cherry-pick", "revert", "am", "apply", "rm", "mv", "add", "fetch"}
 GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--move", "--copy", "-f", "--force"},
@@ -189,7 +189,7 @@ def check_command(cmd: SimpleCommand) -> str:
         code = " ".join(args)
         if re.search(r"\bssh\b|subprocess|os\.(system|popen|exec|spawn)|\bsystem\s*\(|\bexec\s*\(|"
                      r"git\s+(" + "|".join(sorted(BLOCKED_GIT)) + r")\b|make\s+(deploy|redeploy)|"
-                     + "|".join(map(re.escape, BLOCKED_PROGRAMS)), code):
+                     + r"(?<![\w.-])(" + "|".join(map(re.escape, sorted(BLOCKED_PROGRAMS))) + ")", code):
             return f"{program} code that runs a blocked command"
     if program == "ssh":
         remote, wrong = remote_command(args)

@@ -183,6 +183,21 @@ class SubagentGuard(unittest.TestCase):
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)
 
+    def test_make_land_is_blocked(self) -> None:  # it merges a PR
+        for command in ("make land PR=12", "make land PR=12 SQUASH=1", "make -s land PR=12"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        self.assertEqual(run(SUBAGENT_GUARD, "grep -n land Makefile", str(ROOT)).returncode, 0)
+
+    def test_land_py_run_directly_is_blocked(self) -> None:  # make land's script, called without make
+        for command in ("python3 tools/agent/land.py 12", "tools/agent/land.py 12", "./tools/agent/land.py --pr 12",
+                        "env python3 tools/agent/land.py 12", "cd tools/agent && python3 land.py 12"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("grep -n merge tools/agent/land.py", "python3 -m unittest tools/audit/tests/test_land.py"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
     def test_pulls_from_the_pi_are_blocked(self) -> None:
         for command in ("make ops-pull", "make roster-pull", "tools/ops/pull_ops.sh", "./tools/ops/pull_roster.sh",
                         "bash tools/ops/pull_roster.sh", "timeout 60 tools/ops/pull_roster.sh"):

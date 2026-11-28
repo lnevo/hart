@@ -12,6 +12,11 @@ wt:  ## Start a task in its own worktree: make wt TOPIC=short-topic
 wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
 
+.PHONY: land
+land:  ## The coordinator merges one PR: make land PR=N [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
+	@test -n "$(PR)" || { echo 'make land: set PR=N' >&2; exit 2; }
+	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
+
 orient:  ## Who works on what: claims, worktrees in progress, operating flag, last deploys, open PRs, what waits to be pulled in
 	@python3 tools/ops/orient.py
 

@@ -6506,6 +6506,15 @@
    "path": "tools/agent/dash_rows.py"
   },
   {
+   "id": "tools/agent/land.py",
+   "label": "land.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make land PR=N: the coordinator's merge of one PR (check on the head, merge, main's push run, overlap and ships lines); never deploys.",
+   "path": "tools/agent/land.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -15269,6 +15278,26 @@
    "from": "host:mac",
    "to": "tools/agent/dash_rows.py",
    "label": "dashboard skill"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/land.py",
+   "label": "make land"
+  },
+  {
+   "from": "tools/hosts/deploy/ci_pass.py",
+   "to": "tools/agent/land.py",
+   "label": "main red check"
+  },
+  {
+   "from": "tools/hosts/live_paths.txt",
+   "to": "tools/agent/land.py",
+   "label": "ships line"
+  },
+  {
+   "from": "ext:github-ci",
+   "to": "tools/agent/land.py",
+   "label": "check runs and main's push run"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
