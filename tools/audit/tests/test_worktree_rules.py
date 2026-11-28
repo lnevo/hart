@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 def load(path: Path, name: str):
     spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None, path
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module  # dataclasses look the module up by name
     spec.loader.exec_module(module)
@@ -153,8 +154,11 @@ class Rule(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "agent-x")
             os.mkdir(path)
-            asked = []
-            opened = lambda: asked.append(1) or frozenset()  # noqa: E731
+            asked: list[int] = []
+
+            def opened() -> frozenset[str]:
+                asked.append(1)
+                return frozenset()
             self.assertIsNone(RULES.nothing_unique_since(path, "b", self.probe(on_base=False), opened, self.NOW))
             self.assertIsNone(RULES.nothing_unique_since(path, "b", self.probe(idle=timedelta(minutes=5)), opened,
                                                          self.NOW))
