@@ -48,8 +48,9 @@ MAX_BUDGET_USD = 0.75
 GH_TIMEOUT = 60
 CAP_POLL = 15.0
 VERIFIER_TOOLS = ["Read", "Grep", "Glob", "Bash(git show *)", "Bash(git grep *)"]
-NOT_VERIFIED = "NOT VERIFIED"
 Verdict = Literal["CONFIRMED", "PLAUSIBLE", "WRONG", "NOT VERIFIED"]
+NOT_VERIFIED: Literal["NOT VERIFIED"] = "NOT VERIFIED"
+VERDICTS: dict[str, Verdict] = {"CONFIRMED": "CONFIRMED", "PLAUSIBLE": "PLAUSIBLE", "WRONG": "WRONG"}
 VERDICT_WORD = re.compile(r"\b(CONFIRMED|PLAUSIBLE|WRONG)\b")
 
 
@@ -164,8 +165,7 @@ def parse_verdict(finding: Finding, run: Run, elapsed: float, timeout: float) ->
     if not match:
         return Result(finding, NOT_VERIFIED, text=text, reason="no verdict on the first line", cost_usd=cost,
                       duration_s=duration, num_turns=turns)
-    verdict: Verdict = match.group(1)  # type: ignore[assignment]
-    return Result(finding, verdict, text=text, cost_usd=cost, duration_s=duration, num_turns=turns)
+    return Result(finding, VERDICTS[match.group(1)], text=text, cost_usd=cost, duration_s=duration, num_turns=turns)
 
 
 def verify(finding: Finding, head: Head, timeout: float, start: Callable[[list[str], float], Run] = run_process

@@ -61,7 +61,12 @@ class StubPath(unittest.TestCase):
             path.write_text(body)
             path.chmod(path.stat().st_mode | stat.S_IEXEC)
         saved = os.environ.copy()
-        self.addCleanup(lambda: (os.environ.clear(), os.environ.update(saved)))
+
+        def restore() -> None:
+            os.environ.clear()
+            os.environ.update(saved)
+
+        self.addCleanup(restore)
         os.environ["PATH"] = f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
 
 
@@ -130,7 +135,7 @@ class Concurrency(unittest.TestCase):
         self.assertEqual([r.finding.summary for r in results], [f"f{i}" for i in range(9)])
 
     def test_waits_while_at_the_session_cap(self) -> None:
-        counts, slept = iter([10, 11, 9]), []
+        counts, slept = iter([10, 11, 9]), list[float]()
         cap = triage.SessionCap(10, count=lambda: next(counts), sleep=slept.append, poll=15, settle=0)
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
