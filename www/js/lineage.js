@@ -159,6 +159,8 @@
         $(tabs[i].getAttribute("aria-controls")).hidden = !sel;
       }
     }
+    HARTA11y.tabs(page.querySelector('[role="tablist"]'));
+    HARTA11y.scroller(page.querySelector("#panel-years .table-wrap"));
     for (var i = 0; i < tabs.length; i++) {
       tabs[i].addEventListener("click", function () {
         showTab(this.id);
