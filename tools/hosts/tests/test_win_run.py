@@ -250,6 +250,53 @@ class WinRunVenv(unittest.TestCase):
         self.assertEqual(0, self.installs())
 
 
+class WinRunFetch(unittest.TestCase):
+    """The fetch into the box's shared clone: the run's commit and origin/main, so check.sh's changed paths (the diff
+    from the merge base with origin/main) are the branch's own. Rendered with --print-script and run alone against a
+    scratch origin, with a fake flock where there is none."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        origin, work, self.clone = self.tmp / "origin.git", self.tmp / "work", self.tmp / "clone"
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        if not FLOCK:
+            (self.bin / "flock").write_text('#!/bin/sh\nshift\nexec "$@"\n')
+            (self.bin / "flock").chmod(0o755)
+        g = ["-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+        subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(origin)], check=True)
+        subprocess.run(["git", "clone", "-q", str(origin), str(work)], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(work), *g, "commit", "-q", "--allow-empty", "-m", "c1"], check=True)
+        subprocess.run(["git", "-C", str(work), "push", "-q", "origin", "HEAD:main"], check=True)
+        subprocess.run(["git", "clone", "-q", str(origin), str(self.clone)], check=True)     # origin/main at c1
+        subprocess.run(["git", "-C", str(work), *g, "commit", "-q", "--allow-empty", "-m", "c2"], check=True)
+        subprocess.run(["git", "-C", str(work), "push", "-q", "origin", "HEAD:main"], check=True)
+        subprocess.run(["git", "-C", str(work), *g, "commit", "-q", "--allow-empty", "-m", "branch"], check=True)
+        subprocess.run(["git", "-C", str(work), "push", "-q", "origin", "HEAD:refs/heads/agent/x"], check=True)
+        self.main_sha, self.branch_sha = (self.rev(work, r) for r in ("HEAD^", "HEAD"))
+        env = dict(os.environ, HART_WIN_SSH="nobody@example.invalid")
+        script = subprocess.run(["bash", str(WIN_RUN), "--print-script", "--", "true"], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=60, check=True).stdout
+        rendered = self.rev(ROOT, "HEAD")      # --print-script fills in this checkout's HEAD
+        self.block = self.tmp / "fetch.sh"
+        self.block.write_text(f'set -euo pipefail\nmain="{self.clone}"\n'
+                              f'{block_of(script, "fetch").replace(rendered, self.branch_sha)}\n')
+
+    @staticmethod
+    def rev(repo: Path, ref: str) -> str:
+        return subprocess.run(["git", "-C", str(repo), "rev-parse", ref], check=True, capture_output=True,
+                              text=True).stdout.strip()
+
+    def test_the_run_commit_and_origin_main_are_fetched(self) -> None:
+        done = subprocess.run(["bash", str(self.block)], capture_output=True, text=True, timeout=60,
+                              env=dict(os.environ, PATH=f"{self.bin}:{os.environ['PATH']}"))
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertEqual(self.main_sha, self.rev(self.clone, "origin/main"))
+        self.assertEqual("commit", subprocess.run(["git", "-C", str(self.clone), "cat-file", "-t", self.branch_sha],
+                                                  capture_output=True, text=True).stdout.strip())
+
+
 class WinRunStampName(unittest.TestCase):
     """stamp_name, the Mac's half: the name of a ref's stamp folder on Windows. Run alone in a scratch repo."""
 

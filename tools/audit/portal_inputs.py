@@ -55,9 +55,7 @@ class GitCouldNotRun(ChangedFilesError):
     """git did not run or did not finish (missing, timed out): not an answer about the branch."""
 
 
-def git_lines(root: Path, *args: str) -> list[str]:
-    """`git -C root ARGS`'s non-empty output lines; GitCouldNotRun when git does not run, ChangedFilesError when it
-    exits non-zero (the message names the command and git's last error line)."""
+def _git(root: Path, *args: str) -> str:
     try:
         done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as e:
@@ -65,7 +63,20 @@ def git_lines(root: Path, *args: str) -> list[str]:
     if done.returncode != 0:
         detail = done.stderr.strip().splitlines()[-1] if done.stderr.strip() else f"exit {done.returncode}"
         raise ChangedFilesError(f"git {' '.join(args)} failed: {detail}")
-    return [line for line in done.stdout.splitlines() if line]
+    return done.stdout
+
+
+def git_lines(root: Path, *args: str) -> list[str]:
+    """`git -C root ARGS`'s non-empty output lines; GitCouldNotRun when git does not run, ChangedFilesError when it
+    exits non-zero (the message names the command and git's last error line)."""
+    return [line for line in _git(root, *args).splitlines() if line]
+
+
+def git_paths(root: Path, command: str, *args: str) -> list[str]:
+    """The paths a listing command (diff --name-only, ls-files) prints, read NUL-separated (`-z`): without it git
+    quotes a path with a byte outside printable ASCII (core.quotePath), a U+202F in a file name for one, and the
+    name read back is not the file's. Errors as git_lines."""
+    return [p for p in _git(root, command, "-z", *args).split("\0") if p]
 
 
 def changed_files(root: Path, base: str = "origin/main") -> list[str]:
@@ -80,11 +91,11 @@ def changed_files(root: Path, base: str = "origin/main") -> list[str]:
         raise ChangedFilesError(f"no merge base with {base} (a shallow clone, or no {base}): {e}") from e
     if len(merge_base) != 1:
         raise ChangedFilesError(f"no merge base with {base}: git merge-base printed {merge_base!r}")
-    committed = git_lines(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")
-    working = git_lines(root, "diff", "--name-only", "--no-renames", "--ignore-submodules=all", "HEAD")
+    committed = git_paths(root, "diff", "--name-only", "--no-renames", merge_base[0], "HEAD")
+    working = git_paths(root, "diff", "--name-only", "--no-renames", "--ignore-submodules=all", "HEAD")
     # a staged submodule move is a change of the branch (the working diff above leaves every submodule out)
-    staged = git_lines(root, "diff", "--cached", "--name-only", "--no-renames", "--ignore-submodules=dirty", "HEAD")
-    untracked = git_lines(root, "ls-files", "--others", "--exclude-standard")
+    staged = git_paths(root, "diff", "--cached", "--name-only", "--no-renames", "--ignore-submodules=dirty", "HEAD")
+    untracked = git_paths(root, "ls-files", "--others", "--exclude-standard")
     return sorted(set(committed) | set(working) | set(staged) | set(untracked))
 
 

@@ -2,7 +2,7 @@
 """Ship a lane's work from its worktree: commit, merge main when the rule says so, check, push, remote run, PR.
 
     make ready FILES="a.py b.md" MSG="fix(x): what changed" [TITLE="..."] [BODY="..." | BODY_FILE=path]
-               [BRANCH=agent/claude/<topic>]
+               [BRANCH=agent/claude/<topic>] [REMOTE=1]
 
 Run at the top of an agent worktree (under the main checkout's .claude/worktrees/) on an `agent/claude/*` branch.
 Each step stops the run with a message when it fails:
@@ -21,11 +21,15 @@ Each step stops the run with a message when it fails:
    `manifest.py check` and `build_pipeline_map.py --check`.
 5. The ratchets without --update (check_mypy, check_habits, check_py_sizes, check_ruff) and `make static`.
 6. Commit the regenerated outputs that changed, by name; push the branch to its own name on origin (`-u`, no force).
-7. `make pr-kind`: docs or light skips the remote run. Else `make remote CMD="./tools/check.sh"`, which waits for a
-   free remote slot (tools/hosts/win_run.sh, the mac lock block), with its whole output in a log file named after
-   the branch and head (LOG_DIR); the run must end ALL PASSED.
+7. The gate, said in one line. `make pr-kind`: docs or light skips the remote run. A full change runs
+   `make remote CMD="./tools/check.sh"` only when a changed path feeds a check step that reads a private file
+   (`changed_kind.py --git --private`: the AnyRail plan, which only the Mac and the remote box have), or with
+   REMOTE=1; the run waits for a free remote slot (tools/hosts/win_run.sh, the mac lock block), saves its whole
+   output in a log file named after the branch and head (LOG_DIR) and must end ALL PASSED. Any other full change
+   skips it: GitHub's check is the gate, and the PR opens as a draft that `make land` marks ready once that check
+   passed.
 8. Open the PR with TITLE (default: MSG's first line) and BODY or BODY_FILE plus the attribution footer, or print
-   the open one; print its number, the full head SHA and the remote log path.
+   the open one; print its number, the full head SHA, the gate and the remote log path.
 
 It never merges a PR, deploys or touches a layout host: gh is called only for `pr view` and `pr create` (GH_ALLOWED),
 and git pushes only HEAD to the branch's own name. The attribution lines come from the JSON file named by
@@ -65,6 +69,10 @@ DOCS_INDEX = "docs/INDEX.md"
 FORBIDDEN_NAMES = {".env.local", "credentials.json", "settings.local.json"}
 FORBIDDEN_PREFIX = "tools/cats/src-repo"
 GH_ALLOWED = {("pr", "view"), ("pr", "create")}
+PRIVATE_GATE = ("tools/ci/changed_kind.py", "--git", "--private")
+DRAFT_NOTE = ("GitHub's check is the gate: no changed path feeds a check step that reads private files, so `make "
+              "ready` ran no `make remote` and opened this PR as a draft; `make land` marks it ready once `check` "
+              "passed.")
 
 
 class ReadyError(Exception):
@@ -103,6 +111,7 @@ class Request:
     title: str = ""
     body: str = ""
     branch: str = ""        # BRANCH=agent/claude/<topic>: renames an isolation worktree's worktree-agent-* branch
+    remote: bool = False    # REMOTE=1: run make remote whatever the gate says
 
 
 @dataclass(frozen=True)
@@ -117,6 +126,8 @@ class Shipped:
     url: str
     head: str
     log: Path | None
+    gate: str = ""          # the gate's one line: why make remote ran or did not
+    draft: bool = False
 
 
 class PrView(NamedTuple):
@@ -149,6 +160,16 @@ def default_pr_kind(repo: Path) -> str:
     return run(repo, "make", "-s", "pr-kind").strip()
 
 
+def default_private_gate(repo: Path) -> str:
+    """changed_kind.py's "remote: <why>" or "github: <why>" line; "remote: ..." when it fails (fail toward the
+    remote run, which covers every check)."""
+    try:
+        line = run(repo, "python3", *PRIVATE_GATE).strip()
+    except ReadyError as exc:
+        return f"remote: changed_kind.py --private failed ({str(exc).splitlines()[0]})"
+    return line or "remote: changed_kind.py --private printed nothing"
+
+
 def say_line(text: str) -> None:
     print(text, flush=True)
 
@@ -159,6 +180,7 @@ class Tools:
     remote: Callable[[Path, Path], int] = default_remote
     gh_run: GhRun = default_gh
     pr_kind: Callable[[Path], str] = default_pr_kind
+    private_gate: Callable[[Path], str] = default_private_gate
     regenerate: Sequence[Step] = REGENERATE
     checks: Sequence[Step] = CHECKS
     log_dir: Path = LOG_DIR
@@ -185,6 +207,12 @@ def git(repo: Path, *args: str) -> str:
 
 def lines(text: str) -> list[str]:
     return [line for line in text.splitlines() if line]
+
+
+def git_paths(repo: Path, command: str, *args: str) -> list[str]:
+    """The paths a git listing prints, read NUL-separated (-z): without it git quotes a name with a byte outside
+    printable ASCII (core.quotePath), and the quoted name is not the file's."""
+    return [p for p in run(repo, "git", command, "-z", *args).split("\0") if p]
 
 
 def main_checkout(repo: Path) -> Path:
@@ -234,7 +262,7 @@ def branch_files(repo: Path) -> set[str]:
         base = git(repo, "merge-base", "HEAD", "origin/main")
     except ReadyError:
         return set()
-    return set(lines(git(repo, "diff", "--name-only", base, "HEAD")))
+    return set(git_paths(repo, "diff", "--name-only", base, "HEAD"))
 
 
 def file_problem(repo: Path, path: str) -> str:
@@ -311,7 +339,7 @@ def commit(repo: Path, paths: Sequence[str], message: str, attribution: Attribut
 
 def stage_and_commit(repo: Path, req: Request, attribution: Attribution) -> None:
     named = {os.path.normpath(p) for p in req.files}
-    extra = sorted(set(lines(git(repo, "diff", "--cached", "--name-only"))) - named)
+    extra = sorted(set(git_paths(repo, "diff", "--cached", "--name-only")) - named)
     if extra:
         raise ReadyError(f"already staged but not in FILES: {' '.join(extra)}; name them or unstage them")
     problems = {p: why for p in req.files if (why := file_problem(repo, p))}
@@ -331,8 +359,8 @@ def merge_main_if_needed(repo: Path, say: Callable[[str], None]) -> bool:
     """Merge origin/main when main changed a file this branch touches since the merge base; True when merged."""
     git(repo, "fetch", "-q", "origin")
     base = git(repo, "merge-base", "HEAD", "origin/main")
-    on_main = set(lines(git(repo, "diff", "--name-only", base, "origin/main")))
-    touched = set(lines(git(repo, "diff", "--name-only", base, "HEAD")))
+    on_main = set(git_paths(repo, "diff", "--name-only", base, "origin/main"))
+    touched = set(git_paths(repo, "diff", "--name-only", base, "HEAD"))
     both = sorted(on_main & touched)
     if not both:
         say("main has no change to a file this branch touches; no merge")
@@ -340,7 +368,7 @@ def merge_main_if_needed(repo: Path, say: Callable[[str], None]) -> bool:
     say(f"merging origin/main: main changed {', '.join(both[:5])}{' ...' if len(both) > 5 else ''}")
     done = subprocess.run(["git", "merge", "--no-edit", "origin/main"], cwd=repo, capture_output=True, text=True)
     if done.returncode != 0:
-        conflicts = lines(git(repo, "diff", "--name-only", "--diff-filter=U"))
+        conflicts = git_paths(repo, "diff", "--name-only", "--diff-filter=U")
         subprocess.run(["git", "merge", "--abort"], cwd=repo, capture_output=True)
         detail = f"; conflicts in: {' '.join(conflicts)}" if conflicts else f":\n{done.stdout}{done.stderr}"
         raise ReadyError("merging origin/main failed and was aborted" + detail)
@@ -390,7 +418,7 @@ def pr_view(repo: Path, tools: Tools, branch: str) -> PrView | None:
         raise ReadyError(f"gh pr view gave no number, url and state: {view.stdout.strip()}") from exc
 
 
-def pr_text(req: Request, kind: str, attribution: Attribution) -> tuple[str, str]:
+def pr_text(req: Request, kind: str, attribution: Attribution, draft: bool = False) -> tuple[str, str]:
     """The PR title and body as gh pr create gets them; ReadyError when either is missing."""
     title = req.title.strip() or next(iter(req.msg.strip().splitlines()), "")
     if not title:
@@ -400,23 +428,25 @@ def pr_text(req: Request, kind: str, attribution: Attribution) -> tuple[str, str
     body = req.body.rstrip() + "\n"
     if kind.startswith("light"):
         body += "\n`make pr-kind` printed `light`.\n"
+    if draft:
+        body += f"\n{DRAFT_NOTE}\n"
     return title, body + "\n" + "\n".join(attribution.pr) + "\n"
 
 
 def open_pr(repo: Path, tools: Tools, req: Request, branch: str, kind: str, attribution: Attribution,
-            name_check: Callable[[str], bool]) -> tuple[int, str]:
+            name_check: Callable[[str], bool], draft: bool = False) -> tuple[int, str]:
     found = pr_view(repo, tools, branch)
     if found and found.state == "OPEN":
         tools.say(f"PR #{found.number} is already open: {found.url}")
         return found.number, found.url
-    title, body = pr_text(req, kind, attribution)
+    title, body = pr_text(req, kind, attribution, draft)
     if name_check(title) or name_check(body):
         raise ReadyError("the PR title or body holds the private name")
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
         f.write(body)
     try:
         made = tools.gh(repo, ["pr", "create", "--base", "main", "--head", branch, "--title", title,
-                               "--body-file", f.name])
+                               "--body-file", f.name, *(["--draft"] if draft else [])])
     finally:
         os.unlink(f.name)
     if made.returncode != 0:
@@ -443,7 +473,7 @@ def ready(repo: Path, req: Request, tools: Tools | None = None) -> Shipped:
     stage_and_commit(repo, req, attribution)
     merge_main_if_needed(repo, say)
     base = git(repo, "merge-base", "HEAD", "origin/main")
-    touched = set(lines(git(repo, "diff", "--name-only", base, "HEAD")))
+    touched = set(git_paths(repo, "diff", "--name-only", base, "HEAD"))
     if not touched:
         raise ReadyError("the branch has no change against origin/main; nothing to ship")
     outputs = run_steps(repo, tools.regenerate, touched, say)
@@ -459,12 +489,27 @@ def ready(repo: Path, req: Request, tools: Tools | None = None) -> Shipped:
     kind = tools.pr_kind(repo)
     say(f"make pr-kind: {kind}")
     log: Path | None = None
-    if kind.startswith(("docs", "light")):
-        say("docs or light change: no remote run")
-    else:
+    gate, draft = choose_gate(repo, tools, req, kind)
+    say(gate)
+    if gate.startswith("remote"):
         log = remote_run(repo, tools, branch, head)
-    number, url = open_pr(repo, tools, req, branch, kind, attribution, name_check)
-    return Shipped(number, url, head, log)
+    number, url = open_pr(repo, tools, req, branch, kind, attribution, name_check, draft)
+    return Shipped(number, url, head, log, gate, draft)
+
+
+def choose_gate(repo: Path, tools: Tools, req: Request, kind: str) -> tuple[str, bool]:
+    """(the gate's one line, whether the PR opens as a draft). The line starts "remote" when make remote runs."""
+    if req.remote:
+        return "remote: REMOTE=1 asks for it", False
+    if kind.startswith(("docs", "light")):
+        return f"no remote run: a {kind.split(':', 1)[0]} change (make pr-kind); GitHub's check runs on the PR", False
+    line = tools.private_gate(repo)
+    if line.startswith("github:"):
+        return (f"GitHub gate: {line.removeprefix('github:').strip()}; no make remote, the PR opens as a draft and "
+                "make land marks it ready once `check` passed"), True
+    if not line.startswith("remote:"):
+        line = f"remote: the private-reads check printed no verdict ({line!r})"
+    return line, False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -475,16 +520,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--body", default="", help="the PR body")
     parser.add_argument("--body-file", default="", help="a .md or .txt file holding the PR body")
     parser.add_argument("--branch", default="", help="agent/claude/<topic>: rename an isolation worktree's branch")
+    parser.add_argument("--remote", action="store_true", help="run make remote whatever the gate says (REMOTE=1)")
     args = parser.parse_args(argv)
     try:
         body = read_body_file(Path.cwd(), args.body_file) if args.body_file else args.body
-        shipped = ready(Path.cwd(), Request(tuple(args.files.split()), args.msg, args.title, body, args.branch))
+        shipped = ready(Path.cwd(), Request(tuple(args.files.split()), args.msg, args.title, body, args.branch,
+                                            args.remote))
     except (OSError, ReadyError) as exc:
         print(f"make ready: {exc}", file=sys.stderr)
         return 1
-    print(f"PR #{shipped.pr} {shipped.url}")
+    print(f"PR #{shipped.pr} {shipped.url}{' (draft)' if shipped.draft else ''}")
     print(f"head {shipped.head}")
-    print(f"remote log {shipped.log if shipped.log else '(none: docs or light change)'}")
+    print(f"gate {shipped.gate}")
+    print(f"remote log {shipped.log if shipped.log else '(none: no make remote run)'}")
     return 0
 
 

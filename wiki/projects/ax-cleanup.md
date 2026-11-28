@@ -1,7 +1,7 @@
 # Agent experience cleanup (2026-11-27)
 
-Status: done (2026-11-27)
-Coordinator: hart-4e
+Status: active
+Coordinator: hart-4e, since 2026-11-27 22:20
 Dashboard: https://claude.ai/artifact/PzHCqE42g9vDyXrXgdWJvC
 
 The owner asked on 2026-11-27 for a second look at the agent experience after the round of 2026-11-25 (#1104 to #1107). The review rated it about 8.5 of 10 and named four costs: memory had grown back from 32 to 49 files with overlaps and one conflict, every session start printed a line per kept worktree, `.claude/progress/` held 37 stale files, and two skills loaded more than 2,000 words each.
@@ -39,6 +39,12 @@ One PR, `agent/claude/ax-round2`, carries every round 2 lane.
 | R2-L6 dash rows | `tools/agent/dash_rows.py` writes dashboard rows, events and samples stamped from the Mac's clock | `tool-fixer`, opus | nothing |
 | R2-L7 make land | `make land PR=N` waits for the check, merges at the head, watches main's push run and lists PRs that must merge main | `tool-fixer`, opus | nothing |
 | Owner rulings | `AGENTS.md` to about 900 words (habits to `tools/AGENTS.md`, the LCOS bridge to `jmri/AGENTS.md`); the 1,500-word cap on every skill and agent file; skills name `make ready` and `make land`; the session cap starts at 8 and is flexible; review fixes in one push | `general-purpose`, opus | nothing |
+
+## Round 3
+
+| Lane | What | Agent | Waits on |
+|------|------|-------|----------|
+| R3-L1 GitHub gate | `make ready` runs `make remote` only when a changed path feeds a check that reads private files (`changed_kind.py --private`, today the AnyRail plan), else opens a draft PR that `make land` marks ready once `check` passed (owner, 2026-11-28); changed paths read NUL-separated and the remote clone fetches `origin/main`; `make land` holds a one-slot merge lock across sessions; `make orient` prints the queue holder from `Coordinator:` lines | `tool-fixer`, opus | nothing |
 
 ## Done when
 

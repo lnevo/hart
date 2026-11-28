@@ -34,8 +34,8 @@ A branch becomes a PR only after these pass on it, in order. A lane runs steps 1
 2. The ratchets without `--update`: `check_mypy.py`, `check_habits.py`, `check_py_sizes.py` and `check_ruff.py`. The lane fixes any rise; baselines follow the sweep above.
 3. `git add` new files, then `build_pipeline_map.py`, `manifest.py check` and `build_pipeline_map.py --check`.
 4. `make static`.
-5. Push without a PR, run `make remote CMD="./tools/check.sh"` with the log saved, and open the PR only on ALL PASSED.
-6. `make land PR=N` watches `check` on the head and merges on its pass (with the queue holder's go beside other sessions). Merge `origin/main` again only on a conflict or a stale run as above, then rerun 2 to 4.
+5. Push without a PR, then the gate `make ready` prints in one line. When a changed path feeds a check step that reads a private file (`tools/ci/changed_kind.py --private`; today the AnyRail plan), or with `REMOTE=1`: run `make remote CMD="./tools/check.sh"` with the log saved, and open the PR only on ALL PASSED. Otherwise GitHub's check is the gate: the PR opens as a draft and leaves draft only once that check passes (owner, 2026-11-28).
+6. `make land PR=N` watches `check` on the head and merges on its pass (with the queue holder's go beside other sessions); a draft is refused until then and marked ready (`gh pr ready N`) before the merge. Merge `origin/main` again only on a conflict or a stale run as above, then rerun 2 to 4.
 
 The remote box holds private files that GitHub CI lacks, such as the AnyRail plan. A remote pass does not prove CI will pass. Run plan-reading tests without the plan too.
 
@@ -43,5 +43,5 @@ Owner decisions on the gates:
 
 - A docs-only PR skips the full remote run before it opens. It is docs-only when every changed file is Markdown under `wiki/` or `docs/`, Markdown under `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and no code, tables, `www/` or `checks.toml` changes. The one generated file it may change is `pipeline_map.json`, and only in the agent-doc lane's boxes and links that `make map` rebuilds from the skills, agents, commands and `AGENTS.md` (owner, 2026-11-27; the rule: `docs/pipeline-map/checks-and-remote.md`, "Docs-only changes"); a folder's `AGENTS.md` and `CLAUDE.md` are full. It still passes `make static` locally and the quick docs checks (`./tools/check.sh` runs only those on a docs-only diff, never the full run) and the required CI before merging.
 - A data edit that changes no behaviour skips it too (owner, 2026-11-26), and `make pr-kind` decides it: it prints `light` when every changed file is docs or data that only static checks read, such as the pipeline map's Start presets (the rule: `docs/pipeline-map/checks-and-remote.md`, "Light changes"). It passes `./tools/check.sh`, which then runs the light checks and ends `LIGHT CHECKS PASSED`, then the required CI. Say in the PR body that `make pr-kind` printed `light`. Box labels, descriptions or anything else in `pipeline_map.json`, and a change to anything a script, check, table or host acts on, print `full`.
-- Anything else gets the full `make remote`.
+- Anything else gets the full `make remote` only when it reads private files, as in step 5; the rest opens as a draft with GitHub's check as the gate (owner, 2026-11-28).
 - Group related work into fewer PRs: one branch per lane, and small related lanes batched into one PR rather than a PR per step. Each merge costs a CI cycle and a push run on main to watch.
