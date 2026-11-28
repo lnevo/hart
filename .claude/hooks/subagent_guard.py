@@ -79,12 +79,17 @@ READ_ONLY_SUB = {
     "docker": {"ps", "logs", "inspect", "images"},
     "git": {"log", "show", "rev-parse"},  # not status: it can rewrite the index
 }
-# Options that make an allowed program write or run something (matched as a prefix).
+# Options that make an allowed program write or run something (matched as a prefix). git's are checked by git_runs.
 WRITING_OPTIONS = {
     "find": ("-delete", "-exec", "-execdir", "-ok", "-okdir", "-fprint", "-fls"),
     "journalctl": ("--vacuum", "--rotate", "--flush", "--setup-keys", "--update-catalog"),
-    "git": ("--output", "--ext-diff", "--textconv", "--exec-path"),
 }
+# Reading git subcommands, here and over ssh, and the long options that make them write a file (--output) or run a
+# program (-O / --open-files-in-pager, --ext-diff, --textconv, --exec-path). git takes a unique abbreviation of a
+# long option, so a word that is the start of one of these (4 letters or more, --text excepted) counts too.
+GIT_READING = {"show", "grep", "log", "diff", "rev-parse"}
+GIT_RUNNING_LONG = ("output", "open-files-in-pager", "ext-diff", "textconv", "exec-path")
+GIT_LONG_ALLOWED = {"text"}  # git grep/diff --text: an option of its own, not --textconv cut short
 # ssh options: flags without a value, options with a value, and the -o keys allowed.
 SSH_FLAGS = set("46qTnCv")
 SSH_VALUE_OPTIONS = {"-p", "-l"}
@@ -97,6 +102,26 @@ def git_subcommand(args: list[str]) -> str:
     while i < len(args) and args[i].startswith("-"):
         i += 2 if args[i] in GIT_VALUE_OPTIONS else 1
     return args[i] if i < len(args) else ""
+
+
+def git_runs(args: list[str]) -> str:
+    """For a reading git subcommand (GIT_READING), the first word of its arguments, global options included, that
+    writes a file or runs a program, else ''. git grep takes bundled short options (`-iOsh`), so for grep any
+    single-dash word holding O counts; for the others a word starting with -O."""
+    sub = git_subcommand(args)
+    if sub not in GIT_READING:
+        return ""
+    for word in args:
+        if word == "--":
+            break
+        if word.startswith("--"):
+            name = word[2:].split("=", 1)[0]
+            if any(name.startswith(opt) or (len(name) >= 4 and name not in GIT_LONG_ALLOWED and opt.startswith(name))
+                   for opt in GIT_RUNNING_LONG):
+                return word
+        elif word.startswith("-O") or (sub == "grep" and word.startswith("-") and "O" in word):
+            return word
+    return ""
 
 
 def blocked_name(word: str) -> bool:
@@ -134,6 +159,8 @@ def blocked_local(program: str, args: list[str]) -> bool:
         return False
     sub = git_subcommand(args)
     rest = args[args.index(sub) + 1:] if sub in args else []
+    if git_runs(args):
+        return True
     return sub in BLOCKED_GIT or bool(set(rest) & GIT_WRITING.get(sub, set()))
 
 
@@ -175,6 +202,8 @@ def read_only_problem(remote: str) -> str:
             return program
         if program in ("tail", "journalctl", "docker") and any(FOLLOW.fullmatch(w) for w in args):
             return f"{program} following output"
+        if program == "git" and git_runs(args):
+            return f"git {git_runs(args)}"
         for opt in WRITING_OPTIONS.get(program, ()):
             if any(w == opt or w.startswith(opt) for w in args):
                 return f"{program} {opt}"

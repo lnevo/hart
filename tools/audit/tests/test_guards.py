@@ -223,6 +223,21 @@ class SubagentGuard(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
 
+    def test_reading_git_that_writes_or_runs_is_blocked(self) -> None:
+        for command in ("git show --output=/tmp/x HEAD:README.md", "git show --output /tmp/x HEAD",
+                        "git grep --open-files-in-pager=sh foo", "git grep -Osh foo", "git grep -O foo",
+                        "git grep -iOsh foo", "git grep --open-files=sh foo", "git diff --ext-diff HEAD~1",
+                        "git log -p --textconv", "git diff --outp=/tmp/x", "git -C . show --output=/tmp/x HEAD",
+                        "git --exec-path=/tmp/bin log", "ssh -o BatchMode=yes pi git log -Ofoo",
+                        "ssh -o BatchMode=yes pi git show --output /tmp/x HEAD"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("git show HEAD:README.md", "git grep -n foo", "git grep --text foo", "git diff --stat HEAD~1",
+                        "git log --oneline -5", "git diff --no-ext-diff --no-textconv", "git grep -- --output",
+                        "git log -S needle", "grep -n -- --output tools/x.py"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
     def test_pulls_from_the_pi_are_blocked(self) -> None:
         for command in ("make ops-pull", "make roster-pull", "tools/ops/pull_ops.sh", "./tools/ops/pull_roster.sh",
                         "bash tools/ops/pull_roster.sh", "timeout 60 tools/ops/pull_roster.sh"):

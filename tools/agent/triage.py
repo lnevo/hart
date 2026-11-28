@@ -6,11 +6,15 @@
 `make triage PR=N FINDINGS=<file>` is the coordinator's way to verify review findings. FILE holds the findings as a
 JSON list of {file, line, summary, failure_scenario, severity}. The run:
 
-1. Reads the PR's head branch and full SHA (`gh pr view`) and fetches that branch once (`git fetch origin <branch>`),
-   so the verifiers read the PR's code with `git show origin/<branch>:<path>`; they cannot fetch themselves.
-2. Starts one `claude -p ... --agent finding-verifier` per finding, at most TRIAGE_JOBS (default 3) at once, each
-   with a timeout, --max-turns and --max-budget-usd, and read-only tools. Before each start it counts the `claude`
-   processes on the Mac and waits, with a line, while they are at or above HART_SESSION_CAP (default 10).
+1. Reads the PR's head branch and full SHA (`gh pr view`), fetches that branch once (`git fetch origin <branch>`),
+   checks that the SHA is a commit here, and checks it out in a detached worktree in a temporary folder
+   (`git worktree add --detach`). The worktree is removed when the run ends.
+2. Starts one `claude -p ... --agent finding-verifier` per finding with its cwd in that worktree, at most TRIAGE_JOBS
+   (default 3) at once, each with a timeout, --max-turns and --max-budget-usd. The only tools are Read, Grep and
+   Glob: no Bash, so text from the PR's findings cannot make a verifier write a file or run a command. Before each
+   start it counts the `claude` processes on the Mac, leaving out this run's own ancestors (the session that
+   started it), and waits, with a line, while they are at or above HART_SESSION_CAP (default 10). A finding that
+   waits longer than HART_TRIAGE_MAX_WAIT seconds (default 1800) is not verified.
 3. Writes to DIR (default ~/.cache/hart/triage/<PR>/): one JSON per finding (the finding, the verdict, the evidence
    text, cost and duration), summary.json, and fix-brief.md: CONFIRMED findings with evidence and fix, PLAUSIBLE ones
    marked "check against the code", WRONG ones with a one-line reason, the verifiers that errored or timed out as
@@ -20,8 +24,8 @@ There is no option to run the review itself: `claude -p "/code-review low <PR>"`
 no findings list, so the review stays a session's step and its findings JSON is saved by hand.
 
 Exit 0 when every finding got a verdict, 1 when one or more are not verified, 2 for a bad call or when the PR, the
-fetch or the findings cannot be read. It starts Claude processes, so it is the coordinator's: subagent_guard.py blocks
-it and `make triage` for subagents.
+fetch, the head SHA, the verifier worktree or the findings cannot be read. It starts Claude processes, so it is the
+coordinator's: subagent_guard.py blocks it and `make triage` for subagents.
 """
 from __future__ import annotations
 
@@ -29,14 +33,18 @@ import argparse
 import json
 import os
 import re
+import shutil
+import signal
 import subprocess
 import sys
 import threading
+import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Callable, Iterator, Literal
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = Path.home() / ".cache" / "hart" / "triage"
@@ -47,11 +55,14 @@ MAX_TURNS = 12
 MAX_BUDGET_USD = 0.75
 GH_TIMEOUT = 60
 CAP_POLL = 15.0
-VERIFIER_TOOLS = ["Read", "Grep", "Glob", "Bash(git show *)", "Bash(git grep *)"]
+DEFAULT_MAX_WAIT = 1800
+KILL_GRACE = 10
+# No Bash: the prompt holds finding text from the PR, and `git show --output=` or `git grep -O` would write or run.
+VERIFIER_TOOLS = ["Read", "Grep", "Glob"]
 Verdict = Literal["CONFIRMED", "PLAUSIBLE", "WRONG", "NOT VERIFIED"]
 NOT_VERIFIED: Literal["NOT VERIFIED"] = "NOT VERIFIED"
 VERDICTS: dict[str, Verdict] = {"CONFIRMED": "CONFIRMED", "PLAUSIBLE": "PLAUSIBLE", "WRONG": "WRONG"}
-VERDICT_WORD = re.compile(r"\b(CONFIRMED|PLAUSIBLE|WRONG)\b")
+VERDICT_WORD = re.compile(r"\W*(CONFIRMED|PLAUSIBLE|WRONG)\b")  # matched at the start of the first line only
 
 
 class TriageError(Exception):
@@ -109,8 +120,8 @@ def load_findings(data: object) -> list[Finding]:
 def prompt_for(finding: Finding, head: Head) -> str:
     return (
         "Verify this one /code-review finding against the PR's code.\n"
-        f"The PR's head is branch {head.branch} at {head.sha}. It is fetched: read its files with "
-        f"`git show origin/{head.branch}:<path>` (or `git show {head.sha}:<path>`); the working tree may be older.\n\n"
+        f"The working tree is the PR's head: branch {head.branch} at {head.sha}, checked out read-only. Read its "
+        "files with Read, Grep and Glob; there is no shell. Submodules and gitignored files are not in it.\n\n"
         f"File: {finding.file}\nLine: {finding.line}\nSeverity: {finding.severity}\n"
         f"Summary: {finding.summary}\nFailure scenario: {finding.failure_scenario}\n\n"
         "Answer CONFIRMED, PLAUSIBLE or WRONG on the first line, then file:line evidence and the smallest fix.")
@@ -122,19 +133,26 @@ def claude_command(prompt: str) -> list[str]:
             "--max-budget-usd", str(MAX_BUDGET_USD), "--no-session-persistence"]
 
 
-def run_process(argv: list[str], timeout: float) -> Run:
-    """Run argv from the repo root; kill it at the timeout. macOS has no `timeout` command."""
+def run_process(argv: list[str], timeout: float, cwd: Path = ROOT) -> Run:
+    """Run argv from cwd in its own process group; kill the whole group at the timeout, so a child holding the pipes
+    open cannot keep the run waiting. macOS has no `timeout` command."""
     try:
-        proc = subprocess.Popen(argv, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, text=True)
+        proc = subprocess.Popen(argv, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True, start_new_session=True)
     except OSError as exc:
         return Run(code=127, out="", err=f"could not start {argv[0]}: {exc}")
     try:
         out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        proc.kill()
-        out, err = proc.communicate()
-        return Run(code=proc.returncode, out=out, err=err, timed_out=True)
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        try:
+            out, err = proc.communicate(timeout=KILL_GRACE)
+        except subprocess.TimeoutExpired:
+            out, err = "", ""
+        return Run(code=proc.returncode if proc.returncode is not None else -9, out=out, err=err, timed_out=True)
     return Run(code=proc.returncode, out=out, err=err)
 
 
@@ -161,43 +179,67 @@ def parse_verdict(finding: Finding, run: Run, elapsed: float, timeout: float) ->
         reason = f"exit {run.code}, {data.get('subtype') or 'error'}: {first_line(text)[:200]}".rstrip(": ")
         return Result(finding, NOT_VERIFIED, text=text, reason=reason, cost_usd=cost, duration_s=duration,
                       num_turns=turns)
-    match = VERDICT_WORD.search(first_line(text))
+    match = VERDICT_WORD.match(first_line(text))
     if not match:
         return Result(finding, NOT_VERIFIED, text=text, reason="no verdict on the first line", cost_usd=cost,
                       duration_s=duration, num_turns=turns)
     return Result(finding, VERDICTS[match.group(1)], text=text, cost_usd=cost, duration_s=duration, num_turns=turns)
 
 
-def verify(finding: Finding, head: Head, timeout: float, start: Callable[[list[str], float], Run] = run_process
-           ) -> Result:
+def verify(finding: Finding, head: Head, timeout: float, tree: Path = ROOT,
+           start: Callable[[list[str], float, Path], Run] = run_process) -> Result:
     began = time.monotonic()
-    run = start(claude_command(prompt_for(finding, head)), timeout)
+    run = start(claude_command(prompt_for(finding, head)), timeout, tree)
     return parse_verdict(finding, run, time.monotonic() - began, timeout)
 
 
+def count_claude(ps_out: str, me: int) -> int:
+    """From `ps -axo pid=,ppid=,comm=` output, the `claude` processes that are not `me` or one of its ancestors."""
+    parent: dict[int, int] = {}
+    names: dict[int, str] = {}
+    for line in ps_out.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit():
+            pid = int(parts[0])
+            parent[pid], names[pid] = int(parts[1]), os.path.basename(parts[2].strip())
+    mine: set[int] = set()
+    pid = me
+    while pid and pid not in mine:
+        mine.add(pid)
+        pid = parent.get(pid, 0)
+    return sum(1 for pid, name in names.items() if name == "claude" and pid not in mine)
+
+
 def running_claude() -> int:
-    """How many `claude` processes run on this machine (sessions, subagent hosts and headless runs)."""
+    """How many `claude` processes run on this machine (sessions, subagent hosts and headless runs), leaving out
+    the session that started this run."""
     try:
-        out = subprocess.run(["ps", "-axo", "comm="], capture_output=True, text=True, timeout=30).stdout
+        out = subprocess.run(["ps", "-axo", "pid=,ppid=,comm="], capture_output=True, text=True, timeout=30).stdout
     except (OSError, subprocess.SubprocessError):
         return 0
-    return sum(1 for line in out.splitlines() if os.path.basename(line.strip()) == "claude")
+    return count_claude(out, os.getpid())
 
 
 class SessionCap:
-    """Waits before each start while the count of Claude processes is at or above the cap. The lock makes the check
-    and the start one step, so two workers never both take the last place."""
+    """Waits before each start while the count of Claude processes is at or above the cap, for at most max_wait
+    seconds. The lock makes the check and the start one step, so two workers never both take the last place."""
 
     def __init__(self, cap: int, count: Callable[[], int] = running_claude,
-                 sleep: Callable[[float], None] = time.sleep, poll: float = CAP_POLL, settle: float = 0.5) -> None:
+                 sleep: Callable[[float], None] = time.sleep, poll: float = CAP_POLL, settle: float = 0.5,
+                 max_wait: float = DEFAULT_MAX_WAIT, clock: Callable[[], float] = time.monotonic) -> None:
         self.cap, self.count, self.sleep, self.poll, self.settle = cap, count, sleep, poll, settle
+        self.max_wait, self.clock = max_wait, clock
         self.lock = threading.Lock()
 
-    def wait(self, label: str) -> None:
+    def wait(self, label: str, since: float | None = None) -> bool:
+        """True when a place is free; False once max_wait seconds have passed since `since` (default: now)."""
+        began = self.clock() if since is None else since
         while True:
             now = self.count()
             if now < self.cap:
-                return
+                return True
+            if self.clock() - began >= self.max_wait:
+                return False
             print(f"triage: {now} Claude processes running, cap {self.cap}; {label} waits", flush=True)
             self.sleep(self.poll)
 
@@ -207,8 +249,13 @@ def run_all(findings: list[Finding], work: Callable[[Finding], Result], jobs: in
 
     def one(index: int, finding: Finding) -> Result:
         label = f"finding {index} ({finding.file}:{finding.line})"
+        since = cap.clock()  # time queued behind another worker's wait counts too
         with cap.lock:
-            cap.wait(label)
+            if not cap.wait(label, since):
+                result = Result(finding, NOT_VERIFIED, reason=f"waited {cap.max_wait:.0f} s at the session cap of "
+                                                              f"{cap.cap} Claude processes")
+                print(f"triage: {label}: {result.verdict} - {result.reason}", flush=True)
+                return result
             started = threading.Event()
             box: list[Result] = []
 
@@ -300,19 +347,42 @@ def pr_head(pr: int) -> Head:
     return Head(branch=str(data["headRefName"]), sha=str(data["headRefOid"]))
 
 
-def fetch(head: Head) -> None:
+def fetch(head: Head, repo: Path = ROOT) -> None:
+    """Fetch the PR's branch and check that its head SHA is a commit here; TriageError when it is not."""
     try:
-        done = subprocess.run(["git", "fetch", "origin", head.branch], cwd=ROOT, capture_output=True, text=True,
+        done = subprocess.run(["git", "fetch", "origin", head.branch], cwd=repo, capture_output=True, text=True,
                               timeout=GH_TIMEOUT)
         if done.returncode != 0:
             raise TriageError(f"git fetch origin {head.branch} failed: {first_line(done.stderr)}")
-        got = subprocess.run(["git", "rev-parse", f"origin/{head.branch}"], cwd=ROOT, capture_output=True,
+        got = subprocess.run(["git", "rev-parse", f"origin/{head.branch}"], cwd=repo, capture_output=True,
                              text=True, timeout=GH_TIMEOUT).stdout.strip()
+        known = subprocess.run(["git", "cat-file", "-e", f"{head.sha}^{{commit}}"], cwd=repo, capture_output=True,
+                               text=True, timeout=GH_TIMEOUT).returncode == 0
     except (OSError, subprocess.SubprocessError) as exc:
         raise TriageError(f"git fetch origin {head.branch} failed: {exc}") from exc
+    if not known:
+        raise TriageError(f"the PR's head {head.sha} is not a commit here after git fetch origin {head.branch}")
     if got != head.sha:
-        print(f"triage: origin/{head.branch} is {got or 'missing'}, the PR's head is {head.sha}; the verifiers are "
-              f"told to read {head.sha}", flush=True)
+        print(f"triage: origin/{head.branch} is {got or 'missing'}, not the PR's head {head.sha}; the verifiers read "
+              f"a worktree at {head.sha}", flush=True)
+
+
+@contextmanager
+def verifier_tree(sha: str, repo: Path = ROOT) -> Iterator[Path]:
+    """A detached worktree of `repo` at `sha` in a temporary folder, removed (with `git worktree prune`) on exit."""
+    parent = Path(tempfile.mkdtemp(prefix="hart-triage-"))
+    tree = parent / "tree"
+    try:
+        done = subprocess.run(["git", "worktree", "add", "--detach", str(tree), sha], cwd=repo, capture_output=True,
+                              text=True, timeout=GH_TIMEOUT)
+        if done.returncode != 0:
+            raise TriageError(f"git worktree add --detach at {sha} failed: {first_line(done.stderr)}")
+        yield tree
+    finally:
+        subprocess.run(["git", "worktree", "remove", "--force", str(tree)], cwd=repo, capture_output=True,
+                       timeout=GH_TIMEOUT)
+        shutil.rmtree(parent, ignore_errors=True)
+        subprocess.run(["git", "worktree", "prune"], cwd=repo, capture_output=True, timeout=GH_TIMEOUT)
 
 
 def env_int(name: str, default: int) -> int:
@@ -337,9 +407,15 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, TriageError) as exc:
         print(f"triage: {exc}", file=sys.stderr)
         return 2
-    cap = SessionCap(env_int("HART_SESSION_CAP", DEFAULT_CAP))
+    cap = SessionCap(env_int("HART_SESSION_CAP", DEFAULT_CAP),
+                     max_wait=env_int("HART_TRIAGE_MAX_WAIT", DEFAULT_MAX_WAIT))
     print(f"triage: PR #{args.pr}, {len(findings)} findings, {args.jobs} at once, head {head.sha}", flush=True)
-    results = run_all(findings, lambda f: verify(f, head, args.timeout), args.jobs, cap)
+    try:
+        with verifier_tree(head.sha) as tree:
+            results = run_all(findings, lambda f: verify(f, head, args.timeout, tree), args.jobs, cap)
+    except TriageError as exc:
+        print(f"triage: {exc}", file=sys.stderr)
+        return 2
     path = write_outputs(args.out or DEFAULT_OUT / str(args.pr), args.pr, head, results)
     counts = {v: sum(1 for r in results if r.verdict == v) for v in ("CONFIRMED", "PLAUSIBLE", "WRONG", NOT_VERIFIED)}
     print(f"triage: {path}")

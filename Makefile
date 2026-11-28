@@ -19,8 +19,8 @@ land:  ## The coordinator queues one PR to merge and returns (0 = queued; make l
 
 .PHONY: triage
 triage:  ## The coordinator verifies /code-review findings: make triage PR=N FINDINGS=<json> [OUT=dir]; one headless finding-verifier each, fix-brief.md in ~/.cache/hart/triage/<N>/
-	@test -n "$(PR)" -a -n "$(FINDINGS)" || { echo 'make triage: set PR=N FINDINGS=<file>' >&2; exit 2; }
-	@python3 tools/agent/triage.py $(PR) --findings '$(FINDINGS)' $(if $(OUT),--out '$(OUT)')
+	@test -n '$(subst ','"'"',$(value PR))' -a -n '$(subst ','"'"',$(value FINDINGS))' || { echo 'make triage: set PR=N FINDINGS=<file>' >&2; exit 2; }
+	@python3 tools/agent/triage.py '$(subst ','"'"',$(value PR))' --findings '$(subst ','"'"',$(value FINDINGS))' $(if $(value OUT),--out '$(subst ','"'"',$(value OUT))')
 
 .PHONY: land-status
 land-status:  ## The merge queue: each ticket's PR, session and state, and the last lines of its log
