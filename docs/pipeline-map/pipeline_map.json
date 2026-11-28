@@ -3350,6 +3350,15 @@
    "path": "www/scripts/portal_head.py"
   },
   {
+   "id": "www/scripts/portal_nojs.py",
+   "label": "portal_nojs.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part, stage 7b: the static header, footer and primer text a visitor without JavaScript sees, from data/site.json and data/briefing.json.",
+   "path": "www/scripts/portal_nojs.py"
+  },
+  {
    "id": "www/scripts/portal_photos.py",
    "label": "portal_photos.py",
    "kind": "generator",
@@ -14447,6 +14456,11 @@
    "from": "www/scripts/portal_head.py",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "head tags, provenance (import)"
+  },
+  {
+   "from": "www/scripts/portal_nojs.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "no-JavaScript fallbacks (import)"
   },
   {
    "from": "www/scripts/portal_photos.py",
