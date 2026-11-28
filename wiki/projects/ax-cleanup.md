@@ -1,7 +1,7 @@
 # Agent experience cleanup (2026-11-27)
 
 Status: active
-Coordinator: hart-4e, since 2026-11-27 22:20
+Coordinator: hart-ef, since 2026-11-28 03:03
 Dashboard: https://claude.ai/artifact/PzHCqE42g9vDyXrXgdWJvC
 
 The owner asked on 2026-11-27 for a second look at the agent experience after the round of 2026-11-25 (#1104 to #1107). The review rated it about 8.5 of 10 and named four costs: memory had grown back from 32 to 49 files with overlaps and one conflict, every session start printed a line per kept worktree, `.claude/progress/` held 37 stale files, and two skills loaded more than 2,000 words each.
@@ -62,4 +62,21 @@ The 7.5 rescore found Memory 6.5 and Housekeeping 5.5; the owner asked to fix bo
 | R5-L2 Dashboard sync | `dash_rows.py sync-prs` marks rows from GitHub, so a merge shows without a message; the feed sorts past midnight | #1389 |
 
 Rescore after these: 8.5 (see [report-cards](../report-cards.md#agent-experience)).
+
+## Hand-off to hart-ef (2026-11-28 03:03)
+
+hart-4e handed the queue to hart-ef on the owner's word, near its context limit. Rescore 8.5 is on main (#1390; the 7.5 point removed on the owner's word).
+
+Open, in the land queue or still building:
+
+| Item | State | Next step |
+|---|---|---|
+| #1392 housekeeping that stays clean (sweep after each land and hourly, merged local branches pruned, merged lanes' progress files archived, data-masters phase 1 done) | review fixed, test fixed for GNU make (a3d13702); FIFO ticket 9 | when merged: `git pull` in the main checkout, `make housekeeping-install`, then `make housekeeping` once and record the counts |
+| R7-L1 `agent/claude/ax-hands-off` (a queued PR re-targets a moved head, one log per ticket, a version ledger in `dash_rows.py`, one `~/.cache/hart/land/events.log` line per finished land) | tool-fixer building; waits for #1392 (both edit `land.py`) | when its PR opens: `/code-review medium`, verify, one fix push, `make land` |
+| R7-L2 `agent/claude/ax-triage` (`make triage PR=N FINDINGS=<file>`: headless finding-verifiers via `claude -p --agent finding-verifier`, a `fix-brief.md`) | tool-fixer building; a headless trial passed (agent instructions load, 7 s, about $0.12 a finding) | same as R7-L1 |
+| Agent-experience rescore | waits for #1392 and both R7 PRs | rescore with a `repo-auditor` and refresh the 2026-11-28 point in place (owner: no new point for the same day); republish the report-cards page |
+
+Other sessions' PRs in the queue: hart-54's #1393 (UX rescore 7.3), #1394 (UX-L7 keyboard) and #1395 (UX-L6 crew sheets). `docs/report-cards/scores.json` is shared by #1393 and the coming AX rescore; the second to merge takes a local merge. The site deploy after hart-54's part 2 is the queue holder's (last deploy 99171492 at 02:55).
+
+Known follow-ups (not started): the `gh pr merge` match in `.claude/hooks/worktree_sweep.py` fires on a quoted grep pattern; one `make land` description in `merging.md`, linked from `handoff` and `coordinate`; `dashboard/SKILL.md` is at 1,500 words; split `hosts-and-network` in memory; the pipeline map records almost no Python imports.
 
