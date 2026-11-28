@@ -2,9 +2,10 @@
 <meta name="dash-form" content="dashboard">
 <style>
 .w2 { display:flex; flex-direction:column; gap:var(--cds-gap-md); }
-.w2 .trio { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--cds-gap-md); align-items:start; }
+.w2 .trio { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--cds-gap-md); align-items:stretch; }
 .w2 #events-section .events { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-md); }
-@media (min-width:1000px) { .w2 .trio { grid-template-columns:minmax(0,2fr) minmax(0,1fr); } .w2 #events-section .events { max-height:190px; overflow-y:auto; padding-right:4px; } }
+.w2 #events-section .events { max-height:190px; overflow-y:auto; }
+@media (min-width:1000px) { .w2 .trio { grid-template-columns:minmax(0,2fr) minmax(0,1fr); } .w2 #events-section { display:flex; flex-direction:column; min-height:0; } .w2 #events-section .events { flex:1 1 auto; height:0; max-height:none; } }
 .w2 h1 { font-family:var(--font-anthropic-serif); font-weight:400; font-size:var(--cds-font-size-title); margin:0; }
 .w2 .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--cds-gap-md); }
 .w2 .tile { background:var(--color-panel); border:1px solid var(--color-border-line); border-radius:var(--cds-radius); padding:var(--cds-pad-sm) var(--cds-pad-md); min-width:0; }
@@ -121,13 +122,13 @@
         <div class="chart" id="load-chart"><h3>Load (1-minute average)</h3><div data-draw="load" data-source="samples"></div></div>
         <div class="chart" id="agents-chart"><h3>Claude sessions and agents running</h3><div data-draw="agents" data-source="samples"></div></div>
       </div>
-      <p class="muted">Sampled every 2 minutes from the Mac and the Windows box, Claude session and agent counts included; the data syncs every 10 minutes. Dashed lines: each host's CPU count, and the starting cap of 8 Claude sessions (flexible while load is low).</p>
     </section>
     <section id="events-section">
       <h2>Latest updates</h2>
       <ul class="events" data-draw="events" data-source="events"></ul>
     </section>
   </div>
+  <p class="muted">Sampled every 2 minutes from the Mac and the Windows box, Claude session and agent counts included; the data syncs every 10 minutes. Dashed lines: each host's CPU count, and the starting cap of 8 Claude sessions (more may run while the load is low).</p>
 
   <section id="lanes-section">
     <h2>Lanes</h2>
