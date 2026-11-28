@@ -6524,6 +6524,24 @@
    "path": "tools/agent/land.py"
   },
   {
+   "id": "docs/report-cards/scores.json",
+   "label": "report card scores",
+   "kind": "structured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Every report card score by category, the unscored cards and the wave dashboards the master dashboard shows; hand-kept by the report-cards skill.",
+   "path": "docs/report-cards/scores.json"
+  },
+  {
+   "id": "tools/agent/report_cards_page.py",
+   "label": "report_cards_page.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Report-cards skill: validates the scores master, prints slippage, and builds the master dashboard's page and JSON from it and copies of the dashboard stores; output goes to a scratch folder and is published, not committed.",
+   "path": "tools/agent/report_cards_page.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -6711,6 +6729,16 @@
    "domain": "agents",
    "desc": "Use when PanelPro must be quit or started on the Mac (after a Store is pulled, or before asking the owner to approve a panel) or on the Pi (around a deploy or make ops-pull), or when asked to run pi_quit_panelpro.sh or pi_start_panelpro.sh.",
    "path": ".claude/skills/panelpro/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/report-cards/SKILL.md",
+   "label": "skill: report-cards",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when a report card is scored or rescored (project, code, data, website UX, agent experience or a new category), when the owner asks for a report card update, a slippage check or how a score has moved, or when a wave dashboard ends and the master dashboard must take it in.",
+   "path": ".claude/skills/report-cards/SKILL.md",
    "gen": "agent-docs"
   },
   {
@@ -15314,6 +15342,15 @@
    "label": "check runs and main's push run"
   },
   {
+   "from": "docs/report-cards/scores.json",
+   "to": "tools/agent/report_cards_page.py"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/report_cards_page.py",
+   "label": "report-cards skill"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -15441,6 +15478,13 @@
   },
   {
    "from": ".claude/skills/dashboard/SKILL.md",
+   "to": ".claude/skills/report-cards/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": ".claude/skills/dashboard/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
@@ -15497,6 +15541,13 @@
   },
   {
    "from": ".claude/skills/panelpro/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": ".claude/skills/report-cards/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
