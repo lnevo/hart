@@ -169,6 +169,20 @@ class Tickets(unittest.TestCase):
         self.assertEqual([f"merge queue {self.root / 'none'}: empty"], Q.status(queue(self.root / "none"), logs,
                                                                                  lock / "none"))
 
+    def test_status_reads_each_tickets_own_log(self) -> None:
+        logs = self.root.parent / "logs"
+        logs.mkdir()
+        q = queue(self.root)
+        first, second = q.take(12, "hart-a"), q.take(13, "hart-b")
+        (logs / "12.log").write_text("old name\n", encoding="utf-8")
+        (logs / f"12-t{first.number}.log").write_text("first ticket\n", encoding="utf-8")
+        (logs / "13.log").write_text("queued by older code\n", encoding="utf-8")
+        lines = Q.status(q, logs, self.root.parent / "no.lock")
+        self.assertIn("    first ticket", lines)
+        self.assertNotIn("    old name", lines)
+        self.assertIn("    queued by older code", lines, "a ticket with no log of its own reads the old name")
+        self.assertEqual(logs / f"13-t{second.number}.log", Q.log_path(13, logs, second.number))
+
 
 @mock.patch.dict(os.environ, {"HART_CI_REPO": T.SLUG, "HART_SESSION_NAME": "hart-test"})
 class Landing(unittest.TestCase):
@@ -267,7 +281,8 @@ class Detached(unittest.TestCase):
         assert held is not None
         self.assertEqual((JOB_PID, 12, "hart-test", "started"), (held.pid, held.pr, held.session, held.state),
                          "the parent wrote its own PID back over the job's")
-        self.assertIn("make land PR=12: ticket 1", (self.logs / "12.log").read_text())
+        self.assertIn("make land PR=12: ticket 1", (self.logs / "12-t1.log").read_text())
+        self.assertFalse((self.logs / "12.log").exists(), "the log is the ticket's own")
         self.assertIn("Exit 0 means queued, not merged", buf.getvalue())
         self.assertIn("make land-wait PR=12", buf.getvalue())
 
@@ -276,11 +291,14 @@ class Detached(unittest.TestCase):
             LAND.detach(self.args(), self.root, self.logs, self.adopting([], then_release=True))
         self.assertEqual([], list(self.root.glob(f"*{Q.SUFFIX}")))
 
-    def test_a_stale_result_is_removed_before_the_job_starts(self) -> None:
-        Q.write_result(12, 99, 4, self.logs)
+    def test_an_old_name_result_is_removed_before_the_job_starts(self) -> None:
+        old = Q.result_path(12, self.logs)
+        self.logs.mkdir(parents=True)
+        old.write_text(json.dumps({"ticket": 99, "code": 4}), encoding="utf-8")
         with contextlib.redirect_stdout(io.StringIO()):
             LAND.detach(self.args(), self.root, self.logs, self.adopting([]))
-        self.assertIsNone(Q.read_result(12, self.logs))
+        self.assertFalse(old.exists())
+        self.assertIsNone(Q.read_result(12, self.logs, 1))
 
     def test_a_pr_with_a_live_ticket_is_not_queued_again(self) -> None:
         first = queue(self.root).take(12, "hart-other")
@@ -290,7 +308,7 @@ class Detached(unittest.TestCase):
             self.assertEqual(0, LAND.detach(self.args(), self.root, self.logs, self.adopting(started)))
         self.assertEqual([], started)
         self.assertIn(f"#12 is already in the merge queue as ticket {first.number} (PR #12, hart-other", buf.getvalue())
-        self.assertIn(str(self.logs / "12.log"), buf.getvalue())
+        self.assertIn(str(self.logs / f"12-t{first.number}.log"), buf.getvalue())
         self.assertEqual([first.path], list(self.root.glob(f"*{Q.SUFFIX}")))
 
     @mock.patch.dict(os.environ, {"HART_CI_REPO": T.SLUG})
@@ -314,7 +332,8 @@ class Detached(unittest.TestCase):
     def test_main_detaches_unless_watch_and_a_watched_run_writes_its_result(self) -> None:
         with mock.patch.object(LAND, "detach", return_value=0) as detach, \
                 mock.patch.object(LAND.Lander, "land", return_value=4) as land, \
-                mock.patch.object(LAND, "write_result") as result, contextlib.redirect_stdout(io.StringIO()):
+                mock.patch.object(LAND, "write_result") as result, \
+                mock.patch.object(LAND, "append_event") as event, contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(0, LAND.main(["12"]))
             detach.assert_called_once()
             land.assert_not_called()
@@ -326,6 +345,52 @@ class Detached(unittest.TestCase):
             self.assertEqual((12, 4), (result.call_args.args[0], result.call_args.args[2]))
             LAND.main(["12", "--watch"])
             self.assertIsNone(land.call_args.kwargs["ticket"])
+            self.assertEqual(" exit 4: no output", event.call_args.args[0][-18:], "the end line goes to events.log")
+
+
+class Events(unittest.TestCase):
+    """events.log: one line per head move and per ended land job; make land-status shows the last ten."""
+
+    def setUp(self) -> None:
+        base = Path(tempfile.mkdtemp(dir=T.LOCKS.name))
+        self.root, self.logs = base / "queue", base / "logs"
+
+    def test_the_line_format(self) -> None:
+        self.assertEqual("02:58:01 ticket 7 PR #1392 hart-4e exit 1: STOP: `check` on abc ended failure (u).",
+                         Q.event_line("02:58:01", 7, 1392, "hart-4e", 1, "STOP: `check` on abc\nended failure (u)."))
+        self.assertEqual("03:01:00 ticket ? PR #12 hart-4e running: head moved from a to b; waiting for its check",
+                         Q.event_line("03:01:00", None, 12, "hart-4e", None,
+                                      "head moved from a to b; waiting for its check"))
+
+    def test_end_reasons(self) -> None:
+        merged = ["`check` check on aaaa: run 7", f"Merged #12: {T.MERGE}", "ships: nothing"]
+        self.assertEqual(f"merged {T.MERGE}, main green", LAND.end_reason(merged, 0))
+        self.assertEqual(f"merged {T.MERGE}, main red", LAND.end_reason(merged, LAND.MAIN_RED_EXIT))
+        stop = ["waiting", "STOP: `check` on aaaa ended failure (https://x/7): not merging.. Nothing was merged."]
+        self.assertEqual(stop[1], LAND.end_reason(stop, 1))
+        self.assertEqual("no output", LAND.end_reason([], 1))
+
+    @mock.patch.dict(os.environ, {"HART_CI_REPO": T.SLUG, "HART_SESSION_NAME": "hart-4e"})
+    def test_a_land_writes_its_head_move_and_end_and_status_shows_the_last_ten(self) -> None:
+        gh = T.FakeGitHub(heads=[T.HEAD, T.NEW_HEAD],
+                          check_runs=[[T.check_run("in_progress")], [T.check_run("completed", "failure",
+                                                                                 sha=T.NEW_HEAD)]])
+        lnd, _ = T.lander(gh, queue=self.root)
+        lnd.events_dir = self.logs
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = lnd.land(12)
+        lnd.event(12, code, LAND.end_reason(lnd.out, code))
+        lines = (self.logs / Q.EVENTS).read_text(encoding="utf-8").splitlines()
+        self.assertEqual(2, len(lines))
+        self.assertRegex(lines[0], r"^\d\d:\d\d:\d\d ticket 1 PR #12 hart-4e running: head moved from "
+                                   f"{T.HEAD[:12]} to {T.NEW_HEAD[:12]}; waiting for its check$")
+        self.assertRegex(lines[1], rf"^\d\d:\d\d:\d\d ticket 1 PR #12 hart-4e exit 1: STOP: `check` on "
+                                   rf"{T.NEW_HEAD[:12]} ended failure \(https://example.test/check/7\)")
+        for n in range(12):
+            Q.append_event(f"line {n}", self.logs)
+        status = Q.status(queue(self.root), self.logs, self.root.parent / "no.lock")
+        self.assertEqual(f"land events ({self.logs / Q.EVENTS}, last 10):", status[-11])
+        self.assertEqual([f"  line {n}" for n in range(2, 12)], status[-10:])
 
 
 class Waiting(unittest.TestCase):
@@ -353,6 +418,22 @@ class Waiting(unittest.TestCase):
         Q.write_result(12, 3, 0, self.logs)
         self.assertEqual(0, Q.wait(queue(self.root, sleep=lambda s: self.fail("waited")), 12, self.logs))
 
+    def test_each_ticket_has_its_own_result_and_the_newest_answers(self) -> None:
+        Q.write_result(12, 3, 1, self.logs)
+        Q.write_result(12, 10, 4, self.logs)
+        self.assertTrue((self.logs / "12-t3.result").exists())
+        self.assertEqual(Q.Result(3, 1), Q.read_result(12, self.logs, 3))
+        self.assertEqual(Q.Result(10, 4), Q.read_result(12, self.logs))
+        self.assertEqual(4, Q.wait(queue(self.root, sleep=lambda s: self.fail("waited")), 12, self.logs))
+
+    def test_a_result_under_the_old_name_is_still_read(self) -> None:
+        self.logs.mkdir(parents=True)
+        (self.logs / "12.result").write_text(json.dumps({"ticket": 5, "code": 0}), encoding="utf-8")
+        (self.logs / "12.log").write_text("older land\n", encoding="utf-8")
+        said: list[str] = []
+        self.assertEqual(0, Q.wait(queue(self.root, said=said), 12, self.logs))
+        self.assertIn(str(self.logs / "12.log"), said[-1])
+
     def test_no_job_and_no_result_or_another_tickets_result_is_2(self) -> None:
         said: list[str] = []
         self.assertEqual(2, Q.wait(queue(self.root, said=said), 12, self.logs))
@@ -364,6 +445,25 @@ class Waiting(unittest.TestCase):
             mine.path.unlink()
 
         self.assertEqual(2, Q.wait(queue(self.root, sleep=sleep), 12, self.logs))
+
+    def test_an_earlier_tickets_result_does_not_answer_for_a_newer_job_that_died(self) -> None:
+        Q.write_result(12, 3, 0, self.logs)
+        Q.log_path(12, self.logs, 8).write_text("make land PR=12: ticket 8\n", encoding="utf-8")
+        said: list[str] = []
+        self.assertEqual(2, Q.wait(queue(self.root, said=said), 12, self.logs), "ticket 8's job left no result")
+        self.assertIn(str(self.logs / "12-t8.result"), said[-1])
+        dead = queue(self.root).take(13, "hart-a", pid=GONE)
+        Q.write_result(13, dead.number - 1, 0, self.logs)
+        self.assertEqual(2, Q.wait(queue(self.root, alive=lambda pid: False), 13, self.logs),
+                         "a dead ticket still in the queue is newer than the result")
+
+    def test_an_old_name_result_does_not_answer_for_a_newer_ticket(self) -> None:
+        self.logs.mkdir(parents=True)
+        (self.logs / "12.result").write_text(json.dumps({"ticket": 5, "code": 0}), encoding="utf-8")
+        Q.log_path(12, self.logs, 9).write_text("make land PR=12: ticket 9\n", encoding="utf-8")
+        self.assertEqual(2, Q.wait(queue(self.root), 12, self.logs))
+        Q.write_result(12, 9, 4, self.logs)
+        self.assertEqual(4, Q.wait(queue(self.root), 12, self.logs))
 
 
 if __name__ == "__main__":

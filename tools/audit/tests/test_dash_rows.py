@@ -111,6 +111,75 @@ class TestEventsAndSamples(DashRowsCase):
         self.assertIn("23:59", self.refused("samples", str(path), "--since", "23:59"))
 
 
+class TestLedger(DashRowsCase):
+    """OUT_DIR/versions.json: the version each document has after the emitted writes, and the pins read from it."""
+
+    def ledger(self) -> Any:
+        return json.loads((self.out / "versions.json").read_text(encoding="utf-8"))
+
+    def sync_file(self, versions: dict[str, object]) -> str:
+        path = self.tmp / "listed.json"
+        path.write_text(json.dumps(versions), encoding="utf-8")
+        return str(path)
+
+    def test_each_op_records_the_version_after_its_write(self) -> None:
+        self.writes("new-row", "3-L1", "lane=a", "status=queued", "stage=s", "eta=00:10", "order=1",
+                    "event", "started")
+        self.assertEqual(self.ledger(), {"data/3/events/e3-2330": 1})
+        self.writes("ledger-sync", self.sync_file({"3-L1": 1}))
+        [entry] = self.writes("row", "3-L1", "status=running")
+        self.assertEqual((entry["op"], entry["if_version"]), ("update", 1))
+        self.assertEqual(self.ledger()["data/3/lanes/3-L1"], 2)
+        first, second = self.writes("row", "3-L1", "status=ci", "row", "3-L1", "status=review")
+        self.assertEqual((first["if_version"], second["if_version"]), (2, 3), "one run pins each write in turn")
+        self.assertEqual(self.ledger()["data/3/lanes/3-L1"], 4)
+        [gone] = self.writes("delete", "3-L1")
+        self.assertEqual(gone, {"op": "delete", "collection": "data/3/lanes", "doc_id": "3-L1", "if_version": 4})
+        self.assertNotIn("data/3/lanes/3-L1", self.ledger())
+
+    def test_an_explicit_if_version_wins_once(self) -> None:
+        self.writes("ledger-sync", self.sync_file({"3-L2": 5}))
+        first, second = self.writes("--if-version", "3-L2=9", "row", "3-L2", "stage=a", "row", "3-L2", "stage=b")
+        self.assertEqual((first["if_version"], second["if_version"]), (9, 10))
+        self.assertEqual(self.ledger()["data/3/lanes/3-L2"], 11)
+
+    def test_ledger_sync_seeds_corrects_and_removes(self) -> None:
+        self.assertEqual([], self.writes("ledger-sync", self.sync_file({"3-L1": 4, "3-L2": 2,
+                                                                      "data/3/events/e3-0100": 1})))
+        self.assertEqual(self.ledger(), {"data/3/events/e3-0100": 1, "data/3/lanes/3-L1": 4,
+                                         "data/3/lanes/3-L2": 2})
+        self.writes("ledger-sync", self.sync_file({"3-L1": 7, "3-L2": None}))
+        self.assertEqual(self.ledger(), {"data/3/events/e3-0100": 1, "data/3/lanes/3-L1": 7})
+        [entry] = self.writes("row", "3-L1", "status=ci")
+        self.assertEqual(entry["if_version"], 7)
+        self.assertIn("not a version", self.refused("ledger-sync", self.sync_file({"3-L1": "seven"})))
+        self.assertEqual(self.ledger()["data/3/lanes/3-L1"], 8, "a refused run leaves the ledger as it was")
+
+    def test_ledger_sync_without_a_wave_takes_full_ids_only(self) -> None:
+        def run(path: str) -> subprocess.CompletedProcess[str]:
+            return subprocess.run([sys.executable, str(SCRIPT), str(self.out), "ledger-sync", path],
+                                  capture_output=True, text=True, timeout=30)
+
+        self.assertEqual(0, run(self.sync_file({"data/3/lanes/3-L1": 3})).returncode)
+        self.assertEqual(self.ledger(), {"data/3/lanes/3-L1": 3})
+        refused = run(self.sync_file({"3-L1": 3}))
+        self.assertEqual(2, refused.returncode)
+        self.assertIn("--wave", refused.stderr)
+
+    def test_a_row_the_ledger_does_not_hold_names_ledger_sync(self) -> None:
+        self.assertIn("ledger-sync", self.refused("row", "3-L9", "status=ci"))
+
+    def test_new_row_over_an_existing_row_leaves_its_version_unknown(self) -> None:
+        [entry] = self.writes("new-row", "3-L1", "lane=a", "status=queued", "stage=s", "eta=00:10", "order=1")
+        self.assertNotIn("if_version", entry)
+        self.assertNotIn("data/3/lanes/3-L1", self.ledger(), "an unpinned set does not guess version 1")
+        self.assertIn("ledger-sync", self.refused("row", "3-L1", "status=running"))
+        [entry] = self.writes("--if-version", "3-L1=7", "new-row", "3-L1", "lane=a", "status=queued",
+                              "stage=s", "eta=00:10", "order=1")
+        self.assertEqual(entry["if_version"], 7)
+        self.assertEqual(self.ledger()["data/3/lanes/3-L1"], 8, "a pinned set records the pin plus 1")
+
+
 FAKE_GH = """#!{python}
 import json, os, sys
 from pathlib import Path
@@ -205,6 +274,46 @@ class TestSyncPrs(DashRowsCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         [entry] = json.loads(result.stdout)
         self.assertEqual((entry["doc_id"], entry["if_version"]), ("3-L1", 6))
+
+    def test_versions_come_from_the_ledger_without_versions_file(self) -> None:
+        self.row_file("3-L1", {"status": "ci", "pr": 1301})
+        self.row_file("3-L2", {"data": {"status": "ci", "pr": 1301}, "version": 9})
+        self.out.mkdir()
+        (self.out / "versions.json").write_text(json.dumps({"data/3/lanes/3-L1": 4, "data/3/lanes/3-L2": 6}),
+                                                encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual([(e["doc_id"], e["if_version"]) for e in json.loads(result.stdout)],
+                         [("3-L1", 4), ("3-L2", 9)], "the file's version, else the ledger's")
+        ledger = json.loads((self.out / "versions.json").read_text(encoding="utf-8"))
+        self.assertEqual(ledger, {"data/3/lanes/3-L1": 5, "data/3/lanes/3-L2": 10})
+
+    def test_a_listed_version_corrects_a_stale_high_ledger(self) -> None:
+        self.row_file("3-L1", {"data": {"status": "ci", "pr": 1301}, "version": 5})
+        self.row_file("3-L2", {"data": {"status": "running"}, "version": 3})
+        self.out.mkdir()
+        (self.out / "versions.json").write_text(json.dumps({"data/3/lanes/3-L1": 9, "data/3/lanes/3-L2": 8}),
+                                                encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        [entry] = json.loads(result.stdout)
+        self.assertEqual((entry["doc_id"], entry["if_version"]), ("3-L1", 5), "the listed version, not the ledger's")
+        ledger = json.loads((self.out / "versions.json").read_text(encoding="utf-8"))
+        self.assertEqual(ledger, {"data/3/lanes/3-L1": 6, "data/3/lanes/3-L2": 3},
+                         "the ledger takes each listed version, rows without a pr too")
+
+    def test_a_versions_file_wins_over_the_row_file_and_the_ledger(self) -> None:
+        self.row_file("3-L1", {"data": {"status": "ci", "pr": 1301}, "version": 5})
+        self.out.mkdir()
+        (self.out / "versions.json").write_text(json.dumps({"data/3/lanes/3-L1": 9}), encoding="utf-8")
+        versions = self.tmp / "given.json"
+        versions.write_text(json.dumps({"3-L1": 7}), encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync("--versions", str(versions))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)[0]["if_version"], 7)
 
     def test_a_row_with_no_version_is_refused(self) -> None:
         self.row_file("3-L1", {"status": "ci", "pr": 1301})

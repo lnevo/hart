@@ -10,7 +10,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps it 
 ## Who writes it
 
 - **The coordinator owns every row and checks it.** A lane or another session may lack dashboard access, stop or forget, and its row goes stale. When a message changes a lane or PR, update that row in the same turn.
-- A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends `dash_rows.py` op lines (`row 3-L7 status=ci stage=remote`, `event "Merged #1371"`; no `updated` or `at`, which the helper stamps) to `.claude/progress/<topic>.dash.jsonl`, one op per line, and the coordinator runs each line through `dash_rows.py` at the next `SYNC` (a `row` with `--if-version` from the row's last read).
+- A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends `dash_rows.py` op lines (`row 3-L7 status=ci stage=remote`, `event "Merged #1371"`; no `updated` or `at`, which the helper stamps) to `.claude/progress/<topic>.dash.jsonl`, one op per line, and the coordinator runs each line through `dash_rows.py` at the next `SYNC`.
 - Results that change the page (a deploy, a merge, a failed check) come to the coordinator directly. A steward that reports to a background coordinator sends the coordinator a copy.
 
 ## Set up (once per wave)
@@ -47,10 +47,10 @@ Rows to keep:
 - **Every PR another session sends to the queue**, ids `<wave>-P<pr>` (`3-P1271`), named for the session. Add it when the session first tells you its plan, not when it is ready.
 - **The report card** (`<wave>-RC`) and anything else with an ETA the owner waits on.
 
-Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update` and needs `--if-version` from the row's last read; `new-row` is a `set` and needs lane, status, stage, eta and order. Do not use a time an agent reports.
+Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update`; `new-row` is a `set` and needs lane, status, stage, eta and order. Pins come from a version ledger; [`ledger.md`](ledger.md) says how it fills and how to repair it after a version mismatch. Do not use a time an agent reports.
 
 ```
-python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 --if-version 3-L7=4 \
+python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 \
   row 3-L7 status=ci pr='[1271,1280]' eta=23:40 'stage=head abc123, remote green' \
   event 'Merged #1271 (merge 0ddc7b8)'
 ```
@@ -73,7 +73,7 @@ Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a le
 
 Update on every message that changes a lane or PR: it starts, passes or fails its gates, starts or ends a remote run, opens a PR, is ready, merges, deploys, changes its ETA or is blocked.
 
-At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir` right before the sync, so the pins are fresh, write the listed versions as {doc_id: version} to a file, then run `sync-prs <out_dir>/data/<wave>/lanes --versions <file>`. Run it again before telling the owner anything; check other rows against GitHub (`gh pr view N --json state,mergeCommit,headRefOid`) then too. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
+At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir` right before the sync, then run `sync-prs <out_dir>/data/<wave>/lanes`. Watch `~/.cache/hart/land/events.log` with a `Monitor` (`tail -n0 -F`): each land job logs its end there. Run it again before telling the owner anything; check other rows against GitHub (`gh pr view N --json state,mergeCommit,headRefOid`) then too. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
 
 ## Samples
 

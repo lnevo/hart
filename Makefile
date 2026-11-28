@@ -33,7 +33,7 @@ triage:  ## The coordinator verifies /code-review findings: make triage PR=N FIN
 	@python3 tools/agent/triage.py '$(subst ','"'"',$(value PR))' --findings '$(subst ','"'"',$(value FINDINGS))' $(if $(value OUT),--out '$(subst ','"'"',$(value OUT))')
 
 .PHONY: land-status
-land-status:  ## The merge queue: each ticket's PR, session and state, and the last lines of its log
+land-status:  ## The merge queue: each ticket's PR, session and state, the last lines of its log, and the last land events
 	@python3 tools/agent/land_queue.py status
 
 .PHONY: land-wait
