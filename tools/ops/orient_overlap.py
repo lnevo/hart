@@ -10,7 +10,8 @@ sits on that line and is read). With no origin/main the commits are not compared
 
 A path changed in two or more places is a clash, unless git gives it a merge driver of the repo's own through
 .gitattributes (`git check-attr merge`, read in the main checkout: union, pipeline-map): those merge by themselves
-and are listed apart as auto-merges.
+and are listed apart as auto-merges. A clash whose places are all branches of one session's lanes (one lane prefix,
+see lane) is listed apart too, one line per prefix: a session's own lanes merge in its own order.
 
 git runs with GIT_OPTIONAL_LOCKS=0, so `git status` in another session's worktree never rewrites its index. A
 worktree that cannot be read is a note, never a stop. It imports nothing of the repo at load time; overlaps_for
@@ -64,6 +65,7 @@ class OverlapReport:
     clashes: list[Overlap] = field(default_factory=list)
     auto: list[Overlap] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    lanes: dict[str, list[Overlap]] = field(default_factory=dict)  # lane prefix -> clashes only its branches share
 
 
 # ---------------------------------------------------------------- git
@@ -207,8 +209,26 @@ def classify(root: str | Path, places: dict[str, list[str]], notes: list[str]) -
         rep.notes.append(f"merge drivers not read ({err}); every shared path is listed as a clash")
     for path in sorted(shared):
         item = Overlap(path, shared[path], path in auto)
-        (rep.auto if item.auto_merge else rep.clashes).append(item)
+        prefixes = {lane(label) for label in item.places}
+        if item.auto_merge:
+            rep.auto.append(item)
+        elif len(prefixes) == 1 and None not in prefixes:
+            rep.lanes.setdefault(str(next(iter(prefixes))), []).append(item)
+        else:
+            rep.clashes.append(item)
     return rep
+
+
+def lane(label: str) -> str | None:
+    """The lane prefix of a place's branch: the branch up to and with the first "-" of its last part, so
+    agent/claude/ux-scorecard and agent/claude/ux-nav share agent/claude/ux-. None for a detached worktree or a
+    branch whose last part has no "-". Branches of two sessions that chose the same word share a prefix too."""
+    if label.startswith("detached "):
+        return None
+    branch = label.split(" (", 1)[1].rstrip(")") if label.startswith("PR #") else label.split(" (PR #", 1)[0]
+    head, _, last = branch.rpartition("/")
+    word, dash, _ = last.partition("-")
+    return f"{head}/{word}-" if dash and head else (f"{word}-" if dash and word else None)
 
 
 def overlap_report(root: str | Path, trees: Sequence[TreeLike], prs: Sequence[PullRequest] = ()) -> OverlapReport:
@@ -239,6 +259,9 @@ def full_lines(rep: OverlapReport, with_prs: str) -> list[str]:
     out = [f"Overlap (files changed in two or more places; local worktrees, {with_prs})"
            + (":" if rep.clashes else ": none")]
     out += [f"  {o.path}: {', '.join(o.places)}" for o in rep.clashes]
+    if rep.lanes:
+        out.append(f"Lane overlaps ({sum(map(len, rep.lanes.values()))}; only branches of one lane prefix share them):")
+        out += [f"  {lane_text(prefix, items)}" for prefix, items in sorted(rep.lanes.items())]
     if rep.auto:
         out.append(f"Auto-merges ({len(rep.auto)}; a merge driver in .gitattributes joins both sides):")
         out += [f"  {o.path}: {', '.join(o.places)}" for o in rep.auto]
@@ -246,12 +269,25 @@ def full_lines(rep: OverlapReport, with_prs: str) -> list[str]:
     return out
 
 
+def lane_text(prefix: str, items: list[Overlap]) -> str:
+    """One prefix's lane overlaps: "<prefix>*: N file(s) (a, b, c and N more) in <branches>"."""
+    names = ", ".join(o.path for o in items[:SHORT_PATHS]) + (f" and {len(items) - SHORT_PATHS} more"
+                                                              if len(items) > SHORT_PATHS else "")
+    places = sorted({p for o in items for p in o.places})
+    return f"{prefix}*: {len(items)} file(s) ({names}) in {', '.join(places)}"
+
+
 def short_line(rep: OverlapReport) -> list[str]:
-    """One line for the session-start hook, or none when no file is changed in two places."""
+    """One line for the session-start hook, or none when no file is changed in two places. Lane overlaps (one lane
+    prefix's branches only) follow the clashes on the same line, one part per prefix."""
+    lanes = "; ".join(lane_text(p, items) for p, items in sorted(rep.lanes.items()))
     if not rep.clashes:
+        if lanes:
+            return [f"Overlap: none between lane prefixes; within one: {lanes}; make orient"]
         return [f"Overlap: not checked in part ({len(rep.notes)} note(s)); make orient"] if rep.notes else []
     named = "; ".join(f"{o.path}: {', '.join(o.places)}" for o in rep.clashes[:SHORT_PATHS])
     more = f"; and {len(rep.clashes) - SHORT_PATHS} more" if len(rep.clashes) > SHORT_PATHS else ""
     count = len(rep.clashes)
-    return [f"Overlap: {count} file{'s' if count > 1 else ''} changed in two or more places ({named}{more}); "
+    within = f"; within one lane prefix: {lanes}" if lanes else ""
+    return [f"Overlap: {count} file{'s' if count > 1 else ''} changed in two or more places ({named}{more}){within}; "
             f"make orient"]

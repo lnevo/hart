@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Remove agent worktrees whose PR is merged: at session start and after `gh pr merge`.
+"""Remove agent worktrees whose PR is merged, or that hold nothing beyond origin/main: at session start and after
+`gh pr merge`.
 
 Calls tools/agent/worktrees.py sweep, keeping the session's working and project directories. A merge done
 on GitHub is caught at the next session start. The sweep also covers the worktrees of the checked-out submodules

@@ -18,7 +18,10 @@ An agent writes it in its own worktree when it starts work on that project and r
 the work, so main never carries one. Claims are read from every worktree's copy of wiki/projects/ (committed or
 not), so another session sees one as soon as it is written. A claim whose worktree is gone, or holds another branch,
 is shown as stale; a malformed or misplaced Claimed line, or a claim on a page that is not active, is shown as a
-problem. Code fences and HTML comments are not read.
+problem. Code fences and HTML comments are not read. The merge queue's Coordinator lines and the Overlap list read
+fewer places: the queue the main checkout's pages and those of live worktrees only (queue_trees), and both leave out
+a worktree outside .claude/worktrees/ unless a running session holds it (at_home), so a stale copy in an old or
+another session's worktree gives no warning.
 
 A worktree is in progress when its commit has commits not on origin/main, or a running Claude Code session holds
 its lock (tools/agent/worktrees.py reads the lock). The full view fetches origin/main first (a failed fetch says so
@@ -49,11 +52,13 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING
 
-from orient_overlap import full_lines, overlap_report, parse_prs, short_line
+from orient_overlap import OverlapError, full_lines, overlap_report, parse_prs, short_line
+from orient_overlap import git as quiet_git  # GIT_OPTIONAL_LOCKS=0: never rewrites another worktree's index
 from orient_pages import BRANCH, Claim, Coordinator, parse_page  # this folder is on sys.path when the script runs; the tests add it
 
 ROOT = Path(__file__).resolve().parents[2]
 PROJECTS = Path("wiki/projects")
+WORKTREES = Path(".claude/worktrees")  # under the main checkout: where make wt and Claude Code put worktrees
 BASE = "origin/main"
 GIT_TIMEOUT = 20
 FETCH_TIMEOUT = 20
@@ -227,6 +232,37 @@ def read_claims(trees: list[Tree], wt: ModuleType) -> tuple[list[tuple[Claim, st
 
 
 QUEUE_NOBODY = "Queue: nobody named; ask every session before merging (coordinate skill)"
+
+
+def at_home(t: Tree) -> bool:
+    """Whether a worktree counts for the queue and the overlap list: one under the main checkout's WORKTREES, or one
+    elsewhere that a running session holds, has commits not on origin/main (or an unknown count) or has uncommitted
+    changes. Only a clean, idle worktree outside WORKTREES (an old scratchpad copy) is left out."""
+    home = os.path.realpath(ROOT_MAIN / WORKTREES)
+    if os.path.realpath(t.path).startswith(home + os.sep) or t.lock == "session running":
+        return True
+    return t.ahead is None or t.ahead > 0 or pages_changed(t, everywhere=True)
+
+
+def pages_changed(t: Tree, everywhere: bool = False) -> bool:
+    """Whether the worktree has uncommitted or untracked changes under wiki/projects/ (anywhere with `everywhere`);
+    unreadable counts as yes."""
+    try:
+        where = [] if everywhere else ["--", str(PROJECTS)]
+        return bool(quiet_git(t.path, "status", "--porcelain", *where).strip())
+    except OverlapError:
+        return True
+
+
+def queue_trees(trees: list[Tree]) -> list[Tree]:
+    """The copies of wiki/projects/ the queue is read from: the main checkout's, and each live worktree's at_home
+    (a running session's lock, commits not on origin/main or an unknown count, or changes under wiki/projects/). A
+    worktree with none of those holds an older copy of main's pages, so its Coordinator lines say nothing new."""
+    rest = [t for t in trees[1:] if os.path.isdir(t.path) and at_home(t)]
+    quick = {t.path for t in rest if t.lock == "session running" or t.ahead is None or t.ahead > 0}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        changed = dict(zip([t.path for t in rest], pool.map(lambda t: t.path in quick or pages_changed(t), rest)))
+    return trees[:1] + [t for t in rest if changed[t.path]]
 
 
 def read_queue(trees: list[Tree]) -> tuple[list[Coordinator], list[str]]:
@@ -550,7 +586,7 @@ def report(short: bool, here: str) -> list[str]:
     out = [] if short else [f"Orient {datetime.now():%Y-%m-%d %H:%M} ({fetched})", f"Operating flag: {flag}"]
     if any(t.ahead is None for t in trees):
         out.append(BASE_MISSING)
-    out += queue_lines(trees)
+    out += queue_lines(queue_trees(trees))
     out.append(f"Claims ({len(claims)})" + (":" if claims else ": none"))
     out += capped([claim_line(c, state) for c, state in claims], limit)
     if problems:
@@ -562,7 +598,7 @@ def report(short: bool, here: str) -> list[str]:
     out.append(f"Worktrees in progress ({len(busy)}; {rule})" + (":" if busy else ": none"))
     out += capped([tree_line(t, by_branch, here) for t in busy], limit)
     pr_files = parse_prs(prs)
-    overlap = overlap_report(ROOT_MAIN, trees, pr_files)
+    overlap = overlap_report(ROOT_MAIN, trees[:1] + [t for t in trees[1:] if at_home(t)], pr_files)
     if short:
         out += short_line(overlap)
         return out

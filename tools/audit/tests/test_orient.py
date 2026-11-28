@@ -307,6 +307,36 @@ class ReportTest(Repo):
         self.assertEqual(1, len(warning), out)
         self.assertIn("hart-6d on a page whose Status is done", warning[0])
 
+    def test_stale_copies_in_idle_or_outside_worktrees_give_no_queue_warning(self):
+        bad = "Status: done (2026-11-01)\nCoordinator: hart-6d, since 2026-11-27 18:13\n"
+        old_page = self.main / "wiki/projects/old.md"
+        good = old_page.read_text()
+        old_page.write_text(bad)  # main once carried the bad line; a worktree cut then keeps that copy
+        sh("git", "commit", "-q", "-am", "bad line", cwd=self.main)
+        sh("git", "update-ref", "refs/remotes/origin/main", "HEAD", cwd=self.main)
+        home = self.main / ".claude/worktrees"
+        self.add_at(home / "old", "agent/claude/old")
+        outside = self.base / "scratch"  # another session's scratchpad worktree, clean, cut from the same commit
+        self.add_at(outside, "agent/claude/scratch")
+        old_page.write_text(good)
+        sh("git", "commit", "-q", "-am", "fixed", cwd=self.main)
+        sh("git", "update-ref", "refs/remotes/origin/main", "HEAD", cwd=self.main)
+
+        def warnings() -> list[str]:
+            return [line for line in OR.report(short=True, here="/") if line.startswith("  warning:")]
+        self.assertEqual(warnings(), [], "idle clean worktrees on origin/main's history, home or outside, are not read")
+        (home / "old/wiki/projects/old.md").write_text(bad + "\n")
+        self.assertEqual(len(warnings()), 1, "an uncommitted change under wiki/projects/ makes the copy live")
+        (home / "old/wiki/projects/old.md").write_text(bad)
+        with mock.patch.object(OR, "lock_state", side_effect=lambda wt, t: "session running"
+                               if t.path == str(outside) else ""):
+            self.assertIn(f"in {outside}:", "\n".join(warnings()), "a running session's worktree counts wherever it is")
+        (outside / "wiki/projects/old.md").write_text(bad + "\n")
+        self.assertIn(f"in {outside}:", "\n".join(warnings()), "so does one outside with uncommitted changes")
+
+    def add_at(self, path: Path, branch: str) -> None:
+        sh("git", "worktree", "add", "-q", "-b", branch, str(path), "origin/main", cwd=self.main)
+
     def test_the_same_claim_in_many_worktrees_is_listed_once(self):
         first = self.worktree("a1", commits=1)
         OR.claim(first / "wiki/projects/work.md", "agent/claude/a1", first, datetime(2026, 11, 25, 8, 0))
