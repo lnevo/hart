@@ -102,6 +102,7 @@ The menu has six links (`data/site.json` → `nav`): **Home · Prototype · Oper
 - The crew hub (`crew/index.html`) is **Crew sheets** in its title, h1, breadcrumb and every link to it; `docs/` stays **Publications** (owner, 2026-11-28).
 - The home page has both the hero buttons and an Explore button on each door card; the repeat is deliberate, so reviews need not flag it (owner, 2026-11-28).
 - The parked guides (`guides/`, page ids `guides`, `guide`) are in no `nav` section, so they get no menu highlight or breadcrumb; they stay up and linked from the Operations hub and the pages that link them now (owner, 2026-11-28).
+- `tools/` is local to the Mac and not published (`SKIP_DIRS`), so its page id `tools` is in no `nav` section and the page gets no menu highlight or breadcrumb. The Operations hub group "Session paperwork" keeps its name: it holds more than the crew hub.
 - The C&E exam pages (`exam/`, page id `ap-exam`) are in Behind the Scenes `pages` for the menu highlight; they keep their hand-written crumb to `ap/opsig.html#ce`. Nav entries have no `short` labels: the menu and the header row both use `label`.
 
 - **Prototype** (`history/index.html`): Articles (+ `library/*`), the Industry and Railroads charts, and **Photos** (`photos/`, page id `photos`).
