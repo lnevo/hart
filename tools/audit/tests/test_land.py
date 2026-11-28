@@ -110,15 +110,15 @@ class Clock:
         self.now += seconds
 
 
-LOCKS = tempfile.TemporaryDirectory()      # every test's merge lock lives here, never in /tmp/hart-land.lock
+LOCKS = tempfile.TemporaryDirectory()      # every test's merge lock and queue live here, never in /tmp
 
 
 def lander(gh: FakeGitHub, root: Path = ROOT, lock: Path | None = None,
-           lock_sleep: Any = None) -> tuple[Any, Clock]:
+           lock_sleep: Any = None, queue: Path | None = None) -> tuple[Any, Clock]:
     clock = Clock()
     path = lock or Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
     return LAND.Lander(gh=gh, root=root, sleep=clock.sleep, clock=clock, poll=30, lock_path=path,
-                       lock_sleep=lock_sleep or clock.sleep), clock
+                       lock_sleep=lock_sleep or clock.sleep, queue_dir=queue or path.parent / "queue"), clock
 
 
 def land(gh: FakeGitHub, **kw: object) -> tuple[int, str]:
@@ -240,7 +240,8 @@ class Merging(unittest.TestCase):
 
 @mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG, "HART_SESSION_NAME": "hart-test"})
 class MergeLocks(unittest.TestCase):
-    """One merge at a time across sessions: /tmp/hart-land.lock in use, a folder under a temp dir here."""
+    """The old merge lock (/tmp/hart-land.lock, a folder under a temp dir here): the head of the queue still takes it,
+    so a land from older code and one from this code never merge together."""
 
     def setUp(self) -> None:
         self.path = Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
@@ -267,9 +268,9 @@ class MergeLocks(unittest.TestCase):
         out = buf.getvalue()
         self.assertEqual(0, code, out)
         self.assertEqual(2, len(sleeps))
-        self.assertIn("waiting for the merge lock", out)
+        self.assertIn("waiting for the old merge lock", out)
         self.assertIn("hart-other holds it for PR #11", out)
-        self.assertEqual(1, out.count("waiting for the merge lock"))      # one line a minute, not one a poll
+        self.assertEqual(1, out.count("waiting for the old merge lock"))      # one line a minute, not one a poll
         main_checks = [c for c in gh.calls if c == ["api", f"repos/{SLUG}/commits/main"]]
         self.assertEqual(2, len(main_checks))                             # main checked again after the wait
         self.assertFalse(self.path.exists())                              # released after the land
@@ -305,7 +306,7 @@ class MergeLocks(unittest.TestCase):
             t2.join(10)
         self.assertEqual({12: 0, 13: 0}, codes)
         self.assertEqual(["merge 12", "merge 13"], order)
-        self.assertTrue(any("waiting for the merge lock" in line for line in two.out))
+        self.assertTrue(any("waiting in the merge queue" in line for line in two.out))
 
     def test_the_lock_is_held_through_the_merge_and_names_the_pr_and_session(self) -> None:
         seen: list[str] = []
@@ -390,13 +391,22 @@ class MergeLocks(unittest.TestCase):
         self.assertIn("alive past", said[0])
         lock.release()
 
-    def test_a_wait_past_the_limit_stops_naming_the_holder(self) -> None:
+    def test_a_live_holder_is_waited_for_with_no_time_limit(self) -> None:
         self.first(pr=11, holder="hart-busy")
         slept: list[float] = []
-        lock = LAND.MergeLock(self.path, 12, lambda line: None, sleep=slept.append)
-        with self.assertRaisesRegex(LAND.LandError, r"still held after \d+ min by hart-busy for PR #11"):
-            lock.take()
-        self.assertEqual(LAND.LOCK_WAIT_LIMIT, sum(slept))
+
+        def sleep(seconds: float) -> None:      # far past the old 90-minute limit, then the holder ends
+            slept.append(seconds)
+            if sum(slept) >= 4 * 3600:
+                (self.path / "owner").unlink()
+                self.path.rmdir()
+
+        said: list[str] = []
+        lock = LAND.MergeLock(self.path, 12, said.append, sleep=sleep)
+        self.assertTrue(lock.take())
+        self.assertGreaterEqual(sum(slept), 4 * 3600)
+        self.assertIn("hart-busy holds it for PR #11", said[0])
+        lock.release()
 
     def test_a_stale_lock_whose_owner_changed_is_left_alone(self) -> None:
         self.path.mkdir()

@@ -13,9 +13,13 @@ wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
 
 .PHONY: land
-land:  ## The coordinator merges one PR: make land PR=N [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
+land:  ## The coordinator queues one PR to merge and returns: make land PR=N [WATCH=1] [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
 	@test -n "$(PR)" || { echo 'make land: set PR=N' >&2; exit 2; }
-	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
+	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(WATCH)),--watch) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
+
+.PHONY: land-status
+land-status:  ## The merge queue: each ticket's PR, session and state, and the last lines of its log
+	@python3 tools/agent/land_queue.py status
 
 orient:  ## Who works on what: claims, worktrees in progress, operating flag, last deploys, open PRs, what waits to be pulled in
 	@python3 tools/ops/orient.py
