@@ -120,23 +120,23 @@
       "wiki": "wiki/projects/ax-cleanup.md",
       "scores": [
         {"date": "2026-11-27", "value": 8.5, "label": "review before the cleanup"},
-        {"date": "2026-11-28", "value": 8.5, "label": "after #1388: memory to the repo, sweep, FIFO land queue"}
+        {"date": "2026-11-28", "value": 8.3, "label": "after #1399: housekeeping, triage, land re-targets (refreshed 04:20)"}
       ],
       "table": {
-        "columns": ["Area (28 Nov, 02:25)", "Score", "Measured"],
+        "columns": ["Area (28 Nov, 04:20)", "Score", "Measured"],
         "rows": [
-          ["Instructions", 8.5, "Root AGENTS.md 64 lines, 916 words (cap 1,000); five folder AGENTS.md hold 1,315 words (680 at b09d1de4; jmri and schematic grew with rules moved from memory); no CLAUDE.md."],
-          ["Skills and agents", 8, "12 skills of 201 to 1,500 words, none over the cap; dashboard at 1,500 has no headroom. make land is described in three places; merging.md still offers gh pr merge --auto when alone."],
-          ["Memory", 9, "14 files and 3,723 words (38 and 10,857 at the 7.5); every rule moved to the repo file it governs (#1382, #1383); one file over 1,000 words (hosts-and-network); no broken links."],
-          ["Session start", 8.5, "orient --short 16 lines in 3.8 s with 3 stale-line warnings; make orient 41 lines in 6.8 s; overlap down from 25 lines to 1."],
-          ["Shipping and merging", 8.5, "make ready, make land and the FIFO queue (#1388) run live: tickets in order, no wait limit, check wait while queued; 109 tests pass. The transition lock remains; each PR still waits for its own check."],
-          ["Housekeeping", 7.5, "19 worktrees (43), 7 agent-a* (29); the sweep removes clean worktrees with nothing unique (#1386). 38 progress files, 17 older than a day, all data-masters-L* kept by the active project page."]
+          ["Instructions", 8.5, "Root AGENTS.md 64 lines, 916 words; five folder AGENTS.md hold 1,315 words, unchanged; no CLAUDE.md."],
+          ["Skills and agents", 7.5, "12 skills of 201 to 1,494 words; dashboard 1,494, handoff 1,354, coordinate 1,210 leave no headroom (the cap failed #1399's check at 1,542). make land is still described in four places. A tool-fixer got past subagent_guard by splitting file names into a shell variable."],
+          ["Memory", 9, "15 files and 3,723 words; hosts-and-network at 1,191 words is the one file over 1,000."],
+          ["Session start", 8.5, "orient.py --short 11 lines in 0.86 s (3.8 s before); still 3 Coordinator-line warnings, all from copies in old worktrees, and one stale worktree path."],
+          ["Shipping and merging", 8.5, "155 land, queue, triage, guard and housekeeping tests pass. make land re-targets a moved head, keeps one log per ticket and writes events.log; make triage runs the verifiers headless. Subagents cannot commit or push, so the coordinator applied two fix patches by hand; /code-review stays a session step."],
+          ["Housekeeping", 8, "17 worktrees (19), 3 agent-a* (7); 24 progress files, none older than a day (38, 17); the hourly launchd job runs, and its first run deleted 176 merged local branches. The worktree_sweep.py gh pr merge match still fires on a quoted grep pattern."]
         ]
       },
       "notes": [
-        "Rescored 2026-11-28 02:25 at 27e6f052 by a repo-auditor, after the owner asked to fix Memory 6.5 and Housekeeping 5.5 from the 7.5 card: memory rules moved to the repo and the folder cut; the sweep removes worktrees with nothing beyond origin/main; make land became a FIFO queue.",
-        "Held back: memory overlap rests on spot reads of 4 of 14 files; the SessionStart hook and make land-wait were not timed.",
-        "Next, in order: archive done lane progress files under an active page (17 data-masters-L*); run the sweep after each make land merge and tighten the hook's gh pr merge match; one make land description, linked from handoff and coordinate; split hosts-and-network in memory."
+        "Refreshed in place 2026-11-28 04:20 at 06ddaddc3 by a repo-auditor (the owner: no second point for the same day), after #1392, #1396, #1397 and #1399. 8.5 at 02:25 to 8.3: Skills and agents fell half a point (no headroom under the word cap, a guard walked past); Housekeeping rose half a point.",
+        "Held back: the SessionStart hook and make land-wait were not timed; memory was counted, not read for overlap; the git -c core.fsmonitor bypass of the guard was not reproduced.",
+        "Next, in order: close the subagent_guard gaps (split shell variables, git -c config) and decide how a subagent hands back a commit; trim dashboard, handoff and coordinate under about 1,300 words with one make land description in merging.md; fix the worktree_sweep.py gh pr merge match; split hosts-and-network in memory."
       ]
     }
   ],

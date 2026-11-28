@@ -1,7 +1,6 @@
 # Agent experience cleanup (2026-11-27)
 
-Status: active
-Coordinator: hart-ef, since 2026-11-28 03:03
+Status: done 2026-11-28 (rounds 1 to 3 merged; agent experience 8.3 at 06ddaddc; follow-ups on the card in wiki/report-cards.md)
 Dashboard: https://claude.ai/artifact/PzHCqE42g9vDyXrXgdWJvC
 
 The owner asked on 2026-11-27 for a second look at the agent experience after the round of 2026-11-25 (#1104 to #1107). The review rated it about 8.5 of 10 and named four costs: memory had grown back from 32 to 49 files with overlaps and one conflict, every session start printed a line per kept worktree, `.claude/progress/` held 37 stale files, and two skills loaded more than 2,000 words each.
@@ -80,3 +79,6 @@ Other sessions' PRs in the queue: hart-54's #1393 (UX rescore 7.3), #1394 (UX-L7
 
 Known follow-ups (not started): the `gh pr merge` match in `.claude/hooks/worktree_sweep.py` fires on a quoted grep pattern; one `make land` description in `merging.md`, linked from `handoff` and `coordinate`; `dashboard/SKILL.md` is at 1,500 words; split `hosts-and-network` in memory; the pipeline map records almost no Python imports.
 
+## Closed (2026-11-28 04:25, hart-ef)
+
+#1392, #1396 (review fixes 6c008ce5, a8fae491), #1397 and #1399 (review fixes 34053738, ledger notes in `.claude/skills/dashboard/ledger.md`) merged. `make housekeeping-install` ran after #1392; the first `make housekeeping` deleted 176 merged local branches. The agent experience card was refreshed in place to 8.3; its "if revisited" list carries the follow-ups.

@@ -114,27 +114,29 @@ How to measure again:
 
 ## Agent experience
 
-How sessions and subagents work in the repo. 8.5 on 2026-11-27 (a review before the [cleanup](projects/ax-cleanup.md)); 7.5 on 2026-11-28 at `b09d1de4`, after #1377, from a `repo-auditor` scoring six areas; 8.5 on 2026-11-28 at `27e6f052`, after #1388, from a `repo-auditor` (the owner asked to fix the 7.5 card's Memory 6.5 and Housekeeping 5.5 first).
+How sessions and subagents work in the repo. 8.5 on 2026-11-27 (a review before the [cleanup](projects/ax-cleanup.md)); 8.5 on 2026-11-28 at `27e6f052` after #1388, refreshed in place to 8.3 at 04:20 on `06ddaddc` after #1392, #1396, #1397 and #1399, from a `repo-auditor` (the owner: one point per day; the 7.5 point of the same day was removed in #1390).
 
-| Area | 11-28 (7.5) | 11-28 (8.5) | Measured on 2026-11-28 at 02:25 |
+| Area | 11-28 02:25 | 11-28 04:20 | Measured on 2026-11-28 at 04:20 |
 |---|---|---|---|
-| Instructions | 8.5 | 8.5 | Root `AGENTS.md` 64 lines and 916 words; five folder `AGENTS.md` files hold 1,315 words (680 before, not the 585 first counted; jmri and schematic grew with rules moved from memory); no `CLAUDE.md`. |
-| Skills and agents | 8 | 8 | 12 skills of 201 to 1,500 words, none over the cap; `dashboard` is at 1,500. `make land` is described in three places; `merging.md` still offers `gh pr merge --auto` when alone. |
-| Memory | 6.5 | 9 | 14 files and 3,723 words (38 and 10,857). Every rule moved to the repo file it governs (#1382, #1383); one file over 1,000 words; no broken links. |
-| Session start | 8.5 | 8.5 | `orient.py --short` 16 lines in 3.8 s, 3 stale-line warnings; `make orient` 41 lines in 6.8 s; the overlap list is one line, not 25. |
-| Shipping and merging | 8 | 8.5 | `make ready`, `make land` and the FIFO queue (#1388) run live: tickets in order, no wait limit, the check wait while queued; 109 tests pass. The transition lock stays; each PR still waits for its own check. |
-| Housekeeping | 5.5 | 7.5 | 19 worktrees (43), 7 `agent-a*` (29); the sweep removes clean worktrees with nothing beyond `origin/main` (#1386). 38 progress files, 17 older than a day, all `data-masters-L*`, kept by the active project page. |
+| Instructions | 8.5 | 8.5 | Root `AGENTS.md` 64 lines and 916 words; five folder `AGENTS.md` files hold 1,315 words, unchanged; no `CLAUDE.md`. |
+| Skills and agents | 8 | 7.5 | 12 skills of 201 to 1,494 words; `dashboard` 1,494, `handoff` 1,354 and `coordinate` 1,210 leave no headroom (the cap failed #1399's check at 1,542). `make land` is still described in four places. A `tool-fixer` got past `subagent_guard` by splitting file names into a shell variable. |
+| Memory | 9 | 9 | 15 files and 3,723 words; `hosts-and-network` at 1,191 words is the one file over 1,000. |
+| Session start | 8.5 | 8.5 | `orient.py --short` 11 lines in 0.86 s (3.8 s before); 3 `Coordinator:` warnings, all from copies in old worktrees, and one stale worktree path. |
+| Shipping and merging | 8.5 | 8.5 | 155 land, queue, triage, guard and housekeeping tests pass. `make land` re-targets a moved head, keeps one log per ticket and writes `events.log`; `make triage` runs the verifiers headless. Subagents cannot commit or push, so the coordinator applied two fix patches by hand; `/code-review` stays a session step. |
+| Housekeeping | 7.5 | 8 | 17 worktrees (19), 3 `agent-a*` (7); 24 progress files, none older than a day (38 and 17); the hourly launchd job runs, and its first run deleted 176 merged local branches. |
 
-Held back on 2026-11-28:
-- Memory overlap rests on spot reads of 4 of 14 files. The SessionStart hook and `make land-wait` were not timed.
+The drop from 8.5 is a stricter look, not a regression: skill headroom and the guard bypass were measured this time.
+
+Held back on 2026-11-28 04:20:
+- The SessionStart hook and `make land-wait` were not timed; memory was counted, not read for overlap; the `git -c core.fsmonitor=...` route past the guard was not reproduced.
 
 If the card is revisited, in this order:
-1. Archive a lane's progress file once its lane is done, even while the parent page is active (the 17 `data-masters-L*` files).
-2. Run the sweep after each `make land` merge; tighten the `gh pr merge` match in `.claude/hooks/worktree_sweep.py`, which also fires on a quoted grep pattern.
-3. One `make land` description in `merging.md`, linked from `handoff` and `coordinate`; qualify the `gh pr merge --auto` line; give `dashboard/SKILL.md` some headroom.
-4. Split `hosts-and-network` in memory; fix the stale `Coordinator:` lines orient warns about.
+1. Close the `subagent_guard` gaps (split shell variables, `git -c` config) and decide how a subagent hands back a commit.
+2. Trim `dashboard`, `handoff` and `coordinate` under about 1,300 words, with one `make land` description in `merging.md` that the others link to.
+3. Fix the `gh pr merge` match in `.claude/hooks/worktree_sweep.py`, which also fires on a quoted grep pattern.
+4. Split `hosts-and-network` in memory.
 
 How to measure again:
 - Brief one `repo-auditor` with the six areas above and the last measurements, reading `origin/main`.
 - `git worktree list | wc -l` and `| grep -c agent-a`; `ls .claude/progress | wc -l` and `find .claude/progress -maxdepth 1 -type f -mtime +1 | wc -l`.
-- `wc -w` on each `SKILL.md`, `AGENTS.md` and memory file; `python3 tools/ops/orient.py --short` timed.
+- `wc -w` on each `SKILL.md`, `AGENTS.md` and memory file; `python3 tools/ops/orient.py --short` timed; the land, queue, triage, guard and housekeeping tests in `tools/audit/tests`.
