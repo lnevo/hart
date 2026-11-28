@@ -73,9 +73,10 @@ class FakeGitHub:
         if args[:2] == ["pr", "ready"]:
             self.pr["isDraft"] = False
             return ""
-        if args[:2] == ["pr", "view"] and "headRefOid,state" in args:
+        if args[:2] == ["pr", "view"] and "headRefOid,state,mergeable" in args:
             head = self.heads.pop(0) if len(self.heads) > 1 else (self.heads[0] if self.heads else HEAD)
-            return json.dumps({"headRefOid": head, "state": "OPEN"})
+            self.pr["headRefOid"] = head        # the whole PR read after this names the same head
+            return json.dumps({"headRefOid": head, "state": self.pr["state"], "mergeable": self.pr["mergeable"]})
         if args[:2] == ["pr", "view"] and "state,mergeCommit" in args:
             return json.dumps({"state": "MERGED" if self.merged else "OPEN",
                                "mergeCommit": {"oid": MERGE} if self.merged else None})
@@ -176,13 +177,88 @@ class Refusals(unittest.TestCase):
         gh = FakeGitHub(check_runs=[[]])
         self.assert_refused(gh, f"registered after {LAND.REGISTER_WAIT} s")
 
-    def test_head_moves_while_waiting(self) -> None:
-        gh = FakeGitHub(heads=[HEAD, NEW_HEAD], check_runs=[[check_run("in_progress")]])
-        self.assert_refused(gh, f"head moved from {HEAD[:12]} to {NEW_HEAD[:12]}")
+    def test_a_pr_closed_while_its_check_runs_is_refused(self) -> None:
+        gh = FakeGitHub(check_runs=[[check_run("in_progress")]])
+        calls = 0
+        real = gh.__call__
+
+        def closing(args: list[str]) -> str:
+            nonlocal calls
+            if "/check-runs?" in " ".join(args):
+                calls += 1
+                if calls == 2:
+                    gh.pr["state"] = "CLOSED"
+            return real(args)
+
+        lnd, _ = lander(gh)
+        lnd.gh = closing
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(1, lnd.land(12))
+        self.assertIn("PR #12 is CLOSED, not open", "\n".join(lnd.out))
+        self.assertFalse(gh.merged)
+
+    def test_a_pr_that_conflicts_while_waiting_is_refused(self) -> None:
+        gh = FakeGitHub(heads=[HEAD, HEAD, NEW_HEAD], check_runs=[[check_run("in_progress")]])
+        gh.pr["mergeable"] = "MERGEABLE"
+        real = gh.__call__
+
+        def conflicting(args: list[str]) -> str:
+            out = real(args)
+            if gh.pr["headRefOid"] == NEW_HEAD:
+                gh.pr["mergeable"] = "CONFLICTING"
+            return out
+
+        lnd, _ = lander(gh)
+        lnd.gh = conflicting
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(1, lnd.land(12))
+        self.assertIn("conflicts with main", "\n".join(lnd.out))
 
     def test_a_check_run_for_another_sha_does_not_count(self) -> None:
         gh = FakeGitHub(check_runs=[[check_run("completed", "success", sha=NEW_HEAD)]])
         self.assert_refused(gh, "registered after")
+
+
+@mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG})
+class HeadMoves(unittest.TestCase):
+    """A new head while the ticket waits re-targets the land: same ticket, the new head's check, that head merged."""
+
+    def test_a_new_head_while_its_check_runs_is_waited_for_and_merged(self) -> None:
+        gh = FakeGitHub(heads=[HEAD, NEW_HEAD], check_runs=[[check_run("in_progress")],
+                                                            [check_run("completed", "success", sha=NEW_HEAD)]])
+        code, out = land(gh)
+        self.assertEqual(0, code, out)
+        self.assertIn(f"head moved from {HEAD[:12]} to {NEW_HEAD[:12]}; waiting for its check", out)
+        self.assertEqual(1, out.count("head moved"))
+        merge = [c for c in gh.calls if c[:2] == ["pr", "merge"]]
+        self.assertEqual([["pr", "merge", "12", "--merge", "--match-head-commit", NEW_HEAD]], merge)
+
+    def test_a_new_head_while_waiting_for_its_turn_keeps_the_place(self) -> None:
+        lock = Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
+        root = lock.parent / "queue"
+        q = LAND.LandQueue(root, lambda line: None)
+        ahead = q.take(11, "hart-other")
+        gh = FakeGitHub(heads=[HEAD], check_runs=[[check_run("completed", "success")],
+                                                  [check_run("completed", "success", sha=NEW_HEAD)]])
+        states: list[tuple[int, str]] = []
+        lnd, clock = lander(gh, lock=lock, queue=root)
+
+        def sleep(seconds: float) -> None:      # a push lands while the ticket waits behind #11, then #11 ends
+            clock.sleep(seconds)
+            states.extend((t.number, t.state) for t in q.tickets() if t.pr == 12)
+            if gh.heads == [HEAD]:
+                gh.heads = [NEW_HEAD]
+            elif any(c[:1] == ["api"] and NEW_HEAD in c[1] for c in gh.calls):
+                ahead.path.unlink(missing_ok=True)
+
+        lnd.lock_sleep = sleep
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = lnd.land(12, watch_main=False)
+        self.assertEqual(0, code, lnd.out)
+        self.assertIn(f"head moved from {HEAD[:12]} to {NEW_HEAD[:12]}; waiting for its check", "\n".join(lnd.out))
+        self.assertEqual({2}, {number for number, _ in states}, "the ticket kept its number")
+        merge = [c for c in gh.calls if c[:2] == ["pr", "merge"]]
+        self.assertEqual([["pr", "merge", "12", "--merge", "--match-head-commit", NEW_HEAD]], merge)
 
 
 @mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG})

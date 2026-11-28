@@ -2,17 +2,20 @@
 """Dashboard writes for the ArtifactData tool, with every time taken from this Mac's clock.
 
     dash_rows.py OUT_DIR --wave W [--if-version DOC=N ...] OP ...
+    dash_rows.py OUT_DIR [--wave W] ledger-sync FILE
 
 OPs, any number, in order:
-  row DOC key=value ...        an `update` of data/W/lanes/DOC; needs --if-version DOC=N
+  row DOC key=value ...        an `update` of data/W/lanes/DOC, pinned to the version the ledger holds for it
   new-row DOC key=value ...    a `set` of data/W/lanes/DOC; needs lane, status, stage, eta and order
+  delete DOC                   a `delete` of data/W/lanes/DOC, pinned when the ledger holds a version for it
   event "TEXT"                 a `set` in data/W/events, id eW-HHMM (then eW-HHMMb, eW-HHMMc, ... in one run)
   samples FILE [--since HH:MM] one `set` per JSON line of FILE in data/W/samples, id sHHMM from the line's `at`;
                                --since keeps only the lines after the last one stamped HH:MM
   sync-prs ROWS_DIR [--versions FILE]
                                one `row` update per lanes row whose PRs changed state on GitHub. ROWS_DIR holds the
                                rows as the ArtifactData `list` action saves them with out_dir (DOC.json each); a
-                               row's version comes from FILE ({"DOC": N}), else from the file's own `version`.
+                               row's version comes from FILE ({"DOC": N}) when given, else the higher of the
+                               ledger's and the file's own `version` (versions only go up).
                                Every PR of the row merged or closed, at least one merged: status=merged and a
                                stage naming each merge commit and local merge time. Every PR closed unmerged:
                                status=failed, "closed unmerged". No write for a row with an open PR, without a pr,
@@ -21,6 +24,15 @@ OPs, any number, in order:
                                did not reach. A failed list call writes nothing (exit 2). A PR a view call cannot
                                read, a pr that is not PR numbers, or a file that is not a JSON object skips that
                                row with a warning on stderr; the other rows still sync.
+  ledger-sync FILE             seed or correct the ledger from FILE, a JSON {doc_id: version} map (null removes
+                               an entry). A doc_id with a "/" is a full collection/doc_id; a bare one is a lanes row
+                               of --wave. No write is emitted.
+
+The ledger, OUT_DIR/versions.json ({"collection/doc_id": version}), holds the version each document has after the
+writes this script emitted: a `set` of a document it holds no version for gives 1, a pinned `set`, `update` or
+`str_replace` gives the pin plus 1, and a `delete` removes the entry. Every pin (if_version) comes from it; an
+explicit --if-version DOC=N wins for the next write to DOC. A refused write (version mismatch) leaves the ledger
+ahead of or behind the store: list the collection once and run ledger-sync with the versions it gives.
 
 `updated` (rows) and `at` (events) are stamped HH:MM from the local clock, and a caller-supplied
 `updated` or `at` key is refused. A value that parses as JSON (a number, a list such as pr=[1271,1280])
@@ -40,16 +52,17 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import Literal, TypeGuard
 
 STATUSES = ("queued", "running", "remote", "review", "ci", "merged", "done", "blocked", "failed")
 NEW_ROW_KEYS = ("lane", "status", "stage", "eta", "order")
 CLOCK_KEYS = ("updated", "at")
 HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
-OP_WORDS = ("row", "new-row", "event", "samples", "sync-prs")
+OP_WORDS = ("row", "new-row", "delete", "event", "samples", "sync-prs", "ledger-sync")
 PR_FIELDS = "number,state,mergedAt,mergeCommit"
 PR_LIST_LIMIT = 200
-WriteOp = Literal["set", "update"]
+LEDGER = "versions.json"
+WriteOp = Literal["set", "update", "str_replace", "delete"]
 
 
 class DashError(Exception):
@@ -63,6 +76,38 @@ class Write:
     doc_id: str
     data: dict[str, object]
     if_version: int | None = None
+
+
+def version_after(op: WriteOp, pin: int | None) -> int | None:
+    """The version a document has after `op` pinned to `pin` (None: it no longer exists)."""
+    if op == "delete":
+        return None
+    return 1 if pin is None else pin + 1
+
+
+def is_version(value: object) -> TypeGuard[int]:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def read_ledger(out_dir: Path) -> dict[str, int]:
+    """OUT_DIR's ledger; empty when there is none yet."""
+    path = out_dir / LEDGER
+    if not path.exists():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise DashError(f"ledger {path}: cannot read it as JSON; fix it with ledger-sync after moving it") from exc
+    if not isinstance(loaded, dict) or not all(is_version(v) for v in loaded.values()):
+        raise DashError(f"ledger {path}: not a {{collection/doc_id: version}} object")
+    return loaded
+
+
+def save_ledger(ledger: dict[str, int], out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    tmp = out_dir / f".{LEDGER}.tmp"
+    tmp.write_text(json.dumps(dict(sorted(ledger.items())), indent=1) + "\n", encoding="utf-8")
+    tmp.replace(out_dir / LEDGER)
 
 
 def parse_value(text: str) -> object:
@@ -100,17 +145,53 @@ class Builder:
     """Turns ops into writes for one wave. An event id already made in this run, or already written by an earlier
     run into the same OUT_DIR (`taken`), gets a letter suffix, so an earlier event is never replaced."""
 
-    def __init__(self, wave: str, now: str, versions: dict[str, int],
-                 taken: set[tuple[str, str]] | None = None) -> None:
+    def __init__(self, wave: str | None, now: str, versions: dict[str, int],
+                 taken: set[tuple[str, str]] | None = None, ledger: dict[str, int] | None = None) -> None:
         self.wave = wave
         self.now = now
         self.versions = versions
+        self.ledger: dict[str, int] = dict(ledger or {})
         self.writes: list[Write] = []
         self.warnings: list[str] = []
         self._ids: set[tuple[str, str]] = set(taken or ())
 
     def collection(self, name: str) -> str:
+        if not self.wave:
+            raise DashError(f"--wave W is needed to name the {name} collection")
         return f"data/{self.wave}/{name}"
+
+    def pin(self, collection: str, doc_id: str) -> int | None:
+        """The version a write to the document is pinned to: an explicit --if-version first (used once), else the
+        ledger's; None when neither has one."""
+        if doc_id in self.versions:
+            return self.versions.pop(doc_id)
+        return self.ledger.get(f"{collection}/{doc_id}")
+
+    def add(self, op: WriteOp, collection: str, doc_id: str, data: dict[str, object], pin: int | None) -> None:
+        """Queue the write and record in the ledger the version the document will have after it."""
+        self.writes.append(Write(op, collection, doc_id, data, pin))
+        after = version_after(op, pin)
+        key = f"{collection}/{doc_id}"
+        if after is None:
+            self.ledger.pop(key, None)
+        else:
+            self.ledger[key] = after
+
+    def ledger_sync(self, path: Path) -> None:
+        try:
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise DashError(f"ledger-sync {path}: cannot read it as JSON") from exc
+        if not isinstance(loaded, dict):
+            raise DashError(f"ledger-sync {path}: not a {{doc_id: version}} object")
+        for doc_id, version in loaded.items():
+            key = doc_id if "/" in doc_id else f"{self.collection('lanes')}/{doc_id}"
+            if version is None:
+                self.ledger.pop(key, None)
+            elif is_version(version):
+                self.ledger[key] = version
+            else:
+                raise DashError(f"ledger-sync {path}: {doc_id}: {version!r} is not a version")
 
     def _unique(self, collection: str, base: str) -> str:
         doc_id, letter = base, ord("b")
@@ -122,11 +203,18 @@ class Builder:
         return doc_id
 
     def row(self, doc_id: str, pairs: list[str]) -> None:
-        if doc_id not in self.versions:
-            raise DashError(f"{doc_id}: a row update needs --if-version {doc_id}=N from the row's last read")
+        collection = self.collection("lanes")
+        pin = self.pin(collection, doc_id)
+        if pin is None:
+            raise DashError(f"{doc_id}: a row update needs a version: the ledger has none for it; run ledger-sync "
+                            f"with the row's version from a list, or pass --if-version {doc_id}=N")
         fields = parse_fields(doc_id, pairs)
         fields["updated"] = self.now
-        self.writes.append(Write("update", self.collection("lanes"), doc_id, fields, self.versions[doc_id]))
+        self.add("update", collection, doc_id, fields, pin)
+
+    def delete(self, doc_id: str) -> None:
+        collection = self.collection("lanes")
+        self.add("delete", collection, doc_id, {}, self.pin(collection, doc_id))
 
     def new_row(self, doc_id: str, pairs: list[str]) -> None:
         fields = parse_fields(doc_id, pairs)
@@ -134,13 +222,13 @@ class Builder:
         if missing:
             raise DashError(f"{doc_id}: a new row needs {', '.join(missing)}")
         fields["updated"] = self.now
-        self.writes.append(Write("set", self.collection("lanes"), doc_id, fields, self.versions.get(doc_id)))
+        collection = self.collection("lanes")
+        self.add("set", collection, doc_id, fields, self.pin(collection, doc_id))
 
     def event(self, text: str) -> None:
         collection = self.collection("events")
         doc_id = self._unique(collection, f"e{self.wave}-{self.now.replace(':', '')}")
-        self.writes.append(Write("set", collection, doc_id, {"at": self.now, "text": text},
-                                 self.versions.get(doc_id)))
+        self.add("set", collection, doc_id, {"at": self.now, "text": text}, self.pin(collection, doc_id))
 
     def samples(self, path: Path, since: str | None) -> None:
         try:
@@ -162,7 +250,7 @@ class Builder:
             if not isinstance(at, str) or not HHMM.match(at):
                 raise DashError(f"samples {path}: a line has at {at!r}, not HH:MM")
             doc_id = self._unique(collection, "s" + at.replace(":", ""))
-            self.writes.append(Write("set", collection, doc_id, rec, self.versions.get(doc_id)))
+            self.add("set", collection, doc_id, rec, self.pin(collection, doc_id))
 
 
 @dataclass(frozen=True)
@@ -252,10 +340,11 @@ def read_versions(versions_file: Path | None) -> dict[str, object]:
     return loaded
 
 
-def load_rows(rows_dir: Path, versions_file: Path | None, warn: Callable[[str], None]) -> dict[str, SyncRow]:
+def load_rows(rows_dir: Path, versions_file: Path | None, warn: Callable[[str], None],
+              ledger: Callable[[str], int | None] = lambda doc_id: None) -> dict[str, SyncRow]:
     """Every DOC.json in ROWS_DIR whose row has a `pr`. A file that wraps the row as {data, version} is unwrapped;
     otherwise the file is the row. A file that is not a JSON object, or a `pr` that is not PR numbers, is skipped
-    with a warning."""
+    with a warning. A row's version: FILE's when it names the row, else the higher of `ledger`'s and the file's."""
     files = sorted(rows_dir.glob("*.json")) if rows_dir.is_dir() else []
     if not files:
         raise DashError(f"sync-prs {rows_dir}: no row files (DOC.json) there")
@@ -276,9 +365,13 @@ def load_rows(rows_dir: Path, versions_file: Path | None, warn: Callable[[str], 
         if prs is None:
             warn(f"{path.stem}: pr {data['pr']!r} is not a PR number or a list of them; skipped")
             continue
-        version = versions.get(path.stem, doc.get("version"))
-        rows[path.stem] = SyncRow(data, version if isinstance(version, int) and not isinstance(version, bool)
-                                  else None, prs)
+        if path.stem in versions:
+            given = versions[path.stem]
+            version = given if is_version(given) else None
+        else:
+            known = [v for v in (ledger(path.stem), doc.get("version")) if is_version(v)]
+            version = max(known) if known else None
+        rows[path.stem] = SyncRow(data, version, prs)
     return rows
 
 
@@ -286,7 +379,8 @@ def sync_prs(builder: Builder, rows_dir: Path, versions_file: Path | None,
              fetch: Callable[[set[int], Callable[[str], None]], dict[int, PrState]] = fetch_prs) -> None:
     """Row updates from GitHub's PR states; the module docstring gives the rules."""
     warn = builder.warnings.append
-    rows = load_rows(rows_dir, versions_file, warn)
+    lanes = builder.collection("lanes")
+    rows = load_rows(rows_dir, versions_file, warn, lambda doc_id: builder.ledger.get(f"{lanes}/{doc_id}"))
     wanted = {number for row in rows.values() for number in row.prs}
     states = fetch(wanted, warn) if wanted else {}
     for doc_id, row in sorted(rows.items()):
@@ -308,7 +402,8 @@ def sync_prs(builder: Builder, rows_dir: Path, versions_file: Path | None,
         if row.data.get("status") in settled:
             continue
         if row.version is None:
-            raise DashError(f"{doc_id}: no version; pass --versions FILE with the list result's versions")
+            raise DashError(f"{doc_id}: no version in the ledger or the row file; run ledger-sync, or pass "
+                            "--versions FILE with the list result's versions")
         builder.versions[doc_id] = row.version
         builder.row(doc_id, [f"status={status}", f"stage={stage}"])
 
@@ -334,6 +429,14 @@ def build(builder: Builder, ops: list[list[str]]) -> None:
             if not args:
                 raise DashError(f"{word}: needs a doc id")
             (builder.row if word == "row" else builder.new_row)(args[0], args[1:])
+        elif word == "delete":
+            if len(args) != 1:
+                raise DashError("delete: needs one doc id")
+            builder.delete(args[0])
+        elif word == "ledger-sync":
+            if len(args) != 1:
+                raise DashError("ledger-sync: needs FILE")
+            builder.ledger_sync(Path(args[0]))
         elif word == "event":
             if len(args) != 1:
                 raise DashError("event: needs one quoted text")
@@ -358,21 +461,22 @@ def emit(writes: list[Write], out_dir: Path) -> list[dict[str, object]]:
     """Write each document's data to OUT_DIR and return the batch entries."""
     entries: list[dict[str, object]] = []
     for w in writes:
-        path = (out_dir / w.collection.rsplit("/", 1)[-1] / f"{w.doc_id}.json").resolve()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(w.data, indent=1) + "\n", encoding="utf-8")
-        entry: dict[str, object] = {"op": w.op, "collection": w.collection, "doc_id": w.doc_id,
-                                    "file_path": str(path)}
+        entry: dict[str, object] = {"op": w.op, "collection": w.collection, "doc_id": w.doc_id}
+        if w.op != "delete":
+            path = (out_dir / w.collection.rsplit("/", 1)[-1] / f"{w.doc_id}.json").resolve()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(w.data, indent=1) + "\n", encoding="utf-8")
+            entry["file_path"] = str(path)
         if w.if_version is not None:
             entry["if_version"] = w.if_version
         entries.append(entry)
     return entries
 
 
-def written_ids(out_dir: Path, wave: str) -> set[tuple[str, str]]:
+def written_ids(out_dir: Path, wave: str | None) -> set[tuple[str, str]]:
     """The (collection, id) of every event document an earlier run wrote into OUT_DIR."""
     folder = out_dir / "events"
-    return {(f"data/{wave}/events", p.stem) for p in folder.glob("*.json")} if folder.is_dir() else set()
+    return {(f"data/{wave}/events", p.stem) for p in folder.glob("*.json")} if wave and folder.is_dir() else set()
 
 
 def parse_versions(items: list[str]) -> dict[str, int]:
@@ -390,7 +494,7 @@ def main(argv: list[str] | None = None) -> int:
                                      description=__doc__.split("\n", 1)[0],
                                      formatter_class=argparse.RawDescriptionHelpFormatter, epilog=__doc__)
     parser.add_argument("out_dir", type=Path)
-    parser.add_argument("--wave", required=True)
+    parser.add_argument("--wave", help="the wave; every op but ledger-sync with full ids needs it")
     parser.add_argument("--if-version", action="append", default=[], metavar="DOC=N")
     parser.add_argument("--now", help="test only: use this HH:MM instead of the clock")
     argv = sys.argv[1:] if argv is None else argv
@@ -398,14 +502,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv[:first_op])
     try:
         now = check_hhmm(args.now, "--now") if args.now else datetime.now().strftime("%H:%M")
-        builder = Builder(args.wave, now, parse_versions(args.if_version), written_ids(args.out_dir, args.wave))
+        builder = Builder(args.wave, now, parse_versions(args.if_version), written_ids(args.out_dir, args.wave),
+                          read_ledger(args.out_dir))
         build(builder, split_ops(argv[first_op:]))
     except DashError as exc:
         print(f"dash_rows: {exc}", file=sys.stderr)
         return 2
     for warning in builder.warnings:
         print(f"dash_rows: warning: {warning}", file=sys.stderr)
-    print(json.dumps(emit(builder.writes, args.out_dir), indent=1))
+    entries = emit(builder.writes, args.out_dir)
+    save_ledger(builder.ledger, args.out_dir)
+    print(json.dumps(entries, indent=1))
     return 0
 
 

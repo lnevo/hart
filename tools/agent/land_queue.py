@@ -2,10 +2,16 @@
 """The merge queue behind `make land`: one merge at a time across sessions, first come, first served.
 
     land_queue.py status        (make land-status) every ticket: number, PR, session, state, PID, and the last
-                                lines of its log; then the old merge lock's holder, if any
+                                lines of its own log; then the old merge lock's holder, if any
     land_queue.py wait N        (make land-wait PR=N) wait for PR N's land job to end; exit with its code (0 merged
                                 and main green, 1 refused, 4 main red, 5 unwatched), read from the result file
-                                ~/.cache/hart/land/N.result the job writes; 2 when there is no job or result
+                                the job writes; 2 when there is no job or result
+
+Each land job has a log and a result of its own, named by PR and ticket: ~/.cache/hart/land/<PR>-t<ticket>.log and
+<PR>-t<ticket>.result. A job queued by older code wrote <PR>.log and <PR>.result; both are still read when a
+ticket has no file of its own. Every land job also appends one line to ~/.cache/hart/land/events.log when its PR's
+head moves and when it ends (event_line gives the format), so a coordinator can watch that one file; status prints
+its last EVENTS_TAIL lines.
 
 Each `make land` takes a numbered ticket in QUEUE_DIR (a JSON file NNNNNN.ticket: PID, PR, session, time, state),
 written whole to a temporary name and linked to its number, so a reader never sees half a ticket. Numbers are
@@ -43,6 +49,8 @@ LOCK_POLL = 5
 SESSION_ENV = "HART_SESSION_NAME"
 SUFFIX = ".ticket"
 LOG_TAIL = 3
+EVENTS = "events.log"
+EVENTS_TAIL = 10
 RESERVED_KEEP = 50       # reserved-number files kept below the newest one
 ADOPT_WAIT = 30          # seconds make land waits for its job to put its own PID on the ticket
 ADOPT_POLL = 0.1
@@ -66,9 +74,21 @@ def session_name(holder: str = "") -> str:
     return (holder or os.environ.get(SESSION_ENV) or "unnamed").replace("\n", " ")
 
 
-def log_path(pr: int, log_dir: Path = LOG_DIR) -> Path:
-    """Where a detached land for `pr` writes its output."""
-    return log_dir / f"{pr}.log"
+def _named(pr: int, ticket: int | None, suffix: str) -> str:
+    return f"{pr}{suffix}" if ticket is None else f"{pr}-t{ticket}{suffix}"
+
+
+def log_path(pr: int, log_dir: Path = LOG_DIR, ticket: int | None = None) -> Path:
+    """Where the land job of `pr` under `ticket` writes its output (<PR>-t<ticket>.log); with no ticket, the name
+    older code used (<PR>.log)."""
+    return log_dir / _named(pr, ticket, ".log")
+
+
+def find_log(pr: int, ticket: int | None, log_dir: Path = LOG_DIR) -> Path:
+    """The ticket's own log; the old <PR>.log when the ticket has none and that file exists."""
+    own = log_path(pr, log_dir, ticket)
+    old = log_path(pr, log_dir)
+    return old if not own.exists() and old.exists() else own
 
 
 # ------------------------------------------------------------ the old merge lock (transition)
@@ -240,20 +260,34 @@ class Result:
     code: int
 
 
-def result_path(pr: int, log_dir: Path = LOG_DIR) -> Path:
-    return log_dir / f"{pr}.result"
+def result_path(pr: int, log_dir: Path = LOG_DIR, ticket: int | None = None) -> Path:
+    """The result file of the land job of `pr` under `ticket` (<PR>-t<ticket>.result); with no ticket, the name
+    older code used (<PR>.result)."""
+    return log_dir / _named(pr, ticket, ".result")
 
 
 def write_result(pr: int, ticket: int | None, code: int, log_dir: Path = LOG_DIR) -> None:
     log_dir.mkdir(parents=True, exist_ok=True)
     tmp = log_dir / f".{pr}.result.{os.getpid()}"
     tmp.write_text(json.dumps({"ticket": ticket, "code": code, "at": time.time()}), encoding="utf-8")
-    os.replace(tmp, result_path(pr, log_dir))
+    os.replace(tmp, result_path(pr, log_dir, ticket))
 
 
-def read_result(pr: int, log_dir: Path = LOG_DIR) -> Result | None:
+def newest_ticket(pr: int, log_dir: Path = LOG_DIR) -> int | None:
+    """The highest ticket with a result file for `pr`; None when there is none."""
+    prefix = f"{pr}-t"
+    numbers = [int(p.name[len(prefix):-len(".result")]) for p in log_dir.glob(f"{prefix}*.result")
+               if p.name[len(prefix):-len(".result")].isdigit()]
+    return max(numbers, default=None)
+
+
+def read_result(pr: int, log_dir: Path = LOG_DIR, ticket: int | None = None) -> Result | None:
+    """The result of `ticket`'s land of `pr`; with no ticket, the newest ticket's. The old <PR>.result is read when
+    no ticket file is found."""
+    own = result_path(pr, log_dir, ticket if ticket is not None else newest_ticket(pr, log_dir))
+    path = own if own.exists() else result_path(pr, log_dir)
     try:
-        data = json.loads(result_path(pr, log_dir).read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
     if not isinstance(data, dict) or not isinstance(data.get("code"), int):
@@ -391,11 +425,13 @@ class LandQueue:
                 live.append(ticket)
         return live
 
-    def wait_turn(self, mine: Ticket) -> tuple[Ticket, bool]:
+    def wait_turn(self, mine: Ticket, guard: Callable[[], None] = lambda: None) -> tuple[Ticket, bool]:
         """Return once `mine` is the head of the queue (its ticket marked so), and whether it had to wait. No time
-        limit: it waits while any ticket ahead is alive."""
+        limit: it waits while any ticket ahead is alive. `guard` runs before every poll and raises to stop the wait
+        (land.py: the PR closed, conflicts or has a new head)."""
         waited = 0.0
         while True:
+            guard()
             ahead = self.ahead(mine)
             if not ahead:
                 return self.update(mine, state="head", head_since=self.wall()), waited > 0
@@ -416,6 +452,24 @@ class LandQueue:
             self.sleep(ADOPT_POLL)
             waited += ADOPT_POLL
         return False
+
+
+# ------------------------------------------------------------ the events log
+
+def event_line(when: str, ticket: int | None, pr: int, session: str, code: int | None, reason: str) -> str:
+    """One events.log line: "HH:MM:SS ticket T PR #N SESSION exit C: REASON" ("running" in place of "exit C" for a
+    job that goes on, such as a head that moved). The reason is one line."""
+    end = "running" if code is None else f"exit {code}"
+    return f"{when} ticket {'?' if ticket is None else ticket} PR #{pr} {session_name(session)} {end}: " + \
+        " ".join(reason.split())
+
+
+def append_event(line: str, log_dir: Path = LOG_DIR) -> None:
+    """Append one line to events.log; a single short write in append mode, so lines of jobs ending together do not
+    mix."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    with (log_dir / EVENTS).open("a", encoding="utf-8") as out:
+        out.write(line.rstrip("\n") + "\n")
 
 
 # ------------------------------------------------------------ make land-status and make land-wait
@@ -439,10 +493,14 @@ def status(queue: LandQueue, log_dir: Path = LOG_DIR, lock_path: Path = LOCK_PAT
         out.append(f"  ticket {ticket.number}: PR #{ticket.pr}, {ticket.session}, {ticket.state}, "
                    f"PID {ticket.pid or '?'} {'alive' if alive else 'gone'}{age}")
         if ticket.pr is not None:
-            out.extend(f"    {line}" for line in tail(log_path(ticket.pr, log_dir)))
+            out.extend(f"    {line}" for line in tail(find_log(ticket.pr, ticket.number, log_dir)))
     owner = MergeLock(lock_path, 0, queue.say).owner() if lock_path.exists() else None
     if owner is not None:
         out.append(f"old merge lock {lock_path}: held by {owner.holder} for PR #{owner.pr} (PID {owner.pid or '?'})")
+    events = tail(log_dir / EVENTS, EVENTS_TAIL)
+    if events:
+        out.append(f"land events ({log_dir / EVENTS}, last {len(events)}):")
+        out.extend(f"  {line}" for line in events)
     return out
 
 
@@ -450,15 +508,17 @@ def wait(queue: LandQueue, pr: int, log_dir: Path = LOG_DIR) -> int:
     """make land-wait: wait for PR `pr`'s land job to end and return its exit code (0 merged and main green, 1
     refused, 4 main red, 5 unwatched); 2 when there is neither a job nor a result for it."""
     seen = queue.live(pr)
+    number = seen.number if seen is not None else newest_ticket(pr, log_dir)
+    log = find_log(pr, number, log_dir)
     if seen is not None:
-        queue.say(f"waiting for the land of #{pr} ({seen.label()}, {seen.state}); log: {log_path(pr, log_dir)}")
+        queue.say(f"waiting for the land of #{pr} ({seen.label()}, {seen.state}); log: {log}")
     while seen is not None and queue.live(pr) is not None:
         queue.sleep(LOCK_POLL)
-    result = read_result(pr, log_dir)
+    result = read_result(pr, log_dir, number)
     if result is None or (seen is not None and result.ticket not in (None, seen.number)):
-        queue.say(f"no result for a land of #{pr} in {result_path(pr, log_dir)}: see {log_path(pr, log_dir)}")
+        queue.say(f"no result for a land of #{pr} in {result_path(pr, log_dir, number)}: see {log}")
         return 2
-    queue.say(f"the land of #{pr} (ticket {result.ticket}) ended with exit {result.code}; log: {log_path(pr, log_dir)}")
+    queue.say(f"the land of #{pr} (ticket {result.ticket}) ended with exit {result.code}; log: {log}")
     return result.code
 
 

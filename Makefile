@@ -18,7 +18,7 @@ land:  ## The coordinator queues one PR to merge and returns (0 = queued; make l
 	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(WATCH)),--watch) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
 
 .PHONY: land-status
-land-status:  ## The merge queue: each ticket's PR, session and state, and the last lines of its log
+land-status:  ## The merge queue: each ticket's PR, session and state, the last lines of its log, and the last land events
 	@python3 tools/agent/land_queue.py status
 
 .PHONY: land-wait
