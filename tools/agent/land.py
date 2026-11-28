@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """The coordinator's half of shipping a PR: `make land PR=N` (the lane's half is `make ready`).
 
-    land.py N [--squash] [--wave W --dash-out DIR] [--poll S] [--no-watch-main]
+    land.py N [--squash] [--wave W --dash-out DIR] [--poll S] [--no-watch-main] [--watch]
+
+`make land` takes a ticket in the merge queue (tools/agent/land_queue.py), starts the steps below as a detached
+background job writing to ~/.cache/hart/land/<N>.log, prints the ticket and the log, and returns at once (exit 0).
+Exit 0 then means queued, not merged: the job writes its exit code to ~/.cache/hart/land/<N>.result, and
+`make land-wait PR=N` waits for it. `--watch` (`WATCH=1`) runs the steps in the foreground instead and exits with their
+code. `make land-status` shows the queue and the last lines of each log. A PR that already has a live ticket is not
+queued again: the ticket and its log are printed and the exit is 0.
 
 Steps, in order; the first problem stops the run with one line saying why (.claude/skills/coordinate/merging.md has
-the rules):
+the rules). Steps 1 to 3 run while the ticket waits behind others; 4 and 5 only at the head of the queue:
 
 1. The PR is open, its base is main and GitHub reports no conflict. A conflict is fixed by merging origin/main into
    the branch locally: the merge drivers in .gitattributes run only in a local merge, never in update-branch.
@@ -14,10 +21,12 @@ the rules):
    registered, so the run waits for one to exist, then for it to finish. Anything but success stops; so does a push
    that moves the head while it waits. A draft PR (one `make ready` opened with GitHub's check as its gate) is
    refused until that check passed; on the pass it is marked ready (`gh pr ready N`) in step 4.
-4. The merge lock: one `make land` at a time across sessions (MergeLock, LOCK_PATH), held from here through the end
-   of step 5. A second caller waits, with a line every minute naming the holder and its PR, up to LOCK_WAIT_LIMIT,
-   and checks main again once it holds the lock. A draft is marked ready only then, just before the merge. Then `gh pr merge N --merge --match-head-commit <head>` (`--squash` instead of `--merge`
-   only when asked; never --admin).
+4. The head of the queue (LandQueue.wait_turn): one merge at a time across sessions, first come, first served,
+   with no time limit while every ticket ahead is alive and a line every minute naming the place and the head. The
+   head also takes the old merge lock (MergeLock, LOCK_PATH), so a land from older code that knows only the lock
+   never merges beside it. After a wait main is checked again. A draft is marked ready only then, just before the
+   merge. Then `gh pr merge N --merge --match-head-commit <head>` (`--squash` instead of `--merge` only when asked;
+   never --admin). The ticket and the lock are held through the end of step 5.
 5. Main's push run of check.yml for the merge commit, found by its full 40-character SHA and waited for the same way,
    is watched to the end. On red the Main red rule is printed and the exit is MAIN_RED_EXIT.
 6. Every other open PR that changes a file the merged PR changed, merge-driver paths left out, gets a line saying it
@@ -29,7 +38,8 @@ the rules):
 
 Exit 0 when the PR merged and main's run passed, 1 when it stopped before the merge (nothing merged), 2 for a bad
 call, 4 (MAIN_RED_EXIT) when it merged and main's run ended red, 5 when it merged but main's run could not be
-watched to the end. Every gh call goes through one runner (Lander.gh), which the tests replace.
+watched to the end (in the log for a detached land). Every gh call goes through one runner (Lander.gh), which the tests
+replace.
 """
 from __future__ import annotations
 
@@ -38,7 +48,6 @@ import importlib
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import time
@@ -46,6 +55,11 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from land_queue import (LOCK_PATH, LOG_DIR, QUEUE_DIR, LandQueue, MergeLock, Ticket,  # noqa: E402
+                        log_path, result_path, session_name, write_result)
+from land_queue import LOCK_CEILING as LOCK_CEILING, LOCK_STALE as LOCK_STALE  # noqa: E402  (the lock's rule, here too)
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECK = "check"
@@ -61,13 +75,6 @@ UNWATCHED_EXIT = 5
 OVERLAP_TOOL = "tools/ops/orient_overlap.py"
 SHA = re.compile(r"[0-9a-f]{40}")
 PR_LABEL = re.compile(r"PR #(\d+)")
-LOCK_PATH = Path(os.environ.get("HART_LAND_LOCK") or "/tmp/hart-land.lock")
-LOCK_STALE = 2700           # seconds: a lock whose holder process is gone and that is older than this is stale
-LOCK_CEILING = 3 * LOCK_STALE   # seconds: a lock older than this is stale even with its holder process alive
-LOCK_WAIT_LIMIT = 2 * LOCK_STALE    # seconds a land waits for the lock before it stops, naming the holder
-LOCK_SAY = 60               # seconds between "waiting for the merge lock" lines
-LOCK_POLL = 5
-SESSION_ENV = "HART_SESSION_NAME"
 MAIN_RED_RULE = ("Main red: give no go and deploy nothing until main is green again. The PR that broke it fixes "
                  "forward, or one PR reverts it (.claude/skills/coordinate/merging.md, After a merge).")
 
@@ -148,126 +155,6 @@ class PullRequest:
                    mergeable=str(obj.get("mergeable", "")), files=files, draft=obj.get("isDraft") is True)
 
 
-def pid_alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True         # another user's process: it exists
-    return True
-
-
-@dataclass(frozen=True)
-class LockOwner:
-    """The merge lock's owner file: "pid since-epoch pr holder", as written by MergeLock.claim."""
-    raw: str
-    pid: int | None
-    since: float | None
-    pr: str
-    holder: str
-
-    @classmethod
-    def parse(cls, raw: str) -> LockOwner:
-        words = raw.split(None, 3)
-        pid = int(words[0]) if words and words[0].isdigit() else None
-        since = float(words[1]) if len(words) > 1 and words[1].isdigit() else None
-        return cls(raw, pid, since, words[2] if len(words) > 2 else "?", words[3].strip() if len(words) > 3 else "?")
-
-
-@dataclass
-class MergeLock:
-    """One `make land` merge at a time across sessions: the folder `path`, made with mkdir, holding an owner file
-    (LockOwner). A lock whose holder process is gone (or that has no owner file) and that is older than LOCK_STALE
-    seconds (its owner's time, else the folder's mtime), or any lock older than LOCK_CEILING, is stale: it is renamed away, only while its owner file is
-    still the one judged stale, and removed with a line. The same rule as tools/hosts/win_run.sh's mac lock block."""
-    path: Path
-    pr: int
-    say: Callable[[str], None]
-    sleep: Sleep = time.sleep
-    wall: Clock = time.time
-    alive: Callable[[int], bool] = pid_alive
-    holder: str = ""
-    held: bool = False
-
-    def claim(self) -> bool:
-        try:
-            self.path.mkdir()
-        except FileExistsError:
-            return False
-        name = (self.holder or os.environ.get(SESSION_ENV) or "unnamed").replace("\n", " ")
-        try:
-            (self.path / "owner").write_text(f"{os.getpid()} {int(self.wall())} {self.pr} {name}\n",
-                                             encoding="utf-8")
-        except BaseException:
-            # a lock with no owner file would hold every other land for LOCK_STALE: take the folder back first
-            (self.path / "owner").unlink(missing_ok=True)
-            self.path.rmdir()
-            raise
-        self.held = True
-        return True
-
-    def owner(self) -> LockOwner:
-        try:
-            return LockOwner.parse((self.path / "owner").read_text(encoding="utf-8"))
-        except OSError:
-            return LockOwner.parse("")
-
-    def age(self, owner: LockOwner) -> float:
-        since = owner.since
-        if since is None:
-            try:
-                since = self.path.stat().st_mtime
-            except OSError:
-                since = self.wall()
-        return self.wall() - since
-
-    def clear_if_stale(self, owner: LockOwner) -> None:
-        age = self.age(owner)
-        if age <= LOCK_STALE or (age <= LOCK_CEILING and owner.pid is not None and self.alive(owner.pid)):
-            return
-        if self.owner().raw != owner.raw:
-            return
-        aside = self.path.with_name(f"{self.path.name}.stale.{os.getpid()}")
-        try:
-            self.path.rename(aside)
-        except OSError:
-            return
-        shutil.rmtree(aside, ignore_errors=True)
-        why = "gone" if owner.pid is None or not self.alive(owner.pid) else f"alive past {LOCK_CEILING // 60} min"
-        self.say(f"the merge lock {self.path} was stale (holder {owner.holder}, PID {owner.pid or 'none'} {why}, "
-                 f"{int(age // 60)} min old); cleared it")
-
-    def take(self) -> bool:
-        """Return once this process holds the lock; True when it had to wait. LandError after LOCK_WAIT_LIMIT."""
-        waited = 0.0
-        while True:
-            if self.claim():
-                return waited > 0
-            owner = self.owner()
-            self.clear_if_stale(owner)
-            if self.claim():
-                return waited > 0
-            if waited >= LOCK_WAIT_LIMIT:
-                raise LandError(f"the merge lock ({self.path}) is still held after {LOCK_WAIT_LIMIT // 60} min by "
-                                f"{owner.holder} for PR #{owner.pr} (PID {owner.pid or '?'}); ask that session")
-            if waited % LOCK_SAY == 0:
-                self.say(f"{time.strftime('%H:%M')} waiting for the merge lock ({self.path}): {owner.holder} holds it "
-                         f"for PR #{owner.pr} (PID {owner.pid or '?'}, {int(self.age(owner) // 60)} min)")
-            self.sleep(LOCK_POLL)
-            waited += LOCK_POLL
-
-    def release(self) -> None:
-        if not self.held:
-            return
-        (self.path / "owner").unlink(missing_ok=True)
-        try:
-            self.path.rmdir()
-        except OSError:
-            pass
-        self.held = False
-
-
 @dataclass(frozen=True)
 class Run:
     """A check run or a workflow run: whether it finished and how."""
@@ -287,6 +174,8 @@ class Lander:
     out: list[str] = field(default_factory=list)
     lock_path: Path = LOCK_PATH
     lock_sleep: Sleep = time.sleep
+    queue_dir: Path = QUEUE_DIR
+    ticket_number: int | None = None
 
     def say(self, line: str) -> None:
         print(line, flush=True)
@@ -523,30 +412,73 @@ class Lander:
 
     # ------------------------------------------------------------ all of it
 
+    def queue(self) -> LandQueue:
+        return LandQueue(self.queue_dir, self.say, self.lock_sleep)
+
     def land(self, number: int, *, squash: bool = False, watch_main: bool = True, wave: str | None = None,
-             dash_out: str | None = None, overlap_module: ModuleType | None = None) -> int:
+             dash_out: str | None = None, overlap_module: ModuleType | None = None, ticket: Path | None = None) -> int:
+        """Steps 1 to 8 for PR `number` under the ticket at `ticket` (one is taken here when None), released at the
+        end."""
+        queue = self.queue()
+        if ticket is None:
+            other = queue.live(number)
+            if other is not None:
+                self.say(already_queued(other))
+                return 0
+            held: Ticket | None = queue.take(number, session_name())
+        else:
+            try:
+                held = queue.adopt(ticket)      # the job's own PID on its ticket first
+            except OSError:
+                held = None
+        if held is None:
+            self.say(f"STOP: the ticket {ticket} is not in the merge queue. Nothing was merged.")
+            return 1
+        self.ticket_number = held.number
         try:
+            return self._queued(queue, held, number, squash, watch_main, wave, dash_out, overlap_module)
+        finally:
+            queue.release(held)
+
+    def _queued(self, queue: LandQueue, ticket: Ticket, number: int, squash: bool, watch_main: bool,
+                wave: str | None, dash_out: str | None, overlap_module: ModuleType | None) -> int:
+        """Steps 1 to 3 behind the tickets ahead, then the head of the queue and the old lock for the rest."""
+        try:
+            ticket = queue.update(ticket, state="waiting for its check")
             pr = self.read_pr(number)
             self.check_pr(pr)
             self.check_main()
             slug = self.slug()
             self.wait_check(pr, slug)
-        except LandError as e:
+            ticket = queue.update(ticket, state="check passed, waiting for its turn")
+            ticket, waited = queue.wait_turn(ticket)
+        except (LandError, OSError) as e:
             self.say(f"STOP: {e}. Nothing was merged.")
             return 1
+        held = ticket
+
+        def mark(state: str) -> None:
+            try:
+                queue.update(held, state=state)
+            except OSError as e:        # the state is for make land-status only: the land goes on
+                self.say(f"ticket state {state!r} not written: {e}")
+
         lock = MergeLock(self.lock_path, number, self.say, self.lock_sleep)
         try:
-            return self._locked(lock, pr, squash, watch_main, wave, dash_out, overlap_module)
+            return self._locked(lock, pr, squash, watch_main, wave, dash_out, overlap_module,
+                                waited=waited, mark=mark)
         finally:
             lock.release()
 
     def _locked(self, lock: MergeLock, pr: PullRequest, squash: bool, watch_main: bool, wave: str | None,
-                dash_out: str | None, overlap_module: ModuleType | None) -> int:
-        """Steps 4 to 8 under the merge lock (released by the caller)."""
+                dash_out: str | None, overlap_module: ModuleType | None, *, waited: bool = False,
+                mark: Callable[[str], object] = lambda state: None) -> int:
+        """Steps 4 to 8 at the head of the queue, under the old merge lock (released by the caller)."""
         number = pr.number
         try:
-            if lock.take():
-                self.check_main()       # main may have moved while another land held the lock
+            if lock.take() or waited:
+                self.check_main()       # main may have moved while another land merged
+            mark("merging")
             self.mark_ready(pr)         # a draft leaves draft only here, just before its merge
         except LandError as e:
             self.say(f"STOP: {e}. Nothing was merged.")
@@ -557,6 +489,7 @@ class Lander:
             self.say(f"STOP after the merge call: {e}. Check PR #{number} on GitHub before anything else.")
             return UNWATCHED_EXIT
         self.say(f"Merged #{number}: {sha}")
+        mark("watching main's push run")
         code = self.watch_main(sha) if watch_main else 0
         # The PR has merged: a failure from here on is one line, never a traceback, and never exit 1 ("nothing merged").
         steps: tuple[tuple[str, Callable[[], None]], ...] = (
@@ -575,15 +508,66 @@ class Lander:
 
 def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="land.py", description="Merge one PR the coordinator's way: open, main not red, "
-                                 "`check` passed on the head, merge with --match-head-commit, watch main's push run, "
-                                 "then overlap and ships lines. Never deploys.")
+                                 "`check` passed on the head, its turn in the merge queue, merge with "
+                                 "--match-head-commit, watch main's push run, then overlap and ships lines. A "
+                                 "background job unless --watch. Never deploys.")
     ap.add_argument("pr", type=int, help="the PR number")
     ap.add_argument("--squash", action="store_true", help="squash-merge (the coordinator's choice only)")
     ap.add_argument("--wave", help="dashboard wave, with --dash-out")
     ap.add_argument("--dash-out", help="folder for tools/agent/dash_rows.py's documents, with --wave")
     ap.add_argument("--poll", type=float, default=POLL, help=f"seconds between polls (default {POLL})")
     ap.add_argument("--no-watch-main", action="store_true", help="tests only: skip watching main's push run")
+    ap.add_argument("--watch", action="store_true", help="run in the foreground to the end, not as a background job")
+    ap.add_argument("--ticket", type=Path, help=argparse.SUPPRESS)     # the background job's ticket, from detach()
     return ap
+
+
+def job_args(a: argparse.Namespace, ticket: Path) -> list[str]:
+    """The background job's arguments: the caller's, in the foreground, under the caller's ticket."""
+    args = [str(a.pr), "--watch", "--ticket", str(ticket), "--poll", str(a.poll)]
+    args += ["--squash"] if a.squash else []
+    args += ["--wave", a.wave] if a.wave else []
+    args += ["--dash-out", a.dash_out] if a.dash_out else []
+    args += ["--no-watch-main"] if a.no_watch_main else []
+    return args
+
+
+Spawn = Callable[..., "subprocess.Popen[bytes]"]
+
+
+def already_queued(ticket: Ticket, log_dir: Path = LOG_DIR) -> str:
+    return (f"#{ticket.pr} is already in the merge queue as {ticket.label()}, {ticket.state}; log: "
+            f"{log_path(ticket.pr or 0, log_dir)}. Nothing new was queued.")
+
+
+def detach(a: argparse.Namespace, queue_dir: Path = QUEUE_DIR, log_dir: Path = LOG_DIR,
+           spawn: Spawn = subprocess.Popen) -> int:
+    """Take a ticket, start the land as a background job in a session of its own, and return once the job has put
+    its own PID on the ticket (this process never writes the ticket after the job starts). Exit 0 means queued, not
+    merged: the job's code lands in the result file (make land-wait)."""
+    queue = LandQueue(queue_dir, print)
+    other = queue.live(a.pr)
+    if other is not None:
+        print(already_queued(other, log_dir))
+        return 0
+    ticket = queue.take(a.pr, session_name())
+    log = log_path(a.pr, log_dir)
+    try:
+        log.parent.mkdir(parents=True, exist_ok=True)
+        result_path(a.pr, log_dir).unlink(missing_ok=True)       # make land-wait reads only this land's result
+        with log.open("a", encoding="utf-8") as out:
+            out.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} make land PR={a.pr}: ticket {ticket.number}\n")
+            out.flush()
+            job = spawn([sys.executable, str(Path(__file__).resolve()), *job_args(a, ticket.path)], cwd=ROOT,
+                        stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
+    except BaseException:
+        queue.release(ticket)
+        raise
+    if not queue.wait_adopted(ticket, job.pid):
+        print(f"the job (PID {job.pid}) has not taken ticket {ticket.number} yet; see {log}")
+    print(f"queued #{a.pr} as ticket {ticket.number} (job PID {job.pid}); log: {log}. Exit 0 means queued, not "
+          f"merged: make land-status shows the queue, make land-wait PR={a.pr} waits for the result.")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -591,9 +575,18 @@ def main(argv: list[str] | None = None) -> int:
         a = parser().parse_args(argv)
     except SystemExit as e:
         return 0 if e.code == 0 else 2
+    if not a.watch:
+        return detach(a)
     module = load_tool(ROOT / "tools/ops/orient_overlap.py", "orient_overlap")
-    return Lander(poll=a.poll).land(a.pr, squash=a.squash, watch_main=not a.no_watch_main, wave=a.wave,
-                                    dash_out=a.dash_out, overlap_module=module)
+    lander = Lander(poll=a.poll)
+    code = lander.land(a.pr, squash=a.squash, watch_main=not a.no_watch_main, wave=a.wave, dash_out=a.dash_out,
+                       overlap_module=module, ticket=a.ticket)
+    try:
+        write_result(a.pr, lander.ticket_number, code)
+    except OSError as e:
+        print(f"result not written for make land-wait: {e}")
+    print(f"land of #{a.pr} ended with exit {code}")
+    return code
 
 
 if __name__ == "__main__":

@@ -6520,8 +6520,17 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "make land PR=N: the coordinator's merge of one PR (check on the head, merge, main's push run, overlap and ships lines); never deploys.",
+   "desc": "make land PR=N: the coordinator queues one PR and a background job merges it (check on the head, its turn in the merge queue, merge, main's push run, overlap and ships lines); never deploys.",
    "path": "tools/agent/land.py"
+  },
+  {
+   "id": "tools/agent/land_queue.py",
+   "label": "land_queue.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make land's merge queue: numbered tickets in /tmp/hart-land-queue, first come first merged, dead tickets skipped; make land-status lists it with each land log's last lines.",
+   "path": "tools/agent/land_queue.py"
   },
   {
    "id": "docs/report-cards/scores.json",
@@ -15325,6 +15334,16 @@
    "from": "host:mac",
    "to": "tools/agent/land.py",
    "label": "make land"
+  },
+  {
+   "from": "tools/agent/land_queue.py",
+   "to": "tools/agent/land.py",
+   "label": "merge queue"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/land_queue.py",
+   "label": "make land-status"
   },
   {
    "from": "tools/hosts/deploy/ci_pass.py",
