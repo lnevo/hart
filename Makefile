@@ -39,10 +39,10 @@ pr-kind:  ## Does this branch need make remote? Prints docs, light (make static 
 	@python3 tools/ci/changed_kind.py --git
 
 # $(value V): make does not expand $(shell ...) or other references inside the values; the guard refuses them too.
-ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path] [BRANCH=agent/claude/<topic>]; commit, checks, push, make remote unless light, PR (never merges)
+ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path] [BRANCH=agent/claude/<topic>] [REMOTE=1]; commit, checks, push, make remote when a check reads private files (else a draft PR GitHub's check gates), PR (never merges)
 	@python3 tools/agent/ready.py --files '$(subst ','"'"',$(value FILES))' --msg '$(subst ','"'"',$(value MSG))' --title '$(subst ','"'"',$(value TITLE))' \
 	  --body '$(subst ','"'"',$(value BODY))' --body-file '$(subst ','"'"',$(value BODY_FILE))' \
-	  --branch '$(subst ','"'"',$(value BRANCH))'
+	  --branch '$(subst ','"'"',$(value BRANCH))' $(if $(filter 1 yes true,$(REMOTE)),--remote)
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }

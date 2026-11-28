@@ -39,8 +39,9 @@ Gates and close: finish with, in your worktree,
   make ready FILES="<files, by name>" MSG="<conventional message>" TITLE="<PR title>"
     BODY_FILE=<PR body file, .md or .txt> BRANCH=agent/claude/<topic>
   It commits, merges origin/main only when needed, regenerates, runs the "No failed
-  PRs" gates (.claude/skills/coordinate/merging.md), pushes, runs make remote unless
-  docs or light, and opens the PR. If it stops, fix what it names and run the same command again.
+  PRs" gates (.claude/skills/coordinate/merging.md), pushes, runs make remote only
+  when a change feeds a check that reads private files or REMOTE=1 is given (otherwise
+  the PR opens as a draft and GitHub's check is the gate), and opens the PR. If it stops, fix what it names and run the same command again.
   Never a local full ./tools/check.sh. Do NOT merge.
 Review fixes: collect them all and ship them in ONE make ready run; every push
   restarts the ~7-minute GitHub check.

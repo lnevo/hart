@@ -4300,8 +4300,16 @@ html.zoomer-open body {
   scroll-margin-top: 5rem;
 }
 
+/* Library articles and crew sheets: headings the "On this page" row links to clear the sticky header. */
+.history-wrap h2[id],
+.sheet-sec h2[id] {
+  scroll-margin-top: 5rem;
+}
+
 /* The phone header wraps its nav onto a second row. */
 @media (max-width: 640px) {
+  .history-wrap h2[id],
+  .sheet-sec h2[id],
   .panel[id],
   .glossary-group,
   .spot-sheet,
