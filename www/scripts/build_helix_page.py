@@ -151,7 +151,7 @@ def status_page(head: str, published: dict[str, str]) -> str:
         name = m.group(1)
         return f'<a href="{published[name]}"><code>{name}</code></a>' if name in published else m.group(0)
     body = re.sub(r'<code>([^<]+)</code>', link, body)
-    return head.replace('{{DESC}}', 'Build status of the Neville Island helix: as-built facts, decisions that override the plan, fixtures and scripts, and open items, updated 15 October 2026.').replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
+    return head.replace('{{DESC}}', 'Build status of the Neville Island helix: as-built facts, decisions that override the plan, fixtures and scripts, and open items.').replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Helix build status</h1>
       <p class="muted">Rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
