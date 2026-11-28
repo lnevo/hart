@@ -93,7 +93,7 @@
     printOpened = [];
   });
 
-  // "Operations › Session paperwork ›" above the title.
+  // "Operations › Crew sheets ›" above the title.
   function extendCrumb(extra) {
     const crumb = document.querySelector("main .page-head .crumb ol");
     if (!crumb) return;
@@ -481,7 +481,7 @@
       note + toggle + figures + mapTracks(m) + (archive ? mapSwitches(m) : "") + connects +
       actions((archive ? printButton("Print map (8×5)") + sourceButton(m.source) : "") +
         ghostLink(archive ? "crew/maps/archive/index.html" : "crew/maps/index.html", "All maps") +
-        ghostLink("crew/index.html", "Session paperwork"));
+        ghostLink("crew/index.html", "Crew sheets"));
 
     root.querySelectorAll(".seg button").forEach((b) => {
       b.addEventListener("click", () => {
@@ -523,7 +523,7 @@
       "</ul>" +
       `<h2 class="sub-h">Levels</h2><ul class="map-list">${levels}</ul>` +
       `<p class="small">The earlier hand-drawn maps, with the old switch numbers, are in the <a href="${u("crew/maps/archive/index.html")}">archive</a>.</p></div></section>` +
-      actions(ghostLink("crew/index.html", "Session paperwork"));
+      actions(ghostLink("crew/index.html", "Crew sheets"));
     wireZoom(root);
   }
 
@@ -554,7 +554,7 @@
       group("island", "Local industries") +
       group("interchange", "Interchange") +
       `<details class="sheet-more" data-print-open><summary>As a table</summary>${colorTable(true)}</details>` +
-      actions(printButton() + ghostLink("crew/index.html", "Session paperwork"));
+      actions(printButton() + ghostLink("crew/index.html", "Crew sheets"));
     wirePrint(root);
   }
 
@@ -569,7 +569,7 @@
       `</ol><p class="muted small">${esc(tt.bulletin)}</p>` +
       `<p class="small no-print">Where the stations are: <a href="${u("crew/maps/index.html")}">subdivision diagram and station maps</a>.</p></section></div>` +
       actions(printButton() + sourceButton(tt.source, "Source pptx") +
-        ghostLink("crew/dispatcher/index.html", "Dispatcher train list") + ghostLink("crew/index.html", "Session paperwork"));
+        ghostLink("crew/dispatcher/index.html", "Dispatcher train list") + ghostLink("crew/index.html", "Crew sheets"));
     wirePrint(root);
   }
 
@@ -594,7 +594,7 @@
         }) +
         "</section>") +
       actions(printButton() + sourceButton(s.source) +
-        ghostLink("crew/ck1/index.html", "CK1 crew sheet") + ghostLink("crew/index.html", "Session paperwork"));
+        ghostLink("crew/ck1/index.html", "CK1 crew sheet") + ghostLink("crew/index.html", "Crew sheets"));
     wirePrint(root);
   }
 
@@ -656,7 +656,7 @@
       `<h2 class="sub-h">Interchange</h2>${off}` +
       `<h2 class="sub-h">Yard and desk notes</h2>${desk}` +
       actions(printButton() + sourceButton(sh.source) +
-        ghostLink("briefing/index.html#industries", "Industries") + ghostLink("crew/index.html", "Session paperwork"));
+        ghostLink("briefing/index.html#industries", "Industries") + ghostLink("crew/index.html", "Crew sheets"));
     wirePrint(root);
     // Re-apply the hash now that the anchors exist.
     if (location.hash) {
@@ -696,7 +696,7 @@
   const RENDER = { maps: renderMapsIndex, colors: renderColors, tt23: renderTT23, scale: renderScale, industries: renderIndustries };
 
   function crumbsFor(kind) {
-    const crumbs = [{ href: u("crew/index.html"), label: "Session paperwork" }];
+    const crumbs = [{ href: u("crew/index.html"), label: "Crew sheets" }];
     if (kind === "map") crumbs.push({ href: u("crew/maps/index.html"), label: "Station maps" });
     if (kind === "map" && archive) crumbs.push({ href: u("crew/maps/archive/index.html"), label: "Archive" });
     if (kind === "maps" && archive) crumbs.push({ href: u("crew/maps/index.html"), label: "Station maps" });

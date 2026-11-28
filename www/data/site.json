@@ -25,7 +25,6 @@
       "id": "history",
       "href": "history/index.html",
       "label": "Prototype",
-      "short": "History",
       "pages": [
         "history",
         "articles",
@@ -52,17 +51,13 @@
         "crew-scale",
         "crew-industries",
         "docs",
-        "guides",
-        "guide",
-        "layout",
-        "tools"
+        "layout"
       ]
     },
     {
       "id": "behind",
       "href": "behind/index.html",
       "label": "Behind the Scenes",
-      "short": "Behind",
       "pages": [
         "behind",
         "behind-signals",
@@ -88,14 +83,14 @@
         "build-roadbed",
         "helix",
         "helix-status",
-        "play"
+        "play",
+        "ap-exam"
       ]
     },
     {
       "id": "ai",
       "href": "ai/index.html",
       "label": "The Diverging Route",
-      "short": "AI",
       "crumb": "AI",
       "pages": [
         "behind-ai",
@@ -121,12 +116,6 @@
     }
   ],
   "parents": {
-    "guide": [
-      {
-        "label": "Guides",
-        "href": "guides/index.html"
-      }
-    ],
     "build-track-plan": [
       {
         "label": "The Build",
