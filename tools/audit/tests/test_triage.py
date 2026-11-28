@@ -195,9 +195,13 @@ class Concurrency(unittest.TestCase):
         cap = triage.SessionCap(10, count=lambda: 12, sleep=sleep, poll=15, settle=0, max_wait=60,
                                 clock=lambda: clock[0])
         ran: list[triage.Finding] = []
+
+        def verify(f: triage.Finding) -> triage.Result:
+            ran.append(f)
+            return triage.Result(f, "WRONG")
+
         with contextlib.redirect_stdout(io.StringIO()):
-            results = triage.run_all([finding("a"), finding("b")], lambda f: ran.append(f) or triage.Result(f, "WRONG"),
-                                     jobs=1, cap=cap)
+            results = triage.run_all([finding("a"), finding("b")], verify, jobs=1, cap=cap)
         self.assertEqual(ran, [])
         self.assertEqual([r.verdict for r in results], [triage.NOT_VERIFIED] * 2)
         self.assertEqual(results[0].reason, "waited 60 s at the session cap of 10 Claude processes")
