@@ -11,19 +11,31 @@ each open PR's head branch (last part), each page in wiki/projects/ whose Status
 every worktree's copy) and the branch of each Claimed line on one. A name matches a topic when they are equal, or
 one is the other followed by "-" and more (the active page data-masters keeps data-masters-L3.md).
 
+An active page keeps a lane's file (its topic is the page's name, "-" and the lane, such as data-masters-L3) only
+until that lane merged: a merged PR's head branch ends in the topic (agent/claude/data-masters-l3, any case), or a
+row of a table on the page that starts with the lane (`| L3 Wiring inputs | ...`) gives a merged PR as the lane's
+own (lane_prs: after "Done", or in a PR column). The merged PRs are read only when such a file is otherwise done;
+when GitHub cannot list them the page keeps the file.
+A lane topic used again for new work, whose earlier branch merged, is archived once no worktree, branch or open PR
+uses it (those names keep it while the new work runs).
+
 Files are moved, not deleted: the move keeps the file's time, and archive/ is never pruned. A file whose archive
 name is taken stays and gets one line. When GitHub cannot list the open PRs nothing is archived, since a lane's PR
 may still be open. Prints one line per file ("archived", "would archive", "left") and nothing when no file is
-done. Runs from the session-start hook (.claude/hooks/worktree_sweep.py) beside the worktree sweep.
+done. Runs from the session-start hook (.claude/hooks/worktree_sweep.py) beside the worktree sweep, and after
+each land and hourly from tools/agent/housekeeping.py.
 """
 from __future__ import annotations
 
 import argparse
+import functools
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -40,6 +52,9 @@ STALE = timedelta(days=1)
 LONG_STALE = timedelta(days=2)  # dashboards and hand-off, coordinator and steward files
 LONG_WORDS = ("handoff", "coordinator", "steward")
 GH_TIMEOUT = 20
+MERGED_LIMIT = 1000
+PR_REF = re.compile(r"#(\d+)\b")
+DONE_PR = re.compile(r"\bDone\b[^#]*?#(\d+)\b")
 
 
 class PruneError(RuntimeError):
@@ -97,20 +112,97 @@ def load_orient_pages(path: Path = PAGES) -> ModuleType:
     return module
 
 
-def page_names(checkouts: list[Path], pages: ModuleType) -> set[str]:
-    """Each active project page's name and the branch of each claim on it, from every checkout's wiki/projects/."""
-    names: set[str] = set()
+@dataclass(frozen=True)
+class Merged:
+    heads: frozenset[str]  # last part of each merged PR's head branch, lower case
+    numbers: frozenset[int]
+
+
+@dataclass
+class Pages:
+    texts: dict[str, list[str]]  # each active page's name -> its text in every checkout that has it active
+    claims: set[str]  # the branch (last part) of each claim on an active page
+
+
+def active_pages(checkouts: list[Path], pages: ModuleType) -> Pages:
+    """The active project pages and their claims, from every checkout's wiki/projects/."""
+    found = Pages({}, set())
     for checkout in checkouts:
         folder = checkout / "wiki/projects"
         for path in sorted(folder.glob("*.md")) if folder.is_dir() else []:
             try:
-                page = pages.parse_page(path.name, path.read_text(encoding="utf-8"))
+                text = path.read_text(encoding="utf-8")
+                page = pages.parse_page(path.name, text)
             except (OSError, UnicodeDecodeError):
                 continue  # a page being written or removed by another session; the others still count
             if page.status == "active":
-                names.add(path.stem)
-                names.update(last_part(c.branch) for c in page.claims)
-    return names
+                found.texts.setdefault(path.stem, []).append(text)
+                found.claims.update(last_part(c.branch) for c in page.claims)
+    return found
+
+
+def lane_prs(text: str, lane: str) -> set[int]:
+    """The PRs that a table row of `text` whose first cell starts with the word `lane` (any case) gives as the lane's
+    own: the first #N after "Done" in a cell (`**Done** 2026-11-25 (#1145)`), and any #N in a column headed "PR".
+    Other PRs a row cites (one it waits for, an earlier fix) do not count."""
+    numbers: set[int] = set()
+    pr_column: int | None = None
+    for line in text.splitlines():
+        cells = line.strip().split("|")
+        if len(cells) <= 2 or cells[0].strip():  # not a table row: a later table has its own header
+            pr_column = None
+            continue
+        names = [c.strip().lower() for c in cells]
+        if "pr" in names and not any(PR_REF.search(c) for c in cells):
+            pr_column = names.index("pr")  # a header row
+            continue
+        words = cells[1].split()
+        if not words or words[0].lower() != lane.lower():
+            continue
+        for i, cell in enumerate(cells):
+            if i == pr_column:
+                numbers.update(int(n) for n in PR_REF.findall(cell))
+            done = DONE_PR.search(cell)
+            if done:
+                numbers.add(int(done.group(1)))
+    return numbers
+
+
+def lane_of(page: str, topic: str) -> str | None:
+    """The lane part of `topic` when it is `page` followed by "-" and more; None otherwise."""
+    prefix = page.lower() + "-"
+    return topic[len(prefix):] if topic.lower().startswith(prefix) and len(topic) > len(prefix) else None
+
+
+def kept_by_page(topic: str, pages: Pages, merged: Callable[[], Merged | None]) -> bool:
+    """Whether an active page keeps `topic`: it matches the page and is not a lane that merged (`merged` is asked
+    only for a lane; None keeps it)."""
+    for page, texts in pages.texts.items():
+        if not matches(page, topic):
+            continue
+        lane = lane_of(page, topic)
+        found = merged() if lane is not None else None
+        if found is None:
+            return True
+        if topic.lower() in found.heads:
+            continue
+        if not any(n in found.numbers for text in texts for n in lane_prs(text, lane or "")):
+            return True
+    return False
+
+
+def merged_prs(main: str, limit: int = MERGED_LIMIT) -> Merged | None:
+    """The newest `limit` merged PRs' numbers and head branches; None when gh cannot say."""
+    try:
+        listed = subprocess.run(["gh", "pr", "list", "--state", "merged", "--limit", str(limit), "--json",
+                                 "number,headRefName"], cwd=main, capture_output=True, text=True, timeout=GH_TIMEOUT * 3)
+        prs = json.loads(listed.stdout or "[]") if listed.returncode == 0 else None
+        if not isinstance(prs, list):
+            return None
+        return Merged(frozenset(last_part(str(p["headRefName"])).lower() for p in prs),
+                      frozenset(int(p["number"]) for p in prs))
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError):
+        return None
 
 
 def open_pr_branches(main: str) -> set[str]:
@@ -128,9 +220,10 @@ def open_pr_branches(main: str) -> set[str]:
         raise PruneError(f"gh pr list gave unreadable output: {err}") from err
 
 
-def names_in_use(main: str, checkouts: list[Path], branches: list[str]) -> set[str]:
+def names_in_use(main: str, checkouts: list[Path], branches: list[str], pages: Pages) -> set[str]:
+    """Every name that keeps a matching file, the active pages' own names left out (kept_by_page judges those)."""
     names = {p.name for p in checkouts[1:]} | {last_part(b) for b in branches}
-    return names | page_names(checkouts, load_orient_pages()) | open_pr_branches(main)
+    return names | pages.claims | open_pr_branches(main)
 
 
 def archive(files: list[ProgressFile], folder: Path, dry_run: bool) -> list[str]:
@@ -163,8 +256,11 @@ def prune(dry_run: bool = False, now: datetime | None = None, repo: Path = ROOT)
     if not stale:  # nothing old enough: no GitHub call
         return []
     checkouts = [Path(t.path) for t in trees if os.path.isdir(t.path)]
-    names = names_in_use(main, checkouts, [t.branch for t in trees if t.branch])
-    return archive(done(stale, names, now), folder, dry_run)
+    pages = active_pages(checkouts, load_orient_pages())
+    names = names_in_use(main, checkouts, [t.branch for t in trees if t.branch], pages)
+    merged = functools.cache(lambda: merged_prs(main))
+    finished = [f for f in done(stale, names, now) if not kept_by_page(f.topic, pages, merged)]
+    return archive(finished, folder, dry_run)
 
 
 def main(argv: list[str] | None = None) -> int:

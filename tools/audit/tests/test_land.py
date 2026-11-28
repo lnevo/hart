@@ -670,6 +670,58 @@ class After(unittest.TestCase):
             self.assertIn(f'"--wave", "w3", "event", "Merged #12: {MERGE}"', buf.getvalue())
 
 
+@mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG})
+class Housekeeping(unittest.TestCase):
+    """Step 9: after a merge the land job runs housekeeping.after_land; nothing there changes the exit code."""
+
+    def run_land(self, gh: FakeGitHub, housekeeping: Any) -> tuple[int, str, Any]:
+        lnd, _ = lander(gh)
+        lnd.housekeeping = housekeeping
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = lnd.land(12, watch_main=False)
+            lnd.after_merge()
+        return code, buf.getvalue(), lnd
+
+    def test_a_merge_runs_it_with_the_root_and_logs_its_lines(self) -> None:
+        roots: list[Path] = []
+
+        def tidy(root: Path) -> list[str]:
+            roots.append(root)
+            return ["swept 2"]
+
+        code, out, lnd = self.run_land(FakeGitHub(), tidy)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(roots, [lnd.root])
+        self.assertIn("swept 2", out)
+
+    def test_a_failure_there_leaves_the_exit_code(self) -> None:
+        def broken(root: Path) -> list[str]:
+            raise RuntimeError("sweep broke")
+
+        code, out, _ = self.run_land(FakeGitHub(), broken)
+        self.assertEqual(code, 0, out)
+        self.assertIn("housekeeping not run (RuntimeError: sweep broke)", out)
+
+    def test_a_refused_land_runs_none(self) -> None:
+        gh = FakeGitHub()
+        gh.pr["state"] = "CLOSED"
+        called: list[Path] = []
+
+        def tidy(root: Path) -> list[str]:
+            called.append(root)
+            return []
+
+        code, _, _ = self.run_land(gh, tidy)
+        self.assertEqual(code, 1)
+        self.assertEqual(called, [])
+
+    def test_the_real_after_land_is_what_main_loads(self) -> None:
+        loaded = LAND.load_housekeeping()
+        self.assertIsNotNone(loaded)
+        self.assertEqual(getattr(loaded, "__name__", ""), "after_land")
+
+
 class Runner(unittest.TestCase):
     def test_gh_on_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

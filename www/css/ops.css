@@ -223,6 +223,12 @@ a:hover {
   background: var(--paper);
 }
 
+/* A section's sub entry (site.json "sub"): indented under its section. */
+.nav-panel .nav-sub {
+  padding: 0.55rem 0.8rem 0.55rem 1.8rem;
+  font-size: 0.95rem;
+}
+
 .nav-panel .eng-link {
   margin-top: 0.3rem;
   border: 0;
@@ -1853,6 +1859,19 @@ main:not(.full-bleed) .btn-ghost:hover {
   border: 1px solid var(--rule);
   background: var(--card);
   box-shadow: var(--shadow);
+}
+
+/* A wide table's box takes keyboard focus (tabindex="0"), so arrow keys scroll it. */
+.table-wrap:focus-visible {
+  outline: 3px solid var(--brand-2);
+  outline-offset: 2px;
+}
+
+/* Shown by js/a11y.js only while the table is wider than its box. */
+.scroll-hint {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 table.roster {

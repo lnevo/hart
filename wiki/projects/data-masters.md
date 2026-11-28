@@ -1,6 +1,8 @@
 # Data masters: phase 1 lanes (2026-11-25)
 
-Status: active
+Status: done (2026-11-28)
+
+Phase 1 is done. Phase 2 (drift reports, the read-only SQLite) is parked and waits for the owner to start it.
 
 Plan for [ADR-039](../decisions/ADR-039-data-masters-in-git.md): one master per kind of record in git, column sidecars checked by `check.sh`, stable keys, and no spreadsheet as an input. Phase 1's lanes L8 to L15 merged on 2026-11-26 and are deployed to the Pi, Windows and the site (a1b762ca); L7 was done on 2026-11-25 (#1173). Phase 2 (drift reports against STS, Operations Pro and JMRI, the SQLite view, and a database if one is ever needed) starts once phase 1 is done.
 

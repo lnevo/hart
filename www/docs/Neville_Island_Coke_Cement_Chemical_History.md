@@ -48,9 +48,9 @@ During the 1960s PC&C broke apart:
 | 1928 | Davison Coke & Iron Company incorporated (Pennsylvania filing 29 August 1928). |
 | 1929 | Davison buys the old AS&W blast-furnace property and builds new coke ovens and a cement plant. |
 | ~1930 | Cement operations underway. The coke ovens and chemical works that later became Shenango date from about this time. |
-| 1939 | Shenango-Penn Mold buys the mid-island ingot-mold foundry (3100 Grand Avenue). It is running through the 1940s. It is not the east-end coke works, which is still Pittsburgh Coke & Iron. |
 | 1932–1935 | Davison in financial distress. Creditors Hillman Coal & Coke and W.J. Rainey form Neville Coke & Chemical to hold claims. Davison files a 77B petition in 1935. |
 | 31 Jan 1936 | Bankruptcy reorganization consummated. Davison amends its charter and becomes **Pittsburgh Coke & Iron Company**. It remains a by-product coke plant and blast furnace, consuming about 1,650 tons of coal per day. |
+| 1939 | Shenango-Penn Mold buys the mid-island ingot-mold foundry (3100 Grand Avenue). It is running through the 1940s. It is not the east-end coke works, which is still Pittsburgh Coke & Iron. |
 | 1940 | Chemical manufacture added to coke, iron, and cement. A 1940 annual report is still titled Pittsburgh Coke & Iron. |
 | ~1942 | The company operates as **Pittsburgh Coke & Chemical**. Wartime contract for coal-based granular activated carbon for gas masks. |
 | 1949–1955 | Agricultural Chemicals Division manufactures pesticides on Neville Island. |
@@ -71,13 +71,14 @@ During the 1960s PC&C broke apart:
 | 1987 | Pennsylvania PUC records cement truck shipments originating at Lone Star Cement, Neville Island. |
 | 13 Jun 1988 | Shenango, Inc. pleads guilty to Clean Water Act discharges. EPA still describes the Neville Island plant as producing **coke and pig iron** with a blast furnace and coke ovens. |
 | Jan 1990 | Plant veterans date the shutdown of Shenango’s mid-island **ingot-mold foundry** (3100 Grand Avenue) to January 1990. That foundry was a 1939 Shenango-Penn Mold plant, fed by hot metal from the east-end furnaces; it is not the coke works. TRI releases from the foundry division collapse in 1990. |
+| Mar 1990 | Mitsubishi-backed management buyout takes Aristech private (about $877 million; tender completed 7 March 1990). |
 | Early Oct 1990 | Shenango Group, owned by the Aloe family, announces it will close the furnace and foundry, about 500 jobs, citing the cost of modernizing (up to $10 million to reline the furnace), a shrinking ingot-mold market, and Brazilian imports. |
 | 30 Nov 1990 | Foundry closes: the *Post-Gazette* of 5 December says it “closed Friday.” Plant veterans remember January 1990 (above); mold production had already moved to other Shenango plants. |
 | 5–6 Dec 1990 | Last blast furnace expected to run dry when the ore runs out, leaving USX's Edgar Thomson as the only ironmaking left in the Pittsburgh area. |
 | 1990–mid 1991 | East-end **blast furnaces taken off**. The iron-department general foreman dates the iron-department close and the sale of the pig-casting machine to this window: he left Neville Island in March 1991 and was plant manager of Maryland Pig Services at Sparrows Point from July 1991, running the machine that had been at Shenango. The *Post-Gazette* article of 5 December 1990 describes the final heat. |
-| 1990 | Mitsubishi-backed management buyout takes Aristech private (about $877 million; tender completed 7 March 1990). |
-| Apr 1995 | Aristech sells unsaturated polyester resin and maleic-anhydride units on Neville Island to Ashland; keeps the plasticizer plant. |
 | By 1994–1996 | Kosmos Cement (Southdown 75% / Lone Star 25%) operates a Pittsburgh cement plant. Allegheny County (1996) names Kosmos owner/operator of Portland cement production at **200 Neville Road**. |
+| Apr 1995 | Aristech sells unsaturated polyester resin and maleic-anhydride units on Neville Island to Ashland; keeps the plasticizer plant. |
+| 16 Nov 2000 | Cemex completes its merger with Southdown, the 75% partner in Kosmos. |
 | 1 Jan 2001 | **Sunoco buys Aristech from Mitsubishi** for $695 million. The five plants in the deal include **Neville Island, PA**, plus Neal, WV; Haverhill, OH; Pasadena and LaPorte, TX; and a Pittsburgh research center. Plasticizer capacity was part of the acquired business. |
 | Jan 2004 | Sunoco sells the phthalate plasticizer business to BASF (about $90–91 million), including the Pasadena, TX plant. Neville Island remains with Sunoco and toll-manufactures plasticizers for BASF, with terminalling. |
 | By 31 Mar 2007 | Sunoco stops manufacturing plasticizers at Neville Island. |
@@ -85,14 +86,14 @@ During the 1960s PC&C broke apart:
 | 2008 | DTE Energy acquires Shenango Incorporated. |
 | 6 Jan 2016 | Last **coke** produced at Shenango (the 56-oven battery); 173 jobs. Pig iron had already been gone about 25 years. Stacks imploded May 2018. Lindy Paving buys the site November 2020. |
 | 9 Mar 2018 | Kuraray completes acquisition of Calgon Carbon. |
-| Mar 2020 | Eagle Materials closes on the Kosmos Cement business, including the Pittsburgh terminal at 200 Neville Road. Kosmos remains the terminal name. |
+| 6 Mar 2020 | Eagle Materials closes on the Kosmos Cement business, including the Pittsburgh terminal at 200 Neville Road. At the sale Cemex held 75% of Kosmos and a Buzzi Unicem subsidiary the rest. Kosmos remains the terminal name. |
 | Today | Calgon Carbon remains a major activated-carbon company (now Kuraray). Kosmos/Eagle distributes cement at 200 Neville Road. The former Aristech/Sunoco plant is an Ashland terminal. The coke works is gone. |
 
 ---
 
 ## 1. American Steel & Wire (c. 1899–1929)
 
-Neville Island was still known as Pittsburgh’s “market basket” when wire and steel capital arrived. In late 1899 American Steel & Wire announced a furnace plant on the island. Contemporary newspapers described a large project — six 800-ton Bessemer furnaces, 400 acres, and 5,000 jobs. The plant that was built was a blast furnace on about **182 acres** of former farmland on the southern tip, purchased in 1900.
+Neville Island was still known as Pittsburgh’s “market basket” when wire and steel capital arrived. In late 1899 American Steel & Wire announced a furnace plant on the island. Contemporary newspapers described a large project — six 800-ton Bessemer furnaces, 400 acres, and 5,000 jobs. The plant that was built was a blast furnace on about **182 acres** of former farmland on the southern tip, purchased in 1900 (ExplorePAHistory / TrailLink, after Gorman).
 
 The **Pittsburgh & Ohio Valley Railway** was incorporated 5 December 1899, wholly owned by American Steel & Wire, built February 1900–October 1902 on AS&W land, and interchanged with the **PC&Y** on the island. A 1923 Pittsburgh Plan note lists P&OV as a U.S. Steel industrial line of 2.04 miles, also connecting toward the P&LE.
 
@@ -104,7 +105,7 @@ By 1916 other firms on the island were making pig iron, scrapping steel, refinin
 
 ## 2. Davison Coke & Iron (1929–1936)
 
-Davison Coke & Iron Company was incorporated in 1928. In 1929 it bought the old American Steel & Wire blast furnace and built **new coke ovens and a cement plant** on the property.
+Davison Coke & Iron Company was incorporated in 1928. In 1929 it bought the old American Steel & Wire blast furnace and built **new coke ovens and a cement plant** on the property. A Pittsburgh Coke & Chemical company history gives what Davison bought from U.S. Steel as a 550-ton-a-day furnace on 159 acres, fewer acres than AS&W bought in 1900 (quoted on the P&OV blog, p.116).
 
 The Tax Court and Third Circuit later described the company in the mid-1930s as a Pennsylvania corporation with a by-product coke plant and blast furnace on Neville Island, buying coal principally from W.J. Rainey, Inc. and Hillman Coal & Coke. The Hillman interest remains in this story through PC&C, the later park donation, and Calgon’s ancestry.
 
@@ -174,7 +175,7 @@ In late 1960 and January 1961, PC&C agreed to sell wholly owned Green Bag Cement
 
 Marquette became a Gulf & Western subsidiary in 1976 and was sold to **Lone Star Industries** in 1982. Pennsylvania PUC records show truck shipments originating at **Lone Star Cement Company, Neville Island** in 1987.
 
-By the mid-1990s **Kosmos Cement Company** (Southdown 75%, Lone Star 25%) operated cement plants in Kosmosdale, Kentucky, and Pittsburgh, Pennsylvania. A 1996 Allegheny County / EPA order names Kosmos as owner/operator of Portland cement production at 200 Neville Road. Eagle Materials bought the Kosmos business in 2020, including the Pittsburgh terminal at that address. Calgon Carbon’s plant (section 6) gives the same street address in EPA and state records; how the two properties came to share it is not documented here. The Kosmos site today is a **cement terminal** (bulk Type IL, masonry, packaged portland), not a kiln plant.
+By the mid-1990s **Kosmos Cement Company** (Southdown 75%, Lone Star 25%) operated cement plants in Kosmosdale, Kentucky, and Pittsburgh, Pennsylvania. A 1996 Allegheny County / EPA order names Kosmos as owner/operator of Portland cement production at 200 Neville Road. Cemex completed its merger with Southdown on 16 November 2000. Eagle Materials bought the Kosmos business, including the Pittsburgh terminal at that address, from the Kosmos Cement Company partnership; the deal closed on 6 March 2020. At the sale Cemex held 75% of Kosmos and a Buzzi Unicem subsidiary the rest. How Lone Star’s 25% passed to Buzzi Unicem is not documented here. Calgon Carbon’s plant (section 6) gives the same street address in EPA and state records; how the two properties came to share it is not documented here. The Kosmos site today is a **cement terminal** (bulk Type IL, masonry, packaged portland), not a kiln plant.
 
 ---
 
@@ -338,6 +339,15 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
 16. Eagle Materials / Kosmos acquisition exhibits (Pittsburgh terminal at 200 Neville Road); Kosmos locations page.  
     https://www.kosmoscement.com/locations/
 
+16a. Eagle Materials Form 8-K, 6 March 2020: purchase from Kosmos Cement Company, a Kentucky general partnership, closed 6 March 2020; assets include a cement distribution terminal in Pittsburgh.  
+    https://www.sec.gov/Archives/edgar/data/918646/000119312520065143/d830454d8k.htm
+
+16b. CEMEX, “CEMEX announces closing of merger with Southdown,” 16 November 2000.  
+    https://cemexpuertorico.com/web/guest/press-releases-2000/-/asset_publisher/mQ0cAvb5HrZz/content/cemex-announces-closing-of-merger-with-southdown
+
+16c. *Global Cement*, “Eagle Materials finalises Kosmos Cement acquisition,” March 2020: Kosmos 75% Cemex, held jointly with a Buzzi Unicem subsidiary.  
+    https://www.globalcement.com/news/11247-eagle-materials-finalises-kosmos-cement-acquisition
+
 17. Calgon Carbon, History and Timeline.  
     https://www.calgoncarbon.com/about/history/
 
@@ -345,6 +355,9 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
     https://web.archive.org/web/20220928180408/https://www.epa.gov/hwcorrectiveactioncleanups/hazardous-waste-cleanup-calgon-carbon-corporation-pittsburgh
 
 17b. University of Pittsburgh / Historic Pittsburgh, Guide to the Calgon Corporation Records (Hagan/Calgon water chemistry; 1965 purchase of Pittsburgh Activated Carbon).
+
+17d. Senator John Heinz History Center, Guide to the Calgon Corporation Records, MSS 693: Hagan Corporation established in Pittsburgh in 1918.  
+    https://historicpittsburgh.org/islandora/object/pitt:US-QQS-mss693
 
 17c. Kuraray / Calgon Carbon, 9 March 2018 acquisition completion.  
     https://www.sec.gov/Archives/edgar/data/812701/000119312518077676/d463605dex991.htm
@@ -395,6 +408,9 @@ Related pages in this folder: [`Chartiers_Valley_Railroads.md`](Chartiers_Valley
 27. *New York Times*, 15 Dec 1979, “Donated Park Lies Unused Because of Toxins Beneath.”
 
 28. USS Chemicals Neville Island Plant, “Proud of Our Progress” advertisement, p. 59 of an unidentified Coraopolis-area booklet (Davison 1928; PC&C 1944; Pittsburgh Chemical Company a U.S. Steel division from 1964). On the portal's Archive page.
+
+28a. Pittsburgh Coke & Chemical company history: the furnace Davison bought from U.S. Steel, 550 tons a day on 159 acres (quoted on the P&OV blog, p.116).  
+    https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824
 
 29. Pennsylvania DEP, NPDES permit PA0091227 fact sheet (Calgon Carbon Neville Island Plant, 200 Neville Road).  
     https://files.dep.state.pa.us/water/Wastewater%20Management/eDMRPortalFiles/Permits/PA0091227_FACT_SHEET_20250303_DRAFT_V3.pdf

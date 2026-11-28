@@ -36,12 +36,14 @@
     </section>
 
     <section class="tab-panel" id="panel-years" role="tabpanel" aria-labelledby="tab-years" hidden>
-      <div class="table-wrap"><table class="data-table lineage-table" id="year-table"></table></div>
+      <p class="scroll-hint" hidden>Scroll sideways for more columns</p>
+      <div class="table-wrap" role="region" aria-label="Plants year by year" tabindex="0"><table class="data-table lineage-table" id="year-table"></table></div>
       <p class="table-note" id="table-note"></p>
     </section>
   </main>
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js"></script>
+  <script src="../js/a11y.js"></script>
   <script src="../js/lineage.js"></script>
   <script>
     HARTLineage.mount("plants", "data/plants-lineage.json");

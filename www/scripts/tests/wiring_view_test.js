@@ -63,8 +63,8 @@ async function main() {
   same(res.nodes.map((n) => n.id), ["C35"]);
   assert.strictEqual(lib.groupTurnouts(res.turnouts).length, 1);
   const tabs = lib.tabsHtml(res, "turnouts", "switch 35");
-  assert.match(tabs, /data-tab="turnouts" aria-selected="true" aria-pressed="true">Turnouts <span class="wr-count">1</);
-  assert.match(tabs, /data-tab="signals" aria-selected="false" aria-pressed="false" class="is-empty">/);
+  assert.match(tabs, /data-tab="turnouts" aria-selected="true">Turnouts <span class="wr-count">1</);
+  assert.match(tabs, /data-tab="signals" aria-selected="false" class="is-empty">/);
 
   // Nothing found: the message names the search, escaped.
   const none = lib.matchInventory(ix, "<b>");

@@ -3355,8 +3355,17 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Site build part, stage 7b: the static header, footer and primer text a visitor without JavaScript sees, from data/site.json and data/briefing.json.",
+   "desc": "Site build part, stage 7b: the static header (with skip link), footer and primer text a visitor without JavaScript sees, from data/site.json and data/briefing.json; the crew pages and the shelf through portal_nojs_crew.py.",
    "path": "www/scripts/portal_nojs.py"
+  },
+  {
+   "id": "www/scripts/portal_nojs_crew.py",
+   "label": "portal_nojs_crew.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Site build part, stage 7b: the crew pages' content from data/crew.json and the Publications shelf from data/publications.json as plain HTML, in the markup js/crew.js and the shelf script write.",
+   "path": "www/scripts/portal_nojs_crew.py"
   },
   {
    "id": "www/scripts/portal_photos.py",
@@ -6034,7 +6043,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "Session-start hook: moves done lanes' .claude/progress files (1+ day old, topic unused) to archive/.",
+   "desc": "Session-start hook, land job and hourly housekeeping: moves done lanes' .claude/progress files (1+ day old, topic unused, or the lane merged) to archive/.",
    "path": "tools/agent/progress_prune.py"
   },
   {
@@ -6533,6 +6542,15 @@
    "path": "tools/agent/land.py"
   },
   {
+   "id": "tools/agent/housekeeping.py",
+   "label": "housekeeping.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make housekeeping (hourly launchd agent, make housekeeping-install) and the land job after a merge: worktree sweep, progress prune, merged local branches deleted with git branch -d.",
+   "path": "tools/agent/housekeeping.py"
+  },
+  {
    "id": "tools/agent/land_queue.py",
    "label": "land_queue.py",
    "kind": "generator",
@@ -6540,6 +6558,15 @@
    "domain": "agents",
    "desc": "make land's merge queue: numbered tickets in /tmp/hart-land-queue, first come first merged, dead tickets skipped; make land-status lists it with each land log's last lines.",
    "path": "tools/agent/land_queue.py"
+  },
+  {
+   "id": "tools/agent/triage.py",
+   "label": "triage.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make triage PR=N FINDINGS=<json>: the coordinator verifies /code-review findings, one headless finding-verifier each (3 at once, under the session cap), and writes fix-brief.md in ~/.cache/hart/triage/<N>/.",
+   "path": "tools/agent/triage.py"
   },
   {
    "id": "docs/report-cards/scores.json",
@@ -14514,6 +14541,11 @@
    "label": "no-JavaScript fallbacks (import)"
   },
   {
+   "from": "www/scripts/portal_nojs_crew.py",
+   "to": "www/scripts/portal_nojs.py",
+   "label": "crew pages and shelf without JavaScript (import)"
+  },
+  {
    "from": "www/scripts/portal_photos.py",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "photo stages (import)"
@@ -15360,6 +15392,16 @@
    "label": "make land-status"
   },
   {
+   "from": "host:mac",
+   "to": "tools/agent/triage.py",
+   "label": "make triage"
+  },
+  {
+   "from": ".claude/agents/finding-verifier.md",
+   "to": "tools/agent/triage.py",
+   "label": "headless verifier"
+  },
+  {
    "from": "tools/hosts/deploy/ci_pass.py",
    "to": "tools/agent/land.py",
    "label": "main red check"
@@ -15373,6 +15415,26 @@
    "from": "ext:github-ci",
    "to": "tools/agent/land.py",
    "label": "check runs and main's push run"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/housekeeping.py",
+   "label": "make housekeeping (launchd, hourly)"
+  },
+  {
+   "from": "tools/agent/land.py",
+   "to": "tools/agent/housekeeping.py",
+   "label": "after the merge"
+  },
+  {
+   "from": "tools/agent/housekeeping.py",
+   "to": "tools/agent/worktrees.py",
+   "label": "runs sweep"
+  },
+  {
+   "from": "tools/agent/housekeeping.py",
+   "to": "tools/agent/progress_prune.py",
+   "label": "runs prune"
   },
   {
    "from": "docs/report-cards/scores.json",

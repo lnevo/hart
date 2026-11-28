@@ -8,10 +8,10 @@
   --xw-sheet:#f5f0e1; /* the Extra East train-sheet tan, same as run.css's --sheet */
   display:flex;flex-direction:column;gap:18px;font-family:var(--f-body);color:var(--ink)}
 .ce button{font:inherit;color:inherit}
-.ce nav.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
-.ce nav.tabs button{font-family:var(--f-head);font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
+.ce .tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.ce .tabs button{font-family:var(--f-head);font-size:19px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;
   background:transparent;color:var(--muted);border:2px solid transparent;border-bottom:none;padding:6px 14px 4px;cursor:pointer;border-radius:4px 4px 0 0;margin-bottom:-2px}
-.ce nav.tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink);border-color:var(--ink)}
+.ce .tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink);border-color:var(--ink)}
 .ce-panel{display:flex;flex-direction:column;gap:14px}
 .ce-chips{display:flex;flex-wrap:wrap;gap:6px}
 .ce-chip{border:1.5px solid var(--rule);background:var(--paper);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}

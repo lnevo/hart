@@ -12,10 +12,25 @@ wt:  ## Start a task in its own worktree: make wt TOPIC=short-topic
 wt-sweep:  ## Remove agent worktrees whose PR is merged
 	python3 tools/agent/worktrees.py sweep
 
+.PHONY: housekeeping housekeeping-install housekeeping-uninstall
+housekeeping:  ## Worktree sweep, progress prune and merged local branches deleted (git branch -d); DRY=1 names them only. The launchd agent runs it hourly
+	@python3 tools/agent/housekeeping.py run $(if $(filter 1 yes true,$(DRY)),--dry-run)
+
+housekeeping-install:  ## Install the per-user launchd agent that runs make housekeeping in the main checkout every hour (log in ~/.cache/hart/housekeeping/)
+	@python3 tools/agent/housekeeping.py install
+
+housekeeping-uninstall:  ## Unload and remove the hourly housekeeping launchd agent
+	@python3 tools/agent/housekeeping.py uninstall
+
 .PHONY: land
 land:  ## The coordinator queues one PR to merge and returns (0 = queued; make land-wait for the result): make land PR=N [WATCH=1] [SQUASH=1] [WAVE=W DASH=DIR]; never deploys
 	@test -n "$(PR)" || { echo 'make land: set PR=N' >&2; exit 2; }
 	@python3 tools/agent/land.py $(PR) $(if $(filter 1 yes true,$(WATCH)),--watch) $(if $(filter 1 yes true,$(SQUASH)),--squash) $(if $(WAVE),--wave $(WAVE)) $(if $(DASH),--dash-out $(DASH))
+
+.PHONY: triage
+triage:  ## The coordinator verifies /code-review findings: make triage PR=N FINDINGS=<json> [OUT=dir]; one headless finding-verifier each, fix-brief.md in ~/.cache/hart/triage/<N>/
+	@test -n '$(subst ','"'"',$(value PR))' -a -n '$(subst ','"'"',$(value FINDINGS))' || { echo 'make triage: set PR=N FINDINGS=<file>' >&2; exit 2; }
+	@python3 tools/agent/triage.py '$(subst ','"'"',$(value PR))' --findings '$(subst ','"'"',$(value FINDINGS))' $(if $(value OUT),--out '$(subst ','"'"',$(value OUT))')
 
 .PHONY: land-status
 land-status:  ## The merge queue: each ticket's PR, session and state, the last lines of its log, and the last land events

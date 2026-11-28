@@ -76,63 +76,65 @@ How to measure again:
 
 ## Website UX
 
-First formal pass on 2026-11-28 at `8515ccc7`: about 7 of 10 (6.8). Earlier site reviews (11-14, 11-22) left follow-up PRs but no score. Three `site-reviewer` agents with the UX lens split the site: shared navigation and the hub pages; the railroad content pages (layout, roster, history, library and the rest); the operator and behind-the-scenes pages (crew, docs, ai, behind, guides, build, exam, play, helix). Each slice scored the eight areas; the score is their mean.
+Scores: 6.8 (2026-11-28, first formal pass at `8515ccc7`), 7.3 (2026-11-28, after the [UX round](projects/ux-round.md), live at `5c392d9f`), 7.6 (2026-11-28, after part 2, live at `2f3c6cce`, nine areas). Three `site-reviewer` agents with the UX lens split the site into navigation and hubs, the railroad content pages, and the crew and behind-the-scenes pages; each slice scores eight areas. Content and value is a ninth area, scored once for the whole site per audience (owner, 2026-11-28). The card is the mean of the nine, each area rounded to a half.
 
-| Area | Nav and hubs | Content | Crew and behind | Score | Measured on 2026-11-28 |
-|---|---|---|---|---|---|
-| Navigation and wayfinding | 7 | 6 | 6 | 6.5 | Every section is 1 click from home, the deepest page is 3. 4 of the 5 library articles over 1,600 words have no contents list or heading ids. A crew sheet is 4 taps from any page but home. 16 pages have no route from home, 9 of them real content. |
-| Layout and readability | 7 | 7 | 7 | 7 | 113 of 120 pages have one h1. None scrolls sideways at 375 px (53 crew-slice pages measured in headless Chrome). |
-| Mobile | 6 | 7 | 7 | 6.5 | Viewport meta on every portal page except the redirect stubs and the Publication Standards export. Small tap targets: 117 under 32 px on `ap/index`, the layout map's 146 hotspots at the default fit. |
-| Accessibility | 7 | 6 | 7 | 6.5 | 0 of 210 static images lack alt. Skip link, focus styles and menu ARIA are in place. Header, nav and crew sheets exist only after JS runs: 1 `<noscript>` in the source pages. The exam and lineage tabs have no arrow-key handling. |
-| Clarity for a first-time reader | 7 | 6 | 6 | 6.5 | The home page and its four doors explain themselves. The layout, roster and NVL crew sheet open on CP, Digicon, MQTT, POHC, SM-03 and similar with no gloss. All three guides open on a parked notice. |
-| Consistency across pages | 6 | 6 | 6 | 6 | Nav comes from one source (`data/site.json`). 52 pages have no description and share one generic sentence. Crew is "Crew sheets", "Session paperwork" and "Publications" in different places. |
-| Weight and speed | 8 | 8 | 9 | 8.5 | Home is about 0.2 MB and paints in 0.09 s. `behind/layout-docs` loads 9 MB of images (lazy). `no-cache` on every asset. |
-| Links and errors | 8 | 7 | 6 | 7 | 0 dead links on live pages from about 1,200 checked. `ai/construction.html` links the unpublished `helix/build-status.html` (404). The guides show repo paths and shell commands a reader cannot open. `/library/` is a 404. |
+| Area | First | After the round | After part 2 | Measured after part 2 (2026-11-28) |
+|---|---|---|---|---|
+| Navigation and wayfinding | 6.5 | 6.5 | 7.5 | Slices 8, 6.5, 7.5. A crew sheet is 3 taps from any page at both widths, 1 from the crew index. Plants, railroads, layout and photos have no jump list; the desktop header has no Crew sheets link. |
+| Layout and readability | 7 | 7.5 | 7.5 | Not re-measured after part 2 except the crew pages (0 of 24 scroll sideways at 375 px). |
+| Mobile | 6.5 | 7.5 | 7.5 | Not re-measured. Crew pages: 45 block tap targets under 32 px on 7 sheets; footer links 19 px on every page. |
+| Accessibility | 6.5 | 6.5 | 8 | Slices 8.5, 7.5, 7.5. Skip link and `main#main` on 89 of 94 pages; crew sheets readable with JS off; 7 tablists pass arrows, Home, End and the exam deck keys. Wiring and tables-file tabs have no tabpanels; three pages' table scrollers are unlabelled. |
+| Clarity for a first-time reader | 6.5 | 6.5 | 6.5 | Not re-measured. Crew sheets still gloss neither GCOR nor "CI-CK1 · Rev D", and show a bare "?" for an unassigned engine. |
+| Consistency across pages | 6 | 6.5 | 6.5 | Not re-measured. Crew pages 24 of 24 have title, description, h1 and skip link. |
+| Weight and speed | 8.5 | 8 | 8 | Not re-measured. Crew pages load 70 to 277 KB. |
+| Links and errors | 7 | 9 | 9 | Not re-measured. 0 dead links in a 94-page crawl. |
+| Content and value | | | 8 | Rechecked after #1398: 8 of 8 corrections live, 0 thin pages, 3 small conflicts left (Route 23 wording, the island-end phrase, the Kosmos start year). Visitor 7, crew member 8.5, model railroader 8, historian 8.5. |
 
-Held back on 2026-11-28:
-- Nothing was checked on a real phone or with a screen reader, and colour contrast was not measured. Mobile and accessibility rest on CSS, markup and one headless run.
-- Links inside `data/*.json` and links built by JS at runtime were not scanned.
+The 7.3 pass summed live image weight per page and the first did not, so Weight and speed fell without a page getting heavier. Over the eight areas alone, part 2 scores 7.56.
+
+Held back on 2026-11-28 (after part 2):
+- Nothing was checked on a real phone or with a screen reader, and colour contrast was not measured.
+- `about/` is blank without JavaScript ("About HART Loading…"), and plants, railroads, layout and articles show one line.
+- The home page lede needs the year American Steel & Wire opened (owner to give it). Route 23 now reads "Coraopolis–Sewickley … across Neville Island" on four pages; "across Neville Island" was added in the brief, not by the owner, and is unconfirmed.
 
 If the UX card is revisited, in this order:
-1. A static fallback where JS builds the page: the header's home and section links, the crew sheets and the primer (`briefing/`, the "Start here" page), each with a `<noscript>` line pointing to the PDF.
-2. A one-sentence description on the 52 pages without one.
-3. Contents lists and h2 ids on the long library articles, crew sheets, `build/` and the guides, using the `.jump` pattern from `crew/industries`.
-4. A short gloss or glossary link on the first screen of `layout/`, `roster/`, `history/` and the crew sheets.
-5. One name for the crew hub in the nav, title and home page, and a shorter path to a sheet from the Operations menu.
-6. Dead and private links: `build-status.html` from `ai/construction.html`, repo paths in `guides/`, `/library/` to `/articles/`, the raw `library/opspro-showcase-guide.md`, and a check in `check_portal_build.py` that fails on a link to a `SKIP_FILES` path.
+1. `about/` and the lineage pages rendered at build time, as the crew sheets and primer are.
+2. Tabpanels on the wiring and tables-file tabs; labelled, focusable scrollers on `crew/industries`, `behind/tables-file` and `behind/jmri-additions`.
+3. Tap targets to 40 px on map cards, colour chips, the door links and the footer; the layout map at a readable zoom on phones.
+4. First-screen gloss on photos, articles, railroads, the crew sheets (GCOR, the sheet code, "Engine assigned by the Yardmaster" for "?") and exam/play.
+5. Jump lists on helix, `behind/jmri-additions`, `behind/tables-file`, plants and railroads; the build cut plans and Publication Standards on the site template.
+6. Image weight: `behind/layout-docs` and `ai/clinic` photos resized, WebP logos, sizes on lineage logos and hub thumbnails.
 
 How to measure again:
-- Brief three `site-reviewer` agents with the UX lens on the same three slices, asking each for the eight areas scored with one measurement apiece.
+- Brief three `site-reviewer` agents with the UX lens on the same three slices against the live site, asking each for the eight areas scored with one measurement apiece.
+- Content and value: one `site-reviewer` with the first-time reader and historian lens, site-wide, scored per audience (first-time visitor, crew member, model railroader, local historian), with claims checked against sources and conflicts between pages counted (owner, 2026-11-28).
 - Pages without a description: `git grep -L 'name="description"' -- 'www/*.html'`, leaving out `scripts/` and `docs/html/`.
-- `<noscript>` count: `git grep -l '<noscript' -- 'www/*.html'`.
-- Overflow at 375 px with headless Chrome against local `www/`; live weight and status with GET and HEAD only.
+- With JS off: fetch the live HTML and read what shows.
+- Overflow at 375 px with headless Chrome (a 375 px iframe or device emulation; say which); live weight and status with GET and HEAD only, summing image bytes per page. Keyboard: CDP key events on every `role="tablist"` and table scroller.
 
 ## Agent experience
 
-How sessions and subagents work in the repo. 8.5 on 2026-11-27 (a review before the [cleanup](projects/ax-cleanup.md)); 7.5 on 2026-11-28 at `b09d1de4`, after #1377, from a `repo-auditor` scoring six areas.
+How sessions and subagents work in the repo. 8.5 on 2026-11-27 (a review before the [cleanup](projects/ax-cleanup.md)); 7.5 on 2026-11-28 at `b09d1de4`, after #1377, from a `repo-auditor` scoring six areas; 8.5 on 2026-11-28 at `27e6f052`, after #1388, from a `repo-auditor` (the owner asked to fix the 7.5 card's Memory 6.5 and Housekeeping 5.5 first).
 
-| Area | 11-28 | Measured on 2026-11-28 |
-|---|---|---|
-| Instructions | 8.5 | Root `AGENTS.md` 64 lines and 916 words; five folder `AGENTS.md` files add 585 words; no `CLAUDE.md`. |
-| Skills and agents | 8 | 11 skills of 201 to 1,214 words, none over the 1,500 cap; `handoff` and `coordinate` pass 1,500 with their reference file loaded. 10 agent files, 320 to 747 words. |
-| Memory | 6.5 | 38 files and 10,857 words (49 files on 11-27). The remote-run, timing and coordinator files repeat `AGENTS.md` and the skills; two files are over 1,000 words. |
-| Session start | 8.5 | The start hook prints nothing in 0.07 s. `make orient` is about 40 lines, 25 of them overlap lines while many lanes run. |
-| Shipping and merging | 8 | `make ready` and `make land`, with tests; #1377 lets a draft PR without private reads pass on GitHub's check and adds a merge lock. |
-| Housekeeping | 5.5 | 43 worktrees, 29 of them `agent-a*`; nothing prunes those. 39 progress files, 16 older than a day; the prune rule keeps a file while its topic has a worktree. |
-
-The 11-27 costs: memory 49 to 38 files, overlap left (partly); one line per worktree at session start to none (fixed); two skills over 2,000 words to none over 1,500 (fixed); 37 stale progress files to 39 live ones (not fixed). The 11-28 look was wider than the 11-27 one (worktrees, memory overlap), so part of the drop is the wider look, not a regression.
+| Area | 11-28 (7.5) | 11-28 (8.5) | Measured on 2026-11-28 at 02:25 |
+|---|---|---|---|
+| Instructions | 8.5 | 8.5 | Root `AGENTS.md` 64 lines and 916 words; five folder `AGENTS.md` files hold 1,315 words (680 before, not the 585 first counted; jmri and schematic grew with rules moved from memory); no `CLAUDE.md`. |
+| Skills and agents | 8 | 8 | 12 skills of 201 to 1,500 words, none over the cap; `dashboard` is at 1,500. `make land` is described in three places; `merging.md` still offers `gh pr merge --auto` when alone. |
+| Memory | 6.5 | 9 | 14 files and 3,723 words (38 and 10,857). Every rule moved to the repo file it governs (#1382, #1383); one file over 1,000 words; no broken links. |
+| Session start | 8.5 | 8.5 | `orient.py --short` 16 lines in 3.8 s, 3 stale-line warnings; `make orient` 41 lines in 6.8 s; the overlap list is one line, not 25. |
+| Shipping and merging | 8 | 8.5 | `make ready`, `make land` and the FIFO queue (#1388) run live: tickets in order, no wait limit, the check wait while queued; 109 tests pass. The transition lock stays; each PR still waits for its own check. |
+| Housekeeping | 5.5 | 7.5 | 19 worktrees (43), 7 `agent-a*` (29); the sweep removes clean worktrees with nothing beyond `origin/main` (#1386). 38 progress files, 17 older than a day, all `data-masters-L*`, kept by the active project page. |
 
 Held back on 2026-11-28:
-- The lock and the GitHub gate of #1377 were read, not run. Most memory files were not opened for staleness.
+- Memory overlap rests on spot reads of 4 of 14 files. The SessionStart hook and `make land-wait` were not timed.
 
 If the card is revisited, in this order:
-1. Prune `agent-a*` worktrees whose branch merged or never got a commit, and detached worktrees under temp folders.
-2. Drop memory files that repeat `AGENTS.md` or a skill; split the two files over 1,000 words.
-3. Shorter overlap in `make orient` (a count per folder instead of one line per file).
-4. Archive progress files of a merged topic even while a worktree of that name remains.
+1. Archive a lane's progress file once its lane is done, even while the parent page is active (the 17 `data-masters-L*` files).
+2. Run the sweep after each `make land` merge; tighten the `gh pr merge` match in `.claude/hooks/worktree_sweep.py`, which also fires on a quoted grep pattern.
+3. One `make land` description in `merging.md`, linked from `handoff` and `coordinate`; qualify the `gh pr merge --auto` line; give `dashboard/SKILL.md` some headroom.
+4. Split `hosts-and-network` in memory; fix the stale `Coordinator:` lines orient warns about.
 
 How to measure again:
 - Brief one `repo-auditor` with the six areas above and the last measurements, reading `origin/main`.
 - `git worktree list | wc -l` and `| grep -c agent-a`; `ls .claude/progress | wc -l` and `find .claude/progress -maxdepth 1 -type f -mtime +1 | wc -l`.
-- `wc -w` on each `SKILL.md`, `AGENTS.md` and memory file.
-
+- `wc -w` on each `SKILL.md`, `AGENTS.md` and memory file; `python3 tools/ops/orient.py --short` timed.

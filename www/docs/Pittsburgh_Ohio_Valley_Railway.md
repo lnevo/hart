@@ -17,7 +17,8 @@ The P&OV switched Neville Island for 94 years, from 1899 to 1994. It began as Am
 | After 1994 | Stanley Quick recalls a friend from the P&OV going to CSX when it took over the work | [DeBruler](https://towns-and-nature.blogspot.com/2022/10/neville-island-pa-shenango-steel-works.html) |
 | Jan 31, 1994 | P&OV ceases to exist as far as the Railroad Retirement Board is concerned | [p.125](https://www.tumblr.com/pittsburghohiovalleyrailroad/45199766360/january-311994-pov-ceases-to-exist-as-far-as-rrb) |
 | Dec 5–6, 1990 | Last Shenango furnace expected to run dry. Shenango says it will keep “a small connecting railroad” and two coke batteries | [Post-Gazette](https://news.google.com/newspapers?id=bG4xAAAAIBAJ&sjid=jG4DAAAAIBAJ&pg=5305,669633) |
-| Oct 3, 1990 | "The end was near" — last casts at Shenango B furnace around this time | [p.49](https://www.tumblr.com/pittsburghohiovalleyrailroad/67469747940), [p.71](https://www.tumblr.com/pittsburghohiovalleyrailroad/47695925735), [p.87](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501536254) |
+| Dec 1990 | Last casts at Shenango B furnace | [p.71](https://www.tumblr.com/pittsburghohiovalleyrailroad/47695925735), [p.87](https://www.tumblr.com/pittsburghohiovalleyrailroad/46501536254), [Post-Gazette](https://news.google.com/newspapers?id=bG4xAAAAIBAJ&sjid=jG4DAAAAIBAJ&pg=5305,669633) |
+| Oct 3, 1990 | A photo is captioned "October 3 1990. The end was near" | [p.49](https://www.tumblr.com/pittsburghohiovalleyrailroad/67469747940) |
 | 1980s | Crews in UTU Local 150; merger issues with the P&LE and CSX | [p.56](https://www.tumblr.com/pittsburghohiovalleyrailroad/61494249075) |
 | 1977 | Loco #5 "a real dog… just wore out" | [p.124](https://www.tumblr.com/pittsburghohiovalleyrailroad/45201724802) |
 | 1962 | Shenango coke works begins its 54-year run (56 ovens, closed Jan 2016) | [p.20](https://www.tumblr.com/pittsburghohiovalleyrailroad/136878439825) |
@@ -119,7 +120,7 @@ Hot metal left the ladle house two ladles at a time. Mark's split was one to the
 
 ### How the pair got there, and when it left
 
-The first stack is the American Steel & Wire furnace of about 1900. The company history Mark posted says that when Davison bought it from U.S. Steel it was a 550-ton-a-day furnace on 159 acres at the upstream end of the island. Davison enlarged it, built the coke plant to feed it, and built the cement plant to use the slag. The pig iron was sold to foundries in the Pittsburgh district ([p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824)).
+The first stack is the American Steel & Wire furnace of about 1900. The company history Mark posted says that when Davison bought it from U.S. Steel it was a 550-ton-a-day furnace on 159 acres at the upstream end of the island, fewer acres than the about 182 that American Steel & Wire bought in 1900 (ExplorePAHistory / TrailLink, after Gorman). Davison enlarged it, built the coke plant to feed it, and built the cement plant to use the slag. The pig iron was sold to foundries in the Pittsburgh district ([p.116](https://www.tumblr.com/pittsburghohiovalleyrailroad/45275639824)).
 
 In 1951 Pittsburgh Coke & Chemical raised money to double pig-iron output from 300,000 to 600,000 net tons a year. That program is the second furnace, which EPA dates to about 1952. In 1958 the company spent about $2.5 million to adapt one of the two furnaces to make ferromanganese and spiegeleisen as well as pig iron. Half of that money was a gas-cleaning system. The published note does not say whether the converted furnace was A or B.
 

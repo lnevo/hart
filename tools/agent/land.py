@@ -37,6 +37,11 @@ the rules). Steps 1 to 3 run while the ticket waits behind others; 4 and 5 only 
 7. What the PR ships: the layout hosts (tools/hosts/live_paths.txt), the site (www/) or nothing. Nothing is deployed.
 8. With --wave and --dash-out, and tools/agent/dash_rows.py present, the merge event is written for the dashboard
    and dash_rows.py's writes JSON is printed.
+9. After the ticket and the lock are released and the result is written (make land-wait does not wait for it), a
+   merged land runs tools/agent/housekeeping.py's after_land: the worktree sweep (a just-merged worktree waits out
+   the sweep's 30-minute grace; the hourly run takes it) and the progress prune, their lines in the land log.
+   Nothing there changes the exit code. The job process stays alive for it (up to housekeeping.py's SWEEP_TIMEOUT
+   plus PRUNE_TIMEOUT) after make land-wait has returned.
 
 Exit 0 when the PR merged and main's run passed, 1 when it stopped before the merge (nothing merged), 2 for a bad
 call, 4 (MAIN_RED_EXIT) when it merged and main's run ended red, 5 when it merged but main's run could not be
@@ -188,6 +193,8 @@ class Lander:
     ticket_number: int | None = None
     events_dir: Path | None = None      # where events.log is appended; None (the tests) writes none
     _last_read: float | None = field(default=None, repr=False)
+    merged_sha: str | None = None
+    housekeeping: Callable[[Path], list[str]] | None = None   # step 9; main() sets it, the tests leave it off
 
     def event(self, pr: int, code: int | None, reason: str) -> None:
         """One line in events.log (land_queue.event_line); a failure to write it is a line in the log."""
@@ -493,9 +500,21 @@ class Lander:
             return 1
         self.ticket_number = held.number
         try:
-            return self._queued(queue, held, number, squash, watch_main, wave, dash_out, overlap_module)
+            code = self._queued(queue, held, number, squash, watch_main, wave, dash_out, overlap_module)
         finally:
             queue.release(held)
+        return code
+
+    def after_merge(self) -> None:
+        """Step 9: housekeeping once a merge happened; a line per result, never a change to the exit code."""
+        if self.merged_sha is None or self.housekeeping is None:
+            return
+        try:
+            lines = self.housekeeping(self.root)
+        except Exception as e:  # the merge stands
+            lines = [f"housekeeping not run ({type(e).__name__}: {e})"]
+        for line in lines:
+            self.say(line)
 
     def _queued(self, queue: LandQueue, ticket: Ticket, number: int, squash: bool, watch_main: bool,
                 wave: str | None, dash_out: str | None, overlap_module: ModuleType | None) -> int:
@@ -553,6 +572,7 @@ class Lander:
             self.say(f"STOP after the merge call: {e}. Check PR #{number} on GitHub before anything else.")
             return UNWATCHED_EXIT
         self.say(f"Merged #{number}: {sha}")
+        self.merged_sha = sha
         mark("watching main's push run")
         code = self.watch_main(sha) if watch_main else 0
         # The PR has merged: a failure from here on is one line, never a traceback, and never exit 1 ("nothing merged").
@@ -645,6 +665,15 @@ def detach(a: argparse.Namespace, queue_dir: Path = QUEUE_DIR, log_dir: Path = L
     return 0
 
 
+def load_housekeeping() -> Callable[[Path], list[str]] | None:
+    """housekeeping.after_land, or None (with a line) when it cannot be loaded: the land goes on without it."""
+    try:
+        return importlib.import_module("housekeeping").after_land
+    except Exception as e:
+        print(f"housekeeping not loaded ({type(e).__name__}: {e}); the land runs without it")
+        return None
+
+
 def main(argv: list[str] | None = None) -> int:
     try:
         a = parser().parse_args(argv)
@@ -653,7 +682,7 @@ def main(argv: list[str] | None = None) -> int:
     if not a.watch:
         return detach(a)
     module = load_tool(ROOT / "tools/ops/orient_overlap.py", "orient_overlap")
-    lander = Lander(poll=a.poll, events_dir=LOG_DIR)
+    lander = Lander(poll=a.poll, events_dir=LOG_DIR, housekeeping=load_housekeeping())
     code = lander.land(a.pr, squash=a.squash, watch_main=not a.no_watch_main, wave=a.wave, dash_out=a.dash_out,
                        overlap_module=module, ticket=a.ticket)
     try:
@@ -661,6 +690,7 @@ def main(argv: list[str] | None = None) -> int:
     except OSError as e:
         print(f"result not written for make land-wait: {e}")
     lander.event(a.pr, code, end_reason(lander.out, code))
+    lander.after_merge()
     print(f"land of #{a.pr} ended with exit {code}")
     return code
 
