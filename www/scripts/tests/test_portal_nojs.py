@@ -96,8 +96,9 @@ class Chrome(unittest.TestCase):
     def test_sub_entries_follow_their_section(self) -> None:
         site = json.loads(json.dumps(SITE))
         site["nav"][2]["sub"] = [{"id": "crew", "href": "crew/index.html", "label": "Crew sheets"}]
-        links = re.findall(r'href="([^"]+)"', re.search(r"<noscript>(.*?)</noscript>",
-                                                       portal_nojs.header_html(site, "")).group(1))
+        m = re.search(r"<noscript>(.*?)</noscript>", portal_nojs.header_html(site, ""))
+        assert m is not None
+        links = re.findall(r'href="([^"]+)"', m.group(1))
         self.assertEqual(links, ["history/index.html", "operators/index.html", "crew/index.html", "about/index.html"])
 
     def test_second_run_adds_nothing(self) -> None:
