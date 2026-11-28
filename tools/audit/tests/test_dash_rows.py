@@ -174,21 +174,27 @@ class TestSyncPrs(DashRowsCase):
         self.row_file("3-L5", {"lane": "half merged", "status": "ci", "pr": [1301, 1303]})
         self.row_file("3-L6", {"lane": "no pr", "status": "running"})
         self.row_file("3-L7", {"lane": "already merged", "status": "done", "pr": 1301})
+        self.row_file("3-L8", {"lane": "closed then redone", "status": "ci", "pr": [1302, 1304]})
+        self.row_file("3-L9", {"lane": "done, old closed PR", "status": "done", "pr": 1302})
         versions = self.tmp / "versions.json"
-        versions.write_text(json.dumps({f"3-L{n}": n + 10 for n in range(1, 8)}), encoding="utf-8")
+        versions.write_text(json.dumps({f"3-L{n}": n + 10 for n in range(1, 10)}), encoding="utf-8")
         self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "a" * 40), pr(1302, "CLOSED"),
                       pr(1303, "OPEN")], n1304=pr(1304, "MERGED", "2026-11-28T01:40:00Z", "b" * 40))
         result = self.sync("--versions", str(versions))
         self.assertEqual(result.returncode, 0, result.stderr)
         entries = json.loads(result.stdout)
         self.assertEqual([(e["doc_id"], e["op"], e["if_version"]) for e in entries],
-                         [("3-L1", "update", 11), ("3-L2", "update", 12), ("3-L4", "update", 14)])
+                         [("3-L1", "update", 11), ("3-L2", "update", 12), ("3-L4", "update", 14),
+                          ("3-L8", "update", 18)])
         self.assertEqual(self.data(entries[0]),
                          {"status": "merged", "stage": "merged #1301 as aaaaaaa at 01:05", "updated": "02:20"})
         self.assertEqual(self.data(entries[1]),
                          {"status": "failed", "stage": "closed unmerged: #1302", "updated": "02:20"})
         self.assertEqual(self.data(entries[2])["stage"],
                          "merged #1301 as aaaaaaa at 01:05, #1304 as bbbbbbb at 01:40")
+        self.assertEqual(self.data(entries[3])["status"], "merged")
+        self.assertEqual(self.data(entries[3])["stage"], "merged #1304 as bbbbbbb at 01:40")
+        self.assertEqual(result.stderr, "")
         self.assertEqual(self.calls(), ["pr list --state all --limit 200 --json number,state,mergedAt,mergeCommit",
                                         "pr view 1304 --json number,state,mergedAt,mergeCommit"])
 
@@ -215,6 +221,18 @@ class TestSyncPrs(DashRowsCase):
         self.assertIn("nothing written", result.stderr)
         self.assertIn("HTTP 502", result.stderr)
         self.assertFalse(self.out.exists())
+
+    def test_unreadable_pr_bad_pr_and_non_row_file_are_skipped_with_warnings(self) -> None:
+        self.row_file("3-L1", {"status": "ci", "pr": 1301, "version": 3})
+        self.row_file("3-L2", {"status": "ci", "pr": 1399, "version": 3})
+        self.row_file("3-L3", {"status": "ci", "pr": "soon", "version": 3})
+        (self.rows / "3-L4.json").write_text("[1, 2]", encoding="utf-8")
+        self.gh_says([pr(1301, "MERGED", "2026-11-28T01:05:00Z", "c" * 40)])
+        result = self.sync()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual([e["doc_id"] for e in json.loads(result.stdout)], ["3-L1"])
+        for doc_id in ("#1399", "3-L2", "3-L3", "3-L4"):
+            self.assertIn(doc_id, result.stderr)
 
     def test_rows_without_pr_make_no_gh_call(self) -> None:
         self.row_file("3-RC", {"status": "running"})

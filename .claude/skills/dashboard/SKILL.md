@@ -5,11 +5,11 @@ description: Use when coordinating more than one lane, agent or session, when th
 
 # Live dashboard
 
-The owner follows a wave on one page, not in the chat. The coordinator keeps that page true: every lane, every PR from every session, every deploy, the report card, the host load and how many Claude sessions and agents are running (owner, 2026-11-26).
+The owner follows a wave on one page, not in the chat. The coordinator keeps it true: every lane, every session's PRs, deploys, the report card, host load and session and agent counts (owner, 2026-11-26).
 
 ## Who writes it
 
-- **The coordinator owns every row and checks it.** A lane or a session in another window may have no dashboard access, may stop or may forget, and its row then goes stale while the owner reads it. When a message changes a lane or PR, update that row in the same turn.
+- **The coordinator owns every row and checks it.** A lane or another session may lack dashboard access, stop or forget, and its row goes stale. When a message changes a lane or PR, update that row in the same turn.
 - A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends `dash_rows.py` op lines (`row 3-L7 status=ci stage=remote`, `event "Merged #1371"`; no `updated` or `at`, which the helper stamps) to `.claude/progress/<topic>.dash.jsonl`, one op per line, and the coordinator runs each line through `dash_rows.py` at the next `SYNC` (a `row` with `--if-version` from the row's last read).
 - Results that change the page (a deploy, a merge, a failed check) come to the coordinator directly. A steward that reports to a background coordinator sends the coordinator a copy.
 
@@ -47,7 +47,7 @@ Rows to keep:
 - **Every PR another session sends to the queue**, ids `<wave>-P<pr>` (`3-P1271`), named for the session. Add it when the session first tells you its plan, not when it is ready.
 - **The report card** (`<wave>-RC`) and anything else with an ETA the owner waits on.
 
-Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update` and needs `--if-version` from the row's last read; `new-row` is a `set` and needs lane, status, stage, eta and order.
+Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update` and needs `--if-version` from the row's last read; `new-row` is a `set` and needs lane, status, stage, eta and order. Do not use a time an agent reports.
 
 ```
 python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 --if-version 3-L7=4 \
@@ -73,7 +73,7 @@ Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a le
 
 Update on every message that changes a lane or PR: it starts, passes or fails its gates, starts or ends a remote run, opens a PR, is ready, merges, deploys, changes its ETA or is blocked.
 
-At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir`, write the versions it lists as {doc_id: version} to a file, then run `sync-prs <out_dir>/data/<wave>/lanes --versions <file>`. Run it again before telling the owner anything. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
+At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir` right before the sync, so the pins are fresh, write the listed versions as {doc_id: version} to a file, then run `sync-prs <out_dir>/data/<wave>/lanes --versions <file>`. Run it again before telling the owner anything; check other rows against GitHub (`gh pr view N --json state,mergeCommit,headRefOid`) then too. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
 
 ## Samples
 
@@ -81,8 +81,8 @@ At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by 
 
 - Run `Monitor` on `.claude/skills/dashboard/sampler.sh <scratchpad>/dash/samples.jsonl` with a 30-minute timeout. Whoever holds the Monitor starts it again when it ends.
 - The sampler prints `SYNC HH:MM` every 10 minutes. When that line appears, write the lines added since the last sync with `samples <file> --since <last SYNC HH:MM>`; each doc gets id `sHHMM` from its own `at`.
-- The sampler counts sessions (claude processes on this Mac) and subagents (task outputs written in the last 3 minutes) itself. Do not use `ListAgents` for counts, because a steward does not have it.
-- If counts are missing for a stretch, estimate them from file times. A session runs from the first to the last write of its transcript (`~/.claude/projects/*/*.jsonl`). An agent runs from the first to the last write of its task output. Add `"estimate": true` to those samples docs; the field is stored, and the page does not show it.
+- The sampler counts sessions (claude processes on this Mac) and subagents (task outputs written in the last 3 minutes) itself. Do not count with `ListAgents`: a steward lacks it.
+- If counts are missing for a stretch, estimate them from file times. A session runs from the first to the last write of its transcript (`~/.claude/projects/*/*.jsonl`). An agent runs from the first to the last write of its task output. Add `"estimate": true` to those samples docs (stored, not shown).
 - The session cap starts at 8 and is flexible while load is low (owner, 2026-11-27): the samples show the load, and job times against earlier runs show slowdown. Go past 8 only while both stay low, and drop back when they rise.
 
 ## Before a /clear and at the end
