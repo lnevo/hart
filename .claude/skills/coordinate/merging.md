@@ -4,7 +4,7 @@ The one home for the merge rules. The `handoff` skill (alone, or splitting a pla
 
 ## Who merges, and when main goes back in
 
-The main session merges, never with `--admin`. `main` requires `check` to pass on the PR's head. Since `strict` was turned off (owner, 2026-11-27) it no longer requires the branch to be up to date ([ADR-042](../../../wiki/decisions/ADR-042-strict-off-main-push-run-watched.md)). Beside other sessions, merges go through the queue in the `coordinate` skill: no auto-merge, one at a time. Alone, queue auto-merge (`gh pr merge <n> --merge --auto`) once a PR's reviews are done, never before, or a fast CI merges ahead of the findings.
+The main session merges, never with `--admin`, through `make land PR=N` (wait for the required check on the head, merge at that head, watch main's push run by full SHA, list the open PRs that must now merge main locally, say what ships). `main` requires `check` to pass on the PR's head. Since `strict` was turned off (owner, 2026-11-27) it no longer requires the branch to be up to date ([ADR-042](../../../wiki/decisions/ADR-042-strict-off-main-push-run-watched.md)). Beside other sessions, merges go through the queue in the `coordinate` skill: no auto-merge, one at a time. Alone, queue auto-merge (`gh pr merge <n> --merge --auto`) once a PR's reviews are done, never before, or a fast CI merges ahead of the findings.
 
 A PR does not merge `origin/main` in again just because main moved. Merge it in only when GitHub shows a conflict, or when the PR's last `check` run is older than the latest change on main to a file the PR touches. Merge locally (never rebase; force-push is blocked), regenerate what the branch owns, push. Say in the PR or to the coordinator why you merged main.
 
@@ -18,7 +18,7 @@ Generated files that several PRs regenerate (`docs/INDEX.md` and the like): each
 
 ## After a merge
 
-Whoever merged watches main's push run of `check.yml` for the merge commit and reports how it ended: that run catches what two PRs break together. Find it with `gh run list --workflow check.yml --branch main --event push --commit <merge sha>` (the full 40-character SHA, since a short one matches nothing), then `gh run watch <id>`.
+Whoever merged watches main's push run of `check.yml` for the merge commit and reports how it ended: that run catches what two PRs break together. `make land` does this itself; by hand, find it with `gh run list --workflow check.yml --branch main --event push --commit <merge sha>` (the full 40-character SHA, since a short one matches nothing), then `gh run watch <id>`.
 
 **Main red (owner, 2026-11-27):** while main's push run of `check` is red (failure, cancelled or timed out), the queue holder gives no "go". The PR that broke it fixes forward, or one PR reverts it. Nothing deploys: the deploy gate stops a red main itself (G0c, `ci_pass.py --main-red`).
 
@@ -28,20 +28,20 @@ Lanes do not lower baselines (`mypy_baseline.json`, `habits_baseline.json`, `py_
 
 ## No failed PRs
 
-A branch becomes a PR only after these pass on it, in order.
+A branch becomes a PR only after these pass on it, in order. A lane runs steps 1 to 5 with one `make ready FILES=... MSG=... TITLE=... BODY_FILE=...` (`tools/agent/ready.py`), which stops at the first failure and reports the PR, the head and the remote log.
 
 1. `git fetch && git merge origin/main`, then regenerate what the branch owns.
 2. The ratchets without `--update`: `check_mypy.py`, `check_habits.py`, `check_py_sizes.py` and `check_ruff.py`. The lane fixes any rise; baselines follow the sweep above.
 3. `git add` new files, then `build_pipeline_map.py`, `manifest.py check` and `build_pipeline_map.py --check`.
 4. `make static`.
 5. Push without a PR, run `make remote CMD="./tools/check.sh"` with the log saved, and open the PR only on ALL PASSED.
-6. Watch `check` on the head and merge on its pass (with the queue holder's go beside other sessions). Merge `origin/main` again only on a conflict or a stale run as above, then rerun 2 to 4.
+6. `make land PR=N` watches `check` on the head and merges on its pass (with the queue holder's go beside other sessions). Merge `origin/main` again only on a conflict or a stale run as above, then rerun 2 to 4.
 
 The remote box holds private files that GitHub CI lacks, such as the AnyRail plan. A remote pass does not prove CI will pass. Run plan-reading tests without the plan too.
 
 Owner decisions on the gates:
 
-- A docs-only PR skips the full remote run before it opens. It is docs-only when every changed file is Markdown under `wiki/` or `docs/`, Markdown under `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and no code, tables, `www/`, `checks.toml` or generated file changes. It still passes `make static` locally and the quick docs checks (`./tools/check.sh` runs only those on a docs-only diff, never the full run) and the required CI before merging.
+- A docs-only PR skips the full remote run before it opens. It is docs-only when every changed file is Markdown under `wiki/` or `docs/`, Markdown under `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and no code, tables, `www/` or `checks.toml` changes. The one generated file it may change is `pipeline_map.json`, and only in the agent-doc lane's boxes and links that `make map` rebuilds from the skills, agents, commands and `AGENTS.md` (owner, 2026-11-27; the rule: `docs/pipeline-map/checks-and-remote.md`, "Docs-only changes"); a folder's `AGENTS.md` and `CLAUDE.md` are full. It still passes `make static` locally and the quick docs checks (`./tools/check.sh` runs only those on a docs-only diff, never the full run) and the required CI before merging.
 - A data edit that changes no behaviour skips it too (owner, 2026-11-26), and `make pr-kind` decides it: it prints `light` when every changed file is docs or data that only static checks read, such as the pipeline map's Start presets (the rule: `docs/pipeline-map/checks-and-remote.md`, "Light changes"). It passes `./tools/check.sh`, which then runs the light checks and ends `LIGHT CHECKS PASSED`, then the required CI. Say in the PR body that `make pr-kind` printed `light`. Box labels, descriptions or anything else in `pipeline_map.json`, and a change to anything a script, check, table or host acts on, print `full`.
 - Anything else gets the full `make remote`.
 - Group related work into fewer PRs: one branch per lane, and small related lanes batched into one PR rather than a PR per step. Each merge costs a CI cycle and a push run on main to watch.

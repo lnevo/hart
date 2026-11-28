@@ -6034,7 +6034,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "make orient: claims, worktrees in progress, the operating flag, last deploys, open PRs and what waits to be pulled in from the hosts, on one screen.",
+   "desc": "make orient: claims, worktrees in progress, the operating flag, last deploys, open PRs, files changed in two places and what waits to be pulled in from the hosts, on one screen.",
    "path": "tools/ops/orient.py"
   },
   {
@@ -6470,6 +6470,33 @@
    "path": "jmri/layouts/hart/scripts/panel_counts.json"
   },
   {
+   "id": "tools/agent/ready.py",
+   "label": "ready.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make ready: a lane ships its worktree: commits the named files, merges main when needed, regenerates and checks, pushes, runs make remote unless light, opens the PR; never merges or deploys.",
+   "path": "tools/agent/ready.py"
+  },
+  {
+   "id": "tools/ops/orient_overlap.py",
+   "label": "orient_overlap.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "orient.py's overlap half: files changed in two or more worktrees or open PRs, merge-driver paths apart; overlaps_for for a check before a push.",
+   "path": "tools/ops/orient_overlap.py"
+  },
+  {
+   "id": "tools/agent/dash_rows.py",
+   "label": "dash_rows.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Dashboard skill: writes lane rows, events and samples as JSON files stamped from this Mac's clock and prints the ArtifactData batch writes; no pipeline file.",
+   "path": "tools/agent/dash_rows.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -6615,7 +6642,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "agents",
-   "desc": "Use when the owner says go on a hand-off or a plan with several independent items, when a job is split across parallel subagents, or when briefing, tracking, merging or closing out several agents' work.",
+   "desc": "Use when the owner says go on a hand-off or a plan with several independent items, when a job is split across parallel subagents, when briefing, tracking, merging or closing out several agents' work, or when setting the progress-line cadence of a long job (ETA and milestone lines, intervals by job length).",
    "path": ".claude/skills/handoff/SKILL.md",
    "gen": "agent-docs"
   },
@@ -6737,6 +6764,16 @@
    "domain": "agents",
    "desc": "Agent instructions for this folder.",
    "path": "ops/hart-ops/AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "tools/AGENTS.md",
+   "label": "tools/AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Agent instructions for this folder.",
+   "path": "tools/AGENTS.md",
    "gen": "agent-docs"
   },
   {
@@ -15195,6 +15232,26 @@
    "gen": "manifest"
   },
   {
+   "from": "host:mac",
+   "to": "tools/agent/ready.py",
+   "label": "make ready"
+  },
+  {
+   "from": "tools/agent/ready.py",
+   "to": "tools/hosts/win_run.sh",
+   "label": "make remote"
+  },
+  {
+   "from": "tools/ops/orient_overlap.py",
+   "to": "tools/ops/orient.py",
+   "label": "overlap section"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/dash_rows.py",
+   "label": "dashboard skill"
+  },
+  {
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -15546,6 +15603,20 @@
   },
   {
    "from": "AGENTS.md",
+   "to": "jmri/AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "tools/AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
@@ -15609,13 +15680,6 @@
   },
   {
    "from": "jmri/AGENTS.md",
-   "to": "AGENTS.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "jmri/AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
@@ -15629,8 +15693,15 @@
    "side": "check"
   },
   {
-   "from": "tools/schematic/AGENTS.md",
-   "to": ".claude/agents/schematic-builder.md",
+   "from": "tools/AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs",
+   "side": "check"
+  },
+  {
+   "from": "tools/AGENTS.md",
+   "to": "tools/schematic/AGENTS.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -15638,13 +15709,6 @@
   {
    "from": "tools/schematic/AGENTS.md",
    "to": ".claude/skills/panel-approval/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "tools/schematic/AGENTS.md",
-   "to": "AGENTS.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -15946,13 +16010,6 @@
   {
    "from": "wiki/status",
    "to": ".claude/skills/handoff/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "wiki/status",
-   "to": ".claude/skills/tables-pull/SKILL.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"

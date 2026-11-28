@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static baselines pr-kind remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
+.PHONY: help mqtt-clean mqtt-watch wt wt-sweep orient status check static baselines pr-kind ready remote portal-check panels desks panelpro-test timings docs-index map site-data publications waybills submodules tables-pull tables-pull-pi ops-pull roster-pull sts-pull shot deploy-layout deploy-all deploy-status backup-status redeploy deploy-site speedmatch
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -32,6 +32,10 @@ baselines:  ## The queue holder's wave-end sweep PR: lower the mypy, habits and 
 
 pr-kind:  ## Does this branch need make remote? Prints docs, light (make static and the light checks, no make remote) or full, with the reason
 	@python3 tools/ci/changed_kind.py --git
+
+ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path]; commit, checks, push, make remote unless light, PR (never merges)
+	@python3 tools/agent/ready.py --files '$(subst ','"'"',$(FILES))' --msg '$(subst ','"'"',$(MSG))' --title '$(subst ','"'"',$(TITLE))' \
+	  --body '$(subst ','"'"',$(BODY))' --body-file '$(subst ','"'"',$(BODY_FILE))'
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }

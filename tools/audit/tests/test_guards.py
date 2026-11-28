@@ -160,6 +160,25 @@ class CursorGuard(unittest.TestCase):
 
 
 class SubagentGuard(unittest.TestCase):
+    def test_make_ready_is_the_one_way_to_ship(self) -> None:
+        for command in ('make ready FILES="a.py b.md" MSG="fix(x): git commit wording"',
+                        "make ready FILES=a.py MSG=m TITLE=t BODY_FILE=/tmp/body.md",
+                        "make ready MSG='fix: deploy-layout docs' 2>&1",
+                        "python3 tools/agent/ready.py --files a.py --msg 'fix: git push text'",
+                        "python3 ./tools/agent/ready.py --help"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+        for command in ("git commit -m x", "git add a.py", "git push -u origin HEAD", "gh pr create --fill",
+                        "gh pr merge 5", "gh pr merge 5 --merge --auto", "make deploy-layout",
+                        "make ready && git push origin main", "make ready; gh pr merge 5",
+                        "make ready deploy-layout", "make ready redeploy", "make -C /tmp ready",
+                        "make ready CMD=x", "make ready MAKEFLAGS=-n", "HART_READY_ATTRIBUTION=/tmp/x make ready",
+                        "env FOO=1 make ready", "make ready ready", "python3 tools/agent/ready.py --force",
+                        "git push --force origin HEAD", "git push origin HEAD:main",
+                        "./tools/hosts/sync_hart_package.sh --pi --win"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+
     def test_deploys_are_blocked_through_make(self) -> None:
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)

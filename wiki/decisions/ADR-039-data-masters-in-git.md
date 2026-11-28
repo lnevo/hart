@@ -48,7 +48,7 @@ Phase 1 runs as parallel lanes, and a lane owns its files. The [project page](..
 - **Merges are serialized across sessions** (owner, 2026-11-25), because merges after a stale CI pass broke `main`. The cleanup coordinator (`wiki/projects/cleanup-streamline-handoff.md`) holds the queue. A lane sends "ready #N" and merges only on "go #N". On "go" it merges `origin/main` into its branch, pushes, waits for the required check on that head and merges, then repeats if `main` moved. No auto-merge.
 - **Order.** The catalogue lands first: the key lanes need its master choices. The validator and wiring lanes then run together. Key lanes start after the validator merges, so each one lands its sidecar with its keys and is checked in the same PR. Lanes that touch `tools/schematic/`, `tools/hartlib/` or the CATS builders go to `schematic-builder`, take `/code-review high`, and wait for any open schematic or naming PR that changes the same files.
 - **Coordination.** The main session holds the `Claimed:` line on the project page and updates the lane table after each merge. Lane agents do not edit the project page, this ADR or `wiki/STATUS.md`. Each writes status lines to the progress file its brief names (handoff skill).
-- **Capacity.** At most three lane agents run at once. Before each launch, count the sessions against the cap of 8 in AGENTS.md.
+- **Capacity.** At most three lane agents run at once. Before each launch, count the sessions against the session cap in AGENTS.md (start at 8, more while load is low).
 
 ## Consequences
 

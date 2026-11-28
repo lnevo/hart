@@ -2,9 +2,11 @@
 """Who is working on what: one screen to read at the start of a session, so two agents do not work on top of each other.
 
     python3 tools/ops/orient.py              the full view (make orient): claims, worktrees in progress, the operating
-                                             flag, open PRs, what each layout host last got, and what a host holds
-                                             that is waiting to come into the repo
-    python3 tools/ops/orient.py --short      claims and worktrees in progress only, no network (the session-start hook)
+                                             flag, open PRs, files changed in two places or more (orient_overlap.py),
+                                             what each layout host last got, and what a host holds that is waiting
+                                             to come into the repo
+    python3 tools/ops/orient.py --short      claims, worktrees in progress and one Overlap line, no network (the
+                                             session-start hook)
     python3 tools/ops/orient.py claim PAGE   write this worktree's Claimed line under PAGE's Status line
     python3 tools/ops/orient.py unclaim PAGE [--branch B]   remove it (this branch's, or B's)
 
@@ -47,6 +49,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING
 
+from orient_overlap import full_lines, overlap_report, parse_prs, short_line
 from orient_pages import BRANCH, Claim, parse_page  # this folder is on sys.path when the script runs; the tests add it
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -282,7 +285,7 @@ PR_LIMIT = 200
 
 def open_prs() -> list[dict] | str:
     code, out, err = run(["gh", "pr", "list", "--state", "open", "--limit", str(PR_LIMIT),
-                          "--json", "number,title,headRefName,isDraft,updatedAt"], NET_TIMEOUT)
+                          "--json", "number,title,headRefName,isDraft,updatedAt,files"], NET_TIMEOUT)
     if code != 0:
         return f"gh pr list failed ({first_line(err or out)})"
     try:
@@ -524,7 +527,10 @@ def report(short: bool, here: str) -> list[str]:
             else f"commits not on {BASE}, or locked by a running session")
     out.append(f"Worktrees in progress ({len(busy)}; {rule})" + (":" if busy else ": none"))
     out += capped([tree_line(t, by_branch, here) for t in busy], limit)
+    pr_files = parse_prs(prs)
+    overlap = overlap_report(ROOT_MAIN, trees, pr_files)
     if short:
+        out += short_line(overlap)
         return out
     if isinstance(prs, str):
         out.append(f"Open PRs: {prs}")
@@ -533,6 +539,7 @@ def report(short: bool, here: str) -> list[str]:
         out.append(f"Open PRs ({len(prs)}{more})" + (":" if prs else ": none"))
         out += [f"  #{p['number']}{' (draft)' if p.get('isDraft') else ''} {p.get('headRefName', '?')}: "
                 f"{p.get('title', '')}" for p in prs]
+    out += full_lines(overlap, "no open PRs read" if isinstance(prs, str) else f"{len(prs)} open PRs")
     out.append("Last deploys (compared with this checkout):")
     out += ["  " + line for line in deploys]
     out += ["  " + line for line in site_deploy_lines()]
@@ -622,7 +629,7 @@ def unclaim(page_path: Path, branch: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--short", action="store_true", help="claims and worktrees in progress only, no network")
+    ap.add_argument("--short", action="store_true", help="claims, worktrees in progress and overlap only, no network")
     sub = ap.add_subparsers(dest="cmd")
     c = sub.add_parser("claim", help="write this worktree's Claimed line under PAGE's Status line")
     c.add_argument("page")

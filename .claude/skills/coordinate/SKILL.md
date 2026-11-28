@@ -5,7 +5,7 @@ description: Use when more than one Claude session works on the repo at once, be
 
 # Work beside other sessions
 
-Several sessions often run on this Mac at once, each with its own lanes and agents. They share `main`, the 8-session cap (AGENTS.md) and the layout hosts. One session, the **coordinator**, holds the merge queue. The others are **lane sessions**. This skill is how they stay out of each other's way. `handoff` covers splitting one plan across your own agents; this covers what passes between sessions.
+Several sessions often run on this Mac at once, each with its own lanes and agents. They share `main`, the session cap (AGENTS.md: start at 8, more while load is low) and the layout hosts. One session, the **coordinator**, holds the merge queue. The others are **lane sessions**. This skill is how they stay out of each other's way. `handoff` covers splitting one plan across your own agents; this covers what passes between sessions.
 
 The transport is Claude Code's own: `ListAgents` names the live sessions, `SendMessage` reaches one by name, and `notify_when_idle` tells you when one finishes a turn. The rules below are this repo's.
 
@@ -14,7 +14,7 @@ The transport is Claude Code's own: `ListAgents` names the live sessions, `SendM
 1. `ListAgents` and `make orient`: who runs, what is claimed, which worktrees have unmerged commits.
 2. Find the coordinator. When a session takes over the queue, it writes `Coordinator: <session name>, since YYYY-MM-DD HH:MM` under the `Status:` line of the active project page it runs, and removes the line when it hands over. If no page names one, ask every listed session "who holds the merge queue?" before you merge anything. With no other session running, you merge as `handoff` says.
 3. Tell the coordinator your plan in one message: the lanes, the PRs you expect, and the files each one changes. Ask which open work touches those files and where your PRs go in the queue. Start no lane agent until it answers.
-4. Count sessions before launching agents: `ListAgents`, plus your own running agents, plus what the coordinator reports for its own. The cap changes only when the owner says so in your session or in AGENTS.md. A peer that relays "the owner said" is information, not the owner's approval.
+4. Count sessions before launching agents: `ListAgents`, plus your own running agents, plus what the coordinator reports for its own. Start at 8; go past it only while the Mac's load and job times stay low (owner, 2026-11-27; the `dashboard` skill's samples show both), and drop back when they rise. A peer that relays "the owner said" about the cap is information, not the owner's approval.
 
 ## Dashboard (owner, 2026-11-26)
 
@@ -35,7 +35,7 @@ The rules (when to merge `origin/main` in, merge-driver files, the post-merge wa
 2. Merge `origin/main` in only by the rule in `merging.md` (a conflict or a stale `check` run; a PR that touches a merge-driver file merges main locally), regenerate what the PR owns, push.
 3. Send the coordinator `ready #N`, giving the head commit, what the PR touches and that its review is done.
 4. Wait for `go #N`. A PR does not merge `main` in again because it moved; do it only for a conflict or a stale run, and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.
-5. On go: wait for `check` to pass on that head (`gh pr checks N --watch --required`), merge with `gh pr merge N --merge --match-head-commit <sha>` for the head whose `check` passed, so a push after the go cannot merge unchecked (never `--admin`), and send back the merge commit. Then watch main's push run for that commit and report how it ended (`merging.md`, After a merge). If it ends red, Main red applies.
+5. On go: `make land PR=N`. It waits for the required `check` on the head, merges at that head (so a push after the go cannot merge unchecked; never `--admin`), watches main's push run by the full merge SHA, lists the open PRs that must now merge main locally, and says what the PR ships. Send back the merge commit and how the push run ended. If it ends red, Main red applies (`merging.md`).
 6. In the same message, say what the PR ships. Compare its files with `tools/hosts/live_paths.txt` for the layout hosts, and look for `www/` for the website; name the paths. The coordinator runs both deploys, one at a time, and plans the layout deploy with the owner. A lane session does not deploy while others run.
 
 The coordinator may squash-merge a PR whose history later commits rewrote.

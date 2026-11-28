@@ -7,3 +7,4 @@ Rules for work under `jmri/`, on top of the root [`AGENTS.md`](../AGENTS.md).
 - Scripts with the most need of tests start here: `jmri/scripts/signal_coordinator.py` and `jmri/layouts/hart/scripts/panel_status.py`. Jython scripts never import `hartlib`.
 - Parked features (Entry/Exit, the Dispatcher System with its occupancy lamps, stations and yard throats, the USS CTC machine) live in `jmri/layouts/hart/parked/`. Do not list or fix them; their rules for the day they return are in [`docs/parked/UNPARK.md`](../docs/parked/UNPARK.md).
 - Launch or "fix paint" scripts never command field turnouts or publish `track/cmd`.
+- The LCOS bridge (`serial_to_mqtt`) runs on the Pi as the `lcos-bridge` systemd service (`~/lcos-bridge`, `./bridge start|stop|status|log`). Never leave it stopped or start a second one; a lab test that needs the Nano's port stops it first and starts it again before the turn ends.

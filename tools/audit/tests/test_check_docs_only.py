@@ -4,6 +4,7 @@ checks read) runs tools/ci/light_checks.sh; anything else, or no merge base, run
 example path lists, on the real declarations and on stand-ins, and light_checks.sh on stand-in scripts."""
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import re
@@ -24,6 +25,11 @@ import docs_unit_tests  # noqa: E402
 import portal_inputs  # noqa: E402
 sys.path.insert(0, str(ROOT / "tools" / "hartlib" / "src"))
 from hartlib import devices  # noqa: E402
+
+_spec = importlib.util.spec_from_file_location("agent_docs_map", ROOT / "tools/ops/agent_docs_map.py")
+assert _spec is not None and _spec.loader is not None
+AGENT_DOCS_MAP = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(AGENT_DOCS_MAP)
 
 FIELD_MASTER = devices.field_path().relative_to(ROOT).as_posix()   # a CSV master, by the one path
 
@@ -119,12 +125,31 @@ class Verdict(unittest.TestCase):
         self.s.write("wiki/new.png", "png")
         self.assertEqual("full: wiki/new.png is not a data file (.json, .csv, .tsv, .txt, .md)", self.s.verdict())
 
+    def test_skill_docs_and_the_docs_index_get_one_verdict_before_and_after_commit(self) -> None:
+        self.s.write("docs/INDEX.md", "# Index\n")
+        self.s.commit("index")
+        git(self.s.repo, "update-ref", "refs/remotes/origin/main", "HEAD")
+        self.s.write(".claude/skills/s/SKILL.md", "# S\n")                 # untracked
+        self.s.write(".claude/agents/a.md", "# A\n")
+        git(self.s.repo, "add", ".claude/agents/a.md")                     # staged
+        self.s.write("docs/INDEX.md", "# Index\n\n- s\n")                  # unstaged, as make docs-index leaves it
+        uncommitted = self.s.verdict()
+        self.assertEqual("docs: 3 changed paths, all Markdown docs", uncommitted)
+        self.s.commit("skill")
+        self.assertEqual(uncommitted, self.s.verdict())
+
+    def test_an_agents_md_edit_is_docs_before_and_after_commit(self) -> None:
+        self.s.write("AGENTS.md", "# Agents\n\nOne more rule.\n")
+        self.assertEqual("docs: 1 changed path, all Markdown docs", self.s.verdict())
+        self.s.commit("agents")
+        self.assertEqual("docs: 1 changed path, all Markdown docs", self.s.verdict())
+
     def test_one_non_docs_path_makes_it_full(self) -> None:
         # a Markdown file under docs/pipeline-map/ is data to the light rule, whose declarations this scratch repo
         # does not hold: full, with that reason
         for rel, text, why in (("tools/x.py", "x = 2\n", "tools/x.py is code"),
                                (".claude/commands/s.md", "# S\n", ".claude/commands/s.md is under .claude/"),
-                               ("AGENTS.md", "# A2\n", "AGENTS.md is code or agent rules"),
+                               ("ops/AGENTS.md", "# A2\n", "ops/AGENTS.md is code or agent rules"),
                                ("docs/pipeline-map/notes.md", "# Map\n", "the declarations cannot be read")):
             with self.subTest(rel):
                 git(self.s.repo, "reset", "-q", "--hard", "origin/main")
@@ -196,86 +221,6 @@ class Cli(unittest.TestCase):
         done = self.cli("--git")
         self.assertEqual(0, done.returncode, done.stderr)
         self.assertRegex(done.stdout, r"\A(docs|light|full|unknown): [^\n]+\n\Z")
-
-
-class CheckSh(unittest.TestCase):
-    def setUp(self) -> None:
-        self.tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmp.cleanup)
-        self.s = Scratch(Path(self.tmp.name), with_check_sh=True)
-
-    def test_a_docs_only_branch_takes_the_quick_path_and_says_so_first(self) -> None:
-        self.s.write("wiki/decisions/ADR-1.md", "# ADR\n")
-        done = self.s.check_sh(STUB_PIN="")
-        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
-        lines = done.stdout.splitlines()
-        self.assertTrue(lines[0].startswith("Docs-only change (1 changed path, all Markdown docs)"), lines[0])
-        self.assertIn("STUB DOCS CHECKS HOPS_PY=python3", lines)
-        # not a pass of check.sh: no "ALL PASSED", and no stamp written
-        self.assertNotIn("ALL PASSED", done.stdout)
-        self.assertEqual("DOCS CHECKS PASSED (the docs-only path; FULL=1 runs check.sh in full)", lines[-1])
-
-    def test_a_light_verdict_runs_the_light_checks_and_their_exit_is_the_run_s(self) -> None:
-        self.s.write("tools/ci/changed_kind.py", 'print("light: 1 changed path, a stand-in verdict")\n')
-        self.s.write("tools/ci/light_checks.sh", 'echo "STUB LIGHT $* HOPS_PY=$HOPS_PY"\necho "LIGHT CHECKS PASSED"\n'
-                                                 'exit "${STUB_LIGHT_RC:-0}"\n')
-        done = self.s.check_sh(STUB_PIN="")
-        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
-        lines = done.stdout.splitlines()
-        self.assertTrue(lines[0].startswith("Light change (1 changed path, a stand-in verdict)"), lines[0])
-        self.assertIn("STUB LIGHT --git HOPS_PY=python3", lines)
-        self.assertEqual("LIGHT CHECKS PASSED", lines[-1])
-        self.assertNotIn("ALL PASSED", done.stdout.replace("LIGHT CHECKS PASSED", ""))
-        self.assertNotIn("STUB DOCS CHECKS", done.stdout)
-        self.assertEqual(3, self.s.check_sh(STUB_PIN="", STUB_LIGHT_RC="3").returncode)
-        stopped = self.s.check_sh()     # the plugin pin guard still stops it before any check
-        self.assertEqual(2, stopped.returncode)
-        self.assertNotIn("STUB LIGHT", stopped.stdout)
-
-    def test_a_failed_docs_check_fails_the_run(self) -> None:
-        self.s.write("wiki/a.md", "# A, edited\n")
-        done = self.s.check_sh(STUB_PIN="", STUB_DOCS_RC="1")
-        self.assertEqual(1, done.returncode)
-        self.assertEqual("FAILED", done.stdout.splitlines()[-1])
-
-    def test_the_docs_path_still_stops_on_a_wrong_plugin_pin(self) -> None:
-        self.s.write("wiki/a.md", "# A, edited\n")
-        done = self.s.check_sh()
-        self.assertEqual(2, done.returncode)
-        self.assertIn("STOP: stub: stopped before any job", done.stderr)
-        self.assertNotIn("STUB DOCS CHECKS", done.stdout)
-
-    def test_a_code_change_or_an_explicit_request_takes_the_full_path(self) -> None:
-        self.s.write("tools/x.py", "x = 2\n")
-        done = self.s.check_sh()
-        self.assertEqual(2, done.returncode, done.stdout)   # the stub pin guard stops the full path before any job
-        self.assertEqual("", done.stdout)
-        self.s.write("tools/x.py", "x = 1\n")
-        self.s.write("wiki/a.md", "# A, edited\n")
-        for env in ({"FULL": "1"}, {"CI": "true"}, {"CHECK_ONLY": "phase02"}, {"PORTAL_CHECK": "1"},
-                    {"CHECK_AUDIT_FAILS": "1"}):
-            with self.subTest(env):
-                done = self.s.check_sh(**env)
-                self.assertNotIn("Docs-only", done.stdout)
-                self.assertNotIn("STUB DOCS CHECKS", done.stdout)
-                self.assertIn("STOP: stub", done.stderr)
-
-    def test_no_merge_base_takes_the_full_path_with_the_reason(self) -> None:
-        git(self.s.repo, "update-ref", "-d", "refs/remotes/origin/main")
-        self.s.write("wiki/a.md", "# A, edited\n")
-        done = self.s.check_sh()
-        first = done.stdout.splitlines()[0]
-        self.assertTrue(first.startswith("Full checks: cannot tell what changed, no merge base with origin/main"),
-                        first)
-        self.assertNotIn("STUB DOCS CHECKS", done.stdout)
-        self.assertIn("STOP: stub", done.stderr)
-
-    def test_a_crash_of_the_verdict_takes_the_full_path_and_says_so(self) -> None:
-        self.s.write("tools/ci/changed_kind.py", "raise SystemExit('boom')\n")
-        self.s.write("wiki/a.md", "# A, edited\n")
-        done = self.s.check_sh()
-        self.assertTrue(done.stdout.startswith("Full checks: tools/ci/changed_kind.py --git failed: boom"), done.stdout)
-        self.assertIn("STOP: stub", done.stderr)
 
 
 class OneList(unittest.TestCase):
@@ -488,8 +433,12 @@ class Kinds(unittest.TestCase):
         self.assertEqual(kind_of(["wiki/STATUS.md", "tools/check.sh"]), "full")
 
     def test_agent_rules_are_full(self):
-        for p in ("AGENTS.md", "CLAUDE.md", "cats/AGENTS.md", ".claude/skills/AGENTS.md"):
+        for p in ("CLAUDE.md", "cats/AGENTS.md", "ops/hart-ops/AGENTS.md", ".claude/skills/AGENTS.md"):
             self.assertEqual(kind_of([p]), "full", p)
+
+    def test_the_root_agents_md_is_docs(self):
+        self.assertEqual(kind_of(["AGENTS.md"]), "docs")
+        self.assertEqual(kind_of(["AGENTS.md", "wiki/a.md", ".claude/skills/x/SKILL.md"]), "docs")
 
     def test_skill_and_subagent_markdown_is_docs(self):
         for p in (".claude/skills/x/SKILL.md", ".claude/skills/x/notes/a.md", ".claude/agents/a.md"):
@@ -688,13 +637,68 @@ class PipelineMap(unittest.TestCase):
         self.assertEqual("full", v.kind)
         self.assertIn("its keys are the base's, presets included", v.why)
 
-    def test_map_display_only(self) -> None:
-        base = json.dumps({"nodes": [], "presets": [1]})
-        self.assertIsNone(changed_kind.map_display_only(base, json.dumps({"nodes": [], "presets": [2]})))
-        self.assertIn("its keys are the base's", changed_kind.map_display_only(base, base) or "")
-        self.assertIn("it changes 'nodes'", changed_kind.map_display_only(base, json.dumps({"presets": [1]})) or "")
-        self.assertEqual("the map is gone", changed_kind.map_display_only(base, None))
-        self.assertEqual("a copy of the map is not a JSON object", changed_kind.map_display_only("[]", base))
+    def test_map_change(self) -> None:
+        lane = {"id": "s", "gen": "agent-docs"}
+        base = json.dumps({"nodes": [{"id": "a"}, lane], "presets": [1]})
+        change = changed_kind.map_change
+        self.assertEqual("light", change(base, json.dumps({"nodes": [{"id": "a"}, lane], "presets": [2]})))
+        self.assertEqual("light", change(base, json.dumps({"nodes": [{"id": "a"}], "presets": [2]})))
+        self.assertEqual("docs", change(base, json.dumps({"nodes": [{"id": "a"}, {**lane, "desc": "d"}],
+                                                          "presets": [1]})))
+        self.assertIn("its keys are the base's", change(base, base))
+        self.assertIn("it changes 'nodes'", change(base, json.dumps({"presets": [1]})))
+        # an entry that leaves the lane, or joins it, changes the rest of the map
+        self.assertIn("it changes 'nodes'", change(base, json.dumps({"nodes": [{"id": "a", "gen": "agent-docs"},
+                                                                               lane], "presets": [1]})))
+        self.assertEqual("the map is gone", change(base, None))
+        self.assertEqual("a copy of the map is not a JSON object", change("[]", base))
+
+    def regenerated(self, rel: str, text: str) -> dict:
+        """The map as make map writes it after `rel` is edited to `text`: the real agent-doc lane generator, reading
+        the edited file and the rest from this checkout."""
+        gen = changed_kind.AGENT_LANE
+        assert gen == AGENT_DOCS_MAP.GEN
+        real = AGENT_DOCS_MAP._read_file
+        graph = AGENT_DOCS_MAP.regenerate(json.loads(json.dumps(self.graph)),
+                                          read=lambda r: text if r == rel else real(r))
+        self.map.write_text(json.dumps(graph, indent=1), encoding="utf-8")
+        target = self.repo / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+        return graph
+
+    def test_a_skill_front_matter_edit_and_its_regenerated_map_are_docs(self) -> None:
+        rel = ".claude/skills/deploy/SKILL.md"
+        text = (ROOT / rel).read_text(encoding="utf-8").replace("description: Use when", "description: Use whenever", 1)
+        graph = self.regenerated(rel, text)
+        self.assertNotEqual(graph["nodes"], self.graph["nodes"], "the edit changes the agent-doc lane")
+        v = changed_kind.verdict([rel, MAP], root=self.repo, compare="HEAD", load=lambda _r: self.d)
+        self.assertEqual("docs: 2 changed paths, Markdown docs and the pipeline map's agent-doc lane", v.line)
+        # the same with the map's Start presets changed too: light, with the map check
+        self.map.write_text(json.dumps({**graph, "presets": START_MENU_PRESETS + self.graph["presets"][1:]}),
+                            encoding="utf-8")
+        v = changed_kind.verdict([rel, MAP], root=self.repo, compare="HEAD", load=lambda _r: self.d)
+        self.assertEqual("light", v.kind, v.why)
+        self.assertIn("pipeline-map", v.jobs)
+
+    def test_an_agent_doc_edit_with_any_other_map_change_is_full(self) -> None:
+        rel = ".claude/skills/deploy/SKILL.md"
+        text = (ROOT / rel).read_text(encoding="utf-8").replace("description: Use when", "description: Use whenever", 1)
+        graph = self.regenerated(rel, text)
+        hand = next(i for i, n in enumerate(graph["nodes"]) if n.get("gen") is None)
+        nodes = [dict(n) for n in graph["nodes"]]
+        nodes[hand]["label"] = "renamed"
+        for changes, key in (({"nodes": nodes}, "'nodes'"), ({"updated": "2099-01-01"}, "'updated'"),
+                             ({"edges": [e for e in graph["edges"] if e.get("gen") == "agent-docs"]}, "'edges'")):
+            with self.subTest(key):
+                self.map.write_text(json.dumps({**graph, **changes}), encoding="utf-8")
+                v = changed_kind.verdict([rel, MAP], root=self.repo, compare="HEAD", load=lambda _r: self.d)
+                self.assertEqual("full", v.kind)
+                self.assertIn(f"it changes {key}", v.why)
+        # the map's lane change beside a path that is not docs stays full on that path
+        self.map.write_text(json.dumps(graph), encoding="utf-8")
+        v = changed_kind.verdict([rel, MAP, "tools/x.py"], root=self.repo, compare="HEAD", load=lambda _r: self.d)
+        self.assertEqual("full: tools/x.py is code or configuration (.py)", v.line)
 
     def test_no_base_copy_or_bad_json_is_full(self) -> None:
         self.assertIn("no base copy", changed_kind.verdict([MAP], root=self.repo, compare=None,
@@ -729,54 +733,6 @@ class LightCli(unittest.TestCase):
 
 
 # light_checks.sh in a scratch tree, beside stand-ins for what it runs
-STUB_KIND = 'import os, sys\nif os.environ.get("STUB_JOBS") is None: sys.exit("not light")\nprint(os.environ["STUB_JOBS"])\n'
-STUB_CHECK = '#!/usr/bin/env bash\necho "STUB CHECK.SH CHECK_ONLY=$CHECK_ONLY"\necho "$CHECK_PASS_LINE"\nexit "${STUB_CHECK_RC:-0}"\n'
-STUB_DOCS = '#!/usr/bin/env bash\necho "STUB DOCS"\nexit "${STUB_DOCS_RC:-0}"\n'
-
-
-class LightChecks(unittest.TestCase):
-    def setUp(self) -> None:
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        self.root = Path(tmp.name)
-        for rel, text in (("tools/ci/light_checks.sh", (ROOT / "tools/ci/light_checks.sh").read_text()),
-                          ("tools/ci/changed_kind.py", STUB_KIND), ("tools/check.sh", STUB_CHECK),
-                          ("tools/ci/docs_checks.sh", STUB_DOCS)):
-            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
-            (self.root / rel).write_text(text)
-        (self.root / "tools/check.sh").chmod(0o755)
-
-    def run_light(self, **env: str) -> subprocess.CompletedProcess:
-        base = {k: v for k, v in os.environ.items() if not k.startswith(("STUB_", "CHECK_"))}
-        return subprocess.run(["bash", str(self.root / "tools/ci/light_checks.sh"), "--git"], env={**base, **env},
-                              capture_output=True, text=True, timeout=60)
-
-    def test_runs_the_jobs_then_the_docs_checks_and_ends_light(self) -> None:
-        done = self.run_light(STUB_JOBS="lint\npipeline-map")
-        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
-        lines = done.stdout.splitlines()
-        self.assertIn("STUB CHECK.SH CHECK_ONLY=^(lint|pipeline-map)$", lines)
-        self.assertIn("--- light: check.sh's jobs passed", lines)
-        self.assertIn("STUB DOCS", lines)
-        self.assertNotIn("ALL PASSED", done.stdout)
-        self.assertTrue(lines[-1].startswith("LIGHT CHECKS PASSED"), lines[-1])
-
-    def test_a_failure_in_either_fails_after_both_ran(self) -> None:
-        for env, named in (({"STUB_CHECK_RC": "1"}, "check.sh jobs"), ({"STUB_DOCS_RC": "1"}, "quick docs checks")):
-            with self.subTest(named):
-                done = self.run_light(STUB_JOBS="lint", **env)
-                self.assertEqual(1, done.returncode)
-                self.assertIn("STUB DOCS", done.stdout)
-                self.assertIn(f"light checks FAILED: {named}", done.stdout)
-                self.assertEqual("FAILED", done.stdout.splitlines()[-1])
-
-    def test_no_job_list_stops_before_any_check(self) -> None:
-        for env in ({}, {"STUB_JOBS": ""}):
-            with self.subTest(env):
-                done = self.run_light(**env)
-                self.assertEqual(2, done.returncode)
-                self.assertIn("STOP:", done.stdout)
-                self.assertNotIn("STUB", done.stdout)
 
 
 if __name__ == "__main__":

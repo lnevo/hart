@@ -17,6 +17,7 @@
 # JMRI_UserFiles. Refuses while the operating flag is set: CATS runs on that box during a session.
 # Exit 3 means the box could not be used (flag set, unreachable, setup failed): run the command on the Mac.
 # WSL's CPU cap (8 of 16 threads) is processors=8 in %USERPROFILE%\.wslconfig on Windows.
+# At most WIN_RUN_SLOTS runs at once from this Mac: a run waits for a free slot /tmp/hart-remote.lock.N (the mac lock block).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/env/load_env.sh"
@@ -32,7 +33,7 @@ while [[ $# -gt 0 ]]; do
     --keep) keep=1; shift ;;
     --print-script) print_script=1; shift ;;   # print what would run on Windows (sha = this HEAD) and stop: for tests
     --) shift; break ;;
-    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
     -*) echo "win_run.sh: unknown option $1" >&2; exit 2 ;;
     *) break ;;
   esac
@@ -325,13 +326,57 @@ run_logged() {   # <log> <header> COMMAND...: remote_script into COMMAND, its st
   return "${rcs[0]}"
 }
 # --- end log
+# --- mac lock (tests run this block alone)
+# At most $slots remote runs at once from this Mac (WIN_RUN_SLOTS, the box's own limit), whoever starts them (the
+# owner, a session, make ready). Each slot is the folder <WIN_RUN_LOCK>.<n> for n = 1 .. slots (default
+# /tmp/hart-remote.lock.1 and .2), made with mkdir, holding an owner file "pid since-epoch ref". A run takes the first
+# free slot and waits, with a line every minute, only when every slot is held. A slot whose holder process is gone
+# and which is older than WIN_RUN_LOCK_STALE seconds (default 2700, longer than any check.sh run) is stale: it is
+# cleared with a line. release_lock runs on every exit (the EXIT trap below) and removes only the slot this process
+# holds.
+lock_base="${WIN_RUN_LOCK:-/tmp/hart-remote.lock}"
+lock_dir=""
+claim_slot() {   # <folder> <ref>: 0 when mkdir made the slot for this process
+  mkdir "$1" 2>/dev/null || return 1
+  lock_dir="$1"
+  echo "$$ $(date +%s) $2" >"$1/owner"
+}
+take_lock() {   # <ref>: returns once this process holds a slot, its folder in lock_dir
+  local waited=0 i dir pid since age holders
+  while true; do
+    holders=""
+    for i in $(seq 1 "$slots"); do
+      dir="$lock_base.$i"
+      if claim_slot "$dir" "$1"; then return 0; fi
+      read -r pid since _ <"$dir/owner" 2>/dev/null || { pid=""; since=""; }
+      age=$(( $(date +%s) - ${since:-$(date +%s)} ))
+      if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null && (( age > ${WIN_RUN_LOCK_STALE:-2700} )); then
+        echo "win_run.sh: $dir is stale (holder $pid gone, $(( age / 60 )) min old); clearing it" >&2
+        rm -f "$dir/owner"; rmdir "$dir" 2>/dev/null || true
+        if claim_slot "$dir" "$1"; then return 0; fi
+      fi
+      holders="$holders ${pid:-?} ($(( age / 60 )) min)"
+    done
+    if (( waited % ${WIN_RUN_LOCK_SAY:-60} == 0 )); then
+      echo "win_run.sh: $(date +%H:%M) all $slots remote slots ($lock_base.N) are held:$holders; waiting" >&2
+    fi
+    sleep "${WIN_RUN_LOCK_POLL:-5}"
+    waited=$(( waited + ${WIN_RUN_LOCK_POLL:-5} ))
+  done
+}
+release_lock() {
+  if [[ -n "$lock_dir" ]]; then rm -f "$lock_dir/owner"; rmdir "$lock_dir" 2>/dev/null || true; lock_dir=""; fi
+}
+# --- end mac lock
+trap 'release_lock' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+take_lock "$ref"
 logs="$(hart_cache_dir "$ROOT" remote-logs)"
 log="$(start_log "$logs" "$stamps-$run_id")" || log=""
 if [[ -n "$log" ]]; then
   # on every exit, a stopped or cut-off run too (Ctrl-C, a superseded run's TERM): the failed jobs, the path, the prune
-  trap 'finish_log "$log" "$logs" "$keep_logs"' EXIT
-  trap 'exit 130' INT
-  trap 'exit 143' TERM
+  trap 'release_lock; finish_log "$log" "$logs" "$keep_logs"' EXIT
 else
   echo "win_run.sh: warning: could not write a log in $logs; this run's output is not saved" >&2
 fi
