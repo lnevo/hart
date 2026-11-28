@@ -118,6 +118,7 @@ Every report card score, kept for the master dashboard and the slippage check. `
 Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
 
 - [README.md](website/README.md): Holds source material for the website that is kept for reference and not published, currently the original Rule 1 sticker photo
+- [exam-study.md](website/exam-study.md): Rules for the C&E study deck (`www/exam/index.html`), the Extra East game (`www/exam/run.html`) and the `/play` runs
 - [promo-videos.md](website/promo-videos.md): Describes the short promo videos for the website on TikTok and YouTube, where the files are kept and how they were made
 - [real-vs-invented.md](website/real-vs-invented.md): Owner, 2026-11-18: HART and its P&CV Division are a proto-freelanced successor to the real P&OV (1899 to 31 Jan 1994); the premise is fictional
 - [share-thumbnails.md](website/share-thumbnails.md): The mechanics (`share-cards.json`, `share_cards.py`, `make_share_cards.py`, hub cards) are in the Share thumbnails item of `www/README.md`

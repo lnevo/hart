@@ -26,6 +26,12 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
 3. Add the link to the wave's page in `wiki/projects/`, on the line under `Coordinator:`, and give it to the owner once.
 4. Start the sampler (see Samples).
 
+## Who keeps it, and the owner's reasons
+
+- A hand-off of more than one lane gets a dashboard at the start, unasked: "I want this to be a coordinator task so all subagents follow it, and future coordinators give me a dashboard so I don't have to keep nagging" (owner, 2026-11-26).
+- The coordinator updates every row itself, the same turn a lane or PR changes, peer sessions' PRs and the report card included: "you're the coordinator it's your job to keep track and keep me posted through the dashboard" (owner, 2026-11-26).
+- A queued or blocked row names what it waits on right now. Recheck every waiting row when a slot frees, a PR merges or a session starts or stops, and launch what the freed slot allows: "items that have been unblocked are still listing as blocked" (owner, 2026-11-27).
+
 ## Rows
 
 One lanes doc per item the owner would ask about, with these fields:
@@ -80,4 +86,8 @@ Update on every message that changes a lane or PR: it starts, passes or fails it
 ## Before a /clear and at the end
 
 - Before a /clear, give the steward that takes over the dashboard link, the sampler output file path, the Monitor task id and a pointer to this skill. The project page keeps the link.
-- At the end, write the final events. Set each row to merged or done, or move it to a later wave and give the reason. Stop the sampler (`TaskStop` on its Monitor). Set the wave page to `Status: done`. Then add the dashboard to the master dashboard ([`report-cards`](../report-cards/SKILL.md) skill).
+- The steward takes the deploys, the sampler, the report card and the final report, from a hand-off file in the scratchpad. Models and efforts, as the owner asked ("appropriate models and efforts"): orchestration opus/medium; data-model refactors opus/high; bounded refactors opus/medium; small test or doc fixes sonnet/low; `finding-verifier` low.
+- In a wave chain the owner started, rerun the report card at wave end, then start a fresh background coordinator (opus, medium); it parks owner-only items on a "Waits on owner" row instead of stopping.
+- A full-page screenshot of the dashboard: dark mode, scale 1, every column visible, stitched by scroll offset, sent as PNG; offer a .zip when it is over 8000 px tall.
+- A coordinator delegates ("I think you're doing too much yourself. Please background your tasks", owner, 2026-11-26): background agents do the per-PR work; the coordinator keeps owner decisions, review triage, merges and deploys.
+- At the end, write the final events. Set each row to merged or done, or move it to a later wave with the reason. Stop the sampler (`TaskStop` on its Monitor). Set the wave page to `Status: done`. Then add the dashboard to the master dashboard ([`report-cards`](../report-cards/SKILL.md) skill).
