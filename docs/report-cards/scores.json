@@ -88,16 +88,26 @@
       "what": "Mean of three site-reviewer slices over eight areas.",
       "wiki": "wiki/report-cards.md#website-ux",
       "scores": [
-        {"date": "2026-11-28", "value": 6.8, "label": "first formal pass"}
+        {"date": "2026-11-28", "value": 6.8, "label": "first formal pass"},
+        {"date": "2026-11-28", "value": 7.3, "label": "after the UX round (#1380 to #1387)"}
       ],
       "table": {
-        "columns": ["Area", "Score"],
+        "columns": ["Area", "Score", "Measured on 28 Nov after the round"],
         "rows": [
-          ["Navigation and wayfinding", 6.5], ["Layout and readability", 7], ["Mobile", 6.5], ["Accessibility", 6.5],
-          ["Clarity for a first-time reader", 6.5], ["Consistency across pages", 6], ["Weight and speed", 8.5], ["Links and errors", 7]
+          ["Navigation and wayfinding", 6.5, "Every section 1 click from home, depth 3, no orphans with JS; a crew sheet is 4 taps from most pages on a phone; helix, jmri-additions, tables-file and the primer have no jump list."],
+          ["Layout and readability", 7.5, "One h1 per page; nothing scrolls sideways at 375 px (86 pages in headless Chrome); the header fits at 980 px."],
+          ["Mobile", 7.5, "Viewport on every page, stubs included; 87 block tap targets under 32 px on 19 pages; the layout map opens at 9% zoom."],
+          ["Accessibility", 6.5, "0 images without alt; with JS off every page has a header, but crew sheets show only a note and no skip link; the exam tabs have no arrow keys."],
+          ["Clarity for a first-time reader", 6.5, "Layout, roster and history gloss their terms; photos, articles, railroads, crew sheets and exam/play (GCOR) do not; photos shows editor counters."],
+          ["Consistency across pages", 6.5, "All 87 crawled pages have their own description; the build cut plans and Publication Standards are off-template; breadcrumb sections disagree."],
+          ["Weight and speed", 8, "Pages 10 to 26 KB, about 0.1 s; layout-docs 6.3 MB and ai/clinic 2.3 MB of lazy images; build hero 275 KB not lazy."],
+          ["Links and errors", 9, "0 dead internal links in 264 crawled URLs and 422 crew-slice targets; guide GitHub links resolve; /library/ redirects."]
         ]
       },
-      "notes": ["Nothing was checked on a real phone or with a screen reader."]
+      "notes": [
+        "Rescored against the live site at main 5c392d9f. Weight and speed fell from 8.5 to 8 because this pass summed live image weight per page and the first did not.",
+        "Nothing was checked on a real phone or with a screen reader; contrast was not measured."
+      ]
     },
     {
       "id": "ax",
@@ -150,6 +160,9 @@
      "summary": "Layout Editor names for 101 Spur 1, 101 Spur 2 and 103 Spur moved beside their tracks. The owner approved the rendered look."},
     {"id": "ax-cleanup", "title": "Agent experience cleanup", "start": "2026-11-27T22:22", "store": "data/ax",
      "link": "https://claude.ai/artifact/PzHCqE42g9vDyXrXgdWJvC", "wiki": "wiki/projects/ax-cleanup.md",
-     "summary": "Memory 49 to 38 files, a quieter session start, a 1,500-word skill cap, then make ready and make land."}
+     "summary": "Memory 49 to 38 files, a quieter session start, a 1,500-word skill cap, then make ready and make land."},
+    {"id": "ux-round", "title": "Website UX round", "start": "2026-11-28T00:25", "store": "data/ux",
+     "link": "https://claude.ai/artifact/NZ8CuEbwCs7VmhGmfLxodA", "wiki": "wiki/projects/ux-round.md",
+     "summary": "Five site-builder lanes fixed what the first Website UX card found: no-JS fallbacks, page descriptions, contents lists, the inline nav and names, links. The card went from 6.8 to 7.3."}
   ]
 }
