@@ -34,6 +34,7 @@ After `make ready` opens the PR, run `/code-review medium` (high for the code `/
 - When code changes from SystemExit to a named error, update every test that asserts SystemExit (grep every test folder).
 - A `checks.toml` `quiet_inputs` list keeps the order `test_manifest_scans` expects.
 - The Windows box's venv does not follow `requirements.txt` by itself; a new package is installed there by hand.
-- A new worktree may need `git submodule update --init`.
+- A new worktree may need `git submodule update --init`. A worktree-isolated subagent gets no submodules (init is blocked for it, and copying the plugin in or aiming git at another worktree is refused), so a change that needs `external/model-railroad-skills` (Layout Editor label options, `le_labels.py`) is made in the coordinator's own `make wt` worktree, or the brief must not need the plugin.
+- A cleanup or fix lane checks its changed files against the grade habits in `AGENTS.md` (Scripts) before `make ready`; a lane that lowers the report card is not done. Parked code is not graded (`wiki/report-cards.md`, Code quality).
 - Run a test that reads the private AnyRail plan once with `ANYRAIL_PLAN` set to a missing path before the push; it must skip, not fail.
 - Review agents report to their coordinator, not to `main`.
