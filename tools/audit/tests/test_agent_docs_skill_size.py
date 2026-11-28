@@ -17,7 +17,7 @@ REL = ".claude/skills/demo/SKILL.md"
 
 
 def _skill(words: int) -> str:
-    """A skill file of exactly `words` words, two of them in the frontmatter."""
+    """A skill file of exactly `words` words, four of them in the frontmatter (`---`, `name:`, `demo`, `---`)."""
     return "---\nname: demo\n---\n" + " ".join(["w"] * (words - 4)) + "\n"
 
 
