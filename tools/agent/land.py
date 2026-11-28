@@ -5,8 +5,10 @@
 
 `make land` takes a ticket in the merge queue (tools/agent/land_queue.py), starts the steps below as a detached
 background job writing to ~/.cache/hart/land/<N>.log, prints the ticket and the log, and returns at once (exit 0).
-`--watch` (`WATCH=1`) runs the steps in the foreground instead and exits with their code. `make land-status` shows the
-queue and the last lines of each log.
+Exit 0 then means queued, not merged: the job writes its exit code to ~/.cache/hart/land/<N>.result, and
+`make land-wait PR=N` waits for it. `--watch` (`WATCH=1`) runs the steps in the foreground instead and exits with their
+code. `make land-status` shows the queue and the last lines of each log. A PR that already has a live ticket is not
+queued again: the ticket and its log are printed and the exit is 0.
 
 Steps, in order; the first problem stops the run with one line saying why (.claude/skills/coordinate/merging.md has
 the rules). Steps 1 to 3 run while the ticket waits behind others; 4 and 5 only at the head of the queue:
@@ -56,7 +58,7 @@ from types import ModuleType
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from land_queue import (LOCK_PATH, LOG_DIR, QUEUE_DIR, LandQueue, MergeLock, Ticket,  # noqa: E402
-                        log_path, session_name)
+                        log_path, result_path, session_name, write_result)
 from land_queue import LOCK_CEILING as LOCK_CEILING, LOCK_STALE as LOCK_STALE  # noqa: E402  (the lock's rule, here too)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -173,6 +175,7 @@ class Lander:
     lock_path: Path = LOCK_PATH
     lock_sleep: Sleep = time.sleep
     queue_dir: Path = QUEUE_DIR
+    ticket_number: int | None = None
 
     def say(self, line: str) -> None:
         print(line, flush=True)
@@ -417,10 +420,21 @@ class Lander:
         """Steps 1 to 8 for PR `number` under the ticket at `ticket` (one is taken here when None), released at the
         end."""
         queue = self.queue()
-        held = queue.take(number, session_name()) if ticket is None else Ticket.read(ticket)
+        if ticket is None:
+            other = queue.live(number)
+            if other is not None:
+                self.say(already_queued(other))
+                return 0
+            held: Ticket | None = queue.take(number, session_name())
+        else:
+            try:
+                held = queue.adopt(ticket)      # the job's own PID on its ticket first
+            except OSError:
+                held = None
         if held is None:
             self.say(f"STOP: the ticket {ticket} is not in the merge queue. Nothing was merged.")
             return 1
+        self.ticket_number = held.number
         try:
             return self._queued(queue, held, number, squash, watch_main, wave, dash_out, overlap_module)
         finally:
@@ -441,10 +455,18 @@ class Lander:
         except (LandError, OSError) as e:
             self.say(f"STOP: {e}. Nothing was merged.")
             return 1
+        held = ticket
+
+        def mark(state: str) -> None:
+            try:
+                queue.update(held, state=state)
+            except OSError as e:        # the state is for make land-status only: the land goes on
+                self.say(f"ticket state {state!r} not written: {e}")
+
         lock = MergeLock(self.lock_path, number, self.say, self.lock_sleep)
         try:
             return self._locked(lock, pr, squash, watch_main, wave, dash_out, overlap_module,
-                                waited=waited, mark=lambda state: queue.update(ticket, state=state))
+                                waited=waited, mark=mark)
         finally:
             lock.release()
 
@@ -513,26 +535,38 @@ def job_args(a: argparse.Namespace, ticket: Path) -> list[str]:
 Spawn = Callable[..., "subprocess.Popen[bytes]"]
 
 
+def already_queued(ticket: Ticket, log_dir: Path = LOG_DIR) -> str:
+    return (f"#{ticket.pr} is already in the merge queue as {ticket.label()}, {ticket.state}; log: "
+            f"{log_path(ticket.pr or 0, log_dir)}. Nothing new was queued.")
+
+
 def detach(a: argparse.Namespace, queue_dir: Path = QUEUE_DIR, log_dir: Path = LOG_DIR,
            spawn: Spawn = subprocess.Popen) -> int:
-    """Take a ticket, start the land as a background job in a session of its own, hand the ticket to the job and
-    return. The ticket names this process until the job's PID replaces it, so it never names a PID that is gone."""
+    """Take a ticket, start the land as a background job in a session of its own, and return once the job has put
+    its own PID on the ticket (this process never writes the ticket after the job starts). Exit 0 means queued, not
+    merged: the job's code lands in the result file (make land-wait)."""
     queue = LandQueue(queue_dir, print)
+    other = queue.live(a.pr)
+    if other is not None:
+        print(already_queued(other, log_dir))
+        return 0
     ticket = queue.take(a.pr, session_name())
     log = log_path(a.pr, log_dir)
     try:
         log.parent.mkdir(parents=True, exist_ok=True)
+        result_path(a.pr, log_dir).unlink(missing_ok=True)       # make land-wait reads only this land's result
         with log.open("a", encoding="utf-8") as out:
             out.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} make land PR={a.pr}: ticket {ticket.number}\n")
             out.flush()
             job = spawn([sys.executable, str(Path(__file__).resolve()), *job_args(a, ticket.path)], cwd=ROOT,
                         stdin=subprocess.DEVNULL, stdout=out, stderr=subprocess.STDOUT, start_new_session=True)
-        queue.update(ticket, pid=job.pid, state="started")
     except BaseException:
         queue.release(ticket)
         raise
-    print(f"queued #{a.pr} as ticket {ticket.number} (job PID {job.pid}); log: {log}. make land-status shows the "
-          "queue; WATCH=1 runs in the foreground.")
+    if not queue.wait_adopted(ticket, job.pid):
+        print(f"the job (PID {job.pid}) has not taken ticket {ticket.number} yet; see {log}")
+    print(f"queued #{a.pr} as ticket {ticket.number} (job PID {job.pid}); log: {log}. Exit 0 means queued, not "
+          f"merged: make land-status shows the queue, make land-wait PR={a.pr} waits for the result.")
     return 0
 
 
@@ -544,8 +578,15 @@ def main(argv: list[str] | None = None) -> int:
     if not a.watch:
         return detach(a)
     module = load_tool(ROOT / "tools/ops/orient_overlap.py", "orient_overlap")
-    return Lander(poll=a.poll).land(a.pr, squash=a.squash, watch_main=not a.no_watch_main, wave=a.wave,
-                                    dash_out=a.dash_out, overlap_module=module, ticket=a.ticket)
+    lander = Lander(poll=a.poll)
+    code = lander.land(a.pr, squash=a.squash, watch_main=not a.no_watch_main, wave=a.wave, dash_out=a.dash_out,
+                       overlap_module=module, ticket=a.ticket)
+    try:
+        write_result(a.pr, lander.ticket_number, code)
+    except OSError as e:
+        print(f"result not written for make land-wait: {e}")
+    print(f"land of #{a.pr} ended with exit {code}")
+    return code
 
 
 if __name__ == "__main__":

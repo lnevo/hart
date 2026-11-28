@@ -3,14 +3,18 @@
 
     land_queue.py status        (make land-status) every ticket: number, PR, session, state, PID, and the last
                                 lines of its log; then the old merge lock's holder, if any
+    land_queue.py wait N        (make land-wait PR=N) wait for PR N's land job to end; exit with its code (0 merged
+                                and main green, 1 refused, 4 main red, 5 unwatched), read from the result file
+                                ~/.cache/hart/land/N.result the job writes; 2 when there is no job or result
 
 Each `make land` takes a numbered ticket in QUEUE_DIR (a JSON file NNNNNN.ticket: PID, PR, session, time, state),
-written whole to a temporary name and linked to its number, so a reader never sees half a ticket and two takers never
-share a number. The lowest live ticket is the head of the queue and merges; the others wait behind it with no time
+written whole to a temporary name and linked to its number, so a reader never sees half a ticket. Numbers are
+reserved in QUEUE_DIR/numbers/ with O_EXCL and never handed out twice, and each ticket carries its land's token:
+update and release act only on a file that still carries it, and never make a missing ticket again. The lowest live ticket is the head of the queue and merges; the others wait behind it with no time
 limit while every ticket ahead of them is alive, with a line every LOCK_SAY seconds naming their place and the head.
 A ticket whose PID is gone is skipped: it is renamed away, only while its file is still the one judged dead, and
-removed with a line. A head whose PID is alive but that has been the head for over LOCK_CEILING seconds is cleared the
-same way.
+removed with a line. A ticket whose PID is alive but that has been the head, or in the queue, for over LOCK_CEILING seconds
+is cleared the same way.
 
 MergeLock is the old merge lock (LOCK_PATH, a folder made with mkdir) from before the queue. The head of the queue
 still takes it before it merges, so a `make land` started from older code (which knows only the lock) and one from
@@ -24,6 +28,7 @@ import os
 import shutil
 import sys
 import time
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -38,6 +43,9 @@ LOCK_POLL = 5
 SESSION_ENV = "HART_SESSION_NAME"
 SUFFIX = ".ticket"
 LOG_TAIL = 3
+RESERVED_KEEP = 50       # reserved-number files kept below the newest one
+ADOPT_WAIT = 30          # seconds make land waits for its job to put its own PID on the ticket
+ADOPT_POLL = 0.1
 
 Say = Callable[[str], None]
 Sleep = Callable[[float], None]
@@ -174,12 +182,19 @@ class MergeLock:
 
 # ------------------------------------------------------------ the queue
 
+class NotOurs(OSError):
+    """The ticket file is gone or now carries another land's token: this handle may not write or remove it."""
+
+
 @dataclass(frozen=True)
 class Ticket:
-    """One ticket file. `raw` is the file's text when read: a ticket is cleared only while it still reads the same."""
+    """One ticket file. `raw` is the file's text when read: a ticket is cleared only while it still reads the same.
+    `token` is the land's own mark, written when it took the ticket: update and release act only on a file that
+    still carries it."""
     number: int
     path: Path
     raw: str
+    token: str
     pid: int | None
     pr: int | None
     session: str
@@ -205,17 +220,46 @@ class Ticket:
             return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
         pid, pr = num("pid"), num("pr")
-        return cls(number=int(path.name[:-len(SUFFIX)]), path=path, raw=raw,
+        return cls(number=int(path.name[:-len(SUFFIX)]), path=path, raw=raw, token=str(data.get("token", "")),
                    pid=None if pid is None else int(pid), pr=None if pr is None else int(pr),
                    session=str(data.get("session", "?")), since=num("since"), state=str(data.get("state", "?")),
                    head_since=num("head_since"))
 
     def fields(self) -> dict[str, object]:
-        return {"pid": self.pid, "pr": self.pr, "session": self.session, "since": self.since, "state": self.state,
-                "head_since": self.head_since}
+        return {"token": self.token, "pid": self.pid, "pr": self.pr, "session": self.session, "since": self.since,
+                "state": self.state, "head_since": self.head_since}
 
     def label(self) -> str:
         return f"ticket {self.number} (PR #{self.pr}, {self.session}, PID {self.pid or '?'})"
+
+
+@dataclass(frozen=True)
+class Result:
+    """What a land job wrote when it ended: its ticket and exit code."""
+    ticket: int | None
+    code: int
+
+
+def result_path(pr: int, log_dir: Path = LOG_DIR) -> Path:
+    return log_dir / f"{pr}.result"
+
+
+def write_result(pr: int, ticket: int | None, code: int, log_dir: Path = LOG_DIR) -> None:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    tmp = log_dir / f".{pr}.result.{os.getpid()}"
+    tmp.write_text(json.dumps({"ticket": ticket, "code": code, "at": time.time()}), encoding="utf-8")
+    os.replace(tmp, result_path(pr, log_dir))
+
+
+def read_result(pr: int, log_dir: Path = LOG_DIR) -> Result | None:
+    try:
+        data = json.loads(result_path(pr, log_dir).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("code"), int):
+        return None
+    ticket = data.get("ticket")
+    return Result(ticket if isinstance(ticket, int) else None, data["code"])
 
 
 @dataclass
@@ -227,6 +271,11 @@ class LandQueue:
     alive: Callable[[int], bool] = pid_alive
     _tmp: int = field(default=0, repr=False)
 
+    @property
+    def numbers(self) -> Path:
+        """The reserved numbers: one empty file per number ever handed out, so a number is never handed out twice."""
+        return self.root / "numbers"
+
     def tickets(self) -> list[Ticket]:
         try:
             names = [p for p in self.root.iterdir() if p.name.endswith(SUFFIX) and p.name[:-len(SUFFIX)].isdigit()]
@@ -235,6 +284,10 @@ class LandQueue:
         found = [Ticket.read(p) for p in names]
         return sorted((t for t in found if t is not None), key=lambda t: t.number)
 
+    def live(self, pr: int) -> Ticket | None:
+        """The first ticket for `pr` that still holds its place."""
+        return next((t for t in self.tickets() if t.pr == pr and not self.stale(t)), None)
+
     def _write_new(self, text: str) -> Path:
         """`text` in a new file of its own in the queue folder, not yet a ticket."""
         self._tmp += 1
@@ -242,46 +295,74 @@ class LandQueue:
         tmp.write_text(text, encoding="utf-8")
         return tmp
 
+    def reserve(self) -> int:
+        """A number no ticket ever had: one past the highest reserved, claimed by creating its file (O_EXCL)."""
+        self.numbers.mkdir(parents=True, exist_ok=True)
+        marks = [int(p.name) for p in self.numbers.iterdir() if p.name.isdigit()]
+        number = max([*marks, *(t.number for t in self.tickets())], default=0) + 1
+        while True:
+            try:
+                os.close(os.open(self.numbers / f"{number:06d}", os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            except FileExistsError:
+                number += 1
+                continue
+            for old in marks:       # the highest mark is all a later reserve needs
+                if old < number - RESERVED_KEEP:
+                    (self.numbers / f"{old:06d}").unlink(missing_ok=True)
+            return number
+
     def take(self, pr: int, session: str, pid: int | None = None) -> Ticket:
-        """A new ticket, numbered after every ticket in the queue, for PR `pr`, held by `pid` (this process)."""
+        """A new ticket, numbered after every number handed out before, for PR `pr`, held by `pid` (this process)."""
         self.root.mkdir(parents=True, exist_ok=True)
-        now = self.wall()
-        text = json.dumps({"pid": pid or os.getpid(), "pr": pr, "session": session, "since": now,
-                           "state": "queued", "head_since": None})
+        text = json.dumps({"token": uuid.uuid4().hex, "pid": pid or os.getpid(), "pr": pr, "session": session,
+                           "since": self.wall(), "state": "queued", "head_since": None})
         tmp = self._write_new(text)
         try:
-            number = max((t.number for t in self.tickets()), default=0) + 1
-            while True:
-                target = self.root / f"{number:06d}{SUFFIX}"
-                try:
-                    os.link(tmp, target)      # fails when the number is taken: the next one
-                except FileExistsError:
-                    number += 1
-                    continue
-                break
+            target = self.root / f"{self.reserve():06d}{SUFFIX}"
+            os.link(tmp, target)            # the whole file appears at once
         finally:
             tmp.unlink(missing_ok=True)
         ticket = Ticket.read(target)
         if ticket is None:
-            raise OSError(f"the ticket {target} was removed as it was taken")
+            raise NotOurs(f"the ticket {target} was removed as it was taken")
         return ticket
 
+    def _ours(self, ticket: Ticket) -> Ticket:
+        now = Ticket.read(ticket.path)
+        if now is None or now.token != ticket.token:
+            raise NotOurs(f"ticket {ticket.number} ({ticket.path}) is no longer this land's: it was cleared")
+        return now
+
     def update(self, ticket: Ticket, **changes: object) -> Ticket:
-        """The ticket with `changes`, rewritten whole (a temporary file replaces it)."""
-        fields = {**ticket.fields(), **changes}
-        tmp = self._write_new(json.dumps(fields))
+        """The ticket with `changes`, rewritten whole, only while the file still carries this land's token; a
+        missing ticket is never made again (NotOurs)."""
+        self._ours(ticket)
+        tmp = self._write_new(json.dumps({**ticket.fields(), **changes}))
         os.replace(tmp, ticket.path)
         return Ticket.read(ticket.path) or ticket
 
+    def adopt(self, path: Path) -> Ticket | None:
+        """The ticket at `path`, now naming this process: what a land job does first with the ticket it was given."""
+        ticket = Ticket.read(path)
+        if ticket is None:
+            return None
+        return self.update(ticket, pid=os.getpid(), state="started")
+
     def release(self, ticket: Ticket) -> None:
+        """Remove the ticket, only while it is still this land's."""
+        try:
+            self._ours(ticket)
+        except NotOurs:
+            return
         ticket.path.unlink(missing_ok=True)
 
     def stale(self, ticket: Ticket) -> str:
         """Why `ticket` no longer holds its place ("" when it does)."""
         if ticket.pid is None or not self.alive(ticket.pid):
             return "its PID is gone"
-        if ticket.head_since is not None and self.wall() - ticket.head_since > LOCK_CEILING:
-            return f"its PID is alive but it has been the head for over {LOCK_CEILING // 60} min"
+        for since, what in ((ticket.head_since, "the head"), (ticket.since, "in the queue")):
+            if since is not None and self.wall() - since > LOCK_CEILING:
+                return f"its PID is alive but it has been {what} for over {LOCK_CEILING // 60} min"
         return ""
 
     def clear(self, ticket: Ticket, why: str) -> None:
@@ -317,8 +398,6 @@ class LandQueue:
         while True:
             ahead = self.ahead(mine)
             if not ahead:
-                if not mine.path.exists():
-                    raise OSError(f"ticket {mine.number} ({mine.path}) is gone from the merge queue")
                 return self.update(mine, state="head", head_since=self.wall()), waited > 0
             if waited % LOCK_SAY == 0:
                 head = ahead[0]
@@ -327,8 +406,19 @@ class LandQueue:
             self.sleep(LOCK_POLL)
             waited += LOCK_POLL
 
+    def wait_adopted(self, ticket: Ticket, pid: int, limit: float = ADOPT_WAIT) -> bool:
+        """Whether the job `pid` took over `ticket` within `limit` seconds (it writes its own PID first)."""
+        waited = 0.0
+        while waited <= limit:
+            now = Ticket.read(ticket.path)
+            if now is None or now.token != ticket.token or now.pid == pid:
+                return True             # adopted, or already done and released
+            self.sleep(ADOPT_POLL)
+            waited += ADOPT_POLL
+        return False
 
-# ------------------------------------------------------------ make land-status
+
+# ------------------------------------------------------------ make land-status and make land-wait
 
 def tail(path: Path, lines: int = LOG_TAIL) -> list[str]:
     try:
@@ -349,19 +439,41 @@ def status(queue: LandQueue, log_dir: Path = LOG_DIR, lock_path: Path = LOCK_PAT
         out.append(f"  ticket {ticket.number}: PR #{ticket.pr}, {ticket.session}, {ticket.state}, "
                    f"PID {ticket.pid or '?'} {'alive' if alive else 'gone'}{age}")
         if ticket.pr is not None:
-            log = log_path(ticket.pr, log_dir)
-            out.extend(f"    {line}" for line in tail(log))
+            out.extend(f"    {line}" for line in tail(log_path(ticket.pr, log_dir)))
     owner = MergeLock(lock_path, 0, queue.say).owner() if lock_path.exists() else None
     if owner is not None:
         out.append(f"old merge lock {lock_path}: held by {owner.holder} for PR #{owner.pr} (PID {owner.pid or '?'})")
     return out
 
 
+def wait(queue: LandQueue, pr: int, log_dir: Path = LOG_DIR) -> int:
+    """make land-wait: wait for PR `pr`'s land job to end and return its exit code (0 merged and main green, 1
+    refused, 4 main red, 5 unwatched); 2 when there is neither a job nor a result for it."""
+    seen = queue.live(pr)
+    if seen is not None:
+        queue.say(f"waiting for the land of #{pr} ({seen.label()}, {seen.state}); log: {log_path(pr, log_dir)}")
+    while seen is not None and queue.live(pr) is not None:
+        queue.sleep(LOCK_POLL)
+    result = read_result(pr, log_dir)
+    if result is None or (seen is not None and result.ticket not in (None, seen.number)):
+        queue.say(f"no result for a land of #{pr} in {result_path(pr, log_dir)}: see {log_path(pr, log_dir)}")
+        return 2
+    queue.say(f"the land of #{pr} (ticket {result.ticket}) ended with exit {result.code}; log: {log_path(pr, log_dir)}")
+    return result.code
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="land_queue.py", description="make land's merge queue.")
-    ap.add_argument("command", choices=["status"], help="status: the queue and the last lines of each log")
-    ap.parse_args(argv)
-    for line in status(LandQueue(QUEUE_DIR, print)):
+    ap.add_argument("command", choices=["status", "wait"],
+                    help="status: the queue and each log's last lines; wait PR: wait for that land's exit code")
+    ap.add_argument("pr", nargs="?", type=int, help="the PR, for wait")
+    a = ap.parse_args(argv)
+    queue = LandQueue(QUEUE_DIR, print)
+    if a.command == "wait":
+        if a.pr is None:
+            ap.error("wait needs the PR number")
+        return wait(queue, a.pr)
+    for line in status(queue):
         print(line)
     return 0
 

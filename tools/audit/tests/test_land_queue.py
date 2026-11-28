@@ -24,6 +24,7 @@ LAND = T.LAND
 import land_queue as Q  # noqa: E402  (land.py put tools/agent on the path)
 
 GONE = 999_999_999      # a PID no process has
+JOB_PID = 424_242       # the stub job's PID
 
 
 def queue(root: Path, sleep: Any = None, alive: Any = None, said: list[str] | None = None) -> Any:
@@ -40,9 +41,49 @@ class Tickets(unittest.TestCase):
         one, two = q.take(11, "hart-a"), q.take(12, "hart-b")
         self.assertEqual((1, 2), (one.number, two.number))
         self.assertEqual({"pid": os.getpid(), "pr": 12, "session": "hart-b", "state": "queued", "head_since": None},
-                         {k: v for k, v in json.loads(two.path.read_text()).items() if k != "since"})
+                         {k: v for k, v in json.loads(two.path.read_text()).items() if k not in ("since", "token")})
+        self.assertNotEqual(one.token, two.token)
         q.release(one)
         self.assertEqual(3, q.take(13, "hart-c").number, "a number is never reused while a later ticket stands")
+
+    def test_a_number_is_never_reused_after_the_highest_ticket_is_cleared(self) -> None:
+        q = queue(self.root, alive=lambda pid: False)
+        hung = q.take(11, "hart-hung")
+        q.clear(hung, "its PID is gone")
+        fresh = q.take(12, "hart-new")
+        self.assertEqual(2, fresh.number)
+        # the cleared land, still running, can neither write nor remove the new ticket, nor make its own again
+        with self.assertRaises(Q.NotOurs):
+            q.update(hung, state="merging")
+        q.release(hung)
+        self.assertFalse(hung.path.exists())
+        self.assertEqual("queued", json.loads(fresh.path.read_text())["state"])
+
+    def test_update_and_release_act_only_on_a_file_with_the_lands_token(self) -> None:
+        q = queue(self.root)
+        mine = q.take(11, "hart-a")
+        other = Q.Ticket.read(mine.path)
+        assert other is not None
+        stranger = Q.Ticket(**{**other.__dict__, "token": "someone-else"})
+        with self.assertRaises(Q.NotOurs):
+            q.update(stranger, state="head")
+        q.release(stranger)
+        self.assertTrue(mine.path.exists())
+        q.release(mine)
+        with self.assertRaises(Q.NotOurs):
+            q.update(mine, state="head")
+        self.assertFalse(mine.path.exists(), "a missing ticket is never made again")
+
+    def test_a_live_ticket_past_the_ceiling_since_it_was_taken_is_cleared(self) -> None:
+        said: list[str] = []
+        base = queue(self.root)
+        old = base.take(11, "hart-old")
+        old = Q.Ticket(**{**old.__dict__, "since": 1.0})
+        base.update(old)
+        q = queue(self.root, sleep=lambda s: self.fail("waited"), said=said)
+        q.wait_turn(q.take(12, "hart-b"))
+        self.assertFalse(old.path.exists())
+        self.assertIn(f"been in the queue for over {Q.LOCK_CEILING // 60} min", said[0])
 
     def test_concurrent_takers_never_share_a_number(self) -> None:
         got: list[int] = []
@@ -53,7 +94,7 @@ class Tickets(unittest.TestCase):
         for t in threads:
             t.join(10)
         self.assertEqual(list(range(1, 21)), sorted(got))
-        self.assertEqual([], [p.name for p in self.root.iterdir() if not p.name.endswith(Q.SUFFIX)])
+        self.assertEqual(["numbers"], [p.name for p in self.root.iterdir() if not p.name.endswith(Q.SUFFIX)])
 
     def test_the_lowest_live_ticket_goes_first_and_the_next_waits_with_no_time_limit(self) -> None:
         said: list[str] = []
@@ -187,10 +228,6 @@ class Landing(unittest.TestCase):
         self.assertIn("is not in the merge queue", lnd.out[0])
 
 
-class Job:
-    pid = os.getpid()
-
-
 @mock.patch.dict(os.environ, {"HART_SESSION_NAME": "hart-test"})
 class Detached(unittest.TestCase):
     def setUp(self) -> None:
@@ -200,16 +237,26 @@ class Detached(unittest.TestCase):
     def args(self, *extra: str) -> argparse.Namespace:
         return LAND.parser().parse_args(["12", *extra])
 
-    def test_make_land_takes_a_ticket_starts_the_job_and_returns(self) -> None:
-        started: list[tuple[list[str], dict[str, Any]]] = []
-
-        def spawn(cmd: list[str], **kw: Any) -> Job:
+    def adopting(self, started: list[Any], then_release: bool = False) -> Any:
+        """A spawn stub whose job (PID JOB_PID) puts its own PID on the ticket, as land.py --ticket does first."""
+        def spawn(cmd: list[str], **kw: Any) -> Any:
             started.append((cmd, kw))
-            return Job()
+            path = Path(cmd[cmd.index("--ticket") + 1])
+            q = queue(self.root)
+            held = Q.Ticket.read(path)
+            assert held is not None
+            held = q.update(held, pid=JOB_PID, state="started")
+            if then_release:            # the job refused at once and gave its ticket back
+                q.release(held)
+            return mock.Mock(pid=JOB_PID)
+        return spawn
 
+    def test_make_land_takes_a_ticket_starts_the_job_and_returns(self) -> None:
+        started: list[Any] = []
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
-            code = LAND.detach(self.args("--squash", "--wave", "w3", "--dash-out", "/d"), self.root, self.logs, spawn)
+            code = LAND.detach(self.args("--squash", "--wave", "w3", "--dash-out", "/d"), self.root, self.logs,
+                               self.adopting(started))
         self.assertEqual(0, code)
         cmd, kw = started[0]
         ticket = self.root / f"000001{Q.SUFFIX}"
@@ -218,31 +265,105 @@ class Detached(unittest.TestCase):
         self.assertTrue(kw["start_new_session"])
         held = Q.Ticket.read(ticket)
         assert held is not None
-        self.assertEqual((Job.pid, 12, "hart-test", "started"), (held.pid, held.pr, held.session, held.state))
+        self.assertEqual((JOB_PID, 12, "hart-test", "started"), (held.pid, held.pr, held.session, held.state),
+                         "the parent wrote its own PID back over the job's")
         self.assertIn("make land PR=12: ticket 1", (self.logs / "12.log").read_text())
-        self.assertEqual(f"queued #12 as ticket 1 (job PID {Job.pid}); log: {self.logs / '12.log'}. make "
-                         "land-status shows the queue; WATCH=1 runs in the foreground.\n", buf.getvalue())
+        self.assertIn("Exit 0 means queued, not merged", buf.getvalue())
+        self.assertIn("make land-wait PR=12", buf.getvalue())
+
+    def test_a_job_that_ends_before_the_parent_returns_leaves_no_ghost_ticket(self) -> None:
+        with contextlib.redirect_stdout(io.StringIO()):
+            LAND.detach(self.args(), self.root, self.logs, self.adopting([], then_release=True))
+        self.assertEqual([], list(self.root.glob(f"*{Q.SUFFIX}")))
+
+    def test_a_stale_result_is_removed_before_the_job_starts(self) -> None:
+        Q.write_result(12, 99, 4, self.logs)
+        with contextlib.redirect_stdout(io.StringIO()):
+            LAND.detach(self.args(), self.root, self.logs, self.adopting([]))
+        self.assertIsNone(Q.read_result(12, self.logs))
+
+    def test_a_pr_with_a_live_ticket_is_not_queued_again(self) -> None:
+        first = queue(self.root).take(12, "hart-other")
+        started: list[Any] = []
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            self.assertEqual(0, LAND.detach(self.args(), self.root, self.logs, self.adopting(started)))
+        self.assertEqual([], started)
+        self.assertIn(f"#12 is already in the merge queue as ticket {first.number} (PR #12, hart-other", buf.getvalue())
+        self.assertIn(str(self.logs / "12.log"), buf.getvalue())
+        self.assertEqual([first.path], list(self.root.glob(f"*{Q.SUFFIX}")))
+
+    @mock.patch.dict(os.environ, {"HART_CI_REPO": T.SLUG})
+    def test_a_watched_land_for_a_queued_pr_is_refused_too(self) -> None:
+        queue(self.root).take(12, "hart-other")
+        gh = T.FakeGitHub()
+        lnd = LAND.Lander(gh=gh, queue_dir=self.root, lock_path=self.root.parent / "land.lock")
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(0, lnd.land(12))
+        self.assertIn("already in the merge queue", lnd.out[0])
+        self.assertEqual([], gh.calls)
 
     def test_a_job_that_cannot_start_gives_its_ticket_back(self) -> None:
-        def spawn(cmd: list[str], **kw: Any) -> Job:
+        def spawn(cmd: list[str], **kw: Any) -> Any:
             raise OSError("no python")
 
         with self.assertRaisesRegex(OSError, "no python"):
             LAND.detach(self.args(), self.root, self.logs, spawn)
         self.assertEqual([], list(self.root.glob(f"*{Q.SUFFIX}")))
 
-    def test_main_detaches_unless_watch(self) -> None:
+    def test_main_detaches_unless_watch_and_a_watched_run_writes_its_result(self) -> None:
         with mock.patch.object(LAND, "detach", return_value=0) as detach, \
-                mock.patch.object(LAND.Lander, "land", return_value=4) as land:
+                mock.patch.object(LAND.Lander, "land", return_value=4) as land, \
+                mock.patch.object(LAND, "write_result") as result, contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(0, LAND.main(["12"]))
             detach.assert_called_once()
             land.assert_not_called()
+            result.assert_not_called()
             ticket = str(self.root / "000003.ticket")
             self.assertEqual(4, LAND.main(["12", "--watch", "--ticket", ticket]))
             detach.assert_called_once()
             self.assertEqual(Path(ticket), land.call_args.kwargs["ticket"])
+            self.assertEqual((12, 4), (result.call_args.args[0], result.call_args.args[2]))
             LAND.main(["12", "--watch"])
             self.assertIsNone(land.call_args.kwargs["ticket"])
+
+
+class Waiting(unittest.TestCase):
+    """make land-wait: the job's exit code, once its ticket is gone."""
+
+    def setUp(self) -> None:
+        base = Path(tempfile.mkdtemp(dir=T.LOCKS.name))
+        self.root, self.logs = base / "queue", base / "logs"
+
+    def test_it_waits_for_the_ticket_then_exits_with_the_jobs_code(self) -> None:
+        mine = queue(self.root).take(12, "hart-a")
+        slept: list[float] = []
+
+        def sleep(seconds: float) -> None:      # the job ends: result first, then the ticket goes
+            slept.append(seconds)
+            Q.write_result(12, mine.number, 4, self.logs)
+            mine.path.unlink()
+
+        said: list[str] = []
+        self.assertEqual(4, Q.wait(queue(self.root, sleep=sleep, said=said), 12, self.logs))
+        self.assertEqual(1, len(slept))
+        self.assertIn("ended with exit 4", said[-1])
+
+    def test_a_finished_land_answers_at_once(self) -> None:
+        Q.write_result(12, 3, 0, self.logs)
+        self.assertEqual(0, Q.wait(queue(self.root, sleep=lambda s: self.fail("waited")), 12, self.logs))
+
+    def test_no_job_and_no_result_or_another_tickets_result_is_2(self) -> None:
+        said: list[str] = []
+        self.assertEqual(2, Q.wait(queue(self.root, said=said), 12, self.logs))
+        self.assertIn("no result for a land of #12", said[0])
+        mine = queue(self.root).take(12, "hart-a")
+
+        def sleep(_seconds: float) -> None:
+            Q.write_result(12, mine.number + 5, 0, self.logs)
+            mine.path.unlink()
+
+        self.assertEqual(2, Q.wait(queue(self.root, sleep=sleep), 12, self.logs))
 
 
 if __name__ == "__main__":
