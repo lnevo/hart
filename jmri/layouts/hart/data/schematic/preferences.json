@@ -340,6 +340,11 @@
     "hidden_names": [
      "block:101AB-103AA"
     ],
+    "names_first": [
+     "block:101AA-end",
+     "block:101BB-end",
+     "block:103BB-end"
+    ],
     "optional_block_contents": [
      "block:101AB-103AA",
      "block:105A-109C",
@@ -375,7 +380,7 @@
     ]
    }
   },
-  "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents (OS Switch 235, 2026-11-20) went on 2026-11-21 (row 10 of the source-data hand-off): its icon finds a clean spot again (with the short reserve, room made by moving Track 235 Spur's name and icon), so the entry changed nothing; give it back if the icon is dropped again. Every part's block contents icon is optional (optional_block_contents: the level's parts in devices.csv; owner, 2026-11-20).",
+  "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. names_first: Tracks 101 Spur 1, 101 Spur 2 and 103 Spur keep their names beside their tracks, placed before the block contents icons, which take the next clean spots (owner, 2026-11-27: under names_last the icons took the spots by the tracks and pushed the names away). With them there, Track 101-103's icon has no clean spot and is left out (logged; it is in optional_block_contents); the owner does not need it shown (2026-11-27). optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents (OS Switch 235, 2026-11-20) went on 2026-11-21 (row 10 of the source-data hand-off): its icon finds a clean spot again (with the short reserve, room made by moving Track 235 Spur's name and icon), so the entry changed nothing; give it back if the icon is dropped again. Every part's block contents icon is optional (optional_block_contents: the level's parts in devices.csv; owner, 2026-11-20).",
   "track_labels": {
    "block:39B-helix": "McKees Rocks",
    "block:37B-helix": "McKeesport"

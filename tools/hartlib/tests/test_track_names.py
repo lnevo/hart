@@ -192,14 +192,16 @@ class PrefSection(unittest.TestCase):
                "track_labels": {"block:39B-helix": "McKees Rocks"}, "title": ["Staging level"],
                "le_labels": {"extra_steps": [["block:9B-end"]], "name_steps": [["block:9B-end"]],
                              "optional_block_contents": ["block:1B-3A:1/2"]},
-               "le_band_labels": {"Main": {"hidden_names": ["block:5C-7B"], "numbers_below": ["101"]}}}
+               "le_band_labels": {"Main": {"hidden_names": ["block:5C-7B"], "numbers_below": ["101"],
+                                           "names_first": ["block:9B-end"]}}}
         got = T.pref_section("staging", sec, self.NAMES)
         self.assertEqual(got["min_cells"], [["5", "7", 5, "Scale"], ["7", "13", 4]])
         self.assertEqual(got["turnbacks"], ["Scale"])
         self.assertEqual(got["track_labels"], {"Helix Outer": "McKees Rocks"})
         self.assertEqual(got["le_labels"], {"extra_steps": [["Track EH-2"]], "name_steps": [["EH-2"]],
                                             "optional_block_contents": ["Track 1-3 at 1"]})
-        self.assertEqual(got["le_band_labels"]["Main"], {"hidden_names": ["Scale"], "numbers_below": ["101"]})
+        self.assertEqual(got["le_band_labels"]["Main"], {"hidden_names": ["Scale"], "numbers_below": ["101"],
+                                                         "names_first": ["EH-2"]})
         self.assertEqual(T.pref_ids(sec), set(self.NAMES))
         self.assertEqual(T.pref_problems(sec), [])
         self.assertEqual(sec["turnbacks"], ["block:5C-7B"])          # the section given is not changed
@@ -262,6 +264,35 @@ class PrefSection(unittest.TestCase):
         self.assertIn("track_labels key 'Helix Outer' is 'Helix Outer', not a block ID (block:...; the track's name "
                       "is its row's in devices_field.csv)", got)
         self.assertTrue(any("key 'Track X'" in p for p in got), got)
+
+
+class LabelTrackKeys(unittest.TestCase):
+    """label_track_keys.csv: the label options that list tracks, read and checked."""
+
+    def write(self, text: str) -> Path:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        path = Path(tmp.name) / "label_track_keys.csv"
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def test_the_repo_file_reads_and_holds_names_first(self) -> None:
+        got = T.label_track_keys()
+        self.assertEqual(got["names_first"], (1, T.BARE))
+        self.assertEqual(got["extra_steps"], (2, T.WHOLE))
+
+    def test_rows_read_as_depth_and_form(self) -> None:
+        path = self.write("key,depth,form,notes\nhidden_names,1,bare,x\nname_steps,2,bare,\n")
+        self.assertEqual(T.label_track_keys(path), {"hidden_names": (1, "bare"), "name_steps": (2, "bare")})
+
+    def test_a_bad_file_stops_naming_the_line(self) -> None:
+        cases = [("key,depth,form\nx,1,bare\n", "expected the columns"),
+                 ("key,depth,form,notes\nx,3,bare,\n", "line 2: x: depth must be 1 or 2"),
+                 ("key,depth,form,notes\nx,1,short,\n", "line 2: x: depth must be 1 or 2 and form"),
+                 ("key,depth,form,notes\nx,1,bare,\nx,2,bare,\n", "line 3: key 'x' is empty or given twice")]
+        for text, msg in cases:
+            with self.subTest(msg=msg), self.assertRaisesRegex(T.TrackNameError, msg):
+                T.label_track_keys(self.write(text))
 
 
 class EarlyReturn(unittest.TestCase):

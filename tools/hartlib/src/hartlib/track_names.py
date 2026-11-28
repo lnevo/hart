@@ -44,6 +44,7 @@ pieces are not all named, a `name` edit or a five-item `end` entry left in plan_
 from __future__ import annotations
 
 import csv
+import functools
 import json
 import re
 from collections.abc import Callable, Collection, Iterable, Mapping
@@ -429,10 +430,38 @@ def plugin_section(sheet: str, section: Mapping[str, Any], main_runs: Iterable[s
 
 BLOCK_PREFIX = "block:"
 WHOLE, BARE = "whole", "bare"      # how a plugin key names a track: "Track S-1" (whole) or "S-1" (bare)
-# the label options (le_labels, and each band's in le_band_labels) that list tracks: key -> (depth, form); depth 1 a
-# list of tracks, 2 a list of lists
-LABEL_TRACK_KEYS = {"extra_steps": (2, WHOLE), "extra_follow": (2, WHOLE), "name_columns": (2, BARE),
-                    "name_steps": (2, BARE), "optional_block_contents": (1, WHOLE), "hidden_names": (1, BARE)}
+LABEL_KEYS = SCHEMATIC / "label_track_keys.csv"
+LABEL_KEY_COLUMNS = ["key", "depth", "form", "notes"]
+
+
+@functools.cache
+def label_track_keys(path: Path = LABEL_KEYS) -> dict[str, tuple[int, str]]:
+    """{option: (depth, form)} of label_track_keys.csv: the label options (le_labels, and each band's in
+    le_band_labels) that list tracks, depth 1 a list of tracks and 2 a list of lists, form WHOLE or BARE.
+    TrackNameError naming the file and line on other columns, a key given twice, or a depth or form not one of
+    those."""
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)
+    except OSError as exc:
+        raise TrackNameError(f"cannot read {path.name}: {exc}") from exc
+    if reader.fieldnames != LABEL_KEY_COLUMNS:
+        raise TrackNameError(f"{path.name}: expected the columns {', '.join(LABEL_KEY_COLUMNS)}, "
+                             f"got {reader.fieldnames}")
+    out: dict[str, tuple[int, str]] = {}
+    for n, r in enumerate(rows, 2):
+        if None in r or None in r.values():
+            raise TrackNameError(f"{path.name} line {n}: expected {len(LABEL_KEY_COLUMNS)} cells")
+        key, depth, form = r["key"].strip(), r["depth"].strip(), r["form"].strip()
+        if not key or key in out:
+            raise TrackNameError(f"{path.name} line {n}: key {key!r} is empty or given twice")
+        if depth not in ("1", "2") or form not in (WHOLE, BARE):
+            raise TrackNameError(f"{path.name} line {n}: {key}: depth must be 1 or 2 and form {WHOLE} or {BARE}, "
+                                 f"not {depth!r} and {form!r}")
+        out[key] = (int(depth), form)
+    return out
+
 STOP, KEEP = "stop", "keep"        # names_by_id: what an ID with no name does
 
 
@@ -482,7 +511,7 @@ def names_by_id(ids: Iterable[str], data: Path = SCHEMATIC, where: str = "", lev
 def _map_pref_tracks(section: Mapping[str, Any], fn: TrackFn, shapes: list[str] | None = None) -> dict[str, Any]:
     """A copy of the preferences section `section` with each track it names put through fn(value, form, where):
     min_cells' track names (an entry's items after [from, to, cells]), turnbacks, track_labels' keys, and the
-    LABEL_TRACK_KEYS of le_labels and of each band of le_band_labels. A track key of the wrong shape (a list where a
+    label_track_keys() of le_labels and of each band of le_band_labels. A track key of the wrong shape (a list where a
     list of lists goes, a string where a list goes) is left as it is and named in `shapes` when given. TrackNameError
     on two track_labels keys that come out as one."""
     out: dict[str, Any] = json.loads(json.dumps(section))
@@ -522,7 +551,7 @@ def _map_pref_tracks(section: Mapping[str, Any], fn: TrackFn, shapes: list[str] 
     for where, d in holders:
         if not isinstance(d, dict):
             continue
-        for key, (depth, form) in LABEL_TRACK_KEYS.items():
+        for key, (depth, form) in label_track_keys().items():
             if key not in d:
                 continue
             if depth == 1:

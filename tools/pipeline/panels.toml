@@ -130,6 +130,7 @@ inputs = [
   { path = "jmri/layouts/hart/data/wiring.csv", label = "reads (detectors, turnouts, and staging's wired heads by id)" },
   { path = "jmri/layouts/hart/data/devices_field.csv", label = "owner's cells by id, staging masts' names and wired cells too" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "generated names of stations.csv's track ids and preferences.json's block ids, the last build's (read_places, solve)" },
+  { path = "jmri/layouts/hart/data/schematic/label_track_keys.csv", label = "the label options whose tracks preferences.json names by block id (hartlib.track_names, in the merged view)" },
   { path = "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv", label = "reads (virtual mast ordinals), via hartlib.hand_lists" },
   { path = "jmri/layouts/hart/data/block_lengths.csv", label = "reads staging plan lengths by id (masts)", written_later = ["plan-lengths"] },
 ]
@@ -272,6 +273,7 @@ inputs = [
   { path = "jmri/layouts/hart/data/schematic/plan_generated.json", label = "merged view (layer_files.view)" },
   { path = "jmri/layouts/hart/data/schematic/preferences_generated.json", label = "merged view (layer_files.view)" },
   { path = "jmri/layouts/hart/data/devices_generated.csv", label = "generated names of preferences.json's block ids (merged view)" },
+  { path = "jmri/layouts/hart/data/schematic/label_track_keys.csv", label = "the label options whose tracks preferences.json names by block id (hartlib.track_names, in the merged view)" },
   { path = "ops/hart-ops/data/crew.json", label = "crew master (map_revision rebuilds www/data/crew.json)" },
   { path = "ops/hart-ops/data/industries.csv", label = "spot sheet names (crew_master.build)" },
 ]

@@ -777,6 +777,7 @@ inputs = [
   { path = "jmri/layouts/hart/data/schematic/block_overrides.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/block_numbering.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/main_lines.csv", label = "rules", side = "check" },
+  { path = "jmri/layouts/hart/data/schematic/label_track_keys.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/panel_lamps.csv", label = "rules", side = "check" },
   { path = "jmri/layouts/hart/data/schematic/masts.csv", label = "refs", side = "check" },

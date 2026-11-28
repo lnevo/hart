@@ -1,0 +1,8 @@
+key,depth,form,notes
+extra_steps,2,whole,Staging's caller items that step along one slope (le_labels)
+extra_follow,2,whole,Pairs of caller items where the second follows the first (le_labels)
+name_columns,2,bare,Groups of track names on one centre x (le_labels)
+name_steps,2,bare,Groups of track names that step with their tracks' west ends (le_labels)
+optional_block_contents,1,whole,Blocks whose contents icon may be left out (le_labels and le_band_labels)
+hidden_names,1,bare,Track names the Layout Editor panel leaves off (a band's)
+names_first,1,bare,"Track names placed beside their tracks before the block contents icons, under names_last (a band's)"
