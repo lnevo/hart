@@ -38,9 +38,11 @@ baselines:  ## The queue holder's wave-end sweep PR: lower the mypy, habits and 
 pr-kind:  ## Does this branch need make remote? Prints docs, light (make static and the light checks, no make remote) or full, with the reason
 	@python3 tools/ci/changed_kind.py --git
 
-ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path]; commit, checks, push, make remote unless light, PR (never merges)
-	@python3 tools/agent/ready.py --files '$(subst ','"'"',$(FILES))' --msg '$(subst ','"'"',$(MSG))' --title '$(subst ','"'"',$(TITLE))' \
-	  --body '$(subst ','"'"',$(BODY))' --body-file '$(subst ','"'"',$(BODY_FILE))'
+# $(value V): make does not expand $(shell ...) or other references inside the values; the guard refuses them too.
+ready:  ## Ship a lane's work from its worktree: make ready FILES="a b" MSG="..." [TITLE=...] [BODY=... | BODY_FILE=path] [BRANCH=agent/claude/<topic>]; commit, checks, push, make remote unless light, PR (never merges)
+	@python3 tools/agent/ready.py --files '$(subst ','"'"',$(value FILES))' --msg '$(subst ','"'"',$(value MSG))' --title '$(subst ','"'"',$(value TITLE))' \
+	  --body '$(subst ','"'"',$(value BODY))' --body-file '$(subst ','"'"',$(value BODY_FILE))' \
+	  --branch '$(subst ','"'"',$(value BRANCH))'
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
 	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }

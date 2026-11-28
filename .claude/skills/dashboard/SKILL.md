@@ -10,7 +10,7 @@ The owner follows a wave on one page, not in the chat. The coordinator keeps tha
 ## Who writes it
 
 - **The coordinator owns every row and checks it.** A lane or a session in another window may have no dashboard access, may stop or may forget, and its row then goes stale while the owner reads it. When a message changes a lane or PR, update that row in the same turn.
-- A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends JSON lines `{"doc": "<id>", "data": {...}}` to `.claude/progress/<topic>.dash.jsonl`, and the coordinator writes each line through `dash_rows.py` at the next `SYNC`.
+- A steward or background coordinator may write rows too, and the coordinator checks them against GitHub (see When to update). A writer without `ArtifactData` appends `dash_rows.py` op lines (`row 3-L7 status=ci stage=remote`, `event "Merged #1371"`; no `updated` or `at`, which the helper stamps) to `.claude/progress/<topic>.dash.jsonl`, one op per line, and the coordinator runs each line through `dash_rows.py` at the next `SYNC` (a `row` with `--if-version` from the row's last read).
 - Results that change the page (a deploy, a merge, a failed check) come to the coordinator directly. A steward that reports to a background coordinator sends the coordinator a copy.
 
 ## Set up (once per wave)
@@ -61,7 +61,7 @@ Add one events doc {at, text} for each of these:
 - a blocker;
 - the end of the wave.
 
-Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a letter to an id made twice in one run (`e3-2330b`). For a second event in a minute already written by an earlier run, put both in one run.
+Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a letter to an id already made in this run or written by an earlier run into the same OUT_DIR (`e3-2330b`), so keep one OUT_DIR per wave.
 
 ## When to update
 

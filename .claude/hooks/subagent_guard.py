@@ -52,8 +52,11 @@ GH_WRITING = {"merge", "create", "close", "edit", "comment", "delete", "review",
 # make ready (tools/agent/ready.py): the one way a subagent commits, pushes and opens a PR. The guard sees only this
 # command line; the git and gh calls the script makes are child processes it never sees, so ready.py holds their rules.
 READY_SCRIPT = "tools/agent/ready.py"
-READY_VARS = {"FILES", "MSG", "TITLE", "BODY", "BODY_FILE"}
-READY_OPTIONS = {"--files", "--msg", "--title", "--body", "--body-file", "-h", "--help"}
+READY_VARS = {"FILES", "MSG", "TITLE", "BODY", "BODY_FILE", "BRANCH"}
+# make expands $(...) and ${...} (a $(shell ...) among them) in a command-line value before ready.py starts, where
+# this hook never sees it; the Makefile reads the values with $(value V), and a value holding one is refused here too.
+MAKE_EXPANSION = re.compile(r"\$[({]|`|\n")
+READY_OPTIONS = {"--files", "--msg", "--title", "--body", "--body-file", "--branch", "-h", "--help"}
 GIT_VALUE_OPTIONS = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--config-env"}
 SHELLS = shell_parse.SHELLS
 INTERPRETER = re.compile(r"(ba|z|da|k)?sh|fish|python[\d.]*|node|perl|ruby")
@@ -106,7 +109,8 @@ def ready_call(program: str, args: list[str]) -> bool | None:
     command."""
     if program == "make" and "ready" in args:
         rest = [a for a in args if a != "ready"]
-        return args.count("ready") == 1 and all(a.split("=", 1)[0] in READY_VARS and "=" in a for a in rest)
+        return args.count("ready") == 1 and all(a.split("=", 1)[0] in READY_VARS and "=" in a
+                                                and not MAKE_EXPANSION.search(a.split("=", 1)[1]) for a in rest)
     if INTERPRETER.fullmatch(program) and program not in SHELLS and args[:1] and \
             os.path.normpath(args[0]) == READY_SCRIPT:
         return all(a.split("=", 1)[0] in READY_OPTIONS for a in args[1:] if a.startswith("-"))

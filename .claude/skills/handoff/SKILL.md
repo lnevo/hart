@@ -26,7 +26,8 @@ Setup: before any lane runs `make ready`, the coordinator writes the attribution
 
 ```
 Repo: <path>. Read AGENTS.md first and follow it.
-Worktree: create branch agent/claude/<topic> from origin/main (or make wt TOPIC=<topic>).
+Worktree: your isolation worktree; its worktree-agent-* branch becomes
+  agent/claude/<topic> when make ready gets BRANCH=agent/claude/<topic>.
 Claim: <page in wiki/projects/, or none>. First, in your worktree:
   python3 tools/ops/orient.py claim <page>; in your last commit, orient.py unclaim <page>.
 Goal: <one or two sentences>. Already ruled out: <...>.
@@ -36,10 +37,10 @@ Code only: read .claude/skills/handoff/brief-reference.md (the five quality rule
   diff against it before reporting.
 Gates and close: finish with, in your worktree,
   make ready FILES="<files, by name>" MSG="<conventional message>" TITLE="<PR title>"
-    BODY_FILE=<PR body file>
+    BODY_FILE=<PR body file, .md or .txt> BRANCH=agent/claude/<topic>
   It commits, merges origin/main only when needed, regenerates, runs the "No failed
   PRs" gates (.claude/skills/coordinate/merging.md), pushes, runs make remote unless
-  docs or light, and opens the PR. If it stops, fix what it names and run it again.
+  docs or light, and opens the PR. If it stops, fix what it names and run the same command again.
   Never a local full ./tools/check.sh. Do NOT merge.
 Review fixes: collect them all and ship them in ONE make ready run; every push
   restarts the ~7-minute GitHub check.

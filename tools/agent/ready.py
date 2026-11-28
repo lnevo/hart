@@ -2,13 +2,18 @@
 """Ship a lane's work from its worktree: commit, merge main when the rule says so, check, push, remote run, PR.
 
     make ready FILES="a.py b.md" MSG="fix(x): what changed" [TITLE="..."] [BODY="..." | BODY_FILE=path]
+               [BRANCH=agent/claude/<topic>]
 
 Run at the top of an agent worktree (under the main checkout's .claude/worktrees/) on an `agent/claude/*` branch.
 Each step stops the run with a message when it fails:
 
 1. Refuse the main checkout, a worktree elsewhere, a subfolder, `main` and any branch not named `agent/claude/*`.
+   BRANCH= renames an isolation worktree's `worktree-agent-*` branch to that name first (a subagent cannot rename
+   it itself). With no PR open yet, the PR title and body are checked here, before the long steps; BODY_FILE is a
+   .md or .txt file inside the worktree or the temp folders, never a private file.
 2. Stage the named FILES (never `git add -A`; no directories, no .env.local, credentials or tools/cats/src-repo/)
-   and commit them with MSG and the attribution lines.
+   and commit them with MSG and the attribution lines. A named file with no change that the branch already commits
+   (a rerun after a later step failed) is skipped, so the same command runs again after a fix.
 3. `git fetch origin`, then merge `origin/main` only when main changed a file the branch touches since the merge
    base (the Merge rule in the handoff skill). The merge is local, so the merge drivers in .gitattributes run. A
    conflict aborts the merge and stops.
@@ -43,9 +48,12 @@ import tempfile
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from typing import NamedTuple
 from pathlib import Path
 
 BRANCH = re.compile(r"agent/claude/[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*")
+ISOLATION_BRANCH = re.compile(r"worktree-agent-[A-Za-z0-9]+")    # the branch Claude Code gives an isolation worktree
+BODY_SUFFIXES = (".md", ".txt")
 LOG_DIR = Path("/tmp/hart-ready")
 ATTRIBUTION_ENV = "HART_READY_ATTRIBUTION"
 ATTRIBUTION_FILE = ".claude/ready-attribution.json"
@@ -94,6 +102,7 @@ class Request:
     msg: str
     title: str = ""
     body: str = ""
+    branch: str = ""        # BRANCH=agent/claude/<topic>: renames an isolation worktree's worktree-agent-* branch
 
 
 @dataclass(frozen=True)
@@ -108,6 +117,13 @@ class Shipped:
     url: str
     head: str
     log: Path | None
+
+
+class PrView(NamedTuple):
+    """The open-or-not PR for the branch, from gh pr view."""
+    number: int
+    url: str
+    state: str
 
 
 GhRun = Callable[[Path, Sequence[str]], "subprocess.CompletedProcess[str]"]
@@ -175,8 +191,9 @@ def main_checkout(repo: Path) -> Path:
     return Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")).parent
 
 
-def check_place(repo: Path) -> str:
-    """The branch name, once `repo` is the top of an agent worktree on an agent/claude/* branch."""
+def check_place(repo: Path, rename_to: str = "") -> str:
+    """The branch name, once `repo` is the top of an agent worktree on an agent/claude/* branch. An isolation
+    worktree's worktree-agent-* branch is renamed to `rename_to` (BRANCH=) first, when given."""
     git_dir = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-dir"))
     common = Path(git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir"))
     if git_dir == common:
@@ -186,15 +203,38 @@ def check_place(repo: Path) -> str:
         raise ReadyError(f"run make ready at the top of the worktree ({top}), not in a subfolder")
     if top.parent != (common.parent / WORKTREES).resolve():
         raise ReadyError(f"{top} is not an agent worktree under {common.parent / WORKTREES}")
-    return check_branch(git(repo, "branch", "--show-current"))
+    current = git(repo, "branch", "--show-current")
+    if rename_to and rename_to != current:
+        if not ISOLATION_BRANCH.fullmatch(current):
+            raise ReadyError(f"BRANCH= renames only an isolation worktree's worktree-agent-* branch, not {current}")
+        check_branch(rename_to)
+        if lines(git(repo, "branch", "--list", rename_to)) or lines(git(repo, "ls-remote", "--heads", "origin",
+                                                                          rename_to)):
+            raise ReadyError(f"branch {rename_to} already exists here or on origin; pick another BRANCH=")
+        git(repo, "branch", "-m", rename_to)
+        current = rename_to
+    return check_branch(current)
 
 
 def check_branch(branch: str) -> str:
     if branch == "main":
         raise ReadyError("the branch is main; make ready ships agent/claude/* branches only")
     if not BRANCH.fullmatch(branch):
-        raise ReadyError(f"branch {branch or '(detached)'} is not agent/claude/*")
+        hint = ("; pass BRANCH=agent/claude/<topic> to rename it" if ISOLATION_BRANCH.fullmatch(branch) else "")
+        raise ReadyError(f"branch {branch or '(detached)'} is not agent/claude/*{hint}")
     return branch
+
+
+NO_CHANGE = "no change to stage"
+
+
+def branch_files(repo: Path) -> set[str]:
+    """The files the branch's own commits change since its merge base with origin/main ({} when there is none)."""
+    try:
+        base = git(repo, "merge-base", "HEAD", "origin/main")
+    except ReadyError:
+        return set()
+    return set(lines(git(repo, "diff", "--name-only", base, "HEAD")))
 
 
 def file_problem(repo: Path, path: str) -> str:
@@ -208,8 +248,24 @@ def file_problem(repo: Path, path: str) -> str:
     if (repo / norm).is_dir():
         return "a directory; name its files"
     if not lines(git(repo, "status", "--porcelain", "--", norm)):
-        return "no change to stage"
+        return NO_CHANGE
     return ""
+
+
+def read_body_file(repo: Path, path: str) -> str:
+    """The PR body from BODY_FILE: a .md or .txt file inside the worktree or the temp folders, never a private
+    file, since the body is published on a public PR."""
+    resolved = Path(path).expanduser().resolve()
+    roots = [repo.resolve(), *{Path(t).resolve() for t in (tempfile.gettempdir(), "/tmp", "/private/tmp")}]
+    if not any(resolved.is_relative_to(r) for r in roots):
+        raise ReadyError(f"BODY_FILE {path}: outside the worktree and the temp folders")
+    name = resolved.name
+    if resolved.suffix not in BODY_SUFFIXES or name in FORBIDDEN_NAMES or name.startswith(".env"):
+        raise ReadyError(f"BODY_FILE {path}: the PR body is a {' or '.join(BODY_SUFFIXES)} file, never a private one")
+    try:
+        return resolved.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ReadyError(f"BODY_FILE {path}: cannot read: {exc}") from exc
 
 
 def private_name_check(repo: Path) -> Callable[[str], bool]:
@@ -258,10 +314,13 @@ def stage_and_commit(repo: Path, req: Request, attribution: Attribution) -> None
     extra = sorted(set(lines(git(repo, "diff", "--cached", "--name-only"))) - named)
     if extra:
         raise ReadyError(f"already staged but not in FILES: {' '.join(extra)}; name them or unstage them")
-    problems = [f"{p}: {why}" for p in req.files if (why := file_problem(repo, p))]
+    problems = {p: why for p in req.files if (why := file_problem(repo, p))}
+    committed = branch_files(repo)      # a rerun after a later step failed: the files went in on the first run
+    problems = {p: why for p, why in problems.items() if not (why == NO_CHANGE and os.path.normpath(p) in committed)}
     if problems:
-        raise ReadyError("FILES:\n  " + "\n  ".join(problems))
-    if not req.files:
+        raise ReadyError("FILES:\n  " + "\n  ".join(f"{p}: {why}" for p, why in problems.items()))
+    named = {n for n in named if lines(git(repo, "status", "--porcelain", "--", n))}
+    if not named:
         return
     if not req.msg.strip():
         raise ReadyError('MSG="..." is needed to commit FILES')
@@ -320,20 +379,19 @@ def remote_run(repo: Path, tools: Tools, branch: str, head: str) -> Path:
     return log
 
 
-def pr_view(repo: Path, tools: Tools, branch: str) -> dict[str, object] | None:
+def pr_view(repo: Path, tools: Tools, branch: str) -> PrView | None:
     view = tools.gh(repo, ["pr", "view", branch, "--json", "number,url,state"])
     if view.returncode != 0:
         return None
-    found: dict[str, object] = json.loads(view.stdout)
-    return found
+    try:
+        data = json.loads(view.stdout)
+        return PrView(int(data["number"]), str(data["url"]), str(data["state"]))
+    except (ValueError, KeyError, TypeError) as exc:
+        raise ReadyError(f"gh pr view gave no number, url and state: {view.stdout.strip()}") from exc
 
 
-def open_pr(repo: Path, tools: Tools, req: Request, branch: str, kind: str, attribution: Attribution,
-            name_check: Callable[[str], bool]) -> tuple[int, str]:
-    found = pr_view(repo, tools, branch)
-    if found and found.get("state") == "OPEN":
-        tools.say(f"PR #{found['number']} is already open: {found['url']}")
-        return int(str(found["number"])), str(found["url"])
+def pr_text(req: Request, kind: str, attribution: Attribution) -> tuple[str, str]:
+    """The PR title and body as gh pr create gets them; ReadyError when either is missing."""
     title = req.title.strip() or next(iter(req.msg.strip().splitlines()), "")
     if not title:
         raise ReadyError('TITLE="..." (or MSG) is needed to open the PR')
@@ -342,7 +400,16 @@ def open_pr(repo: Path, tools: Tools, req: Request, branch: str, kind: str, attr
     body = req.body.rstrip() + "\n"
     if kind.startswith("light"):
         body += "\n`make pr-kind` printed `light`.\n"
-    body += "\n" + "\n".join(attribution.pr) + "\n"
+    return title, body + "\n" + "\n".join(attribution.pr) + "\n"
+
+
+def open_pr(repo: Path, tools: Tools, req: Request, branch: str, kind: str, attribution: Attribution,
+            name_check: Callable[[str], bool]) -> tuple[int, str]:
+    found = pr_view(repo, tools, branch)
+    if found and found.state == "OPEN":
+        tools.say(f"PR #{found.number} is already open: {found.url}")
+        return found.number, found.url
+    title, body = pr_text(req, kind, attribution)
     if name_check(title) or name_check(body):
         raise ReadyError("the PR title or body holds the private name")
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
@@ -357,17 +424,22 @@ def open_pr(repo: Path, tools: Tools, req: Request, branch: str, kind: str, attr
     found = pr_view(repo, tools, branch)
     if not found:
         raise ReadyError("the PR was created but gh pr view cannot find it")
-    return int(str(found["number"])), str(found["url"])
+    return found.number, found.url
 
 
 def ready(repo: Path, req: Request, tools: Tools | None = None) -> Shipped:
     tools = tools or Tools()
     say = tools.say
-    branch = check_place(repo)
+    branch = check_place(repo, req.branch)
     name_check = private_name_check(repo)
     if name_check(req.msg) or name_check(req.title):
         raise ReadyError("MSG or TITLE holds the private name")
     attribution = read_attribution(repo)
+    found = pr_view(repo, tools, branch)
+    if not (found and found.state == "OPEN"):     # the PR is opened at the end: check its text before the long steps
+        title, body = pr_text(req, "", attribution)
+        if name_check(title) or name_check(body):
+            raise ReadyError("the PR title or body holds the private name")
     stage_and_commit(repo, req, attribution)
     merge_main_if_needed(repo, say)
     base = git(repo, "merge-base", "HEAD", "origin/main")
@@ -401,11 +473,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--msg", default="", help="the commit message")
     parser.add_argument("--title", default="", help="the PR title (default: the first line of --msg)")
     parser.add_argument("--body", default="", help="the PR body")
-    parser.add_argument("--body-file", default="", help="a file holding the PR body")
+    parser.add_argument("--body-file", default="", help="a .md or .txt file holding the PR body")
+    parser.add_argument("--branch", default="", help="agent/claude/<topic>: rename an isolation worktree's branch")
     args = parser.parse_args(argv)
     try:
-        body = Path(args.body_file).read_text(encoding="utf-8") if args.body_file else args.body
-        shipped = ready(Path.cwd(), Request(tuple(args.files.split()), args.msg, args.title, body))
+        body = read_body_file(Path.cwd(), args.body_file) if args.body_file else args.body
+        shipped = ready(Path.cwd(), Request(tuple(args.files.split()), args.msg, args.title, body, args.branch))
     except (OSError, ReadyError) as exc:
         print(f"make ready: {exc}", file=sys.stderr)
         return 1

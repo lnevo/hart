@@ -179,6 +179,22 @@ class SubagentGuard(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
 
+    def test_make_ready_values_that_make_would_expand_are_blocked(self) -> None:
+        for command in ("make ready FILES=x MSG='$(shell git push --force origin HEAD:main)'",
+                        'make ready FILES=x MSG="$(shell ssh pi true)"', "make ready FILES=x TITLE='${HOME}'",
+                        "make ready FILES=x MSG='a' BODY='`id`'"):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 2)
+        for command in ("make ready FILES=x MSG='fix: costs $5' BRANCH=agent/claude/topic",):
+            with self.subTest(command=command):
+                self.assertEqual(run(SUBAGENT_GUARD, command, str(ROOT)).returncode, 0)
+
+    def test_the_makefile_does_not_expand_ready_values(self) -> None:
+        out = subprocess.run(["make", "-n", "ready", "FILES=x", "MSG=$(shell echo EXPANDED >&2)"], cwd=ROOT,
+                             capture_output=True, text=True, timeout=60)
+        self.assertNotIn("EXPANDED", out.stderr)
+        self.assertIn("--msg '$(shell echo EXPANDED >&2)'", out.stdout)
+
     def test_deploys_are_blocked_through_make(self) -> None:
         self.assertEqual(run(SUBAGENT_GUARD, "make deploy-site", str(ROOT)).returncode, 2)
         self.assertEqual(run(SUBAGENT_GUARD, "make check", str(ROOT)).returncode, 0)

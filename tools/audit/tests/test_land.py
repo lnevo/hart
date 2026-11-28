@@ -235,13 +235,28 @@ class After(unittest.TestCase):
               {"number": 21, "headRefName": "agent/z", "files": [{"path": "wiki/home.md"}]},
               {"number": 12, "headRefName": "agent/x", "files": [{"path": "www/index.html"}]}]
 
-    def test_overlap_from_gh_skips_driver_paths_and_the_merged_pr(self) -> None:
+    def test_overlap_without_orient_overlap_is_one_line(self) -> None:
         code, out = land(FakeGitHub(open_prs=list(self.OTHERS)), watch_main=False)
         self.assertEqual(code, 0, out)
-        self.assertIn("overlap (from gh pr list (tools/ops/orient_overlap.py not found)):", out)
-        self.assertIn("PR #20 must merge origin/main locally: shares www/index.html\n", out)
-        self.assertNotIn("PR #21", out)
-        self.assertNotIn("PR #12 must", out)
+        self.assertIn("overlap not read (tools/ops/orient_overlap.py not found): check the open PRs by hand", out)
+
+    def test_the_real_orient_overlap_skips_driver_paths(self) -> None:
+        module = LAND.load_tool(ROOT / "tools/ops/orient_overlap.py", "orient_overlap")
+        self.assertIsNotNone(module)
+        self.assertEqual(module.drivers(ROOT, ["tools/audit/py_sizes.csv", "www/index.html"]),
+                         {"tools/audit/py_sizes.csv"})
+
+    def test_a_failure_after_the_merge_is_a_line_not_exit_1(self) -> None:
+        def broken(*args: object, **kwargs: object) -> object:
+            raise RuntimeError("worktree list failed")
+
+        module = ModuleType("orient_overlap")
+        module.overlaps_for = broken  # type: ignore[attr-defined]
+        module.parse_prs = lambda raw: raw  # type: ignore[attr-defined]
+        code, out = land(FakeGitHub(open_prs=list(self.OTHERS)), watch_main=False, overlap_module=module)
+        self.assertEqual(code, LAND.UNWATCHED_EXIT, out)
+        self.assertIn("overlap not read after the merge (RuntimeError: worktree list failed)", out)
+        self.assertIn("ships: ", out)
 
     def test_overlap_from_orient_overlap(self) -> None:
         seen: dict[str, object] = {}
@@ -263,8 +278,11 @@ class After(unittest.TestCase):
         self.assertEqual(seen["prs"], [20, 21])
 
     def test_no_overlap(self) -> None:
-        _, out = land(FakeGitHub(), watch_main=False)
-        self.assertIn("none", out.split("overlap (")[1].splitlines()[0])
+        module = ModuleType("orient_overlap")
+        module.overlaps_for = lambda *a, **k: []  # type: ignore[attr-defined]
+        module.parse_prs = lambda raw: raw  # type: ignore[attr-defined]
+        _, out = land(FakeGitHub(), watch_main=False, overlap_module=module)
+        self.assertIn("overlap (from tools/ops/orient_overlap.py): none", out)
 
     def test_ships_line(self) -> None:
         lnd, _ = lander(FakeGitHub())

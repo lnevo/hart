@@ -82,14 +82,16 @@ def check_hhmm(text: str, what: str) -> str:
 
 
 class Builder:
-    """Turns ops into writes for one wave; ids made twice in one run get a letter suffix."""
+    """Turns ops into writes for one wave. An event id already made in this run, or already written by an earlier
+    run into the same OUT_DIR (`taken`), gets a letter suffix, so an earlier event is never replaced."""
 
-    def __init__(self, wave: str, now: str, versions: dict[str, int]) -> None:
+    def __init__(self, wave: str, now: str, versions: dict[str, int],
+                 taken: set[tuple[str, str]] | None = None) -> None:
         self.wave = wave
         self.now = now
         self.versions = versions
         self.writes: list[Write] = []
-        self._ids: set[tuple[str, str]] = set()
+        self._ids: set[tuple[str, str]] = set(taken or ())
 
     def collection(self, name: str) -> str:
         return f"data/{self.wave}/{name}"
@@ -196,6 +198,12 @@ def emit(writes: list[Write], out_dir: Path) -> list[dict[str, object]]:
     return entries
 
 
+def written_ids(out_dir: Path, wave: str) -> set[tuple[str, str]]:
+    """The (collection, id) of every event document an earlier run wrote into OUT_DIR."""
+    folder = out_dir / "events"
+    return {(f"data/{wave}/events", p.stem) for p in folder.glob("*.json")} if folder.is_dir() else set()
+
+
 def parse_versions(items: list[str]) -> dict[str, int]:
     versions: dict[str, int] = {}
     for item in items:
@@ -219,7 +227,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv[:first_op])
     try:
         now = check_hhmm(args.now, "--now") if args.now else datetime.now().strftime("%H:%M")
-        builder = Builder(args.wave, now, parse_versions(args.if_version))
+        builder = Builder(args.wave, now, parse_versions(args.if_version), written_ids(args.out_dir, args.wave))
         build(builder, split_ops(argv[first_op:]))
     except DashError as exc:
         print(f"dash_rows: {exc}", file=sys.stderr)

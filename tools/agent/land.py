@@ -18,8 +18,8 @@ the rules):
 5. Main's push run of check.yml for the merge commit, found by its full 40-character SHA and waited for the same way,
    is watched to the end. On red the Main red rule is printed and the exit is MAIN_RED_EXIT.
 6. Every other open PR that changes a file the merged PR changed, merge-driver paths left out, gets a line saying it
-   must merge origin/main locally. tools/ops/orient_overlap.py's overlaps_for gives the overlap when it exists;
-   otherwise the PR list from gh is compared here. The output says which one ran.
+   must merge origin/main locally, from tools/ops/orient_overlap.py's overlaps_for (the one overlap rule). Steps 6
+   to 8 run after the merge, so a failure in one is a line, never a traceback or exit 1; the exit is then 5 unless main's run was red (4).
 7. What the PR ships: the layout hosts (tools/hosts/live_paths.txt), the site (www/) or nothing. Nothing is deployed.
 8. With --wave and --dash-out, and tools/agent/dash_rows.py present, the merge event is written for the dashboard
    and dash_rows.py's writes JSON is printed.
@@ -38,7 +38,7 @@ import re
 import subprocess
 import sys
 import time
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from types import ModuleType
@@ -54,6 +54,7 @@ RUN_WAIT = 3600             # seconds to wait for a registered run to finish
 MERGED_WAIT = 120           # seconds to wait for GitHub to report the merge commit
 MAIN_RED_EXIT = 4
 UNWATCHED_EXIT = 5
+OVERLAP_TOOL = "tools/ops/orient_overlap.py"
 SHA = re.compile(r"[0-9a-f]{40}")
 PR_LABEL = re.compile(r"PR #(\d+)")
 MAIN_RED_RULE = ("Main red: give no go and deploy nothing until main is green again. The PR that broke it fixes "
@@ -319,48 +320,29 @@ class Lander:
                                     "number,headRefName,files"], "the open PRs"), "the open PRs")
         return [p for p in raw if p.get("number") != merged]
 
-    def driver_paths(self, paths: Iterable[str]) -> set[str]:
-        """The paths .gitattributes gives a merge driver (union, pipeline-map, ...)."""
-        wanted = sorted(set(paths))
-        if not wanted:
-            return set()
-        done = subprocess.run(["git", "-C", str(self.root), "check-attr", "-z", "--stdin", "merge"],
-                              input="\0".join(wanted) + "\0", capture_output=True, text=True, timeout=GH_TIMEOUT)
-        if done.returncode != 0:
-            raise LandError(f"git check-attr failed: {done.stderr.strip()}")
-        out = done.stdout.split("\0")
-        return {out[i] for i in range(0, len(out) - 2, 3) if out[i + 2] not in ("unspecified", "unset", "set")}
-
-    def overlaps(self, files: Sequence[str], prs: list[dict[str, object]],
-                 module: ModuleType | None) -> dict[int, list[str]]:
-        """Open PR number -> the merged PR's files it also changes, merge-driver paths left out."""
+    def overlaps(self, files: Sequence[str], prs: list[dict[str, object]], module: ModuleType) -> dict[int, list[str]]:
+        """Open PR number -> the merged PR's files it also changes, merge-driver paths left out
+        (tools/ops/orient_overlap.py's overlaps_for, the one overlap rule)."""
         shared: dict[int, list[str]] = {}
-        if module is not None and hasattr(module, "overlaps_for"):
-            for item in module.overlaps_for(files, self.root, root=self.root, prs=module.parse_prs(prs)):
-                if item.auto_merge:
-                    continue
-                for label in item.places:
-                    m = PR_LABEL.search(label)
-                    if m:
-                        shared.setdefault(int(m.group(1)), []).append(item.path)
-            return shared
-        mine = set(files) - self.driver_paths(files)
-        for p in prs:
-            theirs = {str(f.get("path")) for f in as_list(p.get("files") or [], "a PR's files")}
-            both = sorted(mine & theirs)
-            if both and isinstance(p.get("number"), int):
-                shared[int(str(p["number"]))] = both
+        for item in module.overlaps_for(files, self.root, root=self.root, prs=module.parse_prs(prs)):
+            if item.auto_merge:
+                continue
+            for label in item.places:
+                m = PR_LABEL.search(label)
+                if m:
+                    shared.setdefault(int(m.group(1)), []).append(item.path)
         return shared
 
     def report_overlap(self, pr: PullRequest, module: ModuleType | None) -> None:
-        source = ("tools/ops/orient_overlap.py" if module is not None and hasattr(module, "overlaps_for")
-                  else "gh pr list (tools/ops/orient_overlap.py not found)")
+        if module is None or not hasattr(module, "overlaps_for"):
+            self.say(f"overlap not read ({OVERLAP_TOOL} not found): check the open PRs by hand")
+            return
         try:
             shared = self.overlaps(pr.files, self.open_prs(pr.number), module)
         except LandError as e:
             self.say(f"overlap not read ({e}): check the open PRs by hand")
             return
-        self.say(f"overlap (from {source}):" + ("" if shared else " none"))
+        self.say(f"overlap (from {OVERLAP_TOOL}):" + ("" if shared else " none"))
         for number in sorted(shared):
             self.say(f"PR #{number} must merge origin/main locally: shares {', '.join(sorted(set(shared[number])))}")
 
@@ -411,9 +393,18 @@ class Lander:
             return UNWATCHED_EXIT
         self.say(f"Merged #{number}: {sha}")
         code = self.watch_main(sha) if watch_main else 0
-        self.report_overlap(pr, overlap_module)
-        self.say(self.ships(pr.files))
-        self.dashboard(number, sha, wave, dash_out)
+        # The PR has merged: a failure from here on is one line, never a traceback, and never exit 1 ("nothing merged").
+        steps: tuple[tuple[str, Callable[[], None]], ...] = (
+            ("overlap", lambda: self.report_overlap(pr, overlap_module)),
+            ("ships", lambda: self.say(self.ships(pr.files))),
+            ("dashboard", lambda: self.dashboard(number, sha, wave, dash_out)),
+        )
+        for name, step in steps:
+            try:
+                step()
+            except Exception as e:  # after the merge every step is a report; the merge stands
+                self.say(f"{name} not read after the merge ({type(e).__name__}: {e}); check it by hand")
+                code = code or UNWATCHED_EXIT
         return code
 
 

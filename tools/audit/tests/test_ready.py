@@ -169,6 +169,75 @@ class Ships(ReadyCase):
         self.assertEqual("", sh("git", "ls-remote", "origin", "agent/claude/topic", cwd=self.wt))
 
 
+class Reruns(ReadyCase):
+    def test_the_same_command_runs_again_after_a_later_step_failed(self) -> None:
+        self.change()
+        with self.assertRaisesRegex(R.ReadyError, "broken failed"):
+            self.ship(checks=(R.Step("broken", ("false",)),))
+        first = sh("git", "rev-parse", "HEAD", cwd=self.wt)
+        shipped = self.ship()
+        self.assertEqual(7, shipped.pr)
+        self.assertIn(first, sh("git", "log", "--format=%H", cwd=self.wt).split())
+        self.assertEqual(1, sh("git", "log", "--format=%s", "origin/main..HEAD", cwd=self.wt).count("fix: a"))
+
+    def test_a_named_file_with_no_change_on_the_branch_still_fails(self) -> None:
+        self.change()
+        with self.assertRaisesRegex(R.ReadyError, "b.txt: no change"):
+            self.ship(("a.txt", "b.txt"))
+
+
+class PrText(ReadyCase):
+    def test_a_missing_body_stops_before_any_commit_or_push(self) -> None:
+        self.change()
+        with self.assertRaisesRegex(R.ReadyError, "BODY"):
+            self.ship(body="")
+        self.assertEqual([], self.remote_calls)
+        self.assertEqual("", sh("git", "log", "--format=%H", "origin/main..HEAD", cwd=self.wt))
+
+    def test_a_missing_body_is_fine_when_the_pr_is_open(self) -> None:
+        self.gh.made = True
+        self.change()
+        self.assertEqual(7, self.ship(body="").pr)
+
+    def test_the_body_file_rule(self) -> None:
+        inside = self.wt / "body.md"
+        inside.write_text("What changed.\n")
+        self.assertEqual("What changed.\n", R.read_body_file(self.wt, str(inside)))
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, True)
+        (tmp / "body.txt").write_text("ok\n")
+        self.assertEqual("ok\n", R.read_body_file(self.wt, str(tmp / "body.txt")))
+        for path, why in ((self.wt / ".env.local", "never a private"), (self.wt / "key", "never a private"),
+                          (Path.home() / ".ssh/id_rsa", "outside"), (self.wt / "missing.md", "cannot read")):
+            with self.subTest(path=path):
+                if path.parent == self.wt and path.name != "missing.md":
+                    path.write_text("SECRET=1\n")
+                with self.assertRaisesRegex(R.ReadyError, why):
+                    R.read_body_file(self.wt, str(path))
+
+
+class Branches(ReadyCase):
+    def test_branch_renames_an_isolation_worktree_branch(self) -> None:
+        sh("git", "branch", "-m", "worktree-agent-abc123", cwd=self.wt)
+        self.change()
+        with self.assertRaisesRegex(R.ReadyError, "BRANCH=agent/claude/<topic>"):
+            self.ship()
+        shipped = R.ready(self.wt, R.Request(("a.txt",), "fix: a", "", "Body.", "agent/claude/renamed"), self.tools())
+        self.assertEqual(7, shipped.pr)
+        self.assertEqual("agent/claude/renamed", sh("git", "branch", "--show-current", cwd=self.wt))
+
+    def test_branch_never_renames_another_branch_or_onto_one_that_exists(self) -> None:
+        self.change()
+        with self.assertRaisesRegex(R.ReadyError, "only an isolation worktree"):
+            R.ready(self.wt, R.Request(("a.txt",), "m", "", "B.", "agent/claude/x"), self.tools())
+        sh("git", "branch", "-m", "worktree-agent-abc123", cwd=self.wt)
+        sh("git", "branch", "agent/claude/taken", "origin/main", cwd=self.main)
+        with self.assertRaisesRegex(R.ReadyError, "already exists"):
+            R.ready(self.wt, R.Request(("a.txt",), "m", "", "B.", "agent/claude/taken"), self.tools())
+        with self.assertRaisesRegex(R.ReadyError, "not agent/claude"):
+            R.ready(self.wt, R.Request(("a.txt",), "m", "", "B.", "feature/x"), self.tools())
+
+
 class Merges(ReadyCase):
     def test_main_changing_a_touched_file_is_merged_in(self) -> None:
         self.main_commit("a.txt", "".join(f"{i}\n" for i in ["one", *range(2, 9)]))

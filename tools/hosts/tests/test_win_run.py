@@ -632,6 +632,38 @@ class WinRunMacLock(unittest.TestCase):
             subprocess.run(["/bin/bash", str(self.block)], env=self.env, capture_output=True, text=True, timeout=3)
         self.assertTrue((self.slot(2) / "owner").exists())
 
+    def test_an_old_slot_with_no_owner_file_is_reclaimed(self) -> None:  # a holder killed between mkdir and write
+        self.hold(1, os.getpid(), int(time.time()))
+        self.slot(2).mkdir()
+        old = time.time() - 3000
+        os.utime(self.slot(2), (old, old))
+        done = self.bash()
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn(f"{self.slot(2)} is stale (holder none gone", done.stderr)
+        self.assertIn(f"TAKEN {self.slot(2)}", done.stdout)
+
+    def test_a_new_slot_with_no_owner_file_yet_is_waited_for(self) -> None:  # mkdir done, owner not yet written
+        self.hold(1, os.getpid(), int(time.time()))
+        self.slot(2).mkdir()
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(["/bin/bash", str(self.block)], env=self.env, capture_output=True, text=True, timeout=3)
+        self.assertTrue(self.slot(2).is_dir())
+
+    def test_a_stale_slot_another_waiter_has_just_claimed_is_left_alone(self) -> None:
+        # the owner changes between this waiter's read and its clear: the fresh claim must survive
+        self.hold(1, os.getpid(), int(time.time()))
+        self.hold(2, self.dead_pid(), int(time.time()) - 3000)
+        fresh = f"{os.getpid()} {int(time.time())} fresh/claim"
+        shim = self.tmp / "bin"
+        shim.mkdir()
+        real_cat = shutil.which("cat")
+        (shim / "cat").write_text(f'#!/bin/sh\n"{real_cat}" "$@"\n[ "$1" != "{self.slot(2)}/owner" ] || [ -f "{self.tmp}/swapped" ] || '
+                                  f'{{ printf "%s\\n" "{fresh}" > "{self.slot(2)}/owner"; : > "{self.tmp}/swapped"; }}\n')
+        (shim / "cat").chmod(0o755)
+        with self.assertRaises(subprocess.TimeoutExpired):
+            subprocess.run(["/bin/bash", str(self.block)], env={**self.env, "PATH": f"{shim}:{os.environ['PATH']}"},
+                           capture_output=True, text=True, timeout=3)
+        self.assertEqual(fresh, (self.slot(2) / "owner").read_text().strip())
 
 
 if __name__ == "__main__":

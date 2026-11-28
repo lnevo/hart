@@ -331,8 +331,8 @@ run_logged() {   # <log> <header> COMMAND...: remote_script into COMMAND, its st
 # owner, a session, make ready). Each slot is the folder <WIN_RUN_LOCK>.<n> for n = 1 .. slots (default
 # /tmp/hart-remote.lock.1 and .2), made with mkdir, holding an owner file "pid since-epoch ref". A run takes the first
 # free slot and waits, with a line every minute, only when every slot is held. A slot whose holder process is gone
-# and which is older than WIN_RUN_LOCK_STALE seconds (default 2700, longer than any check.sh run) is stale: it is
-# cleared with a line. release_lock runs on every exit (the EXIT trap below) and removes only the slot this process
+# (or that has no owner file) and which is older than WIN_RUN_LOCK_STALE seconds (default 2700, longer than any
+# check.sh run) is stale: it is renamed away and cleared with a line. release_lock runs on every exit (the EXIT trap below) and removes only the slot this process
 # holds.
 lock_base="${WIN_RUN_LOCK:-/tmp/hart-remote.lock}"
 lock_dir=""
@@ -342,17 +342,24 @@ claim_slot() {   # <folder> <ref>: 0 when mkdir made the slot for this process
   echo "$$ $(date +%s) $2" >"$1/owner"
 }
 take_lock() {   # <ref>: returns once this process holds a slot, its folder in lock_dir
-  local waited=0 i dir pid since age holders
+  local waited=0 i dir pid since age holders line
   while true; do
     holders=""
     for i in $(seq 1 "$slots"); do
       dir="$lock_base.$i"
       if claim_slot "$dir" "$1"; then return 0; fi
-      read -r pid since _ <"$dir/owner" 2>/dev/null || { pid=""; since=""; }
-      age=$(( $(date +%s) - ${since:-$(date +%s)} ))
-      if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null && (( age > ${WIN_RUN_LOCK_STALE:-2700} )); then
-        echo "win_run.sh: $dir is stale (holder $pid gone, $(( age / 60 )) min old); clearing it" >&2
-        rm -f "$dir/owner"; rmdir "$dir" 2>/dev/null || true
+      line="$(cat "$dir/owner" 2>/dev/null || true)"
+      read -r pid since _ <<<"$line" || true
+      # no owner file (a holder killed between mkdir and the write): the folder's own time stands in
+      [[ -n "$since" ]] || since="$(stat -f %m "$dir" 2>/dev/null || stat -c %Y "$dir" 2>/dev/null || date +%s)"
+      age=$(( $(date +%s) - since ))
+      if { [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; } && (( age > ${WIN_RUN_LOCK_STALE:-2700} )); then
+        # clear it only if the owner is still the one judged stale, and by a rename, so a waiter that judged the
+        # same slot stale cannot remove a claim another waiter has just made
+        if [[ -d "$dir" && "$(cat "$dir/owner" 2>/dev/null || true)" == "$line" ]] && mv "$dir" "$dir.stale.$$" 2>/dev/null; then
+          echo "win_run.sh: $dir is stale (holder ${pid:-none} gone, $(( age / 60 )) min old); cleared it" >&2
+          rm -rf "$dir.stale.$$"
+        fi
         if claim_slot "$dir" "$1"; then return 0; fi
       fi
       holders="$holders ${pid:-?} ($(( age / 60 )) min)"

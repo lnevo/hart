@@ -90,6 +90,15 @@ class TestEventsAndSamples(DashRowsCase):
         self.assertEqual(self.data(entries[1]), {"at": "23:30", "text": "Deploy pi exit 0"})
         self.assertNotIn("if_version", entries[0])
 
+    def test_a_second_run_in_the_same_minute_does_not_replace_the_first_event(self) -> None:
+        first = self.writes("event", "Merged #1371")
+        second = self.writes("event", "Merged #1372")
+        third = self.writes("event", "Merged #1373", now="23:31")
+        self.assertEqual([first[0]["doc_id"], second[0]["doc_id"], third[0]["doc_id"]],
+                         ["e3-2330", "e3-2330b", "e3-2331"])
+        self.assertEqual(self.data(first[0])["text"], "Merged #1371")
+        self.assertEqual(self.data(second[0])["text"], "Merged #1372")
+
     def test_samples_since_takes_lines_after_the_mark(self) -> None:
         lines = [{"at": t, "sessions": n} for n, t in enumerate(["23:56", "23:58", "00:00", "00:02"])]
         path = self.tmp / "samples.jsonl"
