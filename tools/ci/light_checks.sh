@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The light checks: what a light change (tools/ci/changed_kind.py: docs, or data that only static checks read) is
 # checked with, by tools/check.sh's light path (`light_checks.sh --git`) and in CI (the changed paths on stdin,
-# `light_checks.sh --compare <base ref>`). The arguments go to `changed_kind.py --jobs`, which prints check.sh's jobs
+# `light_checks.sh -z --compare <base ref>`, NUL-separated). The arguments go to `changed_kind.py --jobs`, which prints check.sh's jobs
 # for the change: make static's (the static group less the panels-* jobs), then any other static job a changed file
 # is declared to feed. check.sh runs those (CHECK_ONLY, with its stamps), then the quick docs checks
 # (tools/ci/docs_checks.sh: the docs_only steps, public-text among them, and the unit tests that read docs). Both run;

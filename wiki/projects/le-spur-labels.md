@@ -1,7 +1,6 @@
 # LE spur names beside their tracks (2026-11-27)
 
 Status: done (2026-11-27)
-Coordinator: hart-6d, since 2026-11-27 18:13
 Dashboard: https://claude.ai/artifact/3RUni5hx1sRXCYarGXYQxa
 
 The owner asked on 2026-11-27 for the Layout Editor names of 101 Spur 1, 101 Spur 2 and 103 Spur to stand next to their tracks, with the block contents icons moved outward. Layout Editor only: the CATS desks and the schematic stay as they are (owner). The rule is the Main band's `names_first` ([schematic-panels](../pipelines/schematic-panels.md)). Track 101-103's icon is left out; the owner does not need it shown. The owner approved the rendered look, with the Upper band 6 px higher on the combined panel.

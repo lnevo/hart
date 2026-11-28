@@ -1,0 +1,324 @@
+<title>Dashboards and Report Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a dispatcher's train sheet. Header, three views (timeline, dashboards, report cards), one detail pane per dashboard. Dark first. */
+:root{
+  --bg:#12161c; --panel:#1a2029; --panel2:#212935; --line:#2d3746; --fg:#e4e8ee; --mute:#93a0b2;
+  --accent:#f0b43c; --accent-ink:#1a1405; --blue:#6fa8dc; --good:#5cbf86; --warn:#e0a13a; --bad:#e46a5f;
+  --f-head:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f3f4f6; --panel:#ffffff; --panel2:#eef0f4; --line:#d6dbe3; --fg:#18202b; --mute:#5b6779;
+  --accent:#b57a06; --accent-ink:#ffffff; --blue:#2f6db0; --good:#23874f; --warn:#a86a00; --bad:#bb3b30; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f3f4f6; --panel:#ffffff; --panel2:#eef0f4; --line:#d6dbe3; --fg:#18202b; --mute:#5b6779;
+  --accent:#b57a06; --accent-ink:#ffffff; --blue:#2f6db0; --good:#23874f; --warn:#a86a00; --bad:#bb3b30; color-scheme:light}
+:root[data-theme="dark"]{
+  --bg:#12161c; --panel:#1a2029; --panel2:#212935; --line:#2d3746; --fg:#e4e8ee; --mute:#93a0b2;
+  --accent:#f0b43c; --accent-ink:#1a1405; --blue:#6fa8dc; --good:#5cbf86; --warn:#e0a13a; --bad:#e46a5f; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:2rem;font-weight:700}
+h2{font-size:1.45rem;font-weight:600}
+h3{font-size:1.1rem;font-weight:600}
+a{color:var(--blue)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.mute{color:var(--mute)}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px}
+header.top p{margin:4px 0 0;color:var(--mute);max-width:70ch}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+nav.tabs a{font-family:var(--f-head);font-weight:600;font-size:1rem;text-decoration:none;color:var(--mute);padding:6px 14px;border:1px solid var(--line);border-radius:4px}
+nav.tabs a[aria-current="page"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+section.view{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;margin-top:22px}
+section.view>*,.grid2>*,.dcards>*,.cattiles>*{min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--panel2);border-radius:4px;padding:10px 12px}
+.tile b{display:block;font-family:var(--f-head);font-size:1.6rem;font-weight:600;line-height:1.1}
+.tile span{font-size:.8rem;color:var(--mute)}
+
+/* timeline log */
+.log{display:grid;grid-template-columns:7.2rem 1fr;gap:0}
+.log .day{font-family:var(--f-mono);font-size:.85rem;color:var(--mute);padding:12px 0;border-top:1px solid var(--line)}
+.log .items{display:grid;gap:8px;padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.entry{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:baseline;padding:8px 10px;border-radius:4px;background:var(--panel)}
+.entry:hover{background:var(--panel2)}
+.entry .t{font-family:var(--f-mono);font-size:.8rem;color:var(--mute)}
+.entry .what{min-width:0}
+.entry .what a.name{font-weight:600;color:var(--fg);text-decoration:none}
+.entry .what a.name:hover{text-decoration:underline}
+.entry .what p{margin:2px 0 0;color:var(--mute);font-size:.88rem}
+.entry .score{font-family:var(--f-head);font-weight:600;font-size:1.15rem;white-space:nowrap}
+.chip{display:inline-block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:3px;border:1px solid currentColor;margin-right:6px;vertical-align:1px}
+.chip.dash{color:var(--blue)} .chip.card{color:var(--accent)}
+@media (max-width:620px){.log{grid-template-columns:1fr}.log .day{padding-bottom:0}.log .items{border-top:0}.entry{grid-template-columns:1fr auto}.entry .t{grid-column:1/-1}}
+
+/* gantt */
+.chart{width:100%;overflow-x:auto}
+.chart svg{display:block;min-width:640px;width:100%;height:auto}
+svg text{fill:var(--mute);font-family:var(--f-mono);font-size:11px}
+svg .lbl{fill:var(--fg);font-family:var(--f-body);font-size:12px}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg a:hover rect{opacity:.85}
+
+/* dashboard cards */
+.dcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px}
+.dcard{display:grid;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;text-decoration:none;color:inherit}
+.dcard:hover{border-color:var(--blue)}
+.dcard p{margin:0;color:var(--mute);font-size:.9rem}
+.dcard .nums{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-mono);font-size:.8rem;color:var(--mute)}
+.dcard .nums b{color:var(--fg);font-weight:500}
+
+/* detail */
+.dhead{display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:space-between;align-items:flex-start}
+.links{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font-family:var(--f-head);font-weight:600;font-size:.95rem;text-decoration:none;padding:5px 12px;border-radius:4px;border:1px solid var(--line);color:var(--fg);background:var(--panel2);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filters button{font:inherit;font-size:.82rem;font-family:var(--f-mono);padding:3px 10px;border-radius:3px;border:1px solid var(--line);background:var(--panel2);color:var(--mute);cursor:pointer}
+.filters button[aria-pressed="true"]{border-color:var(--accent);color:var(--fg)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:500}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td .sub{color:var(--mute);font-size:.82rem;margin-top:2px}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.72rem;padding:1px 8px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);white-space:nowrap}
+.pill.merged,.pill.done{color:var(--good);border-color:var(--good)}
+.pill.blocked,.pill.failed{color:var(--bad);border-color:var(--bad)}
+.pill.running,.pill.remote,.pill.review,.pill.ci,.pill.queued{color:var(--warn);border-color:var(--warn)}
+.events{list-style:none;margin:0;padding:0;display:grid;gap:0;max-height:560px;overflow-y:auto}
+.events li{display:grid;grid-template-columns:5.6rem 1fr;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+.events li .t{font-family:var(--f-mono);font-size:.78rem;color:var(--mute)}
+.events li.m .x{color:var(--fg)} .events li:not(.m) .x{color:var(--mute)}
+
+/* cards */
+.cardhead{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between}
+.big{font-family:var(--f-head);font-size:2.4rem;font-weight:700;line-height:1}
+.big small{font-size:1rem;color:var(--mute);font-weight:500;margin-left:6px}
+.state-done{color:var(--good)} .state-part{color:var(--warn)} .state-no{color:var(--mute)}
+.bar{height:8px;border-radius:2px;background:var(--panel2);position:relative;min-width:60px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:2px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--mute)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.note{font-size:.84rem;color:var(--mute);margin:0}
+footer{margin-top:32px;font-size:.8rem;color:var(--mute)}
+@media (prefers-reduced-motion:no-preference){.dcard,.entry{transition:background .15s,border-color .15s}}
+
+.cattiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}
+.cat{display:grid;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;text-decoration:none;color:inherit}
+.cat:hover{border-color:var(--accent)}
+.cat .v{font-family:var(--f-head);font-size:2rem;font-weight:700;line-height:1}
+.cat .v small{font-size:.9rem;color:var(--mute);font-weight:500;margin-left:4px}
+.cat .d{font-family:var(--f-mono);font-size:.78rem}
+.up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--mute)}
+.cat svg{width:100%;height:34px;min-width:0}
+.cat .owed{font-size:.78rem;color:var(--warn)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow" id="range">Report cards and wave dashboards</div>
+      <h1>Dashboards and Report Cards</h1>
+      <p>Every score the reviews gave and every wave dashboard the coordinators kept, in the order they happened. The tiles show each category's latest score and the change since the one before it.</p>
+    </div>
+    <nav class="tabs" aria-label="Views">
+      <a href="#cards" data-view="cards">Report cards</a>
+      <a href="#timeline" data-view="timeline">Timeline</a>
+      <a href="#dashboards" data-view="dashboards">Dashboards</a>
+    </nav>
+  </header>
+
+  <section class="view" id="v-cards" hidden></section>
+
+  <section class="view" id="v-timeline" hidden>
+    <div class="tiles" id="sumTiles"></div>
+    <div class="log" id="log"></div>
+  </section>
+
+  <section class="view" id="v-dashboards" hidden>
+    <div class="panel">
+      <div class="cardhead"><h2>When each dashboard ran</h2><span class="note">Mac time.</span></div>
+      <div class="chart" id="gantt"></div>
+    </div>
+    <div class="dcards" id="dcards"></div>
+  </section>
+
+  <section class="view" id="v-detail" hidden></section>
+
+  <footer id="foot">Built by <span class="mono">tools/agent/report_cards_page.py</span> from <a href="https://github.com/lnevo/hart/blob/main/docs/report-cards/scores.json">docs/report-cards/scores.json</a> and copies of each dashboard's store. The live dashboards are not changed by this page.</footer>
+</div>
+
+<script>
+const GH='https://github.com/lnevo/hart/blob/main/';
+let CARDS={categories:[],unscored:[],dashboards:[]}, DASH=[];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const short=d=>`${+d.slice(8,10)} ${MON[+d.slice(5,7)-1]}`;
+const dayLabel=d=>{const [y,m,dd]=d.slice(0,10).split('-');return new Date(+y,m-1,+dd).toLocaleDateString('en-US',{weekday:'short'})+' '+short(d)};
+const hm=t=>t?t.slice(11,16):'';
+const tms=t=>new Date(t+':00').getTime();
+const dur=(a,b)=>{const m=Math.round((tms(b)-tms(a))/60000);return `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')} min`};
+const ext=h=>h&&h.startsWith('http')?' target="_blank" rel="noopener"':'';
+const fmt=(c,v)=>c.scale==4?v.toFixed(3):String(v);
+const unit=c=>c.scale==4?'grade points':'/ '+c.scale;
+
+/* ---------- report cards ---------- */
+function spark(c){
+  const s=c.scores, W=180,H=34,p=4; if(s.length<2) return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><circle cx="${W-p}" cy="${H/2}" r="3" fill="var(--accent)"/></svg>`;
+  const v=s.map(x=>x.value), lo=Math.min(...v), hi=Math.max(...v), r=hi-lo||1;
+  const X=i=>p+i*(W-2*p)/(s.length-1), Y=x=>H-p-(x-lo)/r*(H-2*p);
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${v.map((x,i)=>X(i)+','+Y(x)).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.6"/><circle cx="${X(s.length-1)}" cy="${Y(v[v.length-1])}" r="3" fill="var(--accent)"/></svg>`;
+}
+function delta(c){
+  const s=c.scores; if(s.length<2) return '<span class="d flat">first score</span>';
+  const d=+(s[s.length-1].value-s[s.length-2].value).toFixed(3);
+  const cls=d>0?'up':d<0?'down':'flat', sign=d>0?'+':'';
+  return `<span class="d ${cls}">${d==0?'no change':sign+d} since ${short(s[s.length-2].date)}</span>`;
+}
+function historyChart(c){
+  const s=c.scores, W=1000,H=200,pad={l:46,r:16,t:22,b:44};
+  const vals=s.map(x=>x.value).concat(c.target?[c.target]:[]);
+  let lo=Math.min(...vals),hi=Math.max(...vals); const span=Math.max(hi-lo,c.scale/20); lo=Math.max(0,lo-span*.25); hi=Math.min(c.scale,hi+span*.25);
+  const step=[0.05,0.1,0.25,0.5,1,2].find(t=>(hi-lo)/t<=5)||2; lo=Math.floor(lo/step)*step; hi=Math.ceil(hi/step)*step;
+  const inset=48, n=s.length, X=i=>n==1?(W+pad.l-pad.r)/2:pad.l+inset+i*(W-pad.l-pad.r-2*inset)/(n-1), Y=v=>pad.t+(1-(v-lo)/(hi-lo))*(H-pad.t-pad.b);
+  let g='';
+  for(let v=lo;v<=hi+1e-9;v+=step){g+=`<line class="grid" x1="${pad.l}" x2="${W-pad.r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pad.l-8}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(step<0.1?2:step<1?1:0)}</text>`}
+  if(c.target) g+=`<line x1="${pad.l}" x2="${W-pad.r}" y1="${Y(c.target)}" y2="${Y(c.target)}" stroke="var(--good)" stroke-dasharray="5 4"/><text x="${W-pad.r}" y="${Y(c.target)-6}" text-anchor="end" style="fill:var(--good)">target ${c.target}</text>`;
+  if(n>1) g+=`<polyline points="${s.map((x,i)=>X(i)+','+Y(x.value)).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  s.forEach((x,i)=>g+=`<circle cx="${X(i)}" cy="${Y(x.value)}" r="${i==n-1?5:3.5}" fill="var(--accent)"><title>${esc(x.label)}</title></circle><text x="${X(i)}" y="${Y(x.value)-9}" text-anchor="middle" style="fill:var(--fg)">${fmt(c,x.value)}</text><text x="${X(i)}" y="${H-pad.b+16}" text-anchor="middle">${short(x.date)}</text>${n<=9?`<text x="${X(i)}" y="${H-pad.b+30}" text-anchor="middle" opacity=".75">${esc(x.label.length>18?x.label.slice(0,17)+'…':x.label)}</text>`:''}`);
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.title)} score history">${g}</svg></div>`;
+}
+function renderCards(){
+  const C=CARDS.categories;
+  const tiles=C.map(c=>{const last=c.scores[c.scores.length-1];return `<a class="cat" href="#card-${c.id}">
+    <div class="eyebrow">${esc(c.title)}</div><div class="v">${fmt(c,last.value)}<small>${unit(c)}</small></div>
+    ${delta(c)}${spark(c)}<span class="note">Last scored ${short(last.date)}</span>${(c.notes||[]).filter(n=>/owed/i.test(n)).map(n=>`<span class="owed">${esc(n)}</span>`).join('')}</a>`}).join('');
+  const panels=C.map(c=>{const last=c.scores[c.scores.length-1];const t=c.table;return `<div class="panel" id="card-${c.id}">
+    <div class="cardhead"><div><div class="eyebrow">${esc(c.what)}</div><h2>${esc(c.title)}</h2></div><div class="big">${fmt(c,last.value)}<small>${unit(c)}, ${short(last.date)}</small></div></div>
+    ${historyChart(c)}
+    ${t?`<div class="tablewrap" style="margin-top:8px"><table><thead><tr>${t.columns.map((h,i)=>`<th${i&&t.rows.every(r=>typeof r[i]=='number'||r[i]==='')?' class="num"':''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>
+      ${t.rows.map(r=>`<tr>${r.map((v,i)=>`<td${typeof v=='number'?' class="num"':''}>${i==0?'<b>'+esc(v)+'</b>':esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:''}
+    ${(c.notes||[]).map(n=>`<p class="note" style="margin-top:6px">${esc(n)}</p>`).join('')}
+    <p class="note" style="margin-top:8px"><a href="${GH+c.wiki}" target="_blank" rel="noopener">Wiki</a>${c.link?` · <a href="${c.link}"${ext(c.link)}>Full card</a>`:''}</p></div>`}).join('');
+  const un=CARDS.unscored.filter(u=>u.link);
+  $('#v-cards').innerHTML=`<div class="cattiles">${tiles}</div>${panels}
+   ${un.length?`<div class="panel"><h2>Scorecards without a score</h2><div class="dcards" style="margin-top:10px">${un.map(u=>`<a class="dcard" href="${u.link}"${ext(u.link)}><div class="eyebrow">${dayLabel(u.date)}</div><h3>${esc(u.title)}</h3><p>${esc(u.text)}</p></a>`).join('')}</div></div>`:''}`;
+}
+
+/* ---------- timeline ---------- */
+function renderTimeline(){
+  const E=[];
+  CARDS.categories.forEach(c=>c.scores.forEach((s,i)=>{const prev=c.scores[i-1];const d=prev?+(s.value-prev.value).toFixed(3):null;
+    E.push({d:s.date,kind:'card',name:c.title,href:'#card-'+c.id,score:fmt(c,s.value)+(c.scale==4?'':' / '+c.scale),p:s.label+(d!=null&&d<0?` (down ${-d})`:''),slip:d!=null&&d<0})}));
+  CARDS.unscored.forEach(u=>E.push({d:u.date,kind:'card',name:u.title,href:u.link||'#cards',score:'',p:u.text}));
+  DASH.forEach(x=>E.push({d:x.start,kind:'dash',name:x.title,href:'#d-'+x.id,score:'',p:`${dur(x.start,x.end)}, ${x.lanes.length} rows, ${x.prs.length} PRs merged. ${x.summary}`}));
+  const by={}; E.forEach(e=>(by[e.d.slice(0,10)]??=[]).push(e));
+  const rows=DASH.reduce((n,x)=>n+x.lanes.length,0), prs=new Set(DASH.flatMap(x=>x.prs)).size, ev=DASH.reduce((n,x)=>n+x.events.length,0);
+  $('#sumTiles').innerHTML=[[CARDS.categories.length,'report card categories'],[CARDS.categories.reduce((n,c)=>n+c.scores.length,0),'scores recorded'],[DASH.length,'dashboards kept'],[rows,'lane and PR rows'],[prs,'PRs merged while a dashboard ran'],[ev,'dashboard updates']]
+    .map(([b,s])=>`<div class="tile"><b class="mono">${b}</b><span>${s}</span></div>`).join('');
+  $('#log').innerHTML=Object.keys(by).sort().reverse().map(d=>`<div class="day">${dayLabel(d)}</div><div class="items">${by[d].sort((a,b)=>a.d<b.d?1:-1).map(e=>`
+    <div class="entry"><span class="t">${e.d.length>10?hm(e.d):''}</span>
+      <div class="what"><span class="chip ${e.kind}">${e.kind=='dash'?'dashboard':'report card'}</span><a class="name" href="${e.href}"${ext(e.href)}>${esc(e.name)}</a>${e.p?`<p${e.slip?' class="down"':''}>${esc(e.p)}</p>`:''}</div>
+      <span class="score">${esc(e.score)}</span></div>`).join('')}</div>`).join('');
+}
+
+/* ---------- dashboards ---------- */
+function pad2(n){return String(n).padStart(2,'0')}
+function localStamp(ms){const d=new Date(ms);return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:00`}
+function renderDashboards(){
+  if(!DASH.length){$('#gantt').innerHTML='<p class="note">No dashboards recorded yet.</p>';return}
+  const W=1100,rowH=34,pad={l:200,r:20,t:24,b:10};
+  const x0=Math.floor(Math.min(...DASH.map(x=>tms(x.start)))/3600e3)*3600e3, x1=Math.ceil(Math.max(...DASH.map(x=>tms(x.end)))/3600e3)*3600e3;
+  const X=ms=>pad.l+(ms-x0)/Math.max(1,x1-x0)*(W-pad.l-pad.r);
+  const H=pad.t+DASH.length*rowH+pad.b, hrs=(x1-x0)/3600e3, step=hrs>96?24:hrs>36?4:2;
+  let g='';
+  for(let h=x0;h<=x1;h+=step*3600e3){const s=localStamp(h);const mid=s.endsWith('T00:00');
+    g+=`<line class="grid" x1="${X(h)}" x2="${X(h)}" y1="${pad.t-4}" y2="${H-pad.b}" ${mid?'stroke-dasharray="3 3"':''}/><text x="${X(h)}" y="14" text-anchor="middle">${mid||step==24?short(s):hm(s)}</text>`}
+  DASH.forEach((x,i)=>{const y=pad.t+i*rowH,a=X(tms(x.start)),b=Math.max(X(tms(x.end)),a+4);
+    g+=`<a href="#d-${x.id}"><text class="lbl" x="${pad.l-10}" y="${y+rowH/2+4}" text-anchor="end">${esc(x.title)}</text><rect x="${a}" y="${y+7}" width="${b-a}" height="${rowH-14}" rx="3" fill="var(--blue)"/></a>`});
+  $('#gantt').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Run times of the dashboards">${g}</svg>`;
+  const peak=(x,k)=>Math.max(0,...x.samples.map(s=>s[k]||0));
+  $('#dcards').innerHTML=DASH.slice().reverse().map(x=>`<a class="dcard" href="#d-${x.id}">
+    <div class="eyebrow">${dayLabel(x.start)} ${hm(x.start)} to ${x.end.slice(0,10)!=x.start.slice(0,10)?dayLabel(x.end)+' ':''}${hm(x.end)}</div>
+    <h3>${esc(x.title)}</h3><p>${esc(x.summary)}</p>
+    <div class="nums"><span><b>${dur(x.start,x.end)}</b></span><span><b>${x.lanes.length}</b> rows</span><span><b>${x.prs.length}</b> PRs merged</span><span><b>${x.events.length}</b> updates</span><span>peak <b>${peak(x,'total')}</b> Claude</span></div></a>`).join('');
+}
+function loadChart(x){
+  const S=x.samples; if(!S.length) return '<p class="note">No samples were kept.</p>';
+  const W=1100,H=220,pad={l:40,r:44,t:14,b:26}, a=tms(S[0].t), b=Math.max(tms(S[S.length-1].t),a+60e3);
+  const X=t=>pad.l+(tms(t)-a)/(b-a)*(W-pad.l-pad.r);
+  const cmax=Math.max(4,...S.map(s=>(s.sessions||0)+(s.subagents||0))), lmax=Math.max(8,...S.map(s=>s.mac||0));
+  const Yc=v=>pad.t+(1-v/cmax)*(H-pad.t-pad.b), Yl=v=>pad.t+(1-v/lmax)*(H-pad.t-pad.b);
+  let g='';
+  [0,.5,1].forEach(f=>{const v=Math.round(cmax*f);g+=`<line class="grid" x1="${pad.l}" x2="${W-pad.r}" y1="${Yc(v)}" y2="${Yc(v)}"/><text x="${pad.l-6}" y="${Yc(v)+4}" text-anchor="end">${v}</text><text x="${W-pad.r+6}" y="${Yc(v)+4}">${(lmax*f).toFixed(0)}</text>`});
+  const step=Math.max(1,Math.round((b-a)/3600e3/8));
+  for(let h=Math.ceil(a/3600e3)*3600e3;h<=b;h+=step*3600e3){const s=localStamp(h);g+=`<text x="${X(s)}" y="${H-8}" text-anchor="middle">${hm(s)}</text>`}
+  const segs=[];let cur=[];S.forEach((s,i)=>{if(i&&tms(s.t)-tms(S[i-1].t)>20*60e3){segs.push(cur);cur=[]}cur.push(s)});segs.push(cur);
+  segs.forEach(seg=>{const L=seg[seg.length-1].t, F=seg[0].t;
+    g+=`<polygon points="${X(F)},${Yc(0)} ${seg.map(s=>`${X(s.t)},${Yc((s.sessions||0)+(s.subagents||0))}`).join(' ')} ${X(L)},${Yc(0)}" fill="var(--blue)" opacity=".28"/>`;
+    g+=`<polygon points="${X(F)},${Yc(0)} ${seg.map(s=>`${X(s.t)},${Yc(s.sessions||0)}`).join(' ')} ${X(L)},${Yc(0)}" fill="var(--blue)" opacity=".7"/>`;
+    g+=`<polyline points="${seg.map(s=>`${X(s.t)},${Yl(s.mac||0)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.6"/>`});
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sessions, subagents and Mac load during ${esc(x.title)}">${g}</svg></div>
+   <div class="legend"><span><i style="background:var(--blue);opacity:.7"></i>Claude sessions (left axis)</span><span><i style="background:var(--blue);opacity:.28"></i>plus subagents</span><span><i style="background:var(--accent)"></i>Mac 1-minute load (right axis, ${S[0].cpus||8} CPUs)</span></div>`;
+}
+let detailFilter='all';
+function renderDetail(id){
+  const x=DASH.find(d=>d.id==id), v=$('#v-detail');
+  if(!x){v.innerHTML='<div class="panel">No dashboard with that name. <a href="#dashboards">Back to the list</a>.</div>';return}
+  const waves=[...new Set(x.lanes.map(l=>l.wave).filter(Boolean))], fl=l=>detailFilter=='all'||l.wave==+detailFilter;
+  const lanes=x.lanes.filter(fl), evs=x.events.filter(fl), st={}; x.lanes.forEach(l=>st[l.status]=(st[l.status]||0)+1);
+  const pk=k=>Math.max(0,...x.samples.map(s=>s[k]||0));
+  v.innerHTML=`
+  <div class="panel"><div class="dhead"><div><div class="eyebrow"><a href="#dashboards">Dashboards</a> / ${dayLabel(x.start)}</div><h2>${esc(x.title)}</h2><p class="mute" style="margin:6px 0 0;max-width:75ch">${esc(x.summary)}</p></div>
+    <div class="links"><a class="btn primary" href="${x.link}" target="_blank" rel="noopener">Open the live dashboard</a><a class="btn" href="${GH+x.wiki}" target="_blank" rel="noopener">Project page</a></div></div>
+    <div class="tiles" style="margin-top:14px">
+      <div class="tile"><b class="mono">${hm(x.start)}–${hm(x.end)}</b><span>${dur(x.start,x.end)}</span></div>
+      <div class="tile"><b class="mono">${x.lanes.length}</b><span>rows: ${Object.entries(st).map(([k,n])=>n+' '+k).join(', ')}</span></div>
+      <div class="tile"><b class="mono">${x.prs.length}</b><span>PRs merged while it ran${x.prs.length?` (#${x.prs[0]}${x.prs.length>1?' to #'+x.prs[x.prs.length-1]:''})`:''}</span></div>
+      <div class="tile"><b class="mono">${pk('sessions')} / ${pk('subagents')}</b><span>most sessions / subagents in one sample</span></div>
+      <div class="tile"><b class="mono">${pk('mac')}</b><span>highest Mac load</span></div>
+    </div></div>
+  <div class="panel"><div class="cardhead"><h3>Sessions, agents and load</h3><span class="note">${x.samples.length} samples, about every 2 minutes</span></div>${loadChart(x)}</div>
+  ${waves.length>1?`<div class="filters" role="group" aria-label="Wave"><span class="eyebrow">Wave</span>${['all',...waves].map(w=>`<button type="button" data-w="${w}" aria-pressed="${String(w)==detailFilter}">${w=='all'?'All':w}</button>`).join('')}</div>`:''}
+  <div class="grid2">
+    <div class="panel"><h3>Lanes and PRs</h3><div class="tablewrap"><table><thead><tr><th>Row</th><th>Status</th><th>PR</th><th>Last stage</th></tr></thead><tbody>
+      ${lanes.map(l=>`<tr><td><b>${esc(l.lane||l.id)}</b>${l.scope?`<div class="sub">${esc(l.scope)}</div>`:''}</td><td><span class="pill ${esc(l.status)}">${esc(l.status)}</span></td><td class="mono">${esc(Array.isArray(l.pr)?l.pr.map(p=>'#'+p).join(' '):l.pr??'')}</td><td>${esc(l.stage)}</td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="panel"><h3>Updates feed</h3><p class="note">${evs.length} updates, oldest first. Merges and deploys are brighter.</p>
+      <ul class="events">${evs.map(e=>`<li class="${/merged|deploy/i.test(e.text)?'m':''}"><span class="t">${e.t?(e.t.slice(0,10)!=x.start.slice(0,10)?short(e.t)+' ':'')+hm(e.t):''}</span><span class="x">${esc(e.text)}</span></li>`).join('')}</ul></div>
+  </div>`;
+  v.querySelectorAll('.filters button').forEach(b=>b.onclick=()=>{detailFilter=b.dataset.w;renderDetail(id)});
+}
+
+/* ---------- routing ---------- */
+function route(){
+  const h=(location.hash||'#cards').slice(1);
+  const view=h.startsWith('d-')?'detail':h.startsWith('card-')?'cards':(['timeline','dashboards','cards'].includes(h)?h:'cards');
+  document.querySelectorAll('section.view').forEach(s=>s.hidden=s.id!=='v-'+view);
+  document.querySelectorAll('nav.tabs a').forEach(a=>a.setAttribute('aria-current',(a.dataset.view==view||(view=='detail'&&a.dataset.view=='dashboards'))?'page':'false'));
+  if(view=='detail'){detailFilter='all';renderDetail(h.slice(2));window.scrollTo(0,0)}
+  else if(h.startsWith('card-')){const el=document.getElementById(h);if(el)el.scrollIntoView()}
+}
+Promise.all([fetch('cards.json').then(r=>r.json()),fetch('dash.json').then(r=>r.json())]).then(([c,d])=>{
+  CARDS=c;DASH=d;
+  const days=[...c.categories.flatMap(x=>x.scores.map(s=>s.date)),...c.unscored.map(u=>u.date),...d.map(x=>x.start.slice(0,10))].sort();
+  if(days.length) $('#range').textContent=`${short(days[0])} to ${short(days[days.length-1])} ${days[days.length-1].slice(0,4)}`;
+  renderCards();renderTimeline();renderDashboards();route();
+}).catch(e=>document.querySelector('.wrap').insertAdjacentHTML('afterbegin',`<div class="panel">The page data did not load (${esc(e.message)}). Reload the page.</div>`));
+addEventListener('hashchange',route);
+</script>

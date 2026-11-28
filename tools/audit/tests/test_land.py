@@ -13,6 +13,7 @@ import os
 import stat
 import sys
 import tempfile
+import time
 import unittest
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -67,8 +68,11 @@ class FakeGitHub:
 
     def __call__(self, args: list[str]) -> str:
         self.calls.append(args)
-        if args[:2] == ["pr", "view"] and "state,headRefOid,headRefName,mergeable,files,baseRefName" in args:
+        if args[:2] == ["pr", "view"] and "state,headRefOid,headRefName,mergeable,files,baseRefName,isDraft" in args:
             return json.dumps(self.pr)
+        if args[:2] == ["pr", "ready"]:
+            self.pr["isDraft"] = False
+            return ""
         if args[:2] == ["pr", "view"] and "headRefOid,state" in args:
             head = self.heads.pop(0) if len(self.heads) > 1 else (self.heads[0] if self.heads else HEAD)
             return json.dumps({"headRefOid": head, "state": "OPEN"})
@@ -106,9 +110,15 @@ class Clock:
         self.now += seconds
 
 
-def lander(gh: FakeGitHub, root: Path = ROOT) -> tuple[Any, Clock]:
+LOCKS = tempfile.TemporaryDirectory()      # every test's merge lock lives here, never in /tmp/hart-land.lock
+
+
+def lander(gh: FakeGitHub, root: Path = ROOT, lock: Path | None = None,
+           lock_sleep: Any = None) -> tuple[Any, Clock]:
     clock = Clock()
-    return LAND.Lander(gh=gh, root=root, sleep=clock.sleep, clock=clock, poll=30), clock
+    path = lock or Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
+    return LAND.Lander(gh=gh, root=root, sleep=clock.sleep, clock=clock, poll=30, lock_path=path,
+                       lock_sleep=lock_sleep or clock.sleep), clock
 
 
 def land(gh: FakeGitHub, **kw: object) -> tuple[int, str]:
@@ -226,6 +236,213 @@ class Merging(unittest.TestCase):
         code, _ = land(gh, watch_main=False)
         self.assertEqual(code, 0)
         self.assertFalse(any(c[:2] == ["run", "list"] for c in gh.calls))
+
+
+@mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG, "HART_SESSION_NAME": "hart-test"})
+class MergeLocks(unittest.TestCase):
+    """One merge at a time across sessions: /tmp/hart-land.lock in use, a folder under a temp dir here."""
+
+    def setUp(self) -> None:
+        self.path = Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
+
+    def first(self, pr: int = 11, holder: str = "hart-other") -> Any:
+        lock = LAND.MergeLock(self.path, pr, lambda line: None, holder=holder)
+        self.assertTrue(lock.claim())
+        return lock
+
+    def test_a_second_land_waits_for_the_first_then_merges(self) -> None:
+        held = self.first()
+        sleeps: list[float] = []
+
+        def sleep(seconds: float) -> None:     # the first land ends after the second has waited twice
+            sleeps.append(seconds)
+            if len(sleeps) == 2:
+                held.release()
+
+        gh = FakeGitHub()
+        lnd, _ = lander(gh, lock=self.path, lock_sleep=sleep)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = lnd.land(12, watch_main=False)
+        out = buf.getvalue()
+        self.assertEqual(0, code, out)
+        self.assertEqual(2, len(sleeps))
+        self.assertIn("waiting for the merge lock", out)
+        self.assertIn("hart-other holds it for PR #11", out)
+        self.assertEqual(1, out.count("waiting for the merge lock"))      # one line a minute, not one a poll
+        main_checks = [c for c in gh.calls if c == ["api", f"repos/{SLUG}/commits/main"]]
+        self.assertEqual(2, len(main_checks))                             # main checked again after the wait
+        self.assertFalse(self.path.exists())                              # released after the land
+
+    def test_two_concurrent_lands_merge_one_at_a_time(self) -> None:
+        import threading
+        in_merge, second_waited = threading.Event(), threading.Event()
+        order: list[str] = []
+
+        class Slow(FakeGitHub):
+            def __call__(inner, args: list[str]) -> str:
+                if args[:2] == ["pr", "merge"]:
+                    order.append(f"merge {args[2]}")
+                    if args[2] == "12":
+                        in_merge.set()
+                        self.assertTrue(second_waited.wait(10))      # the second land is waiting meanwhile
+                return super().__call__(args)
+
+        def waiting_sleep(_seconds: float) -> None:
+            second_waited.set()
+            time.sleep(0.01)
+
+        one = lander(Slow(), lock=self.path)[0]
+        two = lander(Slow(), lock=self.path, lock_sleep=waiting_sleep)[0]
+        codes: dict[int, int] = {}
+        with contextlib.redirect_stdout(io.StringIO()):
+            t1 = threading.Thread(target=lambda: codes.__setitem__(12, one.land(12, watch_main=False)))
+            t1.start()
+            self.assertTrue(in_merge.wait(10))
+            t2 = threading.Thread(target=lambda: codes.__setitem__(13, two.land(13, watch_main=False)))
+            t2.start()
+            t1.join(10)
+            t2.join(10)
+        self.assertEqual({12: 0, 13: 0}, codes)
+        self.assertEqual(["merge 12", "merge 13"], order)
+        self.assertTrue(any("waiting for the merge lock" in line for line in two.out))
+
+    def test_the_lock_is_held_through_the_merge_and_names_the_pr_and_session(self) -> None:
+        seen: list[str] = []
+
+        class Watching(FakeGitHub):
+            def __call__(inner, args: list[str]) -> str:
+                if args[:2] == ["pr", "merge"]:
+                    seen.append((self.path / "owner").read_text())
+                return super().__call__(args)
+
+        code, _ = (lambda lnd: (lnd.land(12, watch_main=False), None))(lander(Watching(), lock=self.path)[0])
+        self.assertEqual(0, code)
+        pid, _since, pr, holder = seen[0].split(None, 3)
+        self.assertEqual((str(os.getpid()), "12", "hart-test"), (pid, pr, holder.strip()))
+        self.assertFalse(self.path.exists())
+
+    def test_a_stale_lock_is_reclaimed_with_a_line(self) -> None:
+        self.path.mkdir()
+        old = int(time.time()) - LAND.LOCK_STALE - 60
+        (self.path / "owner").write_text(f"999999 {old} 9 hart-gone\n")
+        said: list[str] = []
+        lock = LAND.MergeLock(self.path, 12, said.append, sleep=lambda s: self.fail("waited"),
+                              alive=lambda pid: False)
+        self.assertFalse(lock.take())
+        self.assertTrue(lock.held)
+        self.assertIn("was stale (holder hart-gone", said[0])
+        self.assertIn(" 12 ", (self.path / "owner").read_text())
+        lock.release()
+        self.assertFalse(self.path.exists())
+
+    def test_a_young_or_live_lock_is_not_reclaimed(self) -> None:
+        for since, alive in ((int(time.time()), False), (int(time.time()) - LAND.LOCK_STALE - 60, True)):
+            with self.subTest(since=since, alive=alive):
+                path = Path(tempfile.mkdtemp(dir=LOCKS.name)) / "land.lock"
+                path.mkdir()
+                (path / "owner").write_text(f"999999 {since} 9 hart-other\n")
+                lock = LAND.MergeLock(path, 12, lambda line: None, alive=lambda pid, a=alive: a)
+                lock.clear_if_stale(lock.owner())
+                self.assertTrue((path / "owner").exists())
+
+    def test_a_lock_without_an_owner_file_is_aged_by_its_folder(self) -> None:
+        # a holder killed between mkdir and the write: os.stat's mtime (no stat program, so no GNU or BSD flags)
+        self.path.mkdir()
+        old = time.time() - LAND.LOCK_STALE - 60
+        os.utime(self.path, (old, old))
+        lock = LAND.MergeLock(self.path, 12, lambda line: None)
+        self.assertGreater(lock.age(lock.owner()), LAND.LOCK_STALE)
+        self.assertFalse(lock.take())
+
+    def test_a_red_main_after_the_wait_leaves_a_draft_a_draft(self) -> None:
+        held = self.first()
+        gh = FakeGitHub()
+        gh.pr["isDraft"] = True
+
+        def sleep(_seconds: float) -> None:       # main turns red while the other land holds the lock
+            gh.main_conclusion = "failure"
+            held.release()
+
+        lnd, _ = lander(gh, lock=self.path, lock_sleep=sleep)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = lnd.land(12, watch_main=False)
+        self.assertEqual(1, code, buf.getvalue())
+        self.assertIn("main is red", buf.getvalue())
+        self.assertFalse(any(c[:2] in (["pr", "ready"], ["pr", "merge"]) for c in gh.calls), gh.calls)
+        self.assertFalse(self.path.exists())
+
+    def test_an_owner_file_that_cannot_be_written_gives_the_folder_back(self) -> None:
+        lock = LAND.MergeLock(self.path, 12, lambda line: None)
+        with mock.patch.object(Path, "write_text", side_effect=OSError("disk full")):
+            with self.assertRaisesRegex(OSError, "disk full"):
+                lock.claim()
+        self.assertFalse(self.path.exists())
+        self.assertFalse(lock.held)
+
+    def test_a_lock_past_the_ceiling_is_stale_with_its_holder_alive(self) -> None:
+        self.path.mkdir()
+        (self.path / "owner").write_text(f"{os.getpid()} {int(time.time()) - LAND.LOCK_CEILING - 60} 9 hart-hung\n")
+        said: list[str] = []
+        lock = LAND.MergeLock(self.path, 12, said.append, sleep=lambda s: self.fail("waited"))
+        self.assertFalse(lock.take())
+        self.assertIn("alive past", said[0])
+        lock.release()
+
+    def test_a_wait_past_the_limit_stops_naming_the_holder(self) -> None:
+        self.first(pr=11, holder="hart-busy")
+        slept: list[float] = []
+        lock = LAND.MergeLock(self.path, 12, lambda line: None, sleep=slept.append)
+        with self.assertRaisesRegex(LAND.LandError, r"still held after \d+ min by hart-busy for PR #11"):
+            lock.take()
+        self.assertEqual(LAND.LOCK_WAIT_LIMIT, sum(slept))
+
+    def test_a_stale_lock_whose_owner_changed_is_left_alone(self) -> None:
+        self.path.mkdir()
+        (self.path / "owner").write_text("999999 1 9 hart-gone\n")
+        lock = LAND.MergeLock(self.path, 12, lambda line: None, alive=lambda pid: False)
+        judged = lock.owner()
+        (self.path / "owner").write_text(f"{os.getpid()} {int(time.time())} 13 hart-new\n")   # a new claim
+        lock.clear_if_stale(judged)
+        self.assertIn("hart-new", (self.path / "owner").read_text())
+
+
+@mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG})
+class Drafts(unittest.TestCase):
+    """A draft (make ready's GitHub gate) merges only after `check` passed on its head, marked ready first."""
+
+    def test_a_draft_whose_check_failed_is_refused_and_stays_a_draft(self) -> None:
+        gh = FakeGitHub(check_runs=[[check_run("completed", "failure")]])
+        gh.pr["isDraft"] = True
+        code, out = land(gh)
+        self.assertEqual(1, code, out)
+        self.assertIn("The PR stays a draft", out)
+        self.assertFalse(any(c[:2] in (["pr", "ready"], ["pr", "merge"]) for c in gh.calls), gh.calls)
+
+    def test_a_draft_still_waiting_is_never_marked_ready(self) -> None:
+        gh = FakeGitHub(heads=[HEAD, NEW_HEAD], check_runs=[[check_run("in_progress")]])
+        gh.pr["isDraft"] = True
+        code, out = land(gh)
+        self.assertEqual(1, code, out)
+        self.assertFalse(any(c[:2] == ["pr", "ready"] for c in gh.calls))
+
+    def test_a_draft_whose_check_passed_is_marked_ready_then_merged(self) -> None:
+        gh = FakeGitHub()
+        gh.pr["isDraft"] = True
+        code, out = land(gh, watch_main=False)
+        self.assertEqual(0, code, out)
+        names = [c[:2] for c in gh.calls if c[:2] in (["pr", "ready"], ["pr", "merge"])]
+        self.assertEqual([["pr", "ready"], ["pr", "merge"]], names)
+        self.assertIn(["pr", "ready", "12"], gh.calls)
+        self.assertIn("PR #12 is a draft", out)
+        self.assertIn("PR #12 marked ready", out)
+
+    def test_a_pr_that_is_not_a_draft_is_never_marked_ready(self) -> None:
+        gh = FakeGitHub()
+        code, _ = land(gh, watch_main=False)
+        self.assertEqual(0, code)
+        self.assertFalse(any(c[:2] == ["pr", "ready"] for c in gh.calls))
 
 
 @mock.patch.dict(os.environ, {"HART_CI_REPO": SLUG})

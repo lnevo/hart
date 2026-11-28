@@ -146,6 +146,35 @@ class ParsePageTest(unittest.TestCase):
         self.assertEqual(got.status, "parked")
 
 
+class CoordinatorLineTest(unittest.TestCase):
+    """The merge queue's holder: a Coordinator line in the run directly under an active Status line."""
+
+    def test_a_coordinator_under_an_active_status_with_a_claim(self):
+        got = OR.parse_page("p.md", page(f"""
+            Status: active
+            Coordinator: hart-4e, since 2026-11-27 22:20
+            {CLAIM}
+            """))
+        self.assertEqual([PAGES.Coordinator("p.md", 2, "hart-4e", "2026-11-27 22:20")], got.coordinators)
+        self.assertEqual(1, len(got.claims))
+        self.assertEqual(([], []), (got.problems, got.queue_problems))
+
+    def test_each_line_that_holds_no_queue_is_a_warning(self):
+        for text, words in (
+            ("Status: done (2026-11-27)\nCoordinator: hart-6d, since 2026-11-27 18:13\n",
+             "Coordinator hart-6d on a page whose Status is done, not active"),
+            ("Status: active\nCoordinator: hart-4e\n", "malformed Coordinator line"),
+            ("Status: active\n\nCoordinator: hart-4e, since 2026-11-27 22:20\n", "not directly under the Status"),
+            ("Status: active\nCoordinator: hart-4e, since 2026-13-40 22:20\n", "not a real date and time"),
+        ):
+            with self.subTest(text):
+                got = OR.parse_page("p.md", text)
+                self.assertEqual([], got.coordinators)
+                self.assertEqual(1, len(got.queue_problems), got.queue_problems)
+                self.assertIn(words, got.queue_problems[0][1])
+                self.assertEqual([], got.problems)
+
+
 class Repo(unittest.TestCase):
     """A repo with origin/main and a projects page, plus worktrees; orient's ROOT points at it."""
 
@@ -264,6 +293,19 @@ class ReportTest(Repo):
         self.assertNotIn("agent/claude/idle", out)
         self.assertNotIn("Open PRs", out)
         self.assertNotIn("Waiting to ingest", out)  # the session-start hook: no network, no ingest lines
+
+    def test_the_queue_holder_and_nobody_named(self):
+        out = OR.report(short=True, here=str(self.main))
+        self.assertIn(OR.QUEUE_NOBODY, out)
+        (self.main / "wiki/projects/work.md").write_text(
+            "Status: active\nCoordinator: hart-4e, since 2026-11-27 22:20\n")
+        (self.main / "wiki/projects/old.md").write_text(
+            "Status: done (2026-11-01)\nCoordinator: hart-6d, since 2026-11-27 18:13\n")
+        out = OR.report(short=True, here=str(self.main))
+        self.assertIn("Queue: hart-4e, since 2026-11-27 22:20 (wiki/projects/work.md)", out)
+        warning = [line for line in out if line.startswith("  warning: wiki/projects/old.md:2")]
+        self.assertEqual(1, len(warning), out)
+        self.assertIn("hart-6d on a page whose Status is done", warning[0])
 
     def test_the_same_claim_in_many_worktrees_is_listed_once(self):
         first = self.worktree("a1", commits=1)

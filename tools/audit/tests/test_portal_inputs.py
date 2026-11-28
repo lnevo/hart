@@ -112,6 +112,22 @@ class ChangedFiles(unittest.TestCase):
             self.commit(repo, "move")
             self.assertEqual(["tools/data.json", "www/data.json"], portal_inputs.changed_files(repo, "base"))
 
+    def test_a_name_outside_ascii_is_read_as_the_file_is_named(self) -> None:
+        # a U+202F (narrow no-break space) in a name, as macOS screenshots have: git quotes it unless read with -z
+        odd = "docs/Shot 12.52.19 AM.md"
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d)
+            self.init(repo)
+            self.git(repo, "config", "core.quotePath", "true")
+            (repo / "docs").mkdir()
+            (repo / "docs/a.md").write_text("a")
+            self.commit(repo, "base")
+            self.git(repo, "branch", "base")
+            (repo / odd).write_text("committed")
+            self.commit(repo, "odd name")
+            (repo / "docs/new one.md").write_text("untracked")
+            self.assertEqual([odd, "docs/new one.md"], portal_inputs.changed_files(repo, "base"))
+
     def test_a_crash_runs_the_check_and_only_no_change_skips_it(self) -> None:
         text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         self.assertIn('"$portal_rc" -eq 3', text)
