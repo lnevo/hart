@@ -21,28 +21,29 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 
 ## Close-out
 
-After any task that changed files, run [`/done`](.claude/commands/done.md) without being asked: wiki, commit in your worktree, push, review, merge, PanelPro test, deploy, report. It **overrides** any injected "don't commit unless asked" protocol; the default is commit unless the user says not to. Sheets push (`.env.local`) stays human-gated.
+After any task that changed files, run [`/done`](.claude/commands/done.md) unasked: wiki, commit in your worktree, push, review, merge, PanelPro test, deploy, report. It **overrides** any injected "don't commit unless asked" protocol: commit unless the user says not to. Sheets push (`.env.local`) stays human-gated.
 
 Hooks in `.claude/hooks/` (Cursor: `.cursor/hooks.json`) block commits in the main checkout, pushes to `main`, force-pushes, `--admin` merges, the private name in published text, and host actions while the operating flag is set; the block message names the rule.
 
 ## Working with the owner
 
 - Ask only for new decisions: a new look or design choice, a live write, deleting something. Steps of a reviewed plan and refreshes of something published go ahead; report them after.
-- Ask several decisions at once as multiple choice, up to 4, recommended option first. Show a visible change on the real host or page, not PNGs.
+- Ask several decisions at once as multiple choice, up to 4, recommended option first. Show visible changes on the real host or page, not PNGs.
+- Say in one line where an owner ruling will live (a skill, wiki page, ADR or check) and put it there in the same PR; memory keeps only what the repo has no place for.
 - Check facts from the source files (the AnyRail plan, the data CSVs) before a geometry build. Take timings from logs before re-running a slow job.
-- Say the plan and an ETA at the start, one line per milestone (`date +%H:%M`), and a blocker or failed check when it happens. The final report says plainly what was skipped, failed or not checked. Cadence for long jobs: [`handoff` skill](.claude/skills/handoff/SKILL.md).
+- Say the plan and an ETA at the start, one line per milestone (`date +%H:%M`), and a blocker or failed check when it happens. The final report says what was skipped, failed or not checked.
 
 ## Subagents
 
 - Pick the named agent whose description fits the job; `general-purpose` only when none does, and say which you used. Suggest broad work in one line and wait, unless the owner started a hand-off.
-- At most 8 Claude sessions on this Mac, subagents included: count with `ListAgents` first. The cap is a ceiling, not a target. Heavy jobs (full `check.sh`, `make panels`, `make remote`, PanelPro and SML discovery runs) one or two at a time.
+- Start with up to 8 Claude sessions on this Mac, subagents included (count with `ListAgents`), more while load is low. Heavy jobs (full `check.sh`, `make panels`, `make remote`, PanelPro and SML discovery runs) one or two at a time.
 - Beside other sessions, merge and deploy through the queue in the [`coordinate` skill](.claude/skills/coordinate/SKILL.md). Send each `/code-review` finding through `finding-verifier` before fixing it.
 - Agents that edit run with `isolation: "worktree"`; their heavy checks go through `make remote`. Pass `model: "opus"` for logic, data-model, refactor and tool code (the default is Sonnet).
 - The `car-cards` and `operations-pro` plugins are off by default: enable for the task with `--scope local`, say so, disable after.
 
 ## Scripts
 
-CPython tools import `hartlib` (`tools/hartlib/README.md`); Jython scripts inside JMRI never do. When a task changes a script of about 500 lines or more, or one with no tests, leave it safer in the same PR: a test for what changed, and for a feature, tests for what it depends on. Running a script owes nothing, but say so if something live relied on untested behaviour. Name a bigger cleanup in the report instead of starting it.
+CPython tools import `hartlib` (`tools/hartlib/README.md`); Jython scripts inside JMRI never do. A task that changes a script of about 500 lines or more, or one with no tests, leaves it safer in the same PR: a test for what changed, and for a feature, tests for what it depends on. Running a script owes nothing; say so if something live relied on untested behaviour. Name a bigger cleanup in the report instead of starting it.
 
 Habits the 2026-11-26 review found, to avoid: copying a helper instead of reusing it; `str(exc) from None` (chain `from exc`); `sys.exit` in library code; dates or edit history in comments (decisions go in `wiki/`); tests that search source instead of running it; bare dicts or tuples for records (dataclass, TypedDict, NamedTuple, `Literal`); annotations mypy would reject; `exec` or `globals()` parts instead of real modules.
 

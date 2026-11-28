@@ -197,7 +197,6 @@
     ".claude/commands/done.md",
     ".claude/skills/coordinate/SKILL.md",
     ".claude/skills/deploy/SKILL.md",
-    ".claude/skills/handoff/SKILL.md",
     ".cursor",
     "docs/pipeline-map/pipeline_map.json",
     "wiki/AGENTS_GIT.md",
@@ -15335,24 +15334,10 @@
   },
   {
    "from": ".claude/skills/coordinate/SKILL.md",
-   "to": "docs/INDEX.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": ".claude/skills/coordinate/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
-  },
-  {
-   "from": ".claude/skills/coordinate/SKILL.md",
-   "to": "wiki/STATUS_LOG.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
   },
   {
    "from": ".claude/skills/dashboard/SKILL.md",
@@ -15369,32 +15354,11 @@
    "side": "check"
   },
   {
-   "from": ".claude/skills/deploy/SKILL.md",
-   "to": "wiki/STATUS.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": ".claude/skills/handoff/SKILL.md",
-   "to": "docs/INDEX.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
    "from": ".claude/skills/handoff/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs",
    "side": "check"
-  },
-  {
-   "from": ".claude/skills/handoff/SKILL.md",
-   "to": "wiki/STATUS_LOG.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
   },
   {
    "from": ".claude/skills/operating-flag/SKILL.md",
@@ -15581,13 +15545,6 @@
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/deploy/SKILL.md",
-   "label": "points to",
-   "gen": "agent-docs",
-   "side": "pointer"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": ".claude/skills/handoff/SKILL.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"
@@ -16001,6 +15958,13 @@
   {
    "from": "wiki/projects",
    "to": "wiki/status",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
+   "from": "wiki/status",
+   "to": ".claude/skills/handoff/SKILL.md",
    "label": "points to",
    "gen": "agent-docs",
    "side": "pointer"

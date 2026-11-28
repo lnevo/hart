@@ -29,24 +29,16 @@ The coordinator keeps a live dashboard of every lane, every other session's PR, 
 
 ## Merge queue
 
-`main` requires the `check` job to pass on the PR's head. Since `strict` was turned off (owner, 2026-11-27) the branch need not be up to date ([ADR-042](../../../wiki/decisions/ADR-042-strict-off-main-push-run-watched.md)). One merge at a time across sessions, and no auto-merge while the queue runs:
+The rules (when to merge `origin/main` in, merge-driver files, the post-merge watch, Main red, the baseline sweep, docs-only and light PRs, batching small lanes into one PR) are in [`merging.md`](merging.md). The steps between sessions: one merge at a time, and no auto-merge while the queue runs.
 
 1. Finish the PR's reviews. Send each `/code-review` finding through `finding-verifier` (CONFIRMED, PLAUSIBLE or WRONG) before fixing it, and fix what it confirms (`/done` step 3).
-2. Merge `origin/main` into the branch only when GitHub shows a conflict, or when the PR's last `check` run is older than the latest change on main to a file the PR touches. Merge locally (never rebase; force-push is blocked), regenerate what it owns, run `python3 tools/ops/build_pipeline_map.py --check` if the map merged, push. A PR that touches a file with a merge driver (`.gitattributes`: the union merge on `tools/audit/hand_tables.csv`, `tools/audit/py_sizes.csv`, `wiki/STATUS_LOG.md` and `docs/INDEX.md`, the pipeline-map driver on `docs/pipeline-map/pipeline_map.json`) always merges main with a local `git merge origin/main`, never with update-branch or GitHub's web conflict editor: GitHub does not run the drivers.
+2. Merge `origin/main` in only by the rule in `merging.md` (a conflict or a stale `check` run; a PR that touches a merge-driver file merges main locally), regenerate what the PR owns, push.
 3. Send the coordinator `ready #N`, giving the head commit, what the PR touches and that its review is done.
-4. Wait for `go #N`. A PR does not merge `main` in again because it moved; do it only for a conflict or a stale run (step 2), and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.
-5. On go: wait for `check` to pass on that head (`gh pr checks N --watch --required`), merge with `gh pr merge N --merge --match-head-commit <sha>` for the head whose `check` passed, so a push after the go cannot merge unchecked (never `--admin`), and send back the merge commit. Then watch main's push run for that commit (`gh run list --workflow check.yml --branch main --event push --commit <merge sha>` with the full 40-character SHA, since a short one matches nothing, then `gh run watch <id>`) and report how it ended. If it ends red, the Main red rule applies.
+4. Wait for `go #N`. A PR does not merge `main` in again because it moved; do it only for a conflict or a stale run, and say so. If you push again for another reason (a fix, an owner's choice), tell the coordinator the new head: it stays in line.
+5. On go: wait for `check` to pass on that head (`gh pr checks N --watch --required`), merge with `gh pr merge N --merge --match-head-commit <sha>` for the head whose `check` passed, so a push after the go cannot merge unchecked (never `--admin`), and send back the merge commit. Then watch main's push run for that commit and report how it ended (`merging.md`, After a merge). If it ends red, Main red applies.
 6. In the same message, say what the PR ships. Compare its files with `tools/hosts/live_paths.txt` for the layout hosts, and look for `www/` for the website; name the paths. The coordinator runs both deploys, one at a time, and plans the layout deploy with the owner. A lane session does not deploy while others run.
 
 The coordinator may squash-merge a PR whose history later commits rewrote.
-
-A docs-only PR (Markdown under `wiki/`, `docs/`, `.claude/skills/` or `.claude/agents/`, or `AGENTS.md`, and nothing else) skips the full remote run before it opens, and so does a data edit that changes no behaviour, which `make pr-kind` reports as `light` (the pipeline map's presets, say); both still pass `./tools/check.sh` (the quick docs or light checks) and the required CI (`handoff` skill, Merge, gives the exact rule).
-
-Batch small related lanes into one PR: each merge costs a CI cycle and a push run on main to watch.
-
-**Baseline sweep (owner, 2026-11-27):** lanes do not lower baselines (`mypy_baseline.json`, `habits_baseline.json`, `py_sizes.csv`, `hand_tables.csv`); a count that falls passes with a note. At the end of each wave the queue holder runs `make baselines` in one PR, which lowers the first two and `hand_tables.csv`. `py_sizes.csv` rows are caps with 10 percent headroom that are never lowered; the sweep only drops the rows of files gone or at or under their limit. A lane still adds a row for a new or moved file.
-
-**Main red (owner, 2026-11-27):** while main's push run of `check` is red (failure, cancelled or timed out), the queue holder gives no "go". The PR that broke it fixes forward, or one PR reverts it. Nothing deploys: the deploy gate stops a red main itself (G0c, `ci_pass.py --main-red`).
 
 **A merge out of turn:** tell the coordinator at once, giving the merge commit, what the PR changed and whether it ships. Then go back to the queue.
 
