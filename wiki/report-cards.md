@@ -76,36 +76,38 @@ How to measure again:
 
 ## Website UX
 
-First formal pass on 2026-11-28 at `8515ccc7`: about 7 of 10 (6.8). Earlier site reviews (11-14, 11-22) left follow-up PRs but no score. Three `site-reviewer` agents with the UX lens split the site: shared navigation and the hub pages; the railroad content pages (layout, roster, history, library and the rest); the operator and behind-the-scenes pages (crew, docs, ai, behind, guides, build, exam, play, helix). Each slice scored the eight areas; the score is their mean.
+Scores: 6.8 (2026-11-28, first formal pass at `8515ccc7`), 7.3 (2026-11-28, after the [UX round](projects/ux-round.md), live site at `5c392d9f`). Earlier site reviews (11-14, 11-22) left follow-up PRs but no score. Three `site-reviewer` agents with the UX lens split the site: shared navigation and the hub pages; the railroad content pages; the operator and behind-the-scenes pages. Each slice scores the eight areas; the score is their mean, rounded to a half per area.
 
-| Area | Nav and hubs | Content | Crew and behind | Score | Measured on 2026-11-28 |
-|---|---|---|---|---|---|
-| Navigation and wayfinding | 7 | 6 | 6 | 6.5 | Every section is 1 click from home, the deepest page is 3. 4 of the 5 library articles over 1,600 words have no contents list or heading ids. A crew sheet is 4 taps from any page but home. 16 pages have no route from home, 9 of them real content. |
-| Layout and readability | 7 | 7 | 7 | 7 | 113 of 120 pages have one h1. None scrolls sideways at 375 px (53 crew-slice pages measured in headless Chrome). |
-| Mobile | 6 | 7 | 7 | 6.5 | Viewport meta on every portal page except the redirect stubs and the Publication Standards export. Small tap targets: 117 under 32 px on `ap/index`, the layout map's 146 hotspots at the default fit. |
-| Accessibility | 7 | 6 | 7 | 6.5 | 0 of 210 static images lack alt. Skip link, focus styles and menu ARIA are in place. Header, nav and crew sheets exist only after JS runs: 1 `<noscript>` in the source pages. The exam and lineage tabs have no arrow-key handling. |
-| Clarity for a first-time reader | 7 | 6 | 6 | 6.5 | The home page and its four doors explain themselves. The layout, roster and NVL crew sheet open on CP, Digicon, MQTT, POHC, SM-03 and similar with no gloss. All three guides open on a parked notice. |
-| Consistency across pages | 6 | 6 | 6 | 6 | Nav comes from one source (`data/site.json`). 52 pages have no description and share one generic sentence. Crew is "Crew sheets", "Session paperwork" and "Publications" in different places. |
-| Weight and speed | 8 | 8 | 9 | 8.5 | Home is about 0.2 MB and paints in 0.09 s. `behind/layout-docs` loads 9 MB of images (lazy). `no-cache` on every asset. |
-| Links and errors | 8 | 7 | 6 | 7 | 0 dead links on live pages from about 1,200 checked. `ai/construction.html` links the unpublished `helix/build-status.html` (404). The guides show repo paths and shell commands a reader cannot open. `/library/` is a 404. |
+| Area | First | Nav and hubs | Content | Crew and behind | After the round | Measured after the round |
+|---|---|---|---|---|---|---|
+| Navigation and wayfinding | 6.5 | 8 | 6 | 6 | 6.5 | Every section 1 click from home, depth 3, no orphans with JS. A crew sheet is still 4 taps from most pages on a phone. The primer, helix, jmri-additions and tables-file have no jump list. |
+| Layout and readability | 7 | 8 | 8 | 7 | 7.5 | One h1 on every page. Nothing scrolls sideways at 375 px (86 pages in headless Chrome). The header fits at 980 px. |
+| Mobile | 6.5 | 7 | 7 | 8 | 7.5 | Viewport on every page, the stubs and Publication Standards included. 87 block tap targets under 32 px on 19 pages; 20 of 52 home links under 24 px. The layout map opens at 9% zoom. |
+| Accessibility | 6.5 | 7 | 7 | 5 | 6.5 | 0 images without alt. With JS off every page has a header and the primer its text; crew sheets show only a note and a PDF link, and there is no skip link. The exam tabs have no arrow keys; table scrollers take no focus. |
+| Clarity for a first-time reader | 6.5 | 8 | 6 | 6 | 6.5 | Layout, roster and history gloss CP, CTC, MQTT and the railroads. Photos, articles, railroads, the crew sheets and exam/play (GCOR) do not. Photos shows editor counters. |
+| Consistency across pages | 6 | 7 | 6 | 7 | 6.5 | All 87 crawled pages have their own description. The build cut plans and Publication Standards are off-template. Breadcrumb sections disagree between roster, layout and photos. |
+| Weight and speed | 8.5 | 9 | 8 | 7 | 8 | Pages 10 to 26 KB, about 0.1 s. `behind/layout-docs` 6.3 MB and `ai/clinic` 2.3 MB of lazy images; the build hero (275 KB) is not lazy. |
+| Links and errors | 7 | 9 | 9 | 9 | 9 | 0 dead internal links in 264 crawled URLs and 422 crew-slice targets. The guides' GitHub links resolve, `/library/` redirects, and `check_portal_build.py` fails on a link to a skipped file. |
 
-Held back on 2026-11-28:
-- Nothing was checked on a real phone or with a screen reader, and colour contrast was not measured. Mobile and accessibility rest on CSS, markup and one headless run.
-- Links inside `data/*.json` and links built by JS at runtime were not scanned.
+Weight and speed fell from 8.5 to 8 because the rescore summed live image weight per page and the first pass did not; no page got heavier.
+
+Held back on 2026-11-28 (after the round):
+- Nothing was checked on a real phone or with a screen reader, and colour contrast was not measured.
+- The crew sheets, the job a crew member opens at the layout, are still blank without JavaScript apart from a note.
 
 If the UX card is revisited, in this order:
-1. A static fallback where JS builds the page: the header's home and section links, the crew sheets and the primer (`briefing/`, the "Start here" page), each with a `<noscript>` line pointing to the PDF.
-2. A one-sentence description on the 52 pages without one.
-3. Contents lists and h2 ids on the long library articles, crew sheets, `build/` and the guides, using the `.jump` pattern from `crew/industries`.
-4. A short gloss or glossary link on the first screen of `layout/`, `roster/`, `history/` and the crew sheets.
-5. One name for the crew hub in the nav, title and home page, and a shorter path to a sheet from the Operations menu.
-6. Dead and private links: `build-status.html` from `ai/construction.html`, repo paths in `guides/`, `/library/` to `/articles/`, the raw `library/opspro-showcase-guide.md`, and a check in `check_portal_build.py` that fails on a link to a `SKIP_FILES` path.
+1. Crew sheets rendered at build time (as the primer now is), and a Crew sheets entry in the menu so a sheet is 2 or 3 taps away.
+2. Keyboard: the exam tablist (roving tabindex, arrow keys, `tabpanel`), focusable table scrollers, a skip link in the static header.
+3. Tap targets to 40 px on `.btn`, the door links, footer links, pager links and the crew company buttons; the layout map opening at a readable zoom on phones.
+4. First-screen gloss on photos, articles, railroads, the crew sheet header and exam/play (GCOR); hide the photos editor counters outside edit mode.
+5. Jump lists on the primer, helix, `behind/jmri-additions` and `behind/tables-file`; the build cut plans and Publication Standards on the site template.
+6. Image weight: resized `behind/layout-docs` and `ai/clinic` photos, WebP logos, width and height on the lineage logos and hub thumbnails.
 
 How to measure again:
-- Brief three `site-reviewer` agents with the UX lens on the same three slices, asking each for the eight areas scored with one measurement apiece.
+- Brief three `site-reviewer` agents with the UX lens on the same three slices against the live site, asking each for the eight areas scored with one measurement apiece.
 - Pages without a description: `git grep -L 'name="description"' -- 'www/*.html'`, leaving out `scripts/` and `docs/html/`.
-- `<noscript>` count: `git grep -l '<noscript' -- 'www/*.html'`.
-- Overflow at 375 px with headless Chrome against local `www/`; live weight and status with GET and HEAD only.
+- With JS off: fetch the live HTML of the crew sheets, the primer and the JS-built pages and read what shows.
+- Overflow at 375 px with headless Chrome in a 375 px iframe (the window cannot go below 500 px); live weight and status with GET and HEAD only, summing image bytes per page.
 
 ## Agent experience
 
