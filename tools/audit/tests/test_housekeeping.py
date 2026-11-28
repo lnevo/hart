@@ -300,7 +300,7 @@ class Launchd(unittest.TestCase):
 
 class MakeTargets(unittest.TestCase):
     def dry(self, *args: str) -> str:
-        return subprocess.run(["make", "-n", "-C", str(ROOT), *args], check=True, capture_output=True,
+        return subprocess.run(["make", "--no-print-directory", "-n", "-C", str(ROOT), *args], check=True, capture_output=True,
                               text=True).stdout.strip()
 
     def test_the_targets_call_housekeeping_py(self) -> None:
