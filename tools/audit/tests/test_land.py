@@ -355,6 +355,49 @@ class MergeLocks(unittest.TestCase):
         self.assertGreater(lock.age(lock.owner()), LAND.LOCK_STALE)
         self.assertFalse(lock.take())
 
+    def test_a_red_main_after_the_wait_leaves_a_draft_a_draft(self) -> None:
+        held = self.first()
+        gh = FakeGitHub()
+        gh.pr["isDraft"] = True
+
+        def sleep(_seconds: float) -> None:       # main turns red while the other land holds the lock
+            gh.main_conclusion = "failure"
+            held.release()
+
+        lnd, _ = lander(gh, lock=self.path, lock_sleep=sleep)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            code = lnd.land(12, watch_main=False)
+        self.assertEqual(1, code, buf.getvalue())
+        self.assertIn("main is red", buf.getvalue())
+        self.assertFalse(any(c[:2] in (["pr", "ready"], ["pr", "merge"]) for c in gh.calls), gh.calls)
+        self.assertFalse(self.path.exists())
+
+    def test_an_owner_file_that_cannot_be_written_gives_the_folder_back(self) -> None:
+        lock = LAND.MergeLock(self.path, 12, lambda line: None)
+        with mock.patch.object(Path, "write_text", side_effect=OSError("disk full")):
+            with self.assertRaisesRegex(OSError, "disk full"):
+                lock.claim()
+        self.assertFalse(self.path.exists())
+        self.assertFalse(lock.held)
+
+    def test_a_lock_past_the_ceiling_is_stale_with_its_holder_alive(self) -> None:
+        self.path.mkdir()
+        (self.path / "owner").write_text(f"{os.getpid()} {int(time.time()) - LAND.LOCK_CEILING - 60} 9 hart-hung\n")
+        said: list[str] = []
+        lock = LAND.MergeLock(self.path, 12, said.append, sleep=lambda s: self.fail("waited"))
+        self.assertFalse(lock.take())
+        self.assertIn("alive past", said[0])
+        lock.release()
+
+    def test_a_wait_past_the_limit_stops_naming_the_holder(self) -> None:
+        self.first(pr=11, holder="hart-busy")
+        slept: list[float] = []
+        lock = LAND.MergeLock(self.path, 12, lambda line: None, sleep=slept.append)
+        with self.assertRaisesRegex(LAND.LandError, r"still held after \d+ min by hart-busy for PR #11"):
+            lock.take()
+        self.assertEqual(LAND.LOCK_WAIT_LIMIT, sum(slept))
+
     def test_a_stale_lock_whose_owner_changed_is_left_alone(self) -> None:
         self.path.mkdir()
         (self.path / "owner").write_text("999999 1 9 hart-gone\n")

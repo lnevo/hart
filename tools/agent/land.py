@@ -13,10 +13,10 @@ the rules):
 3. The required check `check` passes on the PR's head. A check run for that exact head SHA can take a minute to be
    registered, so the run waits for one to exist, then for it to finish. Anything but success stops; so does a push
    that moves the head while it waits. A draft PR (one `make ready` opened with GitHub's check as its gate) is
-   refused until that check passed; on the pass it is marked ready (`gh pr ready N`) before the merge.
+   refused until that check passed; on the pass it is marked ready (`gh pr ready N`) in step 4.
 4. The merge lock: one `make land` at a time across sessions (MergeLock, LOCK_PATH), held from here through the end
-   of step 5. A second caller waits, with a line every minute naming the holder and its PR, and checks main again
-   once it holds the lock. Then `gh pr merge N --merge --match-head-commit <head>` (`--squash` instead of `--merge`
+   of step 5. A second caller waits, with a line every minute naming the holder and its PR, up to LOCK_WAIT_LIMIT,
+   and checks main again once it holds the lock. A draft is marked ready only then, just before the merge. Then `gh pr merge N --merge --match-head-commit <head>` (`--squash` instead of `--merge`
    only when asked; never --admin).
 5. Main's push run of check.yml for the merge commit, found by its full 40-character SHA and waited for the same way,
    is watched to the end. On red the Main red rule is printed and the exit is MAIN_RED_EXIT.
@@ -63,6 +63,8 @@ SHA = re.compile(r"[0-9a-f]{40}")
 PR_LABEL = re.compile(r"PR #(\d+)")
 LOCK_PATH = Path(os.environ.get("HART_LAND_LOCK") or "/tmp/hart-land.lock")
 LOCK_STALE = 2700           # seconds: a lock whose holder process is gone and that is older than this is stale
+LOCK_CEILING = 3 * LOCK_STALE   # seconds: a lock older than this is stale even with its holder process alive
+LOCK_WAIT_LIMIT = 2 * LOCK_STALE    # seconds a land waits for the lock before it stops, naming the holder
 LOCK_SAY = 60               # seconds between "waiting for the merge lock" lines
 LOCK_POLL = 5
 SESSION_ENV = "HART_SESSION_NAME"
@@ -177,7 +179,7 @@ class LockOwner:
 class MergeLock:
     """One `make land` merge at a time across sessions: the folder `path`, made with mkdir, holding an owner file
     (LockOwner). A lock whose holder process is gone (or that has no owner file) and that is older than LOCK_STALE
-    seconds (its owner's time, else the folder's mtime) is stale: it is renamed away, only while its owner file is
+    seconds (its owner's time, else the folder's mtime), or any lock older than LOCK_CEILING, is stale: it is renamed away, only while its owner file is
     still the one judged stale, and removed with a line. The same rule as tools/hosts/win_run.sh's mac lock block."""
     path: Path
     pr: int
@@ -194,7 +196,14 @@ class MergeLock:
         except FileExistsError:
             return False
         name = (self.holder or os.environ.get(SESSION_ENV) or "unnamed").replace("\n", " ")
-        (self.path / "owner").write_text(f"{os.getpid()} {int(self.wall())} {self.pr} {name}\n", encoding="utf-8")
+        try:
+            (self.path / "owner").write_text(f"{os.getpid()} {int(self.wall())} {self.pr} {name}\n",
+                                             encoding="utf-8")
+        except BaseException:
+            # a lock with no owner file would hold every other land for LOCK_STALE: take the folder back first
+            (self.path / "owner").unlink(missing_ok=True)
+            self.path.rmdir()
+            raise
         self.held = True
         return True
 
@@ -214,7 +223,8 @@ class MergeLock:
         return self.wall() - since
 
     def clear_if_stale(self, owner: LockOwner) -> None:
-        if (owner.pid is not None and self.alive(owner.pid)) or self.age(owner) <= LOCK_STALE:
+        age = self.age(owner)
+        if age <= LOCK_STALE or (age <= LOCK_CEILING and owner.pid is not None and self.alive(owner.pid)):
             return
         if self.owner().raw != owner.raw:
             return
@@ -224,11 +234,12 @@ class MergeLock:
         except OSError:
             return
         shutil.rmtree(aside, ignore_errors=True)
-        self.say(f"the merge lock {self.path} was stale (holder {owner.holder}, PID {owner.pid or 'none'} gone, "
-                 f"{int(self.age(owner) // 60)} min old); cleared it")
+        why = "gone" if owner.pid is None or not self.alive(owner.pid) else f"alive past {LOCK_CEILING // 60} min"
+        self.say(f"the merge lock {self.path} was stale (holder {owner.holder}, PID {owner.pid or 'none'} {why}, "
+                 f"{int(age // 60)} min old); cleared it")
 
     def take(self) -> bool:
-        """Return once this process holds the lock; True when it had to wait."""
+        """Return once this process holds the lock; True when it had to wait. LandError after LOCK_WAIT_LIMIT."""
         waited = 0.0
         while True:
             if self.claim():
@@ -237,6 +248,9 @@ class MergeLock:
             self.clear_if_stale(owner)
             if self.claim():
                 return waited > 0
+            if waited >= LOCK_WAIT_LIMIT:
+                raise LandError(f"the merge lock ({self.path}) is still held after {LOCK_WAIT_LIMIT // 60} min by "
+                                f"{owner.holder} for PR #{owner.pr} (PID {owner.pid or '?'}); ask that session")
             if waited % LOCK_SAY == 0:
                 self.say(f"{time.strftime('%H:%M')} waiting for the merge lock ({self.path}): {owner.holder} holds it "
                          f"for PR #{owner.pr} (PID {owner.pid or '?'}, {int(self.age(owner) // 60)} min)")
@@ -517,7 +531,6 @@ class Lander:
             self.check_main()
             slug = self.slug()
             self.wait_check(pr, slug)
-            self.mark_ready(pr)
         except LandError as e:
             self.say(f"STOP: {e}. Nothing was merged.")
             return 1
@@ -531,12 +544,13 @@ class Lander:
                 dash_out: str | None, overlap_module: ModuleType | None) -> int:
         """Steps 4 to 8 under the merge lock (released by the caller)."""
         number = pr.number
-        if lock.take():
-            try:
+        try:
+            if lock.take():
                 self.check_main()       # main may have moved while another land held the lock
-            except LandError as e:
-                self.say(f"STOP: {e}. Nothing was merged.")
-                return 1
+            self.mark_ready(pr)         # a draft leaves draft only here, just before its merge
+        except LandError as e:
+            self.say(f"STOP: {e}. Nothing was merged.")
+            return 1
         try:
             sha = self.merge(pr, squash)
         except LandError as e:

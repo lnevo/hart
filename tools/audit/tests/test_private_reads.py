@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import subprocess
+import tempfile
 import sys
 import unittest
 from pathlib import Path
@@ -65,6 +66,54 @@ class PrivateReads(unittest.TestCase):
             raise ValueError("no manifest")
         self.assertEqual("remote: the declarations cannot be read (ValueError: no manifest)",
                          changed_kind.private_line(["a.py"], load=broken))
+
+
+class ImportsAndStepFiles(unittest.TestCase):
+    """What a private-reading step imports, however deep, and the files that say what every step runs."""
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+        for rel, text in (
+            ("tools/plan.py", "import os\nimport helper\nfrom hartlib import facts\n"),
+            ("tools/helper.py", "import importlib\nm = importlib.import_module('deep')\n"),
+            ("tools/deep.py", "X = 1\n"),
+            ("tools/hartlib/src/hartlib/__init__.py", ""),
+            ("tools/hartlib/src/hartlib/facts.py", "from . import names\n"),
+            ("tools/hartlib/src/hartlib/names.py", "import yaml\n"),
+            ("tools/unrelated.py", "import deep\n"),
+        ):
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / rel).write_text(text)
+
+    def line(self, paths: list[str]) -> str:
+        return changed_kind.private_line(paths, self.root, load=lambda _root: decl())
+
+    def test_the_closure_follows_imports_and_leaves_out_what_is_not_in_the_repo(self) -> None:
+        self.assertEqual({"tools/helper.py", "tools/deep.py", "tools/hartlib/src/hartlib/__init__.py",
+                          "tools/hartlib/src/hartlib/facts.py", "tools/hartlib/src/hartlib/names.py"},
+                         changed_kind.import_closure("tools/plan.py", self.root))
+
+    def test_a_change_two_imports_deep_goes_to_the_remote(self) -> None:
+        for path in ("tools/deep.py", "tools/hartlib/src/hartlib/names.py"):
+            with self.subTest(path):
+                self.assertTrue(self.line([path]).startswith(f"remote: {path} feeds tools/plan.py"), self.line([path]))
+
+    def test_an_unrelated_module_leaves_github_as_the_gate(self) -> None:
+        self.assertTrue(self.line(["tools/unrelated.py"]).startswith("github: "))
+
+    def test_the_step_files_go_to_the_remote(self) -> None:
+        for path in changed_kind.STEP_FILES:
+            with self.subTest(path):
+                self.assertTrue(self.line([path]).startswith(f"remote: {path} feeds "), self.line([path]))
+
+    def test_a_submodule_pin_under_a_box_linked_into_the_script_goes_to_the_remote(self) -> None:
+        d = decl()
+        d.nodes.append({"id": "plugin", "path": "external/skills/plugins/maps", "kind": "external"})
+        d.edges.append({"from": "plugin", "to": "tools/plan.py"})
+        got = changed_kind.private_line(["external/skills"], self.root, load=lambda _root: d)
+        self.assertTrue(got.startswith("remote: external/skills feeds tools/plan.py"), got)
 
 
 class NulSeparatedStdin(unittest.TestCase):

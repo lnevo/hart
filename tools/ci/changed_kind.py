@@ -38,6 +38,7 @@ changed (no merge base: a shallow clone, no origin/main); the caller runs the fu
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import sys
 from collections.abc import Callable
@@ -86,6 +87,10 @@ MapChange = Literal["docs", "light"]
 # a cache or built tree the repo's own tools write, which a clean clone builds or does without.
 PRIVATE_PREFIX = "ext:"
 OUTPUT_KINDS = ("output",)
+# The files that say what every check step runs: a change to one can change what a private-reading step does.
+STEP_FILES = ("tools/pipeline/checks.toml", "tools/pipeline/panels.toml", "tools/check.sh")
+# Where a step script's imports resolve, besides the importing file's own folder (the scripts' sys.path entries).
+IMPORT_ROOTS = ("tools/hartlib/src", "tools/schematic", "tools", ".")
 
 Kind = Literal["docs", "light", "full"]
 
@@ -342,10 +347,70 @@ def _under(path: str, box: str) -> bool:
     return path == box or path.startswith(box.rstrip("/") + "/")
 
 
-def private_reads(paths: list[str], d: Declarations) -> list[PrivateRead]:
-    """The changed paths that feed a check step whose script reads a private box: the script itself, a path its
-    step declares (manifest.declarations: inputs, quiet_inputs, outputs, programs) or a repo box the map links into
-    the script (the code it imports, the data it reads)."""
+def _imported_names(tree: ast.AST) -> list[tuple[int, str]]:
+    """(relative level, dotted name) of each import in a module: import a.b, from a import b (as a.b and a),
+    from . import b, and importlib.import_module("a") with a constant name."""
+    names: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names += [(0, a.name) for a in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = node.module or ""
+            names.append((node.level, base))
+            names += [(node.level, f"{base}.{a.name}" if base else a.name) for a in node.names]
+        elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+              and node.func.attr == "import_module" and node.args and isinstance(node.args[0], ast.Constant)
+              and isinstance(node.args[0].value, str)):
+            names.append((0, node.args[0].value))
+    return [(level, name) for level, name in names if name or level]
+
+
+def _module_file(folder: Path, dotted: str) -> Path | None:
+    stem = folder.joinpath(*dotted.split(".")) if dotted else folder
+    for found in (stem.with_name(stem.name + ".py"), stem / "__init__.py"):
+        if found.is_file():
+            return found
+    return None
+
+
+def import_closure(script: str, root: Path = ROOT) -> set[str]:
+    """The repo files `script` imports, directly or through the files it imports, by parsing each with ast. A name is
+    looked up in the importing file's folder, then IMPORT_ROOTS; one found in none (the standard library, a package
+    from pip) is left out."""
+    seen: set[str] = set()
+    todo = [root / script]
+    while todo:
+        path = todo.pop()
+        try:
+            rel = path.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            continue
+        if rel in seen:
+            continue
+        seen.add(rel)
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, SyntaxError, ValueError):
+            continue
+        for level, name in _imported_names(tree):
+            if level:
+                folder = path.parent
+                for _ in range(level - 1):
+                    folder = folder.parent
+                folders = [folder]
+            else:
+                folders = [path.parent, *(root / r for r in IMPORT_ROOTS)]
+            hit = next((f for f in (_module_file(d, name) for d in folders) if f is not None), None)
+            if hit is not None:
+                todo.append(hit)
+    seen.discard(script)
+    return seen
+
+
+def private_reads(paths: list[str], d: Declarations, root: Path = ROOT) -> list[PrivateRead]:
+    """The changed paths that feed a check step whose script reads a private box: the script itself, a file it
+    imports (import_closure), a path its step declares (manifest.declarations: inputs, quiet_inputs, outputs,
+    programs), a repo box the map links into the script (a submodule's pin included) or one of STEP_FILES."""
     sources = private_sources(d)
     path_of = {n["id"]: n["path"] for n in d.nodes if n.get("path")}
     found: list[PrivateRead] = []
@@ -355,10 +420,12 @@ def private_reads(paths: list[str], d: Declarations) -> list[PrivateRead]:
             continue
         feeders = [path_of[e["from"]] for e in d.edges
                    if path_of.get(e.get("to", "")) == decl.script and e.get("from") in path_of]
+        imports = import_closure(decl.script, root)
         for raw in paths:
             p = plain(raw) or raw.strip()
-            if p and (p == decl.script or any(d.covers(pat, p) for pat in decl.patterns)
-                      or any(_under(p, f) for f in feeders)):
+            if p and (p == decl.script or p in imports or p in STEP_FILES
+                      or any(d.covers(pat, p) for pat in decl.patterns)
+                      or any(_under(p, f) or f.startswith(p.rstrip("/") + "/") for f in feeders)):
                 found.append(PrivateRead(p, job, decl.script, boxes[0]))
     return found
 
@@ -372,7 +439,7 @@ def private_line(paths: list[str], root: Path = ROOT,
         d = load(root)
     except Exception as err:   # noqa: BLE001 - declarations that cannot be read send the branch to the remote box
         return f"remote: the declarations cannot be read ({type(err).__name__}: {err})"
-    hits = private_reads(paths, d)
+    hits = private_reads(paths, d, root)
     if hits:
         h = hits[0]
         what = h.path if h.path == h.script else f"{h.path} feeds {h.script}, which"
