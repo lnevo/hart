@@ -25,3 +25,7 @@ Fixes from the first Website UX card ([report-cards](../report-cards.md#website-
 ## Result (2026-11-28)
 
 All five lanes merged: UX-L3 #1380, UX-L4 #1384, UX-L5 #1387, UX-L2 #1381, UX-L1 #1385; the round page was #1378. hart-4e deployed the site from `5c392d9f`. The rescore put the Website UX card at 7.3 (6.8 before); what is left is listed on the [card](../report-cards.md#website-ux).
+
+## Part 2 (2026-11-28)
+
+The owner asked for the crew-sheet and keyboard points and named Content and value as a ninth area of the card. UX-L6 #1395 (crew sheets rendered at build time, Crew sheets in the menu, a static skip link), UX-L7 #1394 (`js/a11y.js`: the tabs pattern on every tablist, labelled table scrollers) and UX-L8 #1398 (content corrections with sources) merged; hart-ef deployed from `2f3c6cce`. Owner rulings: Route 23 is Coraopolis–Sewickley, closed 1952; pig iron ended December 1990; the home lede keeps "a single furnace and two miles of rail" with the year AS&W opened (owner to give it); the two Extra East games share a name by design. The rescore put the card at 7.6.
