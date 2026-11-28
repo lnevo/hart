@@ -148,10 +148,11 @@ class Crew:
 
     @staticmethod
     def steps(job: dict) -> str:
-        # The tick boxes work without JavaScript; only keeping them per job (and Clear ticks) needs it.
+        # The tick boxes are disabled until crew.js redraws them live, so no tick is made that the redraw drops.
         return ('<section class="sheet-sec" aria-labelledby="steps-h"><div class="sec-head"><h2 id="steps-h">Crew steps</h2>'
                 '</div><ol class="steps">'
-                + "".join(f'<li><label><input type="checkbox" class="no-print" data-step="{i}"><span>{esc(s)}</span>'
+                + "".join(f'<li><label><input type="checkbox" class="no-print" data-step="{i}" data-static disabled>'
+                          f'<span>{esc(s)}</span>'
                           "</label></li>" for i, s in enumerate(job["steps"]))
                 + "</ol></section>")
 
@@ -416,8 +417,9 @@ class Crew:
         return pages[kind](), None
 
 
-def render_page(text: str, data: dict) -> str | None:
-    """A built crew page with its content filled in, or None when it is not a crew page this stage knows."""
+def render_page(text: str, data: dict, name: str = "a crew page") -> str | None:
+    """A built crew page with its content filled in, or None when it is not a crew page (no HARTCrew.page call or
+    Loading line) or its data is missing; the second prints a WARNING naming the page."""
     call, nav = _PAGE_CALL.search(text), _NAV_SRC.search(text)
     if not call or not nav or not _CREW_ROOT.search(text):
         return None
@@ -425,7 +427,8 @@ def render_page(text: str, data: dict) -> str | None:
     archive = kind.endswith("-archive")
     try:
         body, head = Crew(data, nav.group(1), archive).render(kind.removesuffix("-archive"), pid)
-    except (KeyError, StopIteration):
+    except (KeyError, StopIteration, TypeError, IndexError) as e:
+        print(f"WARNING: no static content for {name} ({kind} {pid!r}): crew.json has no {e!r}")
         return None
     new = _CREW_ROOT.sub(lambda _m: f'<div id="crew-root" data-static>{body}</div>', text, count=1)
     if head is not None:
@@ -444,7 +447,7 @@ def shelf_html(data: dict, base: str) -> str:
             acts.append(f'<a class="btn" href="{esc(resolve(d["page"]))}">Open</a>')
         if d.get("pdf"):
             acts.append(f'<a class="btn{" btn-ghost" if d.get("page") else ""}" href="{esc(encode_uri(resolve(d["pdf"])))}">Download PDF</a>')
-        r = d.get("revision")
+        r = str(d["revision"]) if d.get("revision") else ""
         rev = (r if re.match(r"^(v|Rev)", r) else "Rev " + r) if r else ""
         return (f'<li><p class="pub-no">{esc(d.get("pub") or "—")}<small>{esc(rev)}</small></p>'
                 f'<div><h3>{esc(d.get("title"))}</h3><p>{esc(d.get("blurb"))}</p></div>'
@@ -465,11 +468,21 @@ def add_shelf(dest: Path) -> bool:
     page = dest / DOCS_REL
     if not page.is_file():
         return False
+    """Fill the built shelf; False, with a WARNING, when its Loading line or publications.json is missing or the data
+    does not fit."""
     text = page.read_text(encoding="utf-8")
-    if not _PUB_ROOT.search(text):
+    pubs = dest / "data" / "publications.json"
+    if not _PUB_ROOT.search(text) or not pubs.is_file():
+        print(f"WARNING: no static shelf on {DOCS_REL}: "
+              + ("data/publications.json is missing" if _PUB_ROOT.search(text) else "#pub-shelf has no Loading line"))
         return False
-    data = json.loads((dest / "data" / "publications.json").read_text(encoding="utf-8"))
-    new = _PUB_ROOT.sub(lambda _m: f'<div id="pub-shelf" data-static>{shelf_html(data, "../")}</div>', text, count=1)
+    data = json.loads(pubs.read_text(encoding="utf-8"))
+    try:
+        shelf = shelf_html(data, "../")
+    except (KeyError, TypeError) as e:
+        print(f"WARNING: no static shelf on {DOCS_REL}: publications.json has no {e!r}")
+        return False
+    new = _PUB_ROOT.sub(lambda _m: f'<div id="pub-shelf" data-static>{shelf}</div>', text, count=1)
     new = new.replace('<p class="muted" id="pub-lede"></p>', f'<p class="muted" id="pub-lede">{esc(data.get("lede"))}</p>', 1)
     page.write_text(_PUB_NOTE.sub("", new, count=1), encoding="utf-8")
     return True
@@ -483,7 +496,7 @@ def add_crew_pages(dest: Path) -> list[str]:
     data = json.loads(crew.read_text(encoding="utf-8"))
     done = []
     for page in sorted((dest / "crew").rglob("*.html")):
-        new = render_page(page.read_text(encoding="utf-8"), data)
+        new = render_page(page.read_text(encoding="utf-8"), data, page.relative_to(dest).as_posix())
         if new is not None:
             page.write_text(new, encoding="utf-8")
             done.append(page.relative_to(dest).as_posix())

@@ -1,5 +1,7 @@
 """portal_nojs.py (stage 7b of prepare_github_pages.py): the static header, footer and primer text a visitor without
 JavaScript sees, on a fixture tree, plus checks that the real pages and nav.js still match what the stage expects."""
+import contextlib
+import io
 import json
 import re
 import sys
@@ -228,9 +230,36 @@ class CrewPages(unittest.TestCase):
         self.assertIn('<a class="map-open" href="../../crew/maps/generated-sheets/west.svg"><img', out)
         self.assertIn("<h1>Old</h1>", out)       # a map page keeps its own head
 
-    def test_unknown_page_is_left_alone(self) -> None:
-        self.assertIsNone(portal_nojs_crew.render_page(crew_page("sheet", "nope"), CREW))
-        self.assertIsNone(portal_nojs_crew.render_page("<p>no call</p>", CREW))
+    def test_steps_wait_for_the_script(self) -> None:
+        self.assertIn('data-step="0" data-static disabled>', self.sheet("full"))
+
+    def test_page_without_its_data_is_left_alone_with_a_warning(self) -> None:
+        for kind, pid, data in (("sheet", "nope", CREW), ("map", "east", CREW), ("tt23", "", {"colors": []})):
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertIsNone(portal_nojs_crew.render_page(crew_page(kind, pid), data, "crew/x/index.html"))
+            self.assertIn("WARNING: no static content for crew/x/index.html", out.getvalue())
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertIsNone(portal_nojs_crew.render_page("<p>no call</p>", CREW))
+        self.assertEqual(out.getvalue(), "")     # not a crew page: nothing to say
+
+    def test_shelf_without_its_data(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp)
+            (dest / "docs").mkdir()
+            (dest / "data").mkdir()
+            (dest / "docs" / "index.html").write_text('<div id="pub-shelf"><p class="muted">Loading…</p></div>',
+                                                      encoding="utf-8")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertFalse(portal_nojs_crew.add_shelf(dest))
+            self.assertIn("publications.json is missing", out.getvalue())
+            (dest / "data" / "publications.json").write_text(
+                json.dumps({"groups": [{"id": "g", "label": "G"}], "items": [{"group": "g", "revision": 3}]}),
+                encoding="utf-8")
+            self.assertTrue(portal_nojs_crew.add_shelf(dest))   # a numeric revision is fine
+            self.assertIn("<small>Rev 3</small>", (dest / "docs" / "index.html").read_text(encoding="utf-8"))
 
     def test_shelf(self) -> None:
         data = {"groups": [{"id": "g", "label": "Sheets", "note": "N"}, {"id": "empty", "label": "None"}],
