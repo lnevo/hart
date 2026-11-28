@@ -47,7 +47,7 @@ Rows to keep:
 - **Every PR another session sends to the queue**, ids `<wave>-P<pr>` (`3-P1271`), named for the session. Add it when the session first tells you its plan, not when it is ready.
 - **The report card** (`<wave>-RC`) and anything else with an ETA the owner waits on.
 
-Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update`; `new-row` is a `set` and needs lane, status, stage, eta and order. Pins come from the ledger (`OUT_DIR/versions.json`); `--if-version DOC=N` overrides one write. A `new-row` with no pin leaves the row out of the ledger, so its next `row` asks for `ledger-sync`. After a version mismatch, `list` the collection, save {doc_id: version} and run `ledger-sync <file>`; for lanes, the next `sync-prs` on a fresh `list` does the same. Do not use a time an agent reports.
+Rows, events and samples are written only through `tools/agent/dash_rows.py`. The helper stamps every time from this Mac's clock; never type one. `row` is an `update`; `new-row` is a `set` and needs lane, status, stage, eta and order. Pins come from a version ledger; [`ledger.md`](ledger.md) says how it fills and how to repair it after a version mismatch. Do not use a time an agent reports.
 
 ```
 python3 tools/agent/dash_rows.py <scratchpad>/dash/out --wave 3 \
@@ -73,7 +73,7 @@ Write them with `event "<text>"`. The id is `e<wave>-HHMM`; the helper adds a le
 
 Update on every message that changes a lane or PR: it starts, passes or fails its gates, starts or ends a remote run, opens a PR, is ready, merges, deploys, changes its ETA or is blocked.
 
-At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir` right before the sync, then run `sync-prs <out_dir>/data/<wave>/lanes`. Each listed row's version is its pin and goes into the ledger. Watch `~/.cache/hart/land/events.log` with a `Monitor` (`tail -n0 -F`): each land job logs its end there. Run it again before telling the owner anything; check other rows against GitHub (`gh pr view N --json state,mergeCommit,headRefOid`) then too. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
+At every `SYNC`, with the samples, the coordinator syncs PR rows, so a merge by `make land` or another session shows without a message: `list` the lanes with `out_dir` right before the sync, then run `sync-prs <out_dir>/data/<wave>/lanes`. Watch `~/.cache/hart/land/events.log` with a `Monitor` (`tail -n0 -F`): each land job logs its end there. Run it again before telling the owner anything; check other rows against GitHub (`gh pr view N --json state,mergeCommit,headRefOid`) then too. Asked for status or an ETA, reply with the link and one line on the lanes running or blocked.
 
 ## Samples
 
