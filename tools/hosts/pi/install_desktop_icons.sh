@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pi desktop: CATS CTC + CATS ABS (both HOLD_ONLY). Removes ABS-RO / CTC SML / legacy.
+# Pi desktop: CATS CTC + CATS ABS (both HOLD_ONLY), TrainStat, Monitor LCOS. Removes ABS-RO / CTC SML / legacy.
 set -euo pipefail
 HART="${HART:?HART must name the deploy drop}"
 SRC="$HART/cats/scripts/pi"
@@ -7,7 +7,7 @@ DESKTOP="${HOME}/Desktop"
 APPS="${HOME}/.local/share/applications"
 mkdir -p "$DESKTOP" "$APPS"
 
-for pair in "CATS_CTC.desktop:CATS CTC.desktop" "CATS_ABS.desktop:CATS ABS.desktop" "TrainStat.desktop:TrainStat.desktop"; do
+for pair in "CATS_CTC.desktop:CATS CTC.desktop" "CATS_ABS.desktop:CATS ABS.desktop" "TrainStat.desktop:TrainStat.desktop" "Monitor_LCOS.desktop:Monitor LCOS.desktop"; do
   src="${pair%%:*}"
   dst="${pair##*:}"
   if [[ ! -f "$SRC/$src" ]]; then
@@ -28,5 +28,5 @@ rm -f \
   "$APPS/CATS_CTC_SML.desktop" \
   "$APPS/CATS.desktop"
 
-chmod +x "$DESKTOP/CATS CTC.desktop" "$DESKTOP/CATS ABS.desktop" "$DESKTOP/TrainStat.desktop" 2>/dev/null || true
-echo "Pi Desktop: CATS CTC + CATS ABS"
+chmod +x "$DESKTOP/CATS CTC.desktop" "$DESKTOP/CATS ABS.desktop" "$DESKTOP/TrainStat.desktop" "$DESKTOP/Monitor LCOS.desktop" 2>/dev/null || true
+echo "Pi Desktop: CATS CTC + CATS ABS + TrainStat + Monitor LCOS"

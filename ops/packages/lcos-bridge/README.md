@@ -26,6 +26,8 @@ cd ~/lcos-bridge
 ./bridge flash           # after a firmware change: compile, stop, upload, start
 ```
 
+On the Pi desktop, **Monitor LCOS** opens one lxterminal on tmux session `lcos`: window 1 follows the bridge log, window 2 shows every MQTT message on the Pi's broker (the old `sub.bat`). The prefix is Ctrl+A as in screen (`~/.tmux.conf`); click a window name or use `Ctrl+A 1`/`2`, `Ctrl+A d` detaches. Opening it again, or `tmux attach -t lcos` over ssh, reattaches to the same session.
+
 The Windows mini PC no longer runs the bridge; it keeps the LCOS MASTER Nano (COM7).
 
 ## Mac lab

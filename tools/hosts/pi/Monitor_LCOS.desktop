@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Monitor LCOS
+Comment=Bridge log and MQTT traffic in one terminal (tmux, Ctrl+A prefix)
+Exec=/home/pi/JMRI_UserFiles/cats/launch/launch_monitor_lcos_desktop.sh
+Icon=utilities-terminal
+Terminal=false
+Categories=Utility;

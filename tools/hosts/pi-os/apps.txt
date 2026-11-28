@@ -5,6 +5,7 @@ cups
 cups-bsd
 mosquitto
 mosquitto-clients
+tmux
 python3-paho-mqtt
 python3-serial
 python3-flask
