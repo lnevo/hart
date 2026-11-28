@@ -18,7 +18,8 @@ The photo stages are reused from the last full run when their inputs are unchang
 
 This file is the entry point: the CLI, the copy, scrub and check stages, and the order main() runs them in. The
 other stages are in portal_photos.py (logos, photos, card thumbs, WebP and the photo cache), portal_head.py (head
-tags and provenance) and portal_search_index.py (the search index); portal_common.py holds what they share.
+tags and provenance), portal_nojs.py (the no-JavaScript header, footer and primer text) and portal_search_index.py
+(the search index); portal_common.py holds what they share.
 """
 
 from __future__ import annotations
@@ -36,6 +37,7 @@ import build_tables_browser  # noqa: E402
 import repo_guide_page  # noqa: E402
 import jmri_additions_page  # noqa: E402
 import portal_common  # noqa: E402
+import portal_nojs  # noqa: E402
 import provenance  # noqa: E402,F401  (re-exported, as below)
 import share_cards  # noqa: E402,F401
 import site_views  # noqa: E402
@@ -317,6 +319,7 @@ def _prepare(args: argparse.Namespace) -> int:
     # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
     # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
+    portal_nojs.nojs_stage(dest)    # static header, footer and primer text for visitors without JavaScript
     _add_head_tags(dest)
     if not _provenance_stage(dest):
         return 1

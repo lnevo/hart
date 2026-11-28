@@ -745,7 +745,11 @@
         HARTOps.renderError(root, {
           what: "this sheet",
           err,
-          links: [{ href: "docs/index.html", label: "Publications shelf" }],
+          // The schematic PDF opens without crew.json (or JavaScript).
+          links: [
+            { href: "crew/maps/schematic/system-schematic.pdf", label: "System schematic (SM-01, PDF)" },
+            { href: "docs/index.html", label: "Publications shelf" },
+          ],
         });
       }
     }

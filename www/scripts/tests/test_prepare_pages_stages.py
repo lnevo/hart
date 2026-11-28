@@ -25,6 +25,8 @@ STAGE MAP (functions of prepare_github_pages.py; main() runs 1 to 14 in this ord
                  pointing at ../external, ../media, ../ops, ../docs. Must follow stages 4 and 5,
                  which read those paths.
  7. Local-only   _strip_local_only_pages. Drops data-local-only elements.
+ 7b. No-JS       portal_nojs.nojs_stage. Static header, footer and primer text for visitors without
+                 JavaScript; reads data/site.json after stage 3. Tested in test_portal_nojs.py.
  8. Head tags    _add_head_tags. Icon and share tags (share_cards).
  9. Provenance   _add_provenance. JSON-LD in every page, llms.txt, robots.txt,
                  sitemap.xml. A page provenance.json does not classify stops the build (exit 1).

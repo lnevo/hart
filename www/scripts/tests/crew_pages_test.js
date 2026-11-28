@@ -71,9 +71,13 @@ async function render(crewPath, kind, id, opts = {}) {
     mountChrome: async () => ({ public: !!opts.public }),
     loadJson: async (rel) => {
       assert.strictEqual(rel, "data/crew.json");
+      if (opts.fail) throw new Error("data/crew.json 404");
       return JSON.parse(JSON.stringify(opts.data || CREW_JSON));
     },
-    renderError: (el, o) => { el.innerHTML = "LOAD ERROR: " + (o.err && o.err.message); },
+    renderError: (el, o) => {
+      el.innerHTML = "LOAD ERROR: " + (o.err && o.err.message);
+      if (opts.keep) opts.keep.links = (o.links || []).map((l) => l.href);
+    },
   });
   vm.runInContext(fs.readFileSync(crewPath, "utf8"), ctx, { filename: path.basename(crewPath) });
   if (opts.keep) opts.keep.ctx = ctx; // a test that calls HARTCrew.lib after the page is drawn
@@ -133,6 +137,12 @@ async function main() {
   const lost = await render(CREW_JS, "sheet", "no-such-job");
   assert.strictEqual(lost.wrote["crew-root"], "LOAD ERROR: No job no-such-job");
   assert.deepStrictEqual(lost.errors, ["No job no-such-job"]);
+
+  // crew.json that does not load: the load error links the schematic PDF, which opens without it.
+  const failed = {};
+  const gone = await render(CREW_JS, "sheet", job.id, { fail: true, keep: failed });
+  assert.strictEqual(gone.wrote["crew-root"], "LOAD ERROR: data/crew.json 404");
+  assert.ok(failed.links.includes("crew/maps/schematic/system-schematic.pdf"), failed.links.join(", "));
 
   // The step ticks: kept per job, and a browser with no storage (it throws) starts clear and keeps drawing.
   const kept = {};
