@@ -6043,7 +6043,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "Session-start hook: moves done lanes' .claude/progress files (1+ day old, topic unused) to archive/.",
+   "desc": "Session-start hook, land job and hourly housekeeping: moves done lanes' .claude/progress files (1+ day old, topic unused, or the lane merged) to archive/.",
    "path": "tools/agent/progress_prune.py"
   },
   {
@@ -6540,6 +6540,15 @@
    "domain": "agents",
    "desc": "make land PR=N: the coordinator queues one PR and a background job merges it (check on the head, its turn in the merge queue, merge, main's push run, overlap and ships lines); never deploys.",
    "path": "tools/agent/land.py"
+  },
+  {
+   "id": "tools/agent/housekeeping.py",
+   "label": "housekeeping.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "make housekeeping (hourly launchd agent, make housekeeping-install) and the land job after a merge: worktree sweep, progress prune, merged local branches deleted with git branch -d.",
+   "path": "tools/agent/housekeeping.py"
   },
   {
    "id": "tools/agent/land_queue.py",
@@ -15406,6 +15415,26 @@
    "from": "ext:github-ci",
    "to": "tools/agent/land.py",
    "label": "check runs and main's push run"
+  },
+  {
+   "from": "host:mac",
+   "to": "tools/agent/housekeeping.py",
+   "label": "make housekeeping (launchd, hourly)"
+  },
+  {
+   "from": "tools/agent/land.py",
+   "to": "tools/agent/housekeeping.py",
+   "label": "after the merge"
+  },
+  {
+   "from": "tools/agent/housekeeping.py",
+   "to": "tools/agent/worktrees.py",
+   "label": "runs sweep"
+  },
+  {
+   "from": "tools/agent/housekeeping.py",
+   "to": "tools/agent/progress_prune.py",
+   "label": "runs prune"
   },
   {
    "from": "docs/report-cards/scores.json",

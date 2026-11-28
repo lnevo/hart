@@ -67,6 +67,15 @@ class Prune(unittest.TestCase):
         patch = mock.patch.object(PP, "open_pr_branches", lambda main: set(self.open_prs))
         patch.start()
         self.addCleanup(patch.stop)
+        self.merged: object = PP.Merged(frozenset(), frozenset())
+        self.merged_calls = 0
+        merged = mock.patch.object(PP, "merged_prs", self.merged_prs)
+        merged.start()
+        self.addCleanup(merged.stop)
+
+    def merged_prs(self, main: str) -> object:
+        self.merged_calls += 1
+        return self.merged
 
     def prune(self, dry_run: bool = False) -> list[str]:
         return PP.prune(dry_run, repo=Path(self.main))
@@ -125,6 +134,66 @@ class Prune(unittest.TestCase):
             with self.assertRaises(PP.PruneError):
                 self.prune()
         self.assertTrue(path.exists())
+
+    def lane_page(self) -> None:
+        Path(self.main, "wiki/projects/big-project.md").write_text(
+            "# Big\n\nStatus: active\n\n| Lane | Job |\n|---|---|\n| L3 Wiring | **Done** 2026-11-25 (#1145) |\n"
+            "| L4a Industries | waits for L3 (#1145) |\n", encoding="utf-8")
+
+    def test_a_lane_whose_branch_merged_is_archived_while_its_page_is_active(self) -> None:
+        self.lane_page()
+        self.merged = PP.Merged(frozenset({"big-project-l9"}), frozenset())
+        lane = self.file("big-project-L9.md")
+        self.assertEqual(len(self.prune()), 1)
+        self.assertFalse(lane.exists())
+
+    def test_a_lane_whose_row_names_a_merged_pr_is_archived(self) -> None:
+        self.lane_page()
+        self.merged = PP.Merged(frozenset(), frozenset({1145}))
+        lane, waiting = self.file("big-project-L3.md"), self.file("big-project-L4a.md")
+        self.assertEqual(len(self.prune()), 1)
+        self.assertFalse(lane.exists())
+        self.assertTrue(waiting.exists())  # its row names no merged PR
+
+    def test_unmerged_lanes_and_the_page_file_stay(self) -> None:
+        self.lane_page()
+        self.merged = PP.Merged(frozenset({"other-lane"}), frozenset({999}))
+        kept = [self.file("big-project-L3.md"), self.file("big-project.md")]
+        self.assertEqual(self.prune(), [])
+        self.assertTrue(all(p.exists() for p in kept))
+
+    def test_no_merged_list_keeps_the_lanes(self) -> None:
+        self.lane_page()
+        self.merged = None
+        lane = self.file("big-project-L3.md")
+        self.assertEqual(self.prune(), [])
+        self.assertTrue(lane.exists())
+
+    def test_the_merged_list_is_read_once_and_only_for_a_lane(self) -> None:
+        self.file("finished.md")
+        self.prune()
+        self.assertEqual(self.merged_calls, 0)
+        self.file("big-project-L3.md")
+        self.file("big-project-L4a.md")
+        self.prune()
+        self.assertEqual(self.merged_calls, 1)
+
+    def test_an_open_pr_still_keeps_a_merged_lane(self) -> None:
+        self.lane_page()
+        self.merged = PP.Merged(frozenset(), frozenset({1145}))
+        self.open_prs = {"big-project-l3"}
+        lane = self.file("big-project-L3.md")
+        self.assertEqual(self.prune(), [])
+        self.assertTrue(lane.exists())
+
+    def test_lane_rows(self) -> None:
+        text = ("| Lane | Job |\n|---|---|\n| L3 Wiring | after #6; **Done** 2026-11-25 (#1145), see #7 |\n"
+                "| L30 Other | Done (#8) |\nL3 text Done #9\n")
+        self.assertEqual(PP.lane_prs(text, "l3"), {1145})  # #6 and #7 are other PRs the row cites
+        table = "| Lane | PR | Note |\n|---|---|---|\n| L5 Crew | #1166 | fixes #12 |\n"
+        self.assertEqual(PP.lane_prs(table, "L5"), {1166})
+        self.assertEqual(PP.lane_of("data-masters", "data-masters-L4a"), "L4a")
+        self.assertIsNone(PP.lane_of("data-masters", "data-masters"))
 
     def test_one_day_is_the_line(self) -> None:
         now = datetime.now(timezone.utc)
