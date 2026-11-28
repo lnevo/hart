@@ -4,7 +4,8 @@
 Builds with prepare_github_pages.py into a temp folder (or checks an existing
 build with --dist), then checks href/src in every built HTML page and the asset
 and link fields of every built data/*.json. External links and #fragments are
-skipped; "/x" resolves from the site root.
+skipped; "/x" resolves from the site root. A link to a file the build leaves out on purpose
+(prepare_github_pages.py SKIP_FILES, or a folder in SKIP_DIRS) is reported apart, by that name.
 
 --manifest writes a summary of the build (files, HTML pages, share cards, archive
 items, industry logos, gallery and fleet items); with --previous it also stops when a count dropped by
@@ -83,15 +84,36 @@ def _data_refs(node: object, key: str | None = None):
         yield node  # site.json nav "pages" are page ids, not paths
 
 
-def broken_links(root: Path) -> list[str]:
-    bad = []
+def _page_refs(root: Path):
+    """(page, ref, target) for every href/src in the built HTML that points at a site file."""
     for page in sorted(root.rglob("*.html")):
         parser = _Links()
         parser.feed(page.read_text(encoding="utf-8", errors="replace"))
         for ref in parser.found:
             target = _target(ref, page.parent, root)
-            if target is not None and not _resolves(target, root):
-                bad.append(f"{page.relative_to(root)}: {ref}")
+            if target is not None:
+                yield page, ref, target
+
+
+def _skipped(target: Path, root: Path, files: set[Path], dirs: set[Path]) -> bool:
+    try:
+        rel = Path(*target.resolve().relative_to(root.resolve()).parts)
+    except ValueError:
+        return False
+    return rel in files or any(d in rel.parents for d in dirs)
+
+
+def skipped_links(root: Path, files: set[Path], dirs: set[Path]) -> list[str]:
+    """Built pages that link a file the build leaves out (SKIP_FILES, or under SKIP_DIRS): always a 404 live."""
+    return [f"{page.relative_to(root)}: {ref} (skipped by the build)"
+            for page, ref, target in _page_refs(root) if _skipped(target, root, files, dirs)]
+
+
+def broken_links(root: Path) -> list[str]:
+    bad = []
+    for page, ref, target in _page_refs(root):
+        if not _resolves(target, root):
+            bad.append(f"{page.relative_to(root)}: {ref}")
     for data in sorted((root / "data").glob("*.json")):
         for ref in _data_refs(json.loads(data.read_text(encoding="utf-8"))):
             # Data paths are relative to the site root; a leading "../" is written for the
@@ -272,6 +294,8 @@ def main() -> int:
         if not args.dist:
             subprocess.run([sys.executable, str(SCRIPTS / "prepare_github_pages.py"), str(root)], check=True)
         bad = broken_links(root)
+        import prepare_github_pages as build  # only here: it loads the whole build
+        skipped = skipped_links(root, build.SKIP_FILES, build.SKIP_DIRS)
         index_bad = index_problems(root)
         summary = manifest(root)
 
@@ -282,6 +306,10 @@ def main() -> int:
         status = 1
     else:
         print("Links OK: every internal href/src and data path resolves.")
+    if skipped:
+        print(f"{len(skipped)} link(s) to files the build leaves out (SKIP_FILES / SKIP_DIRS); retarget or remove them:", file=sys.stderr)
+        print("\n".join("  " + b for b in skipped), file=sys.stderr)
+        status = 1
     if index_bad:
         print(f"{len(index_bad)} problem(s) in the search index:", file=sys.stderr)
         print("\n".join("  " + b for b in index_bad), file=sys.stderr)

@@ -141,7 +141,15 @@
 
   var editMoves = (it, look) => (look.canEdit ? moveButtons(it, look) : "");
   var kindLabel = (it, look) => (look.kinds.find(function (k) { return k.id === it.kind; }) || {}).label;
-  var thumbSrc = (it) => esc(resolveSrc(it.thumb || it.src));
+  // Grid, list and strip show the build's thumbnail (item.thumb, with the original's width/height
+  // to reserve space); the stage and lightbox open the full src.
+  function thumbImg(it, alt) {
+    return (
+      '<img src="' + esc(resolveSrc(it.thumb || it.src)) + '" alt="' + esc(alt) + '"' +
+      (it.width && it.height ? ' width="' + Number(it.width) + '" height="' + Number(it.height) + '"' : "") +
+      ' loading="lazy" decoding="async">'
+    );
+  }
 
   function metaFor(it, look) {
     return [it.date, kindLabel(it, look)].filter(Boolean).map(esc).join(" · ");
@@ -162,7 +170,7 @@
           return (
             '<figure class="g-item archive-card" data-idx="' + i + '">' +
             '<button type="button" class="archive-open" data-idx="' + i + '">' +
-            '<img src="' + thumbSrc(it) + '" alt="' + esc(it.title) + '" loading="lazy">' +
+            thumbImg(it, it.title) +
             "</button>" +
             "<figcaption><strong>" + esc(it.title) + "</strong>" +
             '<span class="archive-meta">' + metaFor(it, look) + " " + confBadge(it) + "</span>" +
@@ -184,7 +192,7 @@
         .map(function (it, i) {
           return (
             '<tr class="archive-row" data-idx="' + i + '" tabindex="0">' +
-            '<td class="fl-thumb"><img src="' + thumbSrc(it) + '" alt="" loading="lazy"></td>' +
+            '<td class="fl-thumb">' + thumbImg(it, "") + "</td>" +
             "<td><strong>" + esc(it.title) + "</strong>" + editMoves(it, look) + "</td>" +
             "<td>" + esc(it.date || "—") + "</td>" +
             "<td>" + esc(kindLabel(it, look) || "—") + "</td>" +
@@ -218,7 +226,7 @@
         .map(function (x, i) {
           return (
             '<button type="button" role="listitem" data-stage="' + i + '"' + (i === stageIndex ? ' aria-current="true"' : "") +
-            ' title="' + esc(x.title) + '"><img src="' + thumbSrc(x) + '" alt="' + esc(x.title) + '" loading="lazy"></button>'
+            ' title="' + esc(x.title) + '">' + thumbImg(x, x.title) + "</button>"
           );
         })
         .join("") +
