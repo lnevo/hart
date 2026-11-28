@@ -1,6 +1,6 @@
 # LE spur names beside their tracks (2026-11-27)
 
-Status: active
+Status: done (2026-11-27)
 Coordinator: hart-6d, since 2026-11-27 18:13
 Dashboard: https://claude.ai/artifact/3RUni5hx1sRXCYarGXYQxa
 

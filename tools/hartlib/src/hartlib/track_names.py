@@ -44,7 +44,6 @@ pieces are not all named, a `name` edit or a five-item `end` entry left in plan_
 from __future__ import annotations
 
 import csv
-import functools
 import json
 import re
 from collections.abc import Callable, Collection, Iterable, Mapping
@@ -52,7 +51,7 @@ from pathlib import Path
 from typing import Any
 
 from . import paths
-from .errors import HartlibError
+from .errors import FactsError, HartlibError
 
 # A plan override section and the plan graph are JSON read as is: Any is their values' type (json.loads).
 End = tuple[str, str, str]                   # a plan run end: (junction, leg, end key)
@@ -434,26 +433,19 @@ LABEL_KEYS = SCHEMATIC / "label_track_keys.csv"
 LABEL_KEY_COLUMNS = ["key", "depth", "form", "notes"]
 
 
-@functools.cache
 def label_track_keys(path: Path = LABEL_KEYS) -> dict[str, tuple[int, str]]:
     """{option: (depth, form)} of label_track_keys.csv: the label options (le_labels, and each band's in
     le_band_labels) that list tracks, depth 1 a list of tracks and 2 a list of lists, form WHOLE or BARE.
-    TrackNameError naming the file and line on other columns, a key given twice, or a depth or form not one of
-    those."""
+    TrackNameError naming the file and line on a missing column or cell, a key given twice, or a depth or form not
+    one of those."""
+    from .railroad_facts import read_rows     # railroad_facts imports this module, so not at the top
     try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = list(reader)
-    except OSError as exc:
-        raise TrackNameError(f"cannot read {path.name}: {exc}") from exc
-    if reader.fieldnames != LABEL_KEY_COLUMNS:
-        raise TrackNameError(f"{path.name}: expected the columns {', '.join(LABEL_KEY_COLUMNS)}, "
-                             f"got {reader.fieldnames}")
+        rows = read_rows(path, LABEL_KEY_COLUMNS)
+    except FactsError as exc:
+        raise TrackNameError(str(exc)) from exc
     out: dict[str, tuple[int, str]] = {}
-    for n, r in enumerate(rows, 2):
-        if None in r or None in r.values():
-            raise TrackNameError(f"{path.name} line {n}: expected {len(LABEL_KEY_COLUMNS)} cells")
-        key, depth, form = r["key"].strip(), r["depth"].strip(), r["form"].strip()
+    for n, r in rows:
+        key, depth, form = r["key"], r["depth"], r["form"]
         if not key or key in out:
             raise TrackNameError(f"{path.name} line {n}: key {key!r} is empty or given twice")
         if depth not in ("1", "2") or form not in (WHOLE, BARE):

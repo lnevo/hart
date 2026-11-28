@@ -286,7 +286,7 @@ class LabelTrackKeys(unittest.TestCase):
         self.assertEqual(T.label_track_keys(path), {"hidden_names": (1, "bare"), "name_steps": (2, "bare")})
 
     def test_a_bad_file_stops_naming_the_line(self) -> None:
-        cases = [("key,depth,form\nx,1,bare\n", "expected the columns"),
+        cases = [("key,depth\nx,1\n", "form"),
                  ("key,depth,form,notes\nx,3,bare,\n", "line 2: x: depth must be 1 or 2"),
                  ("key,depth,form,notes\nx,1,short,\n", "line 2: x: depth must be 1 or 2 and form"),
                  ("key,depth,form,notes\nx,1,bare,\nx,2,bare,\n", "line 3: key 'x' is empty or given twice")]
