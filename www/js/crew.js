@@ -294,9 +294,9 @@
     );
   }
 
-  function rowsSection(title, rows) {
+  function rowsSection(title, rows, id) {
     return (
-      `<section class="sheet-sec"><h2>${esc(title)}</h2><ol class="seq">` +
+      `<section class="sheet-sec"><h2 id="${id}">${esc(title)}</h2><ol class="seq">` +
       join(rows, (r) =>
         `<li><span class="seq-n">${esc(r.n)}</span><div><p class="seq-train">${esc(r.train)}</p>` +
         `<p class="seq-action">${esc(r.action)}</p>` +
@@ -362,14 +362,29 @@
     );
   }
 
+  // The jump row under the summary: one link per section this job's sheet has (ids on the h2s above).
+  function sheetJump(job) {
+    const links = [];
+    if (job.priority) links.push(["prio-h", "Priority"]);
+    if (job.steps) links.push(["steps-h", "Steps"]);
+    if (job.sequence) links.push(["sequence-h", "Sequence"]);
+    if (job.lineup) links.push(["lineup-h", "Train lineup"]);
+    links.push(["colors-h", "Colors"]);
+    if (job.maps && job.maps.length) links.push(["where-h", "Maps"]);
+    if (job.talk && job.talk.length) links.push(["talk-h", "Talk"]);
+    return links.length < 3 ? "" :
+      '<nav class="jump no-print" aria-label="On this page"><ul>' +
+      join(links, (l) => `<li><a href="#${l[0]}">${l[1]}</a></li>`) + "</ul></nav>";
+  }
+
   // A crew sheet's body: each section the job has data for, in the order the printed card has them.
   function sheetBody(job) {
     return (
-      `<p class="sheet-summary">${esc(job.summary)}</p>` +
+      `<p class="sheet-summary">${esc(job.summary)}</p>` + sheetJump(job) +
       (job.priority ? prioritySection(job) : "") +
       (job.steps ? stepsSection(job) : "") +
-      (job.sequence ? rowsSection("Sequence", job.sequence) : "") +
-      (job.lineup ? rowsSection("Train lineup", job.lineup) : "") +
+      (job.sequence ? rowsSection("Sequence", job.sequence, "sequence-h") : "") +
+      (job.lineup ? rowsSection("Train lineup", job.lineup, "lineup-h") : "") +
       colorsSection(job) +
       (job.maps && job.maps.length ? whereSection(job) : "") +
       (job.talk && job.talk.length ? talkSection(job) : "") +

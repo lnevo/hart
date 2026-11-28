@@ -424,6 +424,7 @@ ${speed.join("\n")}
 ${route.join("\n")}
 <h3 class="xa-sub">At a Stop: the plates</h3>
 ${plates.join("\n")}
+<p class="xa-top"><a href="#top">Back to top</a></p>
 </section>` };
 }
 
@@ -573,7 +574,7 @@ function questionCard(q, n, REFS) {
 function sectionHtml(sec, name, list, first, REFS) {
   if (!list.length) return "";
   const cards = list.map((q, i) => questionCard(q, first + i, REFS)).join("\n");
-  return `<section class="xa-sec" id="${sec}"><h2>${esc(name)} <small>${list.length}</small></h2>\n${cards}\n</section>`;
+  return `<section class="xa-sec" id="${sec}"><h2>${esc(name)} <small>${list.length}</small></h2>\n${cards}\n<p class="xa-top"><a href="#top">Back to top</a></p>\n</section>`;
 }
 
 /* The links to each section that has questions, and to the signals run's tables when there are any. */
@@ -609,6 +610,7 @@ function pageHtml(n, toc, groups, GEN, REFS) {
 .xa-tools{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;position:sticky;top:var(--header-h,0px);background:var(--paper);padding:8px 0;z-index:2}
 .xa-tools input[type=search]{flex:1 1 240px;font:inherit;padding:8px 10px;border:1px solid #b9b4a6;border-radius:4px}
 .xa-toc{font-size:14px;line-height:1.8}
+.xa-top{margin:6px 0 0;text-align:right;font-size:14px}
 .xa-q{border:1px solid #d6d0c0;border-radius:6px;padding:10px 14px;margin:10px 0}
 .xa-q h3{margin:2px 0 6px}
 .xa-meta{margin:0;font-size:12px;color:#5d5a4e;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}

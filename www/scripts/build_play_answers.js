@@ -108,7 +108,7 @@ function render(shifts) {
   <p class="xa-meta">${link}</p>
 </article>`;
     }).join("\n");
-    return `<section class="xa-sec" id="${s.id}"><h3>${esc(s.def.code)}, ${esc(s.def.name)} <small>${esc(s.def.dateLine)} · ${s.qs.length} questions</small></h3>\n${warrantsHtml(s)}${items}\n</section>`;
+    return `<section class="xa-sec" id="${s.id}"><h3>${esc(s.def.code)}, ${esc(s.def.name)} <small>${esc(s.def.dateLine)} · ${s.qs.length} questions</small></h3>\n${warrantsHtml(s)}${items}\n<p class="xa-top"><a href="#top">Back to top</a></p>\n</section>`;
   };
   const secs = Object.keys(GROUPS).map((g) => `<section class="xa-grp"><h2>${esc(GROUPS[g][0])} <small>${esc(GROUPS[g][1])}</small></h2>\n${inGroup(g).map(runHtml).join("\n")}\n</section>`).join("\n");
   return `<!DOCTYPE html>
@@ -128,6 +128,7 @@ function render(shifts) {
 .xa-varies{font-size:14px;color:#545b67;margin:4px 0}
 .xa-tools input[type=search]{flex:1 1 240px;font:inherit;padding:8px 10px;border:1px solid #a9b0bc;border-radius:4px}
 .xa-toc{font-size:14px;line-height:1.8}
+.xa-top{margin:6px 0 0;text-align:right;font-size:14px}
 .xa-q{border:1px solid #c9ced7;border-left:3px solid #e8913a;border-radius:6px;padding:10px 14px;margin:10px 0;background:#f5f6f8}
 .xa-q h4{margin:2px 0 6px;font-size:1.05rem}
 .xa-meta{margin:0;font-size:12px;color:#545b67;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
