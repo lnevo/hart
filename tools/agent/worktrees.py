@@ -17,7 +17,8 @@ submodules tools/check.sh needs (CHECK_SUBMODULES) at their pinned commits. A su
 cannot be fetched is reported and the worktree is still made.
 
 `sweep` removes a worktree only when GitHub lists a merged PR for its branch whose head
-is the worktree's commit or a descendant of it (so nothing local is lost), the merge is
+is the worktree's commit or a descendant of it (so nothing local is lost), or an ancestor of it whose later commits
+are all on the default branch already (extras_on_base), the merge (or that later commit) is
 at least GRACE old, and the worktree has no uncommitted or untracked changes. Its local
 branch goes with it. git refuses to remove a worktree with a submodule checked out; the
 sweep then forces it only when no submodule holds work that exists nowhere else (see
@@ -25,7 +26,10 @@ submodule_risk). A fresh worktree with no PR yet, one with work after the merge,
 ones holding a --keep directory (the caller's) are kept. A detached worktree has no PR to
 judge it by: it is removed when its commit is already on the default branch, it is clean, no
 rebase, bisect or merge is stopped in it, and its index has not changed for DETACHED_IDLE (a
-week; reading files leaves no trace, so another session may still be using it before then). Every kept worktree except plain open work gets a "kept" line saying why. The grace
+day; reading files leaves no trace, so another session may still be using it before then; a running session's
+lock keeps it longer). Every kept worktree except plain open work gets a line saying why: "waiting" when a later
+sweep removes it without anyone acting (a live session's lock, the grace period, the detached idle time), "kept"
+when it needs a look (uncommitted changes, commits on no remote branch, a refused removal). The grace
 period lets another session finish in a worktree it just merged. Remote branches are left
 alone. The same rules apply to the worktrees of each checked-out submodule (external/model-railroad-skills keeps
 its own under its .claude/worktrees/), judged by that submodule's own GitHub PRs, with three limits: only branches
@@ -37,6 +41,7 @@ Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -55,9 +60,14 @@ CHECK_SUBMODULES = ("external/model-railroad-skills",)
 TOPIC = re.compile(r"[a-z0-9]+([-_][a-z0-9]+)*")
 GRACE = timedelta(minutes=30)
 # A detached worktree has no merge time; it counts as done once untouched this long and its commit is on main.
-DETACHED_IDLE = timedelta(days=7)
+DETACHED_IDLE = timedelta(days=1)
 # Files in a worktree's git dir that mean an operation is stopped part way; such a worktree is never removed.
 IN_PROGRESS = ("rebase-merge", "rebase-apply", "BISECT_LOG", "MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD")
+
+
+class Waiting(str):
+    """Why a worktree is kept, when a later sweep removes it without anyone acting (a live lock, the grace period,
+    the detached idle time). Any other reason is a plain str and needs a look; sweep_repo words the line by it."""
 
 
 @dataclass
@@ -267,7 +277,33 @@ def merged_at(tree: Worktree, main: str, prs: list[dict] | None = None, base: st
         prs = merged_prs(tree.branch, main) or []
     times = [datetime.fromisoformat(pr["mergedAt"].replace("Z", "+00:00")) for pr in prs
              if pr["headRefOid"] == tree.head or git_ok("merge-base", "--is-ancestor", tree.head, pr["headRefOid"], cwd=main)]
+    if not times and base:  # commits after the merged head, each one already on base: counted from the last commit
+        times = [max(datetime.fromisoformat(pr["mergedAt"].replace("Z", "+00:00")), commit_time(tree.head, main))
+                 for pr in prs if extras_on_base(main, pr["headRefOid"], tree.head, base) == 0]
     return max(times) if times else None
+
+
+def commit_time(commit: str, cwd: str) -> datetime:
+    return datetime.fromisoformat(git("log", "-1", "--format=%cI", commit, cwd=cwd))
+
+
+@functools.lru_cache(maxsize=None)
+def extras_on_base(main: str, merged: str, head: str, base: str) -> int | None:
+    """How many commits after the merged PR head `merged` are not on `base`; None when `merged` is no ancestor of
+    `head` or git cannot say. A commit counts as on base when its patch is (git cherry marks it "-"); a merge
+    commit has no patch, so a range holding one counts in full unless merging `head` into base would change
+    nothing (git merge-tree gives base's own tree), which also covers a branch that merged base back in."""
+    if not git_ok("merge-base", "--is-ancestor", merged, head, cwd=main):
+        return None
+    try:
+        new = [m for m in git("cherry", base, head, merged, cwd=main).splitlines() if m.startswith("+")]
+        merges = git("rev-list", "--merges", head, f"^{merged}", f"^{base}", cwd=main).splitlines()
+        if not new and not merges:
+            return 0
+        same = git("merge-tree", "--write-tree", base, head, cwd=main) == git("rev-parse", f"{base}^{{tree}}", cwd=main)
+    except GitCommandError:
+        return None
+    return 0 if same else len(new) + len(merges)
 
 
 def inside(path: str, keep: list[str]) -> bool:
@@ -305,11 +341,12 @@ def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | 
         if home is not None and not under(tree.path, home):
             kept.append((tree, "outside, kept (not under .claude/worktrees/ of its repository)"))
         elif lock_held(tree, now):
-            kept.append((tree, "locked"))
+            kept.append((tree, Waiting("locked")))
         elif inside(tree.path, keep):
-            kept.append((tree, "in use by this session; a later sweep removes it"))
+            kept.append((tree, Waiting("in use by this session; a later sweep removes it")))
         elif now - when < GRACE:
-            kept.append((tree, f"merged under {int(GRACE.total_seconds() // 60)} minutes ago; a later sweep removes it"))
+            kept.append((tree, Waiting(f"merged under {int(GRACE.total_seconds() // 60)} minutes ago; a later sweep "
+                                        "removes it")))
         elif dirty(tree.path):
             kept.append((tree, "merged, but has uncommitted or untracked changes"))
         else:
@@ -447,11 +484,13 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
                 return f"detached, with commits not on {base or 'the default branch'}"
             if in_progress(tree.path):
                 return "detached, with a rebase, bisect or merge stopped part way"
-            return (f"detached, its commit is on {base}; removed once untouched for "
-                    f"{DETACHED_IDLE.days} days")
+            return Waiting(f"detached, its commit is on {base}; removed once untouched for {DETACHED_IDLE.days} day(s)")
         prs = by_branch.get(tree.branch, []) if by_branch is not None else (merged_prs(tree.branch, main) or [])
         # Commits after the merge: some merged head is an ancestor of this worktree's commit. A new worktree that
         # reuses an old topic name starts from main instead, and is plain open work.
+        counts = [n for pr in prs if base and (n := extras_on_base(main, pr["headRefOid"], tree.head, base))]
+        if counts:
+            return f"its PR is merged, but {min(counts)} commit(s) after the merged head are not on {base}"
         if any(git_ok("merge-base", "--is-ancestor", pr["headRefOid"], tree.head, cwd=main) for pr in prs):
             return "its PR is merged, but this worktree has commits after the merged head"
         return None
@@ -485,9 +524,10 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
             cleanup = after_removal(tree, main)
         finally:
             clock.removing += time.monotonic() - began
-        why = "PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} days"
+        why = "PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} day(s)"
         lines.append(f"removed {tree.path} ({label}, {why})" + "".join(f"; {c}" for c in cleanup))
-    lines += [f"kept {tree.path} ({tree.branch or tree.head[:8]}): {why}" for tree, why in kept]
+    lines += [f"{'waiting' if isinstance(why, Waiting) else 'kept'} {tree.path} ({tree.branch or tree.head[:8]}): {why}"
+              for tree, why in kept]
     return lines
 
 
