@@ -151,7 +151,7 @@ def status_page(head: str, published: dict[str, str]) -> str:
         name = m.group(1)
         return f'<a href="{published[name]}"><code>{name}</code></a>' if name in published else m.group(0)
     body = re.sub(r'<code>([^<]+)</code>', link, body)
-    return head.replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
+    return head.replace('{{DESC}}', 'Build status of the Neville Island helix: as-built facts, decisions that override the plan, fixtures and scripts, and open items, updated 15 October 2026.').replace('{{TITLE}}', 'Helix build status').replace('{{PAGE}}', 'helix-status').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Helix build status</h1>
       <p class="muted">Rendered from <a href="files/{STATUS}"><code>{STATUS}</code></a></p>
@@ -166,7 +166,7 @@ def index_page(head: str, rows_html: list[str], n_files: int) -> str:
     plan_kb = size((DOCS / PLAN).stat().st_size)
     tmpl_kb = size((DOCS / 'lap_screw_template.pdf').stat().st_size)
     obs = ', '.join(f'<code>{f}</code>' for f in OBSOLETE)
-    return head.replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
+    return head.replace('{{DESC}}', 'Neville Island helix construction plan and printed fixtures: the 13-page plan PDF, the half-lap screw template and the design handoff.').replace('{{TITLE}}', 'Neville Island helix').replace('{{PAGE}}', 'helix').replace('{{BODY}}', f'''
     <div class="page-head">
       <h1>Neville Island helix</h1>
       <p class="muted">Construction plan and the printed fixtures for the 26 / 31.75 in helix · updated 15 October 2026</p>
