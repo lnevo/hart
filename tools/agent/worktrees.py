@@ -7,7 +7,7 @@ stays on main for pulls and deploys.
 
   worktrees.py new <topic> [--agent claude]   create .claude/worktrees/<topic> on
                                               agent/<agent>/<topic> from origin/main
-  worktrees.py sweep [--dry-run] [--keep DIR] remove the worktrees whose PR is merged
+  worktrees.py sweep [--dry-run] [--keep DIR] remove merged worktrees and idle ones with nothing new
   worktrees.py submodules [PATH]              check out CHECK_SUBMODULES where missing
                                               (tools/check.sh runs it, for worktrees not made by new)
 
@@ -36,13 +36,13 @@ its own under its .claude/worktrees/), judged by that submodule's own GitHub PRs
 named agent/* are swept (the owner keeps other lines, such as the STS ones, even when merged), only worktrees under
 that submodule's own .claude/worktrees/ are removed (any other merged one is reported "outside, kept"), and vendor
 submodules (SKIP_SUBMODULES) are never entered. A submodule's default branch is fetched, whatever it is called.
+A worktree with nothing beyond the default branch also goes, PR or not, once clean and idle (worktree_rules.py).
 Runs from the merge hook and at session start (.claude/hooks/worktree_sweep.py).
 """
 from __future__ import annotations
 
 import argparse
 import functools
-import json
 import os
 import re
 import shutil
@@ -52,6 +52,9 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # also when loaded by path (orient.py, the tests)
+from worktree_rules import Probe, idle_words, merged_by_branch, merged_prs, nothing_unique_since, open_branches  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 MIRRORS = ("media", "ops/car-cards", "ops/hart-ops/.venv")
@@ -198,36 +201,6 @@ def worktrees(cwd: str | Path | None = None) -> list[Worktree]:
             found.append(cur)
             cur = None
     return found
-
-
-def merged_prs(branch: str, main: str) -> list[dict] | None:
-    """Merged PRs for `branch` from GitHub, or None when GitHub can't be asked."""
-    try:
-        done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--head", branch, "--limit", "20",
-                               "--json", "headRefOid,mergedAt"], cwd=main, capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return json.loads(done.stdout or "[]") if done.returncode == 0 else None
-
-
-def merged_by_branch(main: str, limit: int = 1000) -> dict[str, list[dict]] | None:
-    """Every merged PR on GitHub, grouped by head branch, in one call; None when GitHub can't be asked.
-
-    One call instead of one per worktree keeps a sweep of many worktrees inside the hook's timeout. A branch
-    whose PR is older than the newest `limit` merges is missing here, so it counts as open work and is kept.
-    """
-    try:
-        done = subprocess.run(["gh", "pr", "list", "--state", "merged", "--limit", str(limit),
-                               "--json", "headRefName,headRefOid,mergedAt"],
-                              cwd=main, capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if done.returncode != 0:
-        return None
-    grouped: dict[str, list[dict]] = {}
-    for pr in json.loads(done.stdout or "[]"):
-        grouped.setdefault(pr["headRefName"], []).append(pr)
-    return grouped
 
 
 def last_touched(path: str) -> datetime:
@@ -471,10 +444,15 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
         pass  # offline: the sweep works from the remote refs as last fetched
     by_branch = merged_by_branch(main)
     base = f"origin/{branch}" if branch else None
-    if by_branch is None:  # GitHub refused the batch: ask per branch, as before
-        merged = lambda t: merged_at(t, main, base=base)  # noqa: E731
-    else:
-        merged = lambda t: merged_at(t, main, by_branch.get(t.branch or "", []), base=base)  # noqa: E731
+    opened, idle, now = functools.cache(lambda: open_branches(main)), set(), datetime.now(timezone.utc)
+
+    def merged(t: Worktree) -> datetime | None:  # with no batch (GitHub refused it) merged_at asks per branch
+        when = merged_at(t, main, None if by_branch is None else by_branch.get(t.branch or "", []), base=base)
+        probe = Probe(lambda: on_base(t, main, base), lambda: in_progress(t.path), lambda: last_touched(t.path),
+                      lambda: is_dirty(t.path))
+        if when is None and (when := nothing_unique_since(t.path, t.branch, probe, opened, now)):
+            idle.add(t.path)
+        return when
 
     def why_open(tree: Worktree) -> str | None:
         if not os.path.isdir(tree.path):
@@ -524,7 +502,8 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
             cleanup = after_removal(tree, main)
         finally:
             clock.removing += time.monotonic() - began
-        why = "PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} day(s)"
+        why = ("PR merged" if tree.branch else f"detached, commit on {base}, untouched {DETACHED_IDLE.days} day(s)") \
+            if tree.path not in idle else f"nothing beyond {base}, untouched {idle_words(tree.path)}"
         lines.append(f"removed {tree.path} ({label}, {why})" + "".join(f"; {c}" for c in cleanup))
     lines += [f"{'waiting' if isinstance(why, Waiting) else 'kept'} {tree.path} ({tree.branch or tree.head[:8]}): {why}"
               for tree, why in kept]

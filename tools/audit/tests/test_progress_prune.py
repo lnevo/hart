@@ -1,5 +1,5 @@
-"""tools/agent/progress_prune.py: a lane's progress file moves to .claude/progress/archive/<date>/ once it is two
-days old and no worktree, open PR or active project page uses its topic.
+"""tools/agent/progress_prune.py: a lane's progress file moves to .claude/progress/archive/<date>/ once it is a
+day old and no worktree, open PR or active project page uses its topic.
 
 A temporary repo stands in for hart and gh is replaced by a canned list of open PR branches."""
 from __future__ import annotations
@@ -126,10 +126,10 @@ class Prune(unittest.TestCase):
                 self.prune()
         self.assertTrue(path.exists())
 
-    def test_two_days_is_the_line(self) -> None:
+    def test_one_day_is_the_line(self) -> None:
         now = datetime.now(timezone.utc)
-        young = PP.ProgressFile(Path("a.md"), "a", now - timedelta(days=1, hours=23))
-        old = PP.ProgressFile(Path("b.md"), "b", now - timedelta(days=2))
+        young = PP.ProgressFile(Path("a.md"), "a", now - timedelta(hours=23, minutes=59))
+        old = PP.ProgressFile(Path("b.md"), "b", now - timedelta(days=1))
         self.assertEqual(PP.done([young, old], set(), now), [old])
 
 

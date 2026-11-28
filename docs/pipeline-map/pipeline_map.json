@@ -6025,7 +6025,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "agents",
-   "desc": "Session-start hook: moves done lanes' .claude/progress files (2+ days old, topic unused) to archive/.",
+   "desc": "Session-start hook: moves done lanes' .claude/progress files (1+ day old, topic unused) to archive/.",
    "path": "tools/agent/progress_prune.py"
   },
   {
@@ -6036,6 +6036,15 @@
    "domain": "agents",
    "desc": "make wt: makes an agent worktree per task, sets the map merge driver, and sweeps merged ones; no pipeline file.",
    "path": "tools/agent/worktrees.py"
+  },
+  {
+   "id": "tools/agent/worktree_rules.py",
+   "label": "worktree_rules.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "The sweep's GitHub reads (merged and open PRs) and its rule for a clean, idle worktree with nothing beyond origin/main.",
+   "path": "tools/agent/worktree_rules.py"
   },
   {
    "id": "tools/ops/orient.py",
@@ -13948,6 +13957,11 @@
   {
    "from": "tools/agent/progress_prune.py",
    "to": "tools/agent/worktrees.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/agent/worktrees.py",
+   "to": "tools/agent/worktree_rules.py",
    "label": "imports"
   },
   {

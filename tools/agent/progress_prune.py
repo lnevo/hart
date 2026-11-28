@@ -35,7 +35,7 @@ PAGES = ROOT / "tools/ops/orient_pages.py"  # reads a project page's Status and 
 PROGRESS = Path(".claude/progress")
 ARCHIVE = "archive"
 SUFFIXES = (".dash.jsonl", ".md", ".log")  # longest first: x.dash.jsonl is topic x
-STALE = timedelta(days=2)
+STALE = timedelta(days=1)
 GH_TIMEOUT = 20
 
 

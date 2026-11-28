@@ -192,7 +192,9 @@ class LinesTest(unittest.TestCase):
 class OrientWiringTest(Repo):
     def setUp(self):
         super().setUp()
+        # the fixture's worktrees sit beside main, not under main/.claude/worktrees/: count that folder as home
         for patch in (mock.patch.object(OR, "ROOT", self.main), mock.patch.object(OR, "ROOT_MAIN", self.main),
+                      mock.patch.object(OR, "WORKTREES", Path("..")),
                       mock.patch.object(OR, "load_worktrees_module", return_value=WT)):
             patch.start()
             self.addCleanup(patch.stop)
@@ -218,6 +220,51 @@ class OrientWiringTest(Repo):
         self.assertIn("Overlap (files changed in two or more places; local worktrees, 1 open PRs):", text)
         self.assertIn(f"  new.py: PR #9 (agent/remote), agent/e, {self.cl}", text)
         self.assertIn("  map.json: agent/a, agent/b", text)
+
+
+class HomeAndLanesTest(Repo):
+    def setUp(self):
+        super().setUp()
+        for patch in (mock.patch.object(OR, "ROOT", self.main), mock.patch.object(OR, "ROOT_MAIN", self.main),
+                      mock.patch.object(OR, "load_worktrees_module", return_value=WT)):
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def test_worktrees_outside_home_are_left_out_unless_a_session_runs_there(self):
+        out = OR.report(short=True, here="/")
+        self.assertFalse(any(line.startswith("Overlap:") for line in out), out)  # a, b, c, e all sit outside
+        running = (str(self.a), str(self.b))
+        with mock.patch.object(OR, "lock_state", side_effect=lambda wt, t: "session running" if t.path in running
+                               else ""):
+            out = OR.report(short=True, here="/")
+        self.assertIn("Overlap: 2 files changed in two or more places (plain.txt: agent/a, agent/b; x.py: agent/a, "
+                      "agent/b); make orient", out)
+
+    def test_one_lane_prefixs_branches_are_grouped(self):
+        home = self.main / ".claude/worktrees"
+        for name in ("ux-nav", "ux-cards", "ax-gate"):
+            self.add_at(home / name, f"agent/claude/{name}")
+            (home / name / "shared.py").write_text(name)
+        (home / "ux-nav/ux_only.py").write_text("1")
+        (home / "ux-cards/ux_only.py").write_text("2")
+        out = OR.report(short=True, here="/")
+        self.assertIn("Overlap: 1 file changed in two or more places (shared.py: agent/claude/ax-gate, "
+                      "agent/claude/ux-cards, agent/claude/ux-nav); within one lane prefix: agent/claude/ux-*: "
+                      "1 file(s) (ux_only.py) in agent/claude/ux-cards, agent/claude/ux-nav; make orient", out)
+        rep = OV.classify(self.main, {"q.py": ["agent/claude/ux-a (PR #3)", "PR #4 (agent/claude/ux-b)"]}, [])
+        self.assertEqual((rep.clashes, list(rep.lanes)), ([], ["agent/claude/ux-"]))
+        self.assertEqual(OV.short_line(rep), ["Overlap: none between lane prefixes; within one: agent/claude/ux-*: "
+                                              "1 file(s) (q.py) in PR #4 (agent/claude/ux-b), agent/claude/ux-a "
+                                              "(PR #3); make orient"])
+        self.assertIn("Lane overlaps (1; only branches of one lane prefix share them):", OV.full_lines(rep, "0 PRs"))
+
+    def add_at(self, path: Path, branch: str) -> None:
+        sh("git", "worktree", "add", "-q", "-b", branch, str(path), "origin/main", cwd=self.main)
+
+    def test_lane_prefixes(self):
+        self.assertEqual([OV.lane(x) for x in ("agent/claude/ux-a", "agent/a", "detached wt/c", "fix-x",
+                                               "PR #2 (agent/claude/data-masters-L3)")],
+                         ["agent/claude/ux-", None, None, "fix-", "agent/claude/data-"])
 
 
 if __name__ == "__main__":
