@@ -107,22 +107,23 @@
       "wiki": "wiki/projects/ax-cleanup.md",
       "scores": [
         {"date": "2026-11-27", "value": 8.5, "label": "review before the cleanup"},
-        {"date": "2026-11-28", "value": 7.5, "label": "after #1377, six areas"}
+        {"date": "2026-11-28", "value": 8.5, "label": "after #1388: memory to the repo, sweep, FIFO land queue"}
       ],
       "table": {
-        "columns": ["Area (28 Nov)", "Score", "Measured"],
+        "columns": ["Area (28 Nov, 02:25)", "Score", "Measured"],
         "rows": [
-          ["Instructions", 8.5, "Root AGENTS.md 64 lines, 916 words; five folder AGENTS.md add 585 words; no CLAUDE.md."],
-          ["Skills and agents", 8, "11 skills, 201 to 1,214 words, none over 1,500; handoff and coordinate pass 1,500 with their reference file."],
-          ["Memory", 6.5, "38 files and 10,857 words (49 files on 27 Nov); remote runs, timing and coordinator files repeat AGENTS.md and skills."],
-          ["Session start", 8.5, "The start hook prints nothing in 0.07 s; make orient is about 40 lines, 25 of them overlap."],
-          ["Shipping and merging", 8, "make ready and make land with tests; #1377 adds a GitHub gate for drafts and a merge lock."],
-          ["Housekeeping", 5.5, "43 worktrees (29 agent-a*); 39 progress files, 16 older than a day; nothing prunes agent worktrees."]
+          ["Instructions", 8.5, "Root AGENTS.md 64 lines, 916 words (cap 1,000); five folder AGENTS.md hold 1,315 words (680 at b09d1de4; jmri and schematic grew with rules moved from memory); no CLAUDE.md."],
+          ["Skills and agents", 8, "12 skills of 201 to 1,500 words, none over the cap; dashboard at 1,500 has no headroom. make land is described in three places; merging.md still offers gh pr merge --auto when alone."],
+          ["Memory", 9, "14 files and 3,723 words (38 and 10,857 at the 7.5); every rule moved to the repo file it governs (#1382, #1383); one file over 1,000 words (hosts-and-network); no broken links."],
+          ["Session start", 8.5, "orient --short 16 lines in 3.8 s with 3 stale-line warnings; make orient 41 lines in 6.8 s; overlap down from 25 lines to 1."],
+          ["Shipping and merging", 8.5, "make ready, make land and the FIFO queue (#1388) run live: tickets in order, no wait limit, check wait while queued; 109 tests pass. The transition lock remains; each PR still waits for its own check."],
+          ["Housekeeping", 7.5, "19 worktrees (43), 7 agent-a* (29); the sweep removes clean worktrees with nothing unique (#1386). 38 progress files, 17 older than a day, all data-masters-L* kept by the active project page."]
         ]
       },
       "notes": [
-        "The 27 Nov costs: memory 49 to 38 files (overlap remains); session start one line per worktree to none (fixed); two skills over 2,000 words to none over 1,500 (fixed); 37 stale progress files to 39 live ones (not fixed).",
-        "The 28 Nov rescore scored six areas, two of them (housekeeping, memory overlap) wider than the 27 Nov review looked, so part of the drop is the wider look rather than a regression."
+        "Rescored 2026-11-28 02:25 at 27e6f052 by a repo-auditor, after the owner asked to fix Memory 6.5 and Housekeeping 5.5 from the 7.5 card: memory rules moved to the repo and the folder cut; the sweep removes worktrees with nothing beyond origin/main; make land became a FIFO queue.",
+        "Held back: memory overlap rests on spot reads of 4 of 14 files; the SessionStart hook and make land-wait were not timed.",
+        "Next, in order: archive done lane progress files under an active page (17 data-masters-L*); run the sweep after each make land merge and tighten the hook's gh pr merge match; one make land description, linked from handoff and coordinate; split hosts-and-network in memory."
       ]
     }
   ],
