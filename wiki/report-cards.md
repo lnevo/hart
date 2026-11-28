@@ -32,7 +32,7 @@ How to measure again:
 
 ## Code quality
 
-Line-weighted average over the graded source files, parked code left out (owner, 2026-11-27). Detail per wave, the owner's rulings and the files still at C+ are on [code-quality-wave](projects/code-quality-wave.md); the card with every file is https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE ("After wave 6 (final)").
+Line-weighted average over the graded source files, parked code left out. Owner, 2026-11-27: "leave parked code out of the report card. It shouldn't count against the grade: not in the line-weighted average, not in the C/D counts, not in 'files read'. Show parked files apart (listed, not graded) so they don't vanish from view." Parked means everything under `jmri/layouts/hart/parked/` plus scripts that serve only the parked features (`hartlib.parked.PARKED`: nx, dispatcher, uss), such as `gen_ctc_track_plan.py`, `uss_switch_only_columns.py`, `nx_contract.py`, `reconcile_dispatcher_stations.py` and `ctc_logic_smoke.py`, each confirmed from its callers. A mixed file (`check_bean_comments.py`: live `main()` plus parked USS rules) is graded. Every card brief excludes parked files from the stats and adds a "Parked, not graded" list. Detail per wave, the owner's rulings and the files still at C+ are on [code-quality-wave](projects/code-quality-wave.md); the card with every file is https://claude.ai/artifact/2feCxg41LpAFfoP3e6Z8nE ("After wave 6 (final)").
 
 | | Start (11-26) | Wave 1 | Wave 2 | Wave 3 | Wave 4 | Wave 5 | Wave 6 (11-27) |
 |---|---|---|---|---|---|---|---|
@@ -41,7 +41,7 @@ Line-weighted average over the graded source files, parked code left out (owner,
 | A-range files | 8 | 18 | 133 | 157 | 167 | 189 | 200 |
 | Files read | 70 | 110 | 469 | 488 | 493 | 515 | 526 |
 
-The final card covers 534 source files and 123,997 lines; the margin over B+ is 117 grade-point-lines. A cleanup must not lower the card: check fix PRs against the grade habits in `AGENTS.md` before merge.
+The final card covers 534 source files and 123,997 lines; the margin over B+ is 117 grade-point-lines. A cleanup must not lower the card: check fix PRs against the grade habits in `AGENTS.md` before merge (copied helpers, dates in comments, `from None`, `sys.exit` in library code), or have the files graded before merge. On 2026-11-27 the loose-ends round took the average from 3.301 to 3.298, and the fixes after it (#1361 pipefail, #1362 deploy gate) ended at 3.297, because each added copied shell blocks, dated text and long history comments and the regrade ran only after the merge. The owner stopped it: "we're backtracking now." Do not open a fix-the-fix round just to recover grade points without asking the owner first.
 
 ## Data
 
